@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { login } from '../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.css';
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const [userInput, setUserInput] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // /login?redirect=/alguma-rota (para perfis != operador)
   const search = new URLSearchParams(location.search);
@@ -79,14 +81,10 @@ export default function LoginPage() {
         window.dispatchEvent(new StorageEvent('storage', { key: 'usuario' }));
       } catch {}
 
-      // pós-login: operador sempre vai para /inicio-turno;
-      // se NÃO for operador, respeita ?redirect= se houver, senão vai para /
       const isOperador = (normalized.role || '').toLowerCase() === 'operador';
       const next = isOperador ? '/inicio-turno' : redirectTo;
 
       navigate(next, { replace: true });
-      // (opcional) se seu App não reidratar, você pode forçar:
-      // setTimeout(() => window.location.replace(next), 0);
     } catch (err) {
       console.error('Erro no login:', err);
       toast.error(t('login.invalid'));
@@ -95,56 +93,107 @@ export default function LoginPage() {
     }
   };
 
+  const userPlaceholder = t(
+    'login.userPlaceholder',
+    ''
+  );
+
   return (
     <div className={styles.pageWrapper}>
       <LanguageMenu className={styles.loginLangMenu} />
 
-      <div className={styles.loginContainer}>
-        <div className={styles.logoContainer}>
-          <img src={logo} alt="Logo" className={styles.logo} />
+      <div className={styles.cardWrapper}>
+        <div className={styles.loginCard}>
+          {/* LADO ESQUERDO: LOGO / BRANDING */}
+          <div className={styles.brandSection}>
+            <div className={styles.brandInner}>
+              <img src={logo} alt="Logo" className={styles.brandLogo} />
+            </div>
+            <div className={styles.brandFooter}>
+              <span>
+                {t(
+                  'login.brand.by',
+                  'Desenvolvido pela Melhoria Contínua.'
+                )}
+              </span>
+              <span className={styles.brandCopy}>
+                © 2025
+              </span>
+            </div>
+          </div>
+
+          {/* LADO DIREITO: FORMULÁRIO */}
+          <div className={styles.formSection}>
+            <h1 className={styles.title}>
+              {t('login.title', 'Entrar no portal')}
+            </h1>
+            <p className={styles.subtitle}>
+              {t('login.subtitle', 'Use seu usuário e senha.')}
+            </p>
+
+            <form onSubmit={handleLogin} className={styles.loginForm}>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="userInput" className={styles.fieldLabel}>
+                  {t('login.userOrEmail')}
+                  <span className={styles.requiredMark}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="userInput"
+                  className={styles.fieldInput}
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  required
+                  autoComplete="username"
+                  autoFocus
+                  placeholder={userPlaceholder}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label htmlFor="senha" className={styles.fieldLabel}>
+                  {t('login.password')}
+                  <span className={styles.requiredMark}>*</span>
+                </label>
+                <div className={styles.passwordWrapper}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="senha"
+                    className={styles.fieldInput}
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    placeholder={t('login.passwordPlaceholder', '')}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? t('login.hidePassword', 'Ocultar senha') : t('login.showPassword', 'Mostrar senha')}
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+              </div>
+
+              <p className={styles.forgotHint}>
+                {t(
+                  'login.forgotHint',
+                  'Esqueceu a senha? Procure o responsável de Melhoria Contínua.'
+                )}
+              </p>
+
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={loading}
+              >
+                {loading ? t('login.loading', 'Entrando...') : t('login.next', 'Entrar')}
+              </button>
+            </form>
+          </div>
         </div>
-
-        <h1 className={styles.title}>{t('login.title')}</h1>
-        <p className={styles.subtitle}>{t('login.subtitle')}</p>
-
-        <form onSubmit={handleLogin} className={styles.loginForm}>
-          <div className={styles.inputGroup}>
-            <input
-              type="text"
-              id="userInput"
-              className={styles.input}
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              required
-              autoComplete="username"
-              autoFocus
-            />
-            <label htmlFor="userInput" className={styles.label}>
-              {t('login.userOrEmail')}
-            </label>
-          </div>
-
-          <div className={styles.inputGroup}>
-            <input
-              type="password"
-              id="senha"
-              className={styles.input}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-            <label htmlFor="senha" className={styles.label}>
-              {t('login.password')}
-            </label>
-          </div>
-
-          <div className={styles.buttonContainer}>
-            <button type="submit" className={styles.nextButton} disabled={loading}>
-              {loading ? t('login.loading') : t('login.next')}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );

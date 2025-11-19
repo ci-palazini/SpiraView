@@ -1,137 +1,221 @@
-/* src/components/LoginPage.module.css */
-
-/* 1. NOVO "INVÓLUCRO" PARA CENTRALIZAR A PÁGINA */
+/* Fundo geral da página com a MESMA imagem de antes */
 .pageWrapper {
+  box-sizing: border-box;                /* padding conta dentro dos 100% */
   width: 100%;
-  height: 100vh;                  /* para ocupar toda a altura da viewport */
+  height: 100vh;                         /* travado na viewport */
+  padding: 24px 16px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  position: relative;             /* necessário para o ::before */
+  justify-content: center;
+  position: relative;
   background: url('../assets/background.png') no-repeat center center;
-  background-size: cover;         /* cobre toda a área */
+  background-size: cover;
 }
 
+/* Overlay clarinho por cima da imagem (igual conceito antigo) */
 .pageWrapper::before {
   content: '';
   position: absolute;
-  inset: 0;                       /* top/right/bottom/left = 0 */
-  background-color: rgba(255,255,255,0.8);
-  /* ajuste o último valor (0.5) para aumentar/diminuir a transparência */
-  z-index: 0;                     /* abaixo do conteúdo */
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(224, 242, 255, 0.85) 0, rgba(241, 245, 249, 0.9) 45%, rgba(226, 232, 240, 0.95) 100%);
+  z-index: 0;
 }
 
-/* 2. O RESTO DO SEU CÓDIGO PERMANECE O MESMO */
-.loginContainer {
+/* Wrapper para limitar largura do card */
+.cardWrapper {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 450px;
-  padding: 48px 40px;
-  background-color: #fff;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  box-sizing: border-box;
-  text-align: center;
+  max-width: 880px;
 }
 
-.logoContainer {
-  margin-bottom: 16px;
+/* Card principal (desktop: 2 colunas; mobile: 1 coluna) */
+.loginCard {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
 }
 
-.logo {
-  width: 150px;
+/* --- LADO ESQUERDO: BRAND / LOGO --- */
+.brandSection {
+  flex: 1;
+  min-width: 0;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 32px;
+}
+
+.brandInner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandLogo {
+  max-width: 260px;
+  width: 100%;
   height: auto;
+}
+
+.brandFooter {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 16px;
+}
+
+.brandCopy {
+  display: block;
+  margin-top: 2px;
+}
+
+/* --- LADO DIREITO: FORMULÁRIO --- */
+.formSection {
+  flex: 1.1;
+  min-width: 0;
+  padding: 40px 40px 32px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.accessLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 4px;
 }
 
 .title {
   font-size: 24px;
-  font-weight: 400;
-  color: #202124;
-  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 4px;
 }
 
 .subtitle {
-  font-size: 16px;
-  color: #3c4043;
-  margin: 0 0 32px 0;
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 24px;
 }
 
 .loginForm {
-  width: 100%;
-  text-align: left;
+  margin-top: 4px;
 }
 
-.inputGroup {
-  position: relative;
-  margin-bottom: 24px;
+/* Campos */
+.fieldGroup {
+  margin-bottom: 18px;
 }
 
-.input {
-  width: 100%;
-  padding: 13px 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-.input:focus {
-  outline: none;
-  border: 2px solid #1a73e8;
-  padding: 12px 14px;
-}
-
-.label {
-  position: absolute;
-  top: 14px;
-  left: 16px;
-  color: #5f6368;
-  pointer-events: none;
-  transition: all 0.2s ease-in-out;
-  background-color: #fff;
-  padding: 0 4px;
-}
-
-.input:focus + .label,
-.input:valid + .label {
-  top: -9px;
-  left: 12px;
-  font-size: 12px;
-  color: #1a73e8;
-}
-
-.buttonContainer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 32px;
-}
-
-.nextButton {
-  background-color: #1a73e8;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 24px;
+.fieldLabel {
+  display: block;
   font-size: 14px;
   font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.requiredMark {
+  color: #ef4444;
+  margin-left: 3px;
+}
+
+.fieldInput {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fieldInput::placeholder {
+  color: #94a3b8;
+}
+
+.fieldInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+/* Senha + botão de mostrar/ocultar */
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper .fieldInput {
+  padding-right: 38px;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 10px;
+  border: none;
+  background: transparent;
   cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
-.nextButton:disabled {
-  background-color: #ccc;
+.passwordToggle:hover {
+  color: #64748b;
+}
+
+/* Texto de "esqueceu a senha" */
+.forgotHint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 4px 0 18px;
+}
+
+/* Botão principal */
+.submitButton {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #2563eb;
+  color: #ffffff;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+.submitButton:disabled {
+  background-color: #cbd5e1;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* === Language switcher (flags) === */
-.flag {
-  font-size: 18px; /* emojis de bandeira grandes e nítidos */
-  line-height: 1;
-}
-
-.pageWrapper { position: relative; }
-
-/* posiciona o seletor no canto superior direito da tela de login */
+/* === Language switcher (mesmo padrão anterior) === */
 .loginLangMenu {
   position: fixed;
   top: 16px;
@@ -139,7 +223,52 @@
   z-index: 1000;
 }
 
-/* (opcional) ajuste em telas muito pequenas */
+.flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* RESPONSIVO: MOBILE (CARD ÚNICO CENTRALIZADO) */
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 24px 12px;
+    height: 100vh; /* continua travando na viewport */
+  }
+
+  .loginCard {
+    flex-direction: column;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .brandSection {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 24px 24px 18px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .brandInner {
+    justify-content: center;
+  }
+
+  .brandLogo {
+    max-width: 200px;
+  }
+
+  .brandFooter {
+    margin-top: 12px;
+  }
+
+  .formSection {
+    padding: 28px 24px 24px;
+  }
+}
+
 @media (max-width: 480px) {
-  .loginLangMenu { top: 12px; right: 12px; }
+  .loginLangMenu {
+    top: 12px;
+    right: 12px;
+  }
 }

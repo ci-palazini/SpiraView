@@ -27,7 +27,8 @@
     "password": "Password",
     "invalid": "Invalid username or password.",
     "next": "Next",
-    "loading": "Logging in..."
+    "loading": "Logging in...",
+    "forgotHint": "Forgot your password? Contact the Continuous Improvement manager."
   },
   "inicio": {
     "title": "Home Page",

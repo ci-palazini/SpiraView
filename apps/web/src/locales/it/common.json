@@ -27,7 +27,8 @@
     "password": "Password",
     "invalid": "Nome utente o password non validi.",
     "next": "Avanti",
-    "loading": "Accesso in corso..."
+    "loading": "Accesso in corso...",
+    "forgotHint": "Hai dimenticato la password? Contatta il responsabile del Miglioramento Continuo."
   },
   "inicio": {
     "title": "Pagina iniziale",

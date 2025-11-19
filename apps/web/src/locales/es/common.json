@@ -27,7 +27,8 @@
     "password": "Contraseña",
     "invalid": "Usuario o contraseña inválidos.",
     "next": "Siguiente",
-    "loading": "Ingresando..."
+    "loading": "Ingresando...",
+    "forgotHint": "¿Olvidaste tu contraseña? Comunícate con el responsable de Mejora Continua."
   },
   "inicio": {
     "title": "Página de inicio",

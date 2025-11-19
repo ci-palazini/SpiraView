@@ -27,7 +27,8 @@
     "password": "Mot de passe",
     "invalid": "Nom d’utilisateur ou mot de passe invalide.",
     "next": "Suivant",
-    "loading": "Connexion…"
+    "loading": "Connexion…",
+    "forgotHint": "Mot de passe oublié ? Contactez le responsable de l’Amélioration Continue."
   },
   "inicio": {
     "title": "Page d’accueil",

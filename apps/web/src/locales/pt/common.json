@@ -27,7 +27,8 @@
     "password": "Senha",
     "invalid": "Usuário ou senha inválidos.",
     "next": "Avançar",
-    "loading": "Entrando..."
+    "loading": "Entrando...",
+    "forgotHint": "Esqueceu a senha? Procure o responsável de Melhoria Contínua."
   },
   "inicio": {
     "title": "Página Inicial",

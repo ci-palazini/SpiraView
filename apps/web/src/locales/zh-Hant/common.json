@@ -27,7 +27,8 @@
     "password": "密碼",
     "invalid": "使用者名稱或密碼無效。",
     "next": "下一步",
-    "loading": "正在登入..."
+    "loading": "正在登入...",
+    "forgotHint": "忘記密碼了嗎？請聯絡持續改善負責人。"
   },
   "inicio": {
     "title": "首頁",

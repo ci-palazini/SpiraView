@@ -27,7 +27,8 @@
     "password": "Passwort",
     "invalid": "Ungültiger Benutzername oder Passwort.",
     "next": "Weiter",
-    "loading": "Anmeldung läuft..."
+    "loading": "Anmeldung läuft...",
+    "forgotHint": "Passwort vergessen? Wenden Sie sich an den Verantwortlichen für Kontinuierliche Verbesserung."
   },
   "inicio": {
     "title": "Startseite",
