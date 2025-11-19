@@ -1,0 +1,261 @@
+manutencao
+|-- apps
+|   |-- api
+|   |   |-- dist
+|   |   |   |-- auth
+|   |   |   |   |-- roles.d.ts
+|   |   |   |   \-- roles.js
+|   |   |   |-- config
+|   |   |   |   |-- env.d.ts
+|   |   |   |   \-- env.js
+|   |   |   |-- middlewares
+|   |   |   |   |-- requireRole.d.ts
+|   |   |   |   |-- requireRole.js
+|   |   |   |   |-- userFromHeader.d.ts
+|   |   |   |   \-- userFromHeader.js
+|   |   |   |-- routes
+|   |   |   |   |-- agendamentos.d.ts
+|   |   |   |   |-- agendamentos.js
+|   |   |   |   |-- analytics.d.ts
+|   |   |   |   |-- analytics.js
+|   |   |   |   |-- auth.d.ts
+|   |   |   |   |-- auth.js
+|   |   |   |   |-- bot.d.ts
+|   |   |   |   |-- bot.js
+|   |   |   |   |-- causas.d.ts
+|   |   |   |   |-- causas.js
+|   |   |   |   |-- chamados.d.ts
+|   |   |   |   |-- chamados.js
+|   |   |   |   |-- checklists.d.ts
+|   |   |   |   |-- checklists.js
+|   |   |   |   |-- events.d.ts
+|   |   |   |   |-- events.js
+|   |   |   |   |-- health.d.ts
+|   |   |   |   |-- health.js
+|   |   |   |   |-- maquinas.d.ts
+|   |   |   |   |-- maquinas.js
+|   |   |   |   |-- pecas.d.ts
+|   |   |   |   |-- pecas.js
+|   |   |   |   |-- usuarios.d.ts
+|   |   |   |   \-- usuarios.js
+|   |   |   |-- types
+|   |   |   |   |-- chamados.d.ts
+|   |   |   |   \-- chamados.js
+|   |   |   |-- utils
+|   |   |   |   |-- roles.d.ts
+|   |   |   |   |-- roles.js
+|   |   |   |   |-- slug.d.ts
+|   |   |   |   |-- slug.js
+|   |   |   |   |-- sse.d.ts
+|   |   |   |   |-- sse.js
+|   |   |   |   |-- status.d.ts
+|   |   |   |   \-- status.js
+|   |   |   |-- app.d.ts
+|   |   |   |-- app.js
+|   |   |   |-- db.d.ts
+|   |   |   |-- db.js
+|   |   |   |-- index.d.ts
+|   |   |   \-- index.js
+|   |   |-- scripts
+|   |   |   |-- restore_chamados_from_firestore.js
+|   |   |   |-- restore_from_firestore.js
+|   |   |   \-- service-account.json
+|   |   |-- src
+|   |   |   |-- auth
+|   |   |   |   \-- roles.ts
+|   |   |   |-- config
+|   |   |   |   \-- env.ts
+|   |   |   |-- middlewares
+|   |   |   |   |-- requireRole.ts
+|   |   |   |   \-- userFromHeader.ts
+|   |   |   |-- routes
+|   |   |   |   |-- agendamentos.ts
+|   |   |   |   |-- analytics.ts
+|   |   |   |   |-- auth.ts
+|   |   |   |   |-- bot.ts
+|   |   |   |   |-- causas.ts
+|   |   |   |   |-- chamados.ts
+|   |   |   |   |-- checklists.ts
+|   |   |   |   |-- events.ts
+|   |   |   |   |-- health.ts
+|   |   |   |   |-- maquinas.ts
+|   |   |   |   |-- pecas.ts
+|   |   |   |   \-- usuarios.ts
+|   |   |   |-- types
+|   |   |   |   |-- chamados.ts
+|   |   |   |   \-- express.d.ts
+|   |   |   |-- utils
+|   |   |   |   |-- roles.ts
+|   |   |   |   |-- slug.ts
+|   |   |   |   |-- sse.ts
+|   |   |   |   \-- status.ts
+|   |   |   |-- app.ts
+|   |   |   |-- db.ts
+|   |   |   |-- env.d.ts
+|   |   |   \-- index.ts
+|   |   |-- .dockerignore
+|   |   |-- .env
+|   |   |-- .gitignore
+|   |   |-- .prettierignore
+|   |   |-- .prettierrc.json
+|   |   |-- Dockerfile
+|   |   |-- eslint.config.mjs
+|   |   |-- package.json
+|   |   |-- tsconfig.json
+|   |   \-- tsconfig.tsbuildinfo
+|   \-- web
+|       |-- dev-dist
+|       |   |-- sw.js
+|       |   |-- workbox-01967f22.js
+|       |   \-- workbox-99d8380f.js
+|       |-- dist
+|       |   |-- assets
+|       |   |   |-- background-H23Q7ZbP.png
+|       |   |   |-- html2canvas.esm-B0tyYwQk.js
+|       |   |   |-- index-BtGlBLUQ.css
+|       |   |   |-- index-TQebM8bs.js
+|       |   |   |-- index.es-DjlJB8EU.js
+|       |   |   |-- logo-CVBhMG_r.png
+|       |   |   |-- logo-sidebar-DzWNpkuA.png
+|       |   |   |-- purify.es-aGzT-_H7.js
+|       |   |   \-- workbox-window.prod.es5-CwtvwXb3.js
+|       |   |-- icons
+|       |   |   |-- icon-180.png
+|       |   |   |-- icon-192.png
+|       |   |   \-- icon-512.png
+|       |   |-- index.html
+|       |   |-- manifest.webmanifest
+|       |   |-- sw.js
+|       |   \-- workbox-cc402d21.js
+|       |-- public
+|       |   |-- icons
+|       |   |   |-- icon-180.png
+|       |   |   |-- icon-192.png
+|       |   |   \-- icon-512.png
+|       |   \-- manifest.webmanifest
+|       |-- src
+|       |   |-- assets
+|       |   |   |-- background.png
+|       |   |   |-- logo-sidebar.png
+|       |   |   \-- logo.png
+|       |   |-- components
+|       |   |   |-- LanguageMenu.jsx
+|       |   |   |-- LanguageMenu.module.css
+|       |   |   |-- LoginPage.jsx
+|       |   |   |-- LoginPage.module.css
+|       |   |   |-- MainLayout.jsx
+|       |   |   |-- MainLayout.module.css
+|       |   |   |-- Modal.jsx
+|       |   |   |-- Modal.module.css
+|       |   |   |-- OperatorDashboard.jsx
+|       |   |   |-- OperatorDashboard.module.css
+|       |   |   |-- SWUpdateBanner.jsx
+|       |   |   \-- SWUpdateBanner.module.css
+|       |   |-- i18n
+|       |   |   |-- format.ts
+|       |   |   \-- index.js
+|       |   |-- locales
+|       |   |   |-- de
+|       |   |   |   \-- common.json
+|       |   |   |-- en
+|       |   |   |   \-- common.json
+|       |   |   |-- es
+|       |   |   |   \-- common.json
+|       |   |   |-- fr
+|       |   |   |   \-- common.json
+|       |   |   |-- it
+|       |   |   |   \-- common.json
+|       |   |   |-- ja
+|       |   |   |   \-- common.json
+|       |   |   |-- ko
+|       |   |   |   \-- common.json
+|       |   |   |-- pt
+|       |   |   |   \-- common.json
+|       |   |   |-- zh-Hans
+|       |   |   |   \-- common.json
+|       |   |   \-- zh-Hant
+|       |   |       \-- common.json
+|       |   |-- pages
+|       |   |   |-- AbrirChamadoManutentor.jsx
+|       |   |   |-- AbrirChamadoManutentor.module.css
+|       |   |   |-- AnaliseFalhasPage.jsx
+|       |   |   |-- AnaliseFalhasPage.module.css
+|       |   |   |-- CalendarioGeralPage.jsx
+|       |   |   |-- CalendarioGeralPage.module.css
+|       |   |   |-- CausasRaizPage.jsx
+|       |   |   |-- CausasRaizPage.module.css
+|       |   |   |-- ChamadoDetalhe.jsx
+|       |   |   |-- ChamadoDetalhe.module.css
+|       |   |   |-- EstoquePage.jsx
+|       |   |   |-- EstoquePage.module.css
+|       |   |   |-- GerirUtilizadoresPage.jsx
+|       |   |   |-- GerirUtilizadoresPage.module.css
+|       |   |   |-- HistoricoLayout.jsx
+|       |   |   |-- HistoricoPage.jsx
+|       |   |   |-- HistoricoPage.module.css
+|       |   |   |-- InicioPage.jsx
+|       |   |   |-- InicioPage.module.css
+|       |   |   |-- InicioTurnoPage.jsx
+|       |   |   |-- InicioTurnoPage.module.css
+|       |   |   |-- MaquinaDetalhePage.jsx
+|       |   |   |-- MaquinaDetalhePage.module.css
+|       |   |   |-- MaquinasLayout.jsx
+|       |   |   |-- MaquinasPage.jsx
+|       |   |   |-- MaquinasPage.module.css
+|       |   |   |-- MeusChamados.jsx
+|       |   |   |-- MeusChamados.module.css
+|       |   |   |-- MovimentacaoModal.jsx
+|       |   |   |-- MovimentacaoModal.module.css
+|       |   |   |-- PecaModal.jsx
+|       |   |   |-- PecaModal.module.css
+|       |   |   |-- PerfilPage.jsx
+|       |   |   |-- PerfilPage.module.css
+|       |   |   \-- PziniChatBot.jsx
+|       |   |-- services
+|       |   |   |-- apiClient.js
+|       |   |   \-- sseClient.js
+|       |   |-- utils
+|       |   |   |-- dateUtils.js
+|       |   |   |-- exportExcel.js
+|       |   |   \-- exportPdf.js
+|       |   |-- App.css
+|       |   |-- App.jsx
+|       |   |-- index.css
+|       |   \-- main.jsx
+|       |-- .env
+|       |-- .gitignore
+|       |-- eslint.config.js
+|       |-- index.html
+|       |-- package.json
+|       |-- postcss.config.cjs
+|       |-- README.md
+|       |-- vercel.json
+|       \-- vite.config.js
+|-- infra
+|   \-- intranet
+|       |-- init-sql
+|       |-- api.Dockerfile
+|       |-- docker-compose.yml
+|       \-- nginx.conf
+|-- packages
+|   \-- shared
+|       |-- dist
+|       |   |-- schemas
+|       |   |   |-- chamados.d.ts
+|       |   |   \-- chamados.js
+|       |   |-- index.d.ts
+|       |   \-- index.js
+|       |-- src
+|       |   |-- schemas
+|       |   |   \-- chamados.ts
+|       |   \-- index.ts
+|       |-- package.json
+|       |-- tsconfig.json
+|       \-- tsconfig.tsbuildinfo
+|-- .gitignore
+|-- package-lock.json
+|-- package.json
+|-- pnpm-lock.yaml
+|-- pnpm-workspace.yaml
+|-- tree.txt
+\-- tsconfig.base.json

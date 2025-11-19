@@ -1,5 +1,5 @@
 // src/components/MainLayout.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Routes, Route, NavLink, Link, useNavigate, Navigate } from 'react-router-dom';
 import {
   FiHome, FiLogOut, FiCheckSquare, FiUser, FiCalendar, FiUsers,
@@ -43,6 +43,10 @@ const MainLayout = ({ user }) => {
   const [myActiveCount, setMyActiveCount] = useState(0);
   const hasMyActiveCalls = myActiveCount > 0;
 
+  // menu do usuário (avatar)
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
   // idioma atual é PT?
   const isPt = (i18n?.language || '').toLowerCase().startsWith('pt');
 
@@ -66,6 +70,21 @@ const MainLayout = ({ user }) => {
       BETA
     </span>
   );
+
+  // iniciais do usuário para o avatar
+  const userInitials = useMemo(() => {
+    const nome = (user?.nome || '').trim();
+    if (nome) {
+      const parts = nome.split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return nome.slice(0, 2).toUpperCase();
+    }
+    const email = (user?.email || '').trim();
+    if (email) return email.slice(0, 2).toUpperCase();
+    return '?';
+  }, [user?.nome, user?.email]);
 
   // Helpers de refresh (usados no mount e quando chegam eventos SSE)
   const refreshOpenCalls = async () => {
@@ -129,6 +148,25 @@ const MainLayout = ({ user }) => {
     return '—';
   };
 
+  // fecha o menu do usuário ao clicar fora / ESC
+  useEffect(() => {
+    const onClick = (e) => {
+      if (!userMenuRef.current) return;
+      if (!userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
   const NavContent = () => (
     <>
       <NavLink to="/" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink} end>
@@ -147,10 +185,7 @@ const MainLayout = ({ user }) => {
         </NavLink>
       )}
 
-      <NavLink to="/perfil" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink}>
-        <FiUser className={styles.navIcon} />
-        <span>{t('nav.profile')}</span>
-      </NavLink>
+      {/* Meu Perfil saiu daqui e foi para o menu do avatar */}
 
       {(role === 'manutentor' || role === 'gestor') && (
         <>
@@ -280,12 +315,7 @@ const MainLayout = ({ user }) => {
         <nav className={styles.nav}>
           <NavContent />
         </nav>
-        <div className={styles.userInfo}>
-          <span className={styles.userEmail}>{user?.nome}</span>
-          <button onClick={handleLogout} className={styles.logoutButton} title={t('common.logout', 'Sair')}>
-            <FiLogOut />
-          </button>
-        </div>
+        {/* userInfo removido (agora está no header via avatar) */}
       </aside>
 
       {/* OVERLAY MOBILE */}
@@ -301,12 +331,7 @@ const MainLayout = ({ user }) => {
         <nav className={styles.nav} onClick={() => setIsMobileMenuOpen(false)}>
           <NavContent />
         </nav>
-        <div className={styles.userInfo}>
-          <span className={styles.userEmail}>{user?.nome}</span>
-          <button onClick={handleLogout} className={styles.logoutButton} title={t('common.logout', 'Sair')}>
-            <FiLogOut />
-          </button>
-        </div>
+        {/* userInfo removido aqui também */}
       </aside>
 
       {/* CONTEÚDO PRINCIPAL */}
@@ -316,7 +341,50 @@ const MainLayout = ({ user }) => {
             {isMobileMenuOpen ? <FiX /> : <FiMenu />}
           </button>
           <h1>{getDashboardTitle()}</h1>
-          <LanguageMenu className={styles.langMenu} />
+
+          <div className={styles.headerRight}>
+            <LanguageMenu className={styles.langMenu} />
+
+            <div className={styles.userMenuRoot} ref={userMenuRef}>
+              <button
+                className={styles.userAvatarButton}
+                onClick={() => setUserMenuOpen(v => !v)}
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                title={user?.nome || user?.email || ''}
+              >
+                <span className={styles.userAvatarCircle}>{userInitials}</span>
+              </button>
+
+              {userMenuOpen && (
+                <div className={styles.userMenu} role="menu">
+                  <button
+                    className={styles.userMenuItem}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      navigate('/perfil');
+                    }}
+                    role="menuitem"
+                  >
+                    <FiUser className={styles.userMenuIcon} />
+                    <span>{t('nav.profile')}</span>
+                  </button>
+
+                  <button
+                    className={styles.userMenuItem}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    role="menuitem"
+                  >
+                    <FiLogOut className={styles.userMenuIcon} />
+                    <span>{t('common.logout', 'Sair')}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
         <Routes>

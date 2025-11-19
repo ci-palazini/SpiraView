@@ -101,12 +101,21 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex; /* Para alinhar o botão de menu */
+  display: flex;
   align-items: center;
 }
+
 .header h1 {
   margin: 0;
   font-size: 1.5rem;
+}
+
+/* container à direita do header (idioma + avatar) */
+.headerRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .content {
   padding: 20px;
@@ -246,3 +255,65 @@
   cursor: default;
 }
 .langMenu { margin-left: auto; }
+
+/* --- Avatar / menu de usuário no topo direito --- */
+.userMenuRoot {
+  position: relative;
+}
+
+.userAvatarButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.userAvatarCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background-color: #4B70E2;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.userMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  padding: 6px;
+  z-index: 40;
+}
+
+.userMenuItem {
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.userMenuItem:hover {
+  background-color: #f8fafc;
+}
+
+.userMenuIcon {
+  font-size: 16px;
+  color: #64748b;
+}
