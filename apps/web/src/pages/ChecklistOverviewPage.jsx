@@ -1,8 +1,12 @@
-// src/pages/ChecklistOverviewPage.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiCheckCircle, FiAlertTriangle, FiInfo, FiRefreshCw } from 'react-icons/fi';
+import {
+  FiCheckCircle,
+  FiAlertTriangle,
+  FiInfo,
+  FiRefreshCw,
+} from 'react-icons/fi';
 
 import { listarMaquinas, getMaquina } from '../services/apiClient';
 import { df } from '../i18n/format';
@@ -36,8 +40,10 @@ const ChecklistOverviewPage = ({ user }) => {
           (maquinas || []).map(async (m) => {
             const det = await getMaquina(m.id);
 
-            const historicoDias = Array.isArray(det.historicoChecklist ?? det.historicoDiario)
-              ? (det.historicoChecklist ?? det.historicoDiario)
+            const historicoDias = Array.isArray(
+              det.historicoChecklist ?? det.historicoDiario
+            )
+              ? det.historicoChecklist ?? det.historicoDiario
               : [];
 
             const submissoes = Array.isArray(det.checklistHistorico)
@@ -85,7 +91,10 @@ const ChecklistOverviewPage = ({ user }) => {
 
         setItems(
           detalhes.sort((a, b) =>
-            String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR')
+            String(a.nome || '').localeCompare(
+              String(b.nome || ''),
+              'pt-BR'
+            )
           )
         );
       } catch (e) {
@@ -152,24 +161,22 @@ const ChecklistOverviewPage = ({ user }) => {
   );
 
   return (
-    <>
-      {/* HEADER BRANCO, IGUAL OUTRAS TELAS */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>
-          {t('checklistOverview.title', 'Checklists diários por máquina')}
-        </h1>
-        <p className={styles.pageSubtitle}>
-          {t(
-            'checklistOverview.subtitle',
-            'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.'
-          )}
-        </p>
-      </header>
+    <div className={styles.page}>
+      <div className={styles.card}>
+        {/* Cabeçalho dentro do card branco */}
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.pageTitle}>
+              {t('checklistOverview.title', 'Checklists diários por máquina')}
+            </h1>
+            <p className={styles.pageSubtitle}>
+              {t(
+                'checklistOverview.subtitle',
+                'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.'
+              )}
+            </p>
+          </div>
 
-      {/* CORPO DA PÁGINA */}
-      <div className={styles.page}>
-        {/* Filtros no topo, alinhados à direita */}
-        <div className={styles.filtersRow}>
           <div className={styles.filters}>
             <div className={styles.filterBlock}>
               <span className={styles.filterLabel}>
@@ -183,18 +190,19 @@ const ChecklistOverviewPage = ({ user }) => {
               />
             </div>
 
-            <div className={styles.filterBlock}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={onlyPending}
-                  onChange={(e) => setOnlyPending(e.target.checked)}
-                />
-              </label>
+            <label className={styles.onlyPendingWrapper}>
+              <input
+                type="checkbox"
+                checked={onlyPending}
+                onChange={(e) => setOnlyPending(e.target.checked)}
+              />
               <span className={styles.checkboxText}>
-                {t('checklistOverview.onlyPending', 'Apenas pendentes')}
+                {t(
+                  'checklistOverview.onlyPending',
+                  'Apenas pendentes'
+                )}
               </span>
-            </div>
+            </label>
 
             <button
               type="button"
@@ -207,11 +215,14 @@ const ChecklistOverviewPage = ({ user }) => {
           </div>
         </div>
 
-        {/* Cards de resumo */}
+        {/* Cards de resumo dentro do mesmo card */}
         <div className={styles.summaryRow}>
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>
-              {t('checklistOverview.totalMachines', 'Total de máquinas')}
+              {t(
+                'checklistOverview.totalMachines',
+                'Total de máquinas'
+              )}
             </span>
             <strong className={styles.summaryValue}>{totals.total}</strong>
           </div>
@@ -235,84 +246,93 @@ const ChecklistOverviewPage = ({ user }) => {
 
         {error && <div className={styles.errorBox}>{error}</div>}
 
-        {/* Tabela principal */}
-        <div className={styles.tableCard}>
-          <div className={styles.tableHeader}>
-            <span className={styles.tableTitle}>
-              {t('checklistOverview.tableTitle', 'Status por máquina')}
-            </span>
-            {loading && (
-              <span className={styles.loadingInfo}>
-                <FiRefreshCw className={styles.spin} />{' '}
-                {t('common.loading', 'Carregando...')}
-              </span>
+        {/* Tabela ainda dentro do mesmo card */}
+        <div className={styles.tableHeader}>
+          <span className={styles.tableTitle}>
+            {t(
+              'checklistOverview.tableTitle',
+              'Status por máquina'
             )}
-          </div>
+          </span>
+          {loading && (
+            <span className={styles.loadingInfo}>
+              <FiRefreshCw className={styles.spin} />{' '}
+              {t('common.loading', 'Carregando...')}
+            </span>
+          )}
+        </div>
 
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>
+                  {t('checklistOverview.machine', 'Máquina')}
+                </th>
+                <th>
+                  {t('checklistOverview.turn1Short', '1º turno')}
+                </th>
+                <th>
+                  {t('checklistOverview.turn2Short', '2º turno')}
+                </th>
+                <th>
+                  {t('checklistOverview.lastSent', 'Último checklist')}
+                </th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {!loading && visibleItems.length === 0 && (
                 <tr>
-                  <th>{t('checklistOverview.machine', 'Máquina')}</th>
-                  <th>{t('checklistOverview.turn1Short', '1º turno')}</th>
-                  <th>{t('checklistOverview.turn2Short', '2º turno')}</th>
-                  <th>{t('checklistOverview.lastSent', 'Último checklist')}</th>
-                  <th />
+                  <td colSpan={5} className={styles.emptyCell}>
+                    {t(
+                      'checklistOverview.empty',
+                      'Nenhuma máquina encontrada para o filtro atual.'
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {!loading && visibleItems.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className={styles.emptyCell}>
-                      {t(
-                        'checklistOverview.empty',
-                        'Nenhuma máquina encontrada para o filtro atual.'
-                      )}
+              )}
+
+              {visibleItems.map((m) => {
+                const lastSent = m.ultimaSub?.criado_em
+                  ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
+                  : '—';
+
+                return (
+                  <tr key={m.id}>
+                    <td>
+                      <Link
+                        to={`/maquinas/${m.id}?tab=checklist`}
+                        className={styles.machineLink}
+                      >
+                        {m.nome}
+                      </Link>
+                    </td>
+                    <td>{renderStatusBadge(m.turno1Ok, m.turno1Nomes)}</td>
+                    <td>{renderStatusBadge(m.turno2Ok, m.turno2Nomes)}</td>
+                    <td>{lastSent}</td>
+                    <td className={styles.actionCell}>
+                      <Link
+                        to={`/maquinas/${m.id}?tab=checklist`}
+                        className={styles.detailsLink}
+                      >
+                        <FiInfo />
+                        <span>
+                          {t(
+                            'checklistOverview.details',
+                            'Ver detalhes'
+                          )}
+                        </span>
+                      </Link>
                     </td>
                   </tr>
-                )}
-
-                {visibleItems.map((m) => {
-                  const lastSent = m.ultimaSub?.criado_em
-                    ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
-                    : '—';
-
-                  return (
-                    <tr key={m.id}>
-                      <td>
-                        <Link
-                          to={`/maquinas/${m.id}?tab=checklist`}
-                          className={styles.machineLink}
-                        >
-                          {m.nome}
-                        </Link>
-                      </td>
-                      <td>{renderStatusBadge(m.turno1Ok, m.turno1Nomes)}</td>
-                      <td>{renderStatusBadge(m.turno2Ok, m.turno2Nomes)}</td>
-                      <td>{lastSent}</td>
-                      <td className={styles.actionCell}>
-                        <Link
-                          to={`/maquinas/${m.id}?tab=checklist`}
-                          className={styles.detailsLink}
-                        >
-                          <FiInfo />
-                          <span>
-                            {t(
-                              'checklistOverview.details',
-                              'Ver detalhes'
-                            )}
-                          </span>
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,118 +1,39 @@
 .page {
-  padding: 24px;
-  background-color: #f4f6fb;
-}
-
-.pageHeader {
   padding: 20px 24px;
+}
+
+/* card único que engloba título, filtros, resumo e tabela */
+.card {
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 20px 20px 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
-.pageTitle {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: #0f172a;
-}
-
-.pageSubtitle {
-  margin: 4px 0 0;
-  font-size: 16px;
-  color: #4b5563;
-}
-
-/* Corpo da página */
-.page {
-  padding: 24px;
-  background-color: #f4f6fb;
-}
-
-/* linha dos filtros logo abaixo do header */
-.filtersRow {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
-.filters {
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-/* (restante do arquivo pode ficar como está, só garante que não tenha outro .page/.pageTitle/.pageSubtitle conflitante) */
-
-.filterBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.filterLabel {
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.dateInput {
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 6px 10px;
-  font-size: 14px;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.checkboxText {
-  font-size: 13px;
-  color: #4b5563;
-}
-
-.todayButton {
-  border-radius: 999px;
-  border: 1px solid #2563eb;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  background-color: #2563eb;
-  color: #fff;
-  cursor: pointer;
-}
-
-.todayButton:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
+/* Cabeçalho (título + filtros) */
 .headerRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .pageTitle {
   margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: #0f172a;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .pageSubtitle {
   margin: 4px 0 0;
-  font-size: 16px;
-  color: #4b5563;
+  font-size: 14px;
+  color: #6b7280;
 }
 
+/* Filtros à direita */
 .filters {
   display: flex;
   align-items: flex-end;
@@ -139,10 +60,13 @@
   font-size: 14px;
 }
 
-.checkboxLabel {
+/* checkbox “apenas pendentes” */
+.onlyPendingWrapper {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 13px;
+  color: #4b5563;
 }
 
 .checkboxText {
@@ -209,19 +133,11 @@
 
 /* Tabela */
 
-.tableCard {
-  background-color: #fff;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  padding: 16px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-}
-
 .tableHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .tableTitle {
@@ -347,8 +263,14 @@
     padding: 16px;
   }
 
+  .card {
+    padding: 16px 14px 14px;
+  }
+
   .headerRow {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
   .filters {
