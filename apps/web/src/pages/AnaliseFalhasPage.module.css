@@ -1,10 +1,86 @@
-/* Card branco padrão (igual outras páginas: MeusChamados, AbrirChamado etc.) */
-.listContainer {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
+/* Header em card branco – mesmo padrão do Histórico */
+.pageHeader {
   margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 0.95rem;
+}
+
+/* Card principal (filtros + gráfico) */
+.listContainer {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px;
+  margin-top: 12px;
+}
+
+.loading {
+  color: #667085;
+}
+
+/* Filtros em linha, dentro de um card interno */
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: #ffffff;
+  padding: 1rem;
+  border: 1px solid #e2e6eb;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+}
+
+.filterField label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #333;
+}
+
+.filterField input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid #ccd0d5;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* Botão Limpar */
+.clearButton {
+  align-self: flex-end;
+  padding: 0.5rem 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.clearButton:hover {
+  background: #c0392b;
 }
 
 /* Container do gráfico */
@@ -13,43 +89,24 @@
   height: 400px;
 }
 
-/* Filtros (datas + limpar) no topo do card */
-.filterContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
+/* Responsivo */
+@media (max-width: 768px) {
+  .pageHeader {
+    margin: 12px;
+    padding: 14px 16px;
+  }
 
-.filterContainer > div {
-  display: flex;
-  flex-direction: column;
-}
+  .listContainer {
+    margin: 12px;
+    padding: 14px 16px;
+  }
 
-.filterContainer label {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: #333;
-}
+  .filterContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.filterContainer input {
-  padding: 0.5rem;
-  border: 1px solid #ccd0d5;
-  border-radius: 4px;
-}
-
-/* Botão "Limpar" de filtro */
-.clearButton {
-  align-self: flex-end;
-  padding: 0.5rem 1rem;
-  background: #e74c3c;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.clearButton:hover {
-  background: #c0392b;
+  .clearButton {
+    align-self: flex-start;
+  }
 }

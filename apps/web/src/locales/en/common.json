@@ -28,6 +28,9 @@
     "subtitle": "Use your account",
     "userOrEmail": "E-mail or Username",
     "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "invalid": "Invalid username or password.",
     "next": "Next",
     "loading": "Logging in...",
@@ -123,6 +126,8 @@
       "deleted": "Machine \"{{name}}\" deleted.",
       "deleteError": "Unable to delete the machine.",
       "deleteBlocked": "Machine has linked records (e.g., tickets). Remove/close the links first.",
+      "deleteForbidden": "Permission denied (managers only).",
+      "deleteNotFound": "Machine not found (try refreshing).",
       "renamed": "Machine renamed to {{name}}",
       "renameError": "Error renaming machine.",
       "renameDuplicated": "A machine with this name/tag already exists."

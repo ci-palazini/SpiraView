@@ -28,6 +28,9 @@
     "subtitle": "使用您的账户",
     "userOrEmail": "邮箱或用户名",
     "password": "密码",
+    "passwordPlaceholder": "您的密码",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
     "invalid": "用户名或密码无效。",
     "next": "下一步",
     "loading": "正在登录...",
@@ -123,6 +126,8 @@
       "deleted": "机器“{{name}}”已删除。",
       "deleteError": "无法删除该机器。",
       "deleteBlocked": "该机器存在关联（如：工单）。请先移除/关闭关联后再试。",
+      "deleteForbidden": "无权限（仅限管理员）。",
+      "deleteNotFound": "未找到该设备（请尝试刷新）。",
       "renamed": "机器已重命名为“{{name}}”",
       "renameError": "重命名机器时发生错误。",
       "renameDuplicated": "已存在同名/同标签的机器。"

@@ -28,6 +28,9 @@
     "subtitle": "使用您的帳號",
     "userOrEmail": "電子郵件或使用者名稱",
     "password": "密碼",
+    "passwordPlaceholder": "您的密碼",
+    "showPassword": "顯示密碼",
+    "hidePassword": "隱藏密碼",
     "invalid": "使用者名稱或密碼無效。",
     "next": "下一步",
     "loading": "正在登入...",
@@ -123,6 +126,8 @@
       "deleted": "機器「{{name}}」已刪除。",
       "deleteError": "無法刪除該機器。",
       "deleteBlocked": "此機器存在關聯（例如：工單）。請先移除／關閉關聯後再試。",
+      "deleteForbidden": "沒有權限（僅限管理員）。",
+      "deleteNotFound": "找不到該機器（請嘗試重新整理）。",
       "renamed": "機器已更名為「{{name}}」",
       "renameError": "重命名機器時發生錯誤。",
       "renameDuplicated": "已存在同名／同標籤的機器。"

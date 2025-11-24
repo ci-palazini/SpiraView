@@ -28,6 +28,9 @@
     "subtitle": "Verwenden Sie Ihr Konto",
     "userOrEmail": "E-Mail oder Benutzername",
     "password": "Passwort",
+    "passwordPlaceholder": "Dein Passwort",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort ausblenden",
     "invalid": "Ungültiger Benutzername oder Passwort.",
     "next": "Weiter",
     "loading": "Anmeldung läuft...",
@@ -123,6 +126,8 @@
       "deleted": "Maschine „{{name}}“ gelöscht.",
       "deleteError": "Die Maschine konnte nicht gelöscht werden.",
       "deleteBlocked": "Maschine mit Verknüpfungen (z. B. Tickets). Bitte entfernen/schließen Sie die Verknüpfungen zuerst.",
+      "deleteForbidden": "Zugriff verweigert (nur Manager).",
+      "deleteNotFound": "Maschine nicht gefunden (bitte aktualisieren).",
       "renamed": "Maschine in „{{name}}“ umbenannt",
       "renameError": "Fehler beim Umbenennen der Maschine.",
       "renameDuplicated": "Es gibt bereits eine Maschine mit diesem Namen/Tag."

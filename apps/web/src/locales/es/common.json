@@ -28,6 +28,9 @@
     "subtitle": "Usa tu cuenta",
     "userOrEmail": "Correo o Nombre de usuario",
     "password": "Contraseña",
+    "passwordPlaceholder": "Tu contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "invalid": "Usuario o contraseña inválidos.",
     "next": "Siguiente",
     "loading": "Ingresando...",
@@ -123,6 +126,8 @@
       "deleted": "Máquina \"{{name}}\" eliminada.",
       "deleteError": "No se pudo eliminar la máquina.",
       "deleteBlocked": "Máquina con vínculos (p. ej., tickets). Elimina/cierra los vínculos primero.",
+      "deleteForbidden": "Permiso denegado (solo gestores).",
+      "deleteNotFound": "Máquina no encontrada (intenta actualizar).",
       "renamed": "Máquina renombrada a \"{{name}}\"",
       "renameError": "Error al renombrar la máquina.",
       "renameDuplicated": "Ya existe una máquina con ese nombre/etiqueta."

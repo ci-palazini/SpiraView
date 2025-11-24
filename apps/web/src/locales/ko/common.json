@@ -28,6 +28,9 @@
     "subtitle": "계정을 사용하세요",
     "userOrEmail": "이메일 또는 사용자 이름",
     "password": "비밀번호",
+    "passwordPlaceholder": "비밀번호",
+    "showPassword": "비밀번호 표시",
+    "hidePassword": "비밀번호 숨기기",
     "invalid": "사용자 이름 또는 비밀번호가 잘못되었습니다.",
     "next": "다음",
     "loading": "로그인 중...",
@@ -123,6 +126,8 @@
       "deleted": "기계 \"{{name}}\"이(가) 삭제되었습니다.",
       "deleteError": "기계를 삭제할 수 없습니다.",
       "deleteBlocked": "이 기계에는 연결된 항목(예: 티켓)이 있습니다. 먼저 연결을 해제하거나 종료해 주세요.",
+      "deleteForbidden": "권한이 없습니다(관리자만 가능).",
+      "deleteNotFound": "기계를 찾을 수 없습니다(새로 고침해 보세요).",
       "renamed": "기계 이름을 \"{{name}}\"(으)로 변경했습니다.",
       "renameError": "기계 이름 변경 중 오류가 발생했습니다.",
       "renameDuplicated": "같은 이름/태그의 기계가 이미 존재합니다."

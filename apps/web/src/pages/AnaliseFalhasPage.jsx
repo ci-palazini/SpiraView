@@ -1,3 +1,4 @@
+// AnaliseFalhasPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './AnaliseFalhasPage.module.css';
 
@@ -21,7 +22,7 @@ const AnaliseFalhasPage = () => {
   const { t } = useTranslation();
 
   const [startDate, setStartDate] = useState(null); // Date | null
-  const [endDate, setEndDate] = useState(null);     // Date | null
+  const [endDate, setEndDate]     = useState(null); // Date | null
   const [chamadosCorretivos, setChamadosCorretivos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,22 +36,24 @@ const AnaliseFalhasPage = () => {
         // janela padrão: últimos 90 dias
         const now = new Date();
         const from = startDate ? new Date(startDate) : new Date(now);
-        if (!startDate) from.setDate(now.getDate() - 90);
+        if (!startDate) {
+          from.setDate(now.getDate() - 90);
+        }
 
         const to = endDate ? new Date(endDate) : new Date(now);
         to.setHours(23, 59, 59, 999); // incluir o dia final
 
-        const itens = await listarChamados({
+        const res = await listarChamados({
           tipo: 'corretiva',
           status: 'Concluido',
           from: from.toISOString(),
-          to: to.toISOString(),
+          to:   to.toISOString(),
         });
 
-        const arr = Array.isArray(itens?.items)
-          ? itens.items
-          : Array.isArray(itens)
-          ? itens
+        const arr = Array.isArray(res?.items)
+          ? res.items
+          : Array.isArray(res)
+          ? res
           : [];
 
         if (!alive) return;
@@ -103,7 +106,7 @@ const AnaliseFalhasPage = () => {
         title: {
           display: true,
           text: t('analiseFalhas.chart.title'),
-          font: { size: 18 },
+          font: { size: 16 },
         },
       },
       scales: {
@@ -128,76 +131,76 @@ const AnaliseFalhasPage = () => {
 
   return (
     <>
-      {/* header padrão (faixa branca) */}
-      <header
-        style={{
-          padding: '20px',
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0',
-        }}
-      >
-        <h1>{t('analiseFalhas.title')}</h1>
+      {/* Card de header – igual padrão do Histórico */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('analiseFalhas.title')}</h1>
+        <p className={styles.subtitle}>
+          {t(
+            'analiseFalhas.subtitle',
+            'Veja a distribuição de falhas corretivas por máquina no período selecionado.'
+          )}
+        </p>
       </header>
 
-      {/* card branco padrão de conteúdo */}
+      {/* Card principal (filtros + gráfico) */}
       <div className={styles.listContainer}>
-        {/* Filtros */}
-        <div className={styles.filterContainer}>
-          <div>
-            <label htmlFor="startDate">
-              {t('analiseFalhas.filters.start')}
-            </label>
-            <input
-              type="date"
-              id="startDate"
-              value={startDate ? startDate.toISOString().slice(0, 10) : ''}
-              onChange={(e) =>
-                setStartDate(
-                  e.target.value
-                    ? new Date(e.target.value + 'T00:00:00')
-                    : null
-                )
-              }
-            />
-          </div>
-
-          <div>
-            <label htmlFor="endDate">
-              {t('analiseFalhas.filters.end')}
-            </label>
-            <input
-              type="date"
-              id="endDate"
-              value={endDate ? endDate.toISOString().slice(0, 10) : ''}
-              onChange={(e) =>
-                setEndDate(
-                  e.target.value
-                    ? new Date(e.target.value + 'T00:00:00')
-                    : null
-                )
-              }
-            />
-          </div>
-
-          <button
-            type="button"
-            className={styles.clearButton}
-            onClick={() => {
-              setStartDate(null);
-              setEndDate(null);
-            }}
-          >
-            {t('analiseFalhas.filters.clear')}
-          </button>
-        </div>
-
-        {/* Gráfico */}
         {loading ? (
-          <p>{t('analiseFalhas.loading')}</p>
+          <p className={styles.loading}>{t('analiseFalhas.loading')}</p>
         ) : (
-          <div className={styles.chartContainer}>
-            <Bar options={chartOptions} data={chartData} />
-          </div>
+          <>
+            <div className={styles.filterContainer}>
+              <div className={styles.filterField}>
+                <label htmlFor="startDate">
+                  {t('analiseFalhas.filters.start')}
+                </label>
+                <input
+                  type="date"
+                  id="startDate"
+                  value={startDate ? startDate.toISOString().slice(0, 10) : ''}
+                  onChange={(e) =>
+                    setStartDate(
+                      e.target.value
+                        ? new Date(e.target.value + 'T00:00:00')
+                        : null
+                    )
+                  }
+                />
+              </div>
+
+              <div className={styles.filterField}>
+                <label htmlFor="endDate">
+                  {t('analiseFalhas.filters.end')}
+                </label>
+                <input
+                  type="date"
+                  id="endDate"
+                  value={endDate ? endDate.toISOString().slice(0, 10) : ''}
+                  onChange={(e) =>
+                    setEndDate(
+                      e.target.value
+                        ? new Date(e.target.value + 'T00:00:00')
+                        : null
+                    )
+                  }
+                />
+              </div>
+
+              <button
+                type="button"
+                className={styles.clearButton}
+                onClick={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+              >
+                {t('analiseFalhas.filters.clear')}
+              </button>
+            </div>
+
+            <div className={styles.chartContainer}>
+              <Bar options={chartOptions} data={chartData} />
+            </div>
+          </>
         )}
       </div>
     </>

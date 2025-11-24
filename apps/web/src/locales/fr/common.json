@@ -28,6 +28,9 @@
     "subtitle": "Utilisez votre compte",
     "userOrEmail": "E-mail ou nom d’utilisateur",
     "password": "Mot de passe",
+    "passwordPlaceholder": "Votre mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "invalid": "Nom d’utilisateur ou mot de passe invalide.",
     "next": "Suivant",
     "loading": "Connexion…",
@@ -123,6 +126,8 @@
       "deleted": "Machine « {{name}} » supprimée.",
       "deleteError": "Impossible de supprimer la machine.",
       "deleteBlocked": "Machine avec des liens (p. ex. : tickets). Supprimez/fermez d’abord les liens.",
+      "deleteForbidden": "Permission refusée (gestionnaires uniquement).",
+      "deleteNotFound": "Machine introuvable (essayez d'actualiser).",
       "renamed": "Machine renommée en « {{name}} »",
       "renameError": "Erreur lors du renommage de la machine.",
       "renameDuplicated": "Une machine avec ce nom/étiquette existe déjà."

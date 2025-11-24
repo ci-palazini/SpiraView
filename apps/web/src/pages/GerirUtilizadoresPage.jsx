@@ -4,7 +4,12 @@ import Modal from '../components/Modal.jsx';
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { listarUsuarios, criarUsuario, atualizarUsuario, excluirUsuario } from '../services/apiClient';
+import {
+  listarUsuarios,
+  criarUsuario,
+  atualizarUsuario,
+  excluirUsuario
+} from '../services/apiClient';
 
 const GerirUtilizadoresPage = ({ user }) => {
   const { t } = useTranslation();
@@ -18,7 +23,8 @@ const GerirUtilizadoresPage = ({ user }) => {
 
   // Formulário
   const [nome, setNome] = useState('');
-  const [senha, setSenha] = useState(''); // Dica: sem efeito agora; deixado opcional
+  const [usuario, setUsuario] = useState(''); // ← novo: opcional
+  const [senha, setSenha] = useState('');
   const [role, setRole] = useState('operador');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -40,7 +46,9 @@ const GerirUtilizadoresPage = ({ user }) => {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [roleFiltro]);
 
   const handleSalvarUtilizador = async (e) => {
@@ -48,53 +56,82 @@ const GerirUtilizadoresPage = ({ user }) => {
     setIsSaving(true);
 
     const nomeCompleto = nome.trim();
-    const partes = nomeCompleto.split(' ').filter(p => p);
+    const partes = nomeCompleto.split(' ').filter((p) => p);
     if (partes.length < 2) {
       toast.error(t('users.validation.fullName'));
       setIsSaving(false);
       return;
     }
 
-    // Geração de username/email
-    const primeiroNome = partes[0].toLowerCase();
-    const stopWords = ['da', 'de', 'do', 'dos', 'das', 'e'];
-    const sobrenomes = partes.slice(1).filter(p => !stopWords.includes(p.toLowerCase()));
+    // lista de usernames existentes (ignorando o que está sendo editado)
+    const existingUsernames = utilizadores
+      .filter((u) => !modoEdicao || u.id !== usuarioEditandoId)
+      .map((u) => (u.usuario || '').toLowerCase());
 
-    let ultimoSobrenome = sobrenomes.length > 0
-      ? sobrenomes[sobrenomes.length - 1].toLowerCase()
-      : partes[partes.length - 1].toLowerCase();
-
-    let nomeUsuario = `${primeiroNome}.${ultimoSobrenome}`;
-    const existingUsernames = utilizadores.map(u => u.usuario);
-
-    // Tenta outros sobrenomes em caso de conflito
-    for (let i = sobrenomes.length - 2; i >= 0; i--) {
-      const candidato = sobrenomes[i].toLowerCase();
-      const candidatoUsuario = `${primeiroNome}.${candidato}`;
-      if (!existingUsernames.includes(candidatoUsuario)) {
-        nomeUsuario = candidatoUsuario;
-        break;
+    // 1) Se o usuário DIGITAR um nome de usuário, usamos ele (com validação)
+    let nomeUsuario = usuario.trim();
+    if (nomeUsuario) {
+      nomeUsuario = nomeUsuario.toLowerCase().replace(/\s+/g, '.');
+      if (existingUsernames.includes(nomeUsuario)) {
+        toast.error(
+          t(
+            'users.validation.usernameTaken',
+            'Já existe um usuário com esse nome de usuário.'
+          )
+        );
+        setIsSaving(false);
+        return;
       }
-    }
+    } else {
+      // 2) Se NÃO digitar, gera automaticamente como antes
+      const primeiroNome = partes[0].toLowerCase();
+      const stopWords = ['da', 'de', 'do', 'dos', 'das', 'e'];
+      const sobrenomes = partes
+        .slice(1)
+        .filter((p) => !stopWords.includes(p.toLowerCase()));
 
-    // Ainda em conflito? adiciona sufixo numérico
-    if (existingUsernames.includes(nomeUsuario)) {
-      const base = nomeUsuario;
-      let suffix = 2;
-      while (existingUsernames.includes(`${base}${suffix}`)) {
-        suffix++;
+      let ultimoSobrenome =
+        sobrenomes.length > 0
+          ? sobrenomes[sobrenomes.length - 1].toLowerCase()
+          : partes[partes.length - 1].toLowerCase();
+
+      nomeUsuario = `${primeiroNome}.${ultimoSobrenome}`;
+
+      // tenta outros sobrenomes se conflitar
+      for (let i = sobrenomes.length - 2; i >= 0; i--) {
+        const candidato = sobrenomes[i].toLowerCase();
+        const candidatoUsuario = `${primeiroNome}.${candidato}`;
+        if (!existingUsernames.includes(candidatoUsuario)) {
+          nomeUsuario = candidatoUsuario;
+          break;
+        }
       }
-      nomeUsuario = `${base}${suffix}`;
+
+      // ainda em conflito? adiciona sufixo numérico
+      if (existingUsernames.includes(nomeUsuario)) {
+        const base = nomeUsuario;
+        let suffix = 2;
+        while (existingUsernames.includes(`${base}${suffix}`)) {
+          suffix++;
+        }
+        nomeUsuario = `${base}${suffix}`;
+      }
     }
 
     const emailGerado = `${nomeUsuario}@m.continua.tpm`;
 
-    // Mantém mapeamento de função usado nos relatórios
+    // função “amigável” usada nos relatórios
     let funcao = '';
     switch (role) {
-      case 'manutentor': funcao = 'Técnico Eletromecânico'; break;
-      case 'operador':   funcao = 'Operador de CNC';         break;
-      default:           funcao = 'Gestor';                  break;
+      case 'manutentor':
+        funcao = 'Técnico Eletromecânico';
+        break;
+      case 'operador':
+        funcao = 'Operador de CNC';
+        break;
+      default:
+        funcao = 'Gestor';
+        break;
     }
 
     try {
@@ -104,10 +141,11 @@ const GerirUtilizadoresPage = ({ user }) => {
           { nome: nomeCompleto, usuario: nomeUsuario, email: emailGerado, role, funcao },
           { role: user?.role, email: user?.email }
         );
-        setUtilizadores(prev =>
+
+        setUtilizadores((prev) =>
           prev
-            .map(u => (u.id === saved.id ? saved : u))
-            .filter(u => roleFiltro === 'all' || u.role === roleFiltro)
+            .map((u) => (u.id === saved.id ? saved : u))
+            .filter((u) => roleFiltro === 'all' || u.role === roleFiltro)
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
         );
         toast.success(t('users.toasts.updated'));
@@ -120,20 +158,24 @@ const GerirUtilizadoresPage = ({ user }) => {
           funcao,
           ...(senha?.trim()?.length >= 6 ? { senha: senha.trim() } : {})
         };
-        const saved = await criarUsuario(
-          payload,
-          { role: user?.role, email: user?.email }
-        );
-        setUtilizadores(prev => {
-          const next = roleFiltro === 'all' || saved.role === roleFiltro ? [...prev, saved] : prev;
+        const saved = await criarUsuario(payload, {
+          role: user?.role,
+          email: user?.email
+        });
+        setUtilizadores((prev) => {
+          const next =
+            roleFiltro === 'all' || saved.role === roleFiltro
+              ? [...prev, saved]
+              : prev;
           return next.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
         });
         toast.success(t('users.toasts.created', { name: nomeCompleto }));
       }
 
-      // Reset form
+      // reset form
       setIsSaving(false);
       setNome('');
+      setUsuario('');
       setSenha('');
       setRole('operador');
       setModoEdicao(false);
@@ -146,21 +188,31 @@ const GerirUtilizadoresPage = ({ user }) => {
     }
   };
 
+  const abrirModalCriacao = () => {
+    setIsModalOpen(true);
+    setModoEdicao(false);
+    setUsuarioEditandoId(null);
+    setNome('');
+    setUsuario('');
+    setSenha('');
+    setRole('operador');
+  };
+
   const abrirModalEdicao = (userRow) => {
-    setNome(userRow.nome);
-    setRole(userRow.role);
+    setNome(userRow.nome || '');
+    setUsuario(userRow.usuario || ''); // ← preenche username existente
+    setRole(userRow.role || 'operador');
     setModoEdicao(true);
     setUsuarioEditandoId(userRow.id);
     setSenha('');
     setIsModalOpen(true);
   };
 
-  const handleExcluirUtilizador = async (uid, nome) => {
-    // correção pequena: usa a variável "nome" no confirm
-    if (!window.confirm(t('users.confirm.delete', { name: nome }))) return;
+  const handleExcluirUtilizador = async (uid, nomeAlvo) => {
+    if (!window.confirm(t('users.confirm.delete', { name: nomeAlvo }))) return;
     try {
       await excluirUsuario(uid, { role: user?.role, email: user?.email });
-      setUtilizadores(prev => prev.filter(u => u.id !== uid));
+      setUtilizadores((prev) => prev.filter((u) => u.id !== uid));
       toast.success(t('users.toasts.deleted'));
     } catch (error) {
       console.error('Erro ao excluir utilizador:', error);
@@ -170,33 +222,27 @@ const GerirUtilizadoresPage = ({ user }) => {
 
   return (
     <>
-      {/* Header sem o filtro */}
-      <header
-        className={styles.header}
-        style={{
-          backgroundColor: '#fff',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}
-      >
-        <h1>{t('users.title')}</h1>
-        <button
-          className={styles.button}
-          onClick={() => {
-            setIsModalOpen(true);
-            setModoEdicao(false);
-            setUsuarioEditandoId(null);
-            setNome(''); setSenha(''); setRole('operador');
-          }}
-        >
-          <FiPlus /> {t('users.actions.create')}
+      {/* Header padrão (cardzinho) */}
+      <header className={styles.pageHeader}>
+        <div className={styles.pageHeaderLeft}>
+          <h1 className={styles.pageTitle}>{t('users.title')}</h1>
+          <p className={styles.subtitle}>
+            {t(
+              'users.subtitle',
+              'Gerencie os usuários do sistema, seus papéis e credenciais internas.'
+            )}
+          </p>
+        </div>
+
+        <button className={styles.button} onClick={ abrirModalCriacao }>
+          <FiPlus />
+          {t('users.actions.create')}
         </button>
       </header>
 
+      {/* Card principal de conteúdo */}
       <div className={styles.userListContainer}>
-        {/* Toolbar de filtro deslocada para dentro da caixa dos usuários */}
+        {/* Toolbar de filtro dentro do card */}
         <div className={styles.userListToolbar}>
           <div className={styles.filterGroup}>
             <label htmlFor="roleFiltro" className={styles.filterLabel}>
@@ -224,10 +270,13 @@ const GerirUtilizadoresPage = ({ user }) => {
               <span>{t('users.table.fullName')}</span>
               <span>{t('users.table.username')}</span>
               <span>{t('users.table.function')}</span>
-              <span style={{ textAlign: 'right' }}>{t('users.table.actions')}</span>
+              <span style={{ textAlign: 'right' }}>
+                {t('users.table.actions')}
+              </span>
             </div>
+
             <ul className={styles.userList}>
-              {utilizadores.map(userRow => (
+              {utilizadores.map((userRow) => (
                 <li key={userRow.id} className={styles.userItem}>
                   <strong>{userRow.nome}</strong>
                   <span>{userRow.usuario}</span>
@@ -243,7 +292,9 @@ const GerirUtilizadoresPage = ({ user }) => {
                     <button
                       className={`${styles.actionButton} ${styles.deleteButton}`}
                       title={t('users.actions.delete')}
-                      onClick={() => handleExcluirUtilizador(userRow.id, userRow.nome)}
+                      onClick={() =>
+                        handleExcluirUtilizador(userRow.id, userRow.nome)
+                      }
                     >
                       <FiTrash2 />
                     </button>
@@ -255,10 +306,15 @@ const GerirUtilizadoresPage = ({ user }) => {
         )}
       </div>
 
+      {/* Modal de criação/edição */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={modoEdicao ? t('users.modal.editTitle') : t('users.modal.createTitle')}
+        title={
+          modoEdicao
+            ? t('users.modal.editTitle')
+            : t('users.modal.createTitle')
+        }
       >
         <form onSubmit={handleSalvarUtilizador}>
           <div className={styles.formGroup}>
@@ -268,8 +324,28 @@ const GerirUtilizadoresPage = ({ user }) => {
               type="text"
               className={styles.input}
               value={nome}
-              onChange={e => setNome(e.target.value)}
+              onChange={(e) => setNome(e.target.value)}
               required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="usuario">
+              {t(
+                'users.form.usernameOptional',
+                'Nome de usuário (login) – opcional'
+              )}
+            </label>
+            <input
+              id="usuario"
+              type="text"
+              className={styles.input}
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              placeholder={t(
+                'users.form.usernamePlaceholder',
+                'ex: gabriel.palazini'
+              )}
             />
           </div>
 
@@ -281,7 +357,7 @@ const GerirUtilizadoresPage = ({ user }) => {
                 type="password"
                 className={styles.input}
                 value={senha}
-                onChange={e => setSenha(e.target.value)}
+                onChange={(e) => setSenha(e.target.value)}
                 minLength="6"
               />
             </div>
@@ -293,7 +369,7 @@ const GerirUtilizadoresPage = ({ user }) => {
               id="role"
               className={styles.select}
               value={role}
-              onChange={e => setRole(e.target.value)}
+              onChange={(e) => setRole(e.target.value)}
             >
               <option value="operador">{t('users.roles.operator')}</option>
               <option value="manutentor">{t('users.roles.maintainer')}</option>
@@ -305,8 +381,8 @@ const GerirUtilizadoresPage = ({ user }) => {
             {isSaving
               ? t('users.form.saving')
               : modoEdicao
-                ? t('users.form.saveChanges')
-                : t('users.form.createUser')}
+              ? t('users.form.saveChanges')
+              : t('users.form.createUser')}
           </button>
         </form>
       </Modal>

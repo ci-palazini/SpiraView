@@ -28,6 +28,9 @@
     "subtitle": "アカウントをご利用ください",
     "userOrEmail": "メールまたはユーザー名",
     "password": "パスワード",
+    "passwordPlaceholder": "パスワード",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを非表示",
     "invalid": "ユーザー名またはパスワードが無効です。",
     "next": "次へ",
     "loading": "ログイン中...",
@@ -123,6 +126,8 @@
       "deleted": "機械「{{name}}」を削除しました。",
       "deleteError": "機械を削除できませんでした。",
       "deleteBlocked": "この機械には関連（例：チケット）があります。先に関連を削除／クローズしてください。",
+      "deleteForbidden": "権限がありません（管理者のみ）。",
+      "deleteNotFound": "機械が見つかりません（更新してみてください）。",
       "renamed": "機械名を「{{name}}」に変更しました。",
       "renameError": "機械名の変更に失敗しました。",
       "renameDuplicated": "同じ名前／タグの機械が既に存在します。"

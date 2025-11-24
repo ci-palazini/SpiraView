@@ -28,6 +28,9 @@
     "subtitle": "Usa il tuo account",
     "userOrEmail": "E-mail o nome utente",
     "password": "Password",
+    "passwordPlaceholder": "La tua password",
+    "showPassword": "Mostra password",
+    "hidePassword": "Nascondi password",
     "invalid": "Nome utente o password non validi.",
     "next": "Avanti",
     "loading": "Accesso in corso...",
@@ -123,6 +126,8 @@
       "deleted": "Macchina «{{name}}» eliminata.",
       "deleteError": "Impossibile eliminare la macchina.",
       "deleteBlocked": "Macchina con collegamenti (es.: ticket). Rimuovi/chiudi prima i collegamenti.",
+      "deleteForbidden": "Permesso negato (solo gestori).",
+      "deleteNotFound": "Macchina non trovata (prova ad aggiornare).",
       "renamed": "Macchina rinominata in «{{name}}»",
       "renameError": "Errore durante la rinomina della macchina.",
       "renameDuplicated": "Esiste già una macchina con questo nome/tag."

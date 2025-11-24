@@ -28,6 +28,9 @@
     "subtitle": "Use sua conta",
     "userOrEmail": "E-mail ou Nome de Usuário",
     "password": "Senha",
+    "passwordPlaceholder": "Sua senha",
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
     "invalid": "Usuário ou senha inválidos.",
     "next": "Avançar",
     "loading": "Entrando...",
@@ -123,6 +126,8 @@
       "deleted": "Máquina \"{{name}}\" excluída.",
       "deleteError": "Não foi possível excluir a máquina.",
       "deleteBlocked": "Máquina com vínculos (ex.: chamados). Exclua/encerre os vínculos antes.",
+      "deleteForbidden": "Permissão negada (somente gestor).",
+      "deleteNotFound": "Máquina não encontrada (tente atualizar).",
       "renamed": "Máquina renomeada para {{name}}",
       "renameError": "Erro ao renomear máquina.",
       "renameDuplicated": "Já existe uma máquina com esse nome/tag."
