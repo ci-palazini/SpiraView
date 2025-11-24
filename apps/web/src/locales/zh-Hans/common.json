@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "机器面板",
+    "subtitle": "一目了然查看设备及其状态。",
     "loading": "正在加载机器...",
     "legend": {
       "corretiva": "纠正性（紧急）",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "维护总日历",
+    "subtitle": "查看并管理计划中的预防性和预测性维护。",
     "loading": "正在加载计划...",
     "legend": {
       "overdue": "已逾期",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "维护历史",
+    "subtitle": "查看已完成工单的历史，并按类型、设备或文本筛选。",
     "loading": "正在加载历史...",
     "empty": "所选筛选条件下无已完成工单。",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "维护库存管理",
+    "subtitle": "管理备件目录、最低库存和出入库。",
     "loading": "正在加载零件...",
     "empty": "暂无注册零件。",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "纠正性故障分析",
+    "subtitle": "查看所选期间各设备的纠正故障分布。",
     "loading": "正在分析数据...",
     "filters": {
       "start": "开始：",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "用户管理",
+    "subtitle": "管理系统用户、他们的角色和内部凭证。",
     "loading": "正在加载用户...",
     "actions": {
       "create": "创建新用户",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "姓名",
       "tempPassword": "临时密码",
+      "usernameOptional": "用户名（登录）– 可选",
+      "usernamePlaceholder": "例如：gabriel.palazini",
       "role": "角色",
       "saving": "正在保存...",
       "saveChanges": "保存更改",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "我的工单",
+    "subtitle": "跟踪分配给你的或由你打开的工单。",
     "loginFirst": "请登录以查看您的工单。",
     "filters": {
       "statusTitle": "按状态筛选",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "按设备的每日检查表",
-    "subtitle": "快速查看第一和第二班的检查表是否已提交。",
+    "subtitle": "快速查看第一、第二班次的检查表是否已提交。",
     "errorLoad": "加载数据时出错，请重试。",
     "date": "日期",
     "onlyPending": "仅待完成",

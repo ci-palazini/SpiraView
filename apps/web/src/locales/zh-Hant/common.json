@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "機器面板",
+    "subtitle": "一目瞭然檢視設備及其狀態。",
     "loading": "正在載入機器...",
     "legend": {
       "corretiva": "矯正性（緊急）",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "維護總日曆",
+    "subtitle": "查看並管理已排程的預防與預測性維護。",
     "loading": "正在載入排程...",
     "legend": {
       "overdue": "已逾期",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "維護歷史",
+    "subtitle": "查看已完成工單的歷史，並依類型、設備或文字篩選。",
     "loading": "正在載入歷史...",
     "empty": "所選篩選條件下沒有已完成的工單。",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "維護庫存管理",
+    "subtitle": "管理備件目錄、最低庫存與出入庫。",
     "loading": "正在載入零件...",
     "empty": "尚無登錄的零件。",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "矯正性故障分析",
+    "subtitle": "查看所選期間各設備的修復故障分佈。",
     "loading": "資料分析中...",
     "filters": {
       "start": "開始：",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "使用者管理",
+    "subtitle": "管理系統使用者、其角色與內部憑證。",
     "loading": "正在載入使用者...",
     "actions": {
       "create": "建立新使用者",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "全名",
       "tempPassword": "臨時密碼",
+      "usernameOptional": "使用者名稱（登入）– 選填",
+      "usernamePlaceholder": "例如：gabriel.palazini",
       "role": "角色",
       "saving": "儲存中...",
       "saveChanges": "儲存變更",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "我的工單",
+    "subtitle": "追蹤分配給你或由你開立的工單。",
     "loginFirst": "請先登入以查看您的工單。",
     "filters": {
       "statusTitle": "依狀態篩選",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "依設備的每日檢查表",
-    "subtitle": "快速查看第一和第二班的檢查表是否已送出。",
+    "subtitle": "快速確認第一、第二班次的檢查表是否已提交。",
     "errorLoad": "載入資料時發生錯誤，請再試一次。",
     "date": "日期",
     "onlyPending": "僅未完成",

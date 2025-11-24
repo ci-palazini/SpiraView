@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Panel de Máquinas",
+    "subtitle": "Vista general de las máquinas y sus estados destacados.",
     "loading": "Cargando máquinas...",
     "legend": {
       "corretiva": "Correctiva (Urgente)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "Calendario General de Mantenimientos",
+    "subtitle": "Visualiza y gestiona los mantenimientos preventivos y predictivos programados.",
     "loading": "Cargando programaciones...",
     "legend": {
       "overdue": "Vencido",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Historial de Mantenimientos",
+    "subtitle": "Consulta el historial de órdenes cerradas y filtra por tipo, máquina o texto.",
     "loading": "Cargando historial...",
     "empty": "No hay órdenes concluidas para los filtros seleccionados.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Control de Inventario de Mantenimiento",
+    "subtitle": "Gestiona el catálogo de piezas, stock mínimo y movimientos.",
     "loading": "Cargando piezas...",
     "empty": "No hay piezas registradas.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Análisis de Fallas Correctivas",
+    "subtitle": "Visualiza la distribución de fallas correctivas por máquina en el período seleccionado.",
     "loading": "Analizando datos...",
     "filters": {
       "start": "Inicio:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "Gestión de Usuarios",
+    "subtitle": "Administra los usuarios del sistema, sus roles y credenciales internas.",
     "loading": "Cargando usuarios...",
     "actions": {
       "create": "Crear nuevo usuario",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Nombre completo",
       "tempPassword": "Contraseña provisional",
+      "usernameOptional": "Nombre de usuario (login) – opcional",
+      "usernamePlaceholder": "p. ej.: gabriel.palazini",
       "role": "Función (Rol)",
       "saving": "Guardando...",
       "saveChanges": "Guardar cambios",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "Mis Órdenes",
+    "subtitle": "Sigue las órdenes asignadas a ti o abiertas por ti.",
     "loginFirst": "Inicia sesión para ver tus órdenes.",
     "filters": {
       "statusTitle": "Filtrar por estado",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "Checklists diarios por máquina",
-    "subtitle": "Vea rápidamente si se enviaron los checklists del 1.º y 2.º turno.",
+    "subtitle": "Revisa rápidamente si se enviaron los checklists del 1.º y 2.º turno.",
     "errorLoad": "Error al cargar los datos. Intente nuevamente.",
     "date": "Día",
     "onlyPending": "Solo pendientes",

@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Maschinenübersicht",
+    "subtitle": "Übersicht der Maschinen und ihrer hervorgehobenen Stati.",
     "loading": "Maschinen werden geladen...",
     "legend": {
       "corretiva": "Korrektiv (Dringend)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "Allgemeiner Wartungskalender",
+    "subtitle": "Geplante präventive und prädiktive Wartungen anzeigen und verwalten.",
     "loading": "Planungen werden geladen...",
     "legend": {
       "overdue": "Überfällig",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Wartungshistorie",
+    "subtitle": "Zeige den Verlauf abgeschlossener Aufträge und filtere nach Typ, Maschine oder Text.",
     "loading": "Historie wird geladen...",
     "empty": "Keine abgeschlossenen Arbeitsaufträge für die gewählten Filter.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Wartungsbestand",
+    "subtitle": "Verwalte Teilekatalog, Mindestbestand und Bewegungen.",
     "loading": "Teile werden geladen...",
     "empty": "Keine Teile registriert.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Analyse korrektiver Ausfälle",
+    "subtitle": "Sieh die Verteilung korrigierender Ausfälle pro Maschine im ausgewählten Zeitraum.",
     "loading": "Daten werden analysiert...",
     "filters": {
       "start": "Start:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "Benutzerverwaltung",
+    "subtitle": "Verwalte Systembenutzer, ihre Rollen und internen Anmeldedaten.",
     "loading": "Benutzer werden geladen...",
     "actions": {
       "create": "Neuen Benutzer erstellen",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Vollständiger Name",
       "tempPassword": "Temporäres Passwort",
+      "usernameOptional": "Benutzername (Login) – optional",
+      "usernamePlaceholder": "z. B.: gabriel.palazini",
       "role": "Rolle",
       "saving": "Speichern...",
       "saveChanges": "Änderungen speichern",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "Meine Arbeitsaufträge",
+    "subtitle": "Verfolge Tickets, die dir zugewiesen oder von dir geöffnet wurden.",
     "loginFirst": "Bitte melden Sie sich an, um Ihre Arbeitsaufträge zu sehen.",
     "filters": {
       "statusTitle": "Nach Status filtern",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "Tägliche Checklisten je Maschine",
-    "subtitle": "Sehen Sie schnell, ob die Checklisten der 1. und 2. Schicht gesendet wurden.",
+    "subtitle": "Schnell sehen, ob die Checklisten der 1. und 2. Schicht eingereicht wurden.",
     "errorLoad": "Fehler beim Laden der Daten. Bitte erneut versuchen.",
     "date": "Tag",
     "onlyPending": "Nur ausstehende",

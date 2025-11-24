@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "기계 패널",
+    "subtitle": "설비와 상태를 한눈에 볼 수 있는 개요입니다.",
     "loading": "기계를 불러오는 중...",
     "legend": {
       "corretiva": "수정 보전 (긴급)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "유지보수 종합 캘린더",
+    "subtitle": "예방·예지 정비 일정을 확인하고 관리합니다.",
     "loading": "일정을 불러오는 중...",
     "legend": {
       "overdue": "기한 초과",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "유지보수 이력",
+    "subtitle": "종료된 티켓 기록을 보고 유형·설비·텍스트로 필터링하세요.",
     "loading": "이력을 불러오는 중...",
     "empty": "선택한 조건에 해당하는 완료된 요청이 없습니다.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "유지보수 재고 관리",
+    "subtitle": "부품 카탈로그, 최소 재고 및 이동을 관리합니다.",
     "loading": "부품을 불러오는 중...",
     "empty": "등록된 부품이 없습니다.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "수정 보전 고장 분석",
+    "subtitle": "선택한 기간 동안 기계별 수정 보전 발생 분포를 확인합니다.",
     "loading": "데이터 분석 중...",
     "filters": {
       "start": "시작:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "사용자 관리",
+    "subtitle": "시스템 사용자와 역할, 내부 자격 증명을 관리합니다.",
     "loading": "사용자를 불러오는 중...",
     "actions": {
       "create": "새 사용자 생성",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "전체 이름",
       "tempPassword": "임시 비밀번호",
+      "usernameOptional": "사용자 이름(로그인) – 선택 사항",
+      "usernamePlaceholder": "예: gabriel.palazini",
       "role": "역할",
       "saving": "저장 중...",
       "saveChanges": "변경 저장",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "내 작업 요청",
+    "subtitle": "할당되었거나 내가 연 티켓을 추적합니다.",
     "loginFirst": "작업 요청을 보려면 로그인하세요.",
     "filters": {
       "statusTitle": "상태별 필터",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "기계별 일일 체크리스트",
-    "subtitle": "1, 2교대 체크리스트가 제출되었는지 빠르게 확인하세요.",
+    "subtitle": "1·2교대 체크리스트가 제출되었는지 빠르게 확인하세요.",
     "errorLoad": "데이터를 불러오는 중 오류가 발생했습니다. 다시 시도하세요.",
     "date": "날짜",
     "onlyPending": "미완료만",

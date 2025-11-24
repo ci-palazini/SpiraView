@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "機械パネル",
+    "subtitle": "機械とそのステータスの概要を一目で確認。",
     "loading": "機械を読み込み中...",
     "legend": {
       "corretiva": "是正保守（緊急）",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "全体保守カレンダー",
+    "subtitle": "予定された予防・予知保全を表示して管理します。",
     "loading": "スケジュールを読み込み中...",
     "legend": {
       "overdue": "期限超過",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "保守履歴",
+    "subtitle": "完了したチケットの履歴を表示し、種類・機械・テキストで絞り込みます。",
     "loading": "履歴を読み込み中...",
     "empty": "選択した条件に該当する完了済み依頼はありません。",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "保守在庫管理",
+    "subtitle": "部品カタログ、最小在庫、入出庫を管理します。",
     "loading": "部品を読み込み中...",
     "empty": "登録された部品はありません。",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "是正故障の分析",
+    "subtitle": "選択期間内の機械ごとの是正保全の分布を確認します。",
     "loading": "データ分析中...",
     "filters": {
       "start": "開始：",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "ユーザー管理",
+    "subtitle": "システムユーザー、その役割、内部認証情報を管理します。",
     "loading": "ユーザーを読み込み中...",
     "actions": {
       "create": "新規ユーザーを作成",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "氏名",
       "tempPassword": "一時パスワード",
+      "usernameOptional": "ユーザー名（ログイン）― 任意",
+      "usernamePlaceholder": "例: gabriel.palazini",
       "role": "役割",
       "saving": "保存中...",
       "saveChanges": "変更を保存",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "マイ作業依頼",
+    "subtitle": "自分に割り当てられた/自分が開いたチケットを追跡します。",
     "loginFirst": "依頼を見るにはログインしてください。",
     "filters": {
       "statusTitle": "状態でフィルター",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "機械別の日次チェックリスト",
-    "subtitle": "1回目と2回目のシフトのチェックリストが送信されたかをすぐに確認できます。",
+    "subtitle": "1シフト目と2シフト目のチェックリストが送信されたかをすばやく確認。",
     "errorLoad": "データの読み込み中にエラーが発生しました。もう一度お試しください。",
     "date": "日付",
     "onlyPending": "未完了のみ",

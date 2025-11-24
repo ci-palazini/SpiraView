@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Painel de Máquinas",
+    "subtitle": "Panorama das máquinas e status em destaque.",
     "loading": "Carregando máquinas...",
     "legend": {
       "corretiva": "Corretiva (Urgente)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "Calendário Geral de Manutenções",
+    "subtitle": "Visualize e gerencie as manutenções preventivas e preditivas agendadas.",
     "loading": "Carregando agendamentos...",
     "legend": {
       "overdue": "Vencido",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Histórico de Manutenções",
+    "subtitle": "Veja o histórico de chamados concluídos e filtre por tipo, máquina ou texto.",
     "loading": "Carregando histórico...",
     "empty": "Nenhum chamado concluído para os filtros selecionados.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Controle de Estoque de Manutenção",
+    "subtitle": "Gerencie o catálogo de peças, estoque mínimo e movimentações.",
     "loading": "Carregando peças...",
     "empty": "Nenhuma peça cadastrada.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Análise de Falhas Corretivas",
+    "subtitle": "Veja a distribuição de falhas corretivas por máquina no período selecionado.",
     "loading": "Analisando dados...",
     "filters": {
       "start": "Início:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "Gestão de Usuários",
+    "subtitle": "Gerencie os usuários do sistema, seus papéis e credenciais internas.",
     "loading": "Carregando usuários...",
     "actions": {
       "create": "Criar Novo Usuário",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Nome Completo",
       "tempPassword": "Senha Provisória",
+      "usernameOptional": "Nome de usuário (login) – opcional",
+      "usernamePlaceholder": "ex: gabriel.palazini",
       "role": "Função (Papel)",
       "saving": "Salvando...",
       "saveChanges": "Salvar Alterações",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "Meus Chamados",
+    "subtitle": "Acompanhe os chamados atribuídos ou abertos por você.",
     "loginFirst": "Faça login para ver seus chamados.",
     "filters": {
       "statusTitle": "Filtrar por status",

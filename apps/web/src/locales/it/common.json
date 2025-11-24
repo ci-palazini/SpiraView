@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Pannello macchine",
+    "subtitle": "Panoramica delle macchine e dei loro stati evidenziati.",
     "loading": "Caricamento macchine...",
     "legend": {
       "corretiva": "Correttiva (Urgente)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "Calendario generale delle manutenzioni",
+    "subtitle": "Visualizza e gestisci la manutenzione preventiva e predittiva pianificata.",
     "loading": "Caricamento pianificazioni...",
     "legend": {
       "overdue": "In ritardo",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Storico manutenzioni",
+    "subtitle": "Visualizza lo storico degli interventi conclusi e filtra per tipo, macchina o testo.",
     "loading": "Caricamento storico...",
     "empty": "Nessun ordine completato per i filtri selezionati.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Inventario manutenzione",
+    "subtitle": "Gestisci il catalogo pezzi, le scorte minime e i movimenti.",
     "loading": "Caricamento pezzi...",
     "empty": "Nessun pezzo registrato.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Analisi guasti correttivi",
+    "subtitle": "Visualizza la distribuzione dei guasti correttivi per macchina nel periodo selezionato.",
     "loading": "Analisi dei dati...",
     "filters": {
       "start": "Inizio:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "Gestione utenti",
+    "subtitle": "Gestisci gli utenti del sistema, i loro ruoli e le credenziali interne.",
     "loading": "Caricamento utenti...",
     "actions": {
       "create": "Crea nuovo utente",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Nome completo",
       "tempPassword": "Password provvisoria",
+      "usernameOptional": "Nome utente (login) – facoltativo",
+      "usernamePlaceholder": "es: gabriel.palazini",
       "role": "Ruolo",
       "saving": "Salvataggio...",
       "saveChanges": "Salva modifiche",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "I miei ordini",
+    "subtitle": "Segui i ticket assegnati a te o aperti da te.",
     "loginFirst": "Accedi per vedere i tuoi ordini.",
     "filters": {
       "statusTitle": "Filtra per stato",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "Checklist giornaliere per macchina",
-    "subtitle": "Verifica rapidamente se le checklist del 1º e 2º turno sono state inviate.",
+    "subtitle": "Controlla rapidamente se le checklist del 1º e 2º turno sono state inviate.",
     "errorLoad": "Errore nel caricamento dei dati. Riprova.",
     "date": "Giorno",
     "onlyPending": "Solo pendenti",

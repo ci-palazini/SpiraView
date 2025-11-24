@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Tableau des machines",
+    "subtitle": "Vue d’ensemble des machines et de leur statut en évidence.",
     "loading": "Chargement des machines…",
     "legend": {
       "corretiva": "Corrective (Urgente)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "Calendrier général des maintenances",
+    "subtitle": "Visualisez et gérez les maintenances préventives et prédictives planifiées.",
     "loading": "Chargement des planifications…",
     "legend": {
       "overdue": "En retard",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Historique des maintenances",
+    "subtitle": "Consultez l'historique des interventions clôturées et filtrez par type, machine ou texte.",
     "loading": "Chargement de l’historique…",
     "empty": "Aucun ordre clôturé pour les filtres sélectionnés.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Gestion de l’inventaire de maintenance",
+    "subtitle": "Gérez le catalogue de pièces, le stock minimum et les mouvements.",
     "loading": "Chargement des pièces…",
     "empty": "Aucune pièce enregistrée.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Analyse des pannes correctives",
+    "subtitle": "Visualisez la répartition des pannes correctives par machine sur la période sélectionnée.",
     "loading": "Analyse des données…",
     "filters": {
       "start": "Début :",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "Gestion des utilisateurs",
+    "subtitle": "Gérez les utilisateurs du système, leurs rôles et leurs identifiants internes.",
     "loading": "Chargement des utilisateurs…",
     "actions": {
       "create": "Créer un nouvel utilisateur",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Nom complet",
       "tempPassword": "Mot de passe provisoire",
+      "usernameOptional": "Nom d’utilisateur (login) – optionnel",
+      "usernamePlaceholder": "ex. : gabriel.palazini",
       "role": "Rôle",
       "saving": "Enregistrement…",
       "saveChanges": "Enregistrer les modifications",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "Mes ordres",
+    "subtitle": "Suivez les tickets qui vous sont attribués ou que vous avez ouverts.",
     "loginFirst": "Veuillez vous connecter pour voir vos ordres.",
     "filters": {
       "statusTitle": "Filtrer par statut",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "Checklists quotidiennes par machine",
-    "subtitle": "Voyez rapidement si les checklists des 1er et 2e quarts ont été envoyées.",
+    "subtitle": "Vérifiez rapidement si les checklists des 1er et 2e shifts ont été envoyées.",
     "errorLoad": "Erreur lors du chargement des données. Réessayez.",
     "date": "Jour",
     "onlyPending": "Seulement en attente",

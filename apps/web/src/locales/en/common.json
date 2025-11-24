@@ -111,6 +111,7 @@
   },
   "maquinas": {
     "title": "Machines Panel",
+    "subtitle": "Overview of machines and their status at a glance.",
     "loading": "Loading machines...",
     "legend": {
       "corretiva": "Corrective (Urgent)",
@@ -361,6 +362,7 @@
   },
   "calendarioGeral": {
     "title": "General Maintenance Calendar",
+    "subtitle": "View and manage scheduled preventive and predictive maintenance.",
     "loading": "Loading schedules...",
     "legend": {
       "overdue": "Overdue",
@@ -413,6 +415,7 @@
   },
   "historico": {
     "title": "Maintenance History",
+    "subtitle": "View the history of completed work orders and filter by type, machine, or text.",
     "loading": "Loading history...",
     "empty": "No completed work orders for the selected filters.",
     "export": {
@@ -456,6 +459,7 @@
   },
   "estoque": {
     "title": "Maintenance Inventory Control",
+    "subtitle": "Manage the parts catalog, minimum stock, and movements.",
     "loading": "Loading parts...",
     "empty": "No parts registered.",
     "toolbar": {
@@ -523,6 +527,7 @@
   },
   "analiseFalhas": {
     "title": "Corrective Failure Analysis",
+    "subtitle": "See the distribution of corrective failures by machine for the selected period.",
     "loading": "Analyzing data...",
     "filters": {
       "start": "Start:",
@@ -561,6 +566,7 @@
   },
   "users": {
     "title": "User Management",
+    "subtitle": "Manage system users, their roles, and internal credentials.",
     "loading": "Loading users...",
     "actions": {
       "create": "Create New User",
@@ -580,6 +586,8 @@
     "form": {
       "fullName": "Full Name",
       "tempPassword": "Temporary Password",
+      "usernameOptional": "Username (login) – optional",
+      "usernamePlaceholder": "e.g., gabriel.palazini",
       "role": "Role",
       "saving": "Saving...",
       "saveChanges": "Save Changes",
@@ -621,6 +629,7 @@
   },
   "meusChamados": {
     "title": "My Work Orders",
+    "subtitle": "Track the tickets assigned to you or opened by you.",
     "loginFirst": "Please log in to view your work orders.",
     "filters": {
       "statusTitle": "Filter by status",
@@ -688,7 +697,7 @@
   },
   "checklistOverview": {
     "title": "Daily checklists by machine",
-    "subtitle": "Quickly see whether the 1st and 2nd shift checklists were sent.",
+    "subtitle": "Quickly see if the 1st and 2nd shift checklists were submitted.",
     "errorLoad": "Error loading data. Try again.",
     "date": "Day",
     "onlyPending": "Only pending",
