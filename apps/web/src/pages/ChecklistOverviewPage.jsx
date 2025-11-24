@@ -69,7 +69,10 @@ const ChecklistOverviewPage = ({ user }) => {
             let ultimaSub = null;
             for (const s of submissoes) {
               if (!s.criado_em) continue;
-              if (!ultimaSub || String(s.criado_em) > String(ultimaSub.criado_em)) {
+              if (
+                !ultimaSub ||
+                String(s.criado_em) > String(ultimaSub.criado_em)
+              ) {
                 ultimaSub = s;
               }
             }
@@ -161,61 +164,61 @@ const ChecklistOverviewPage = ({ user }) => {
   );
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        {/* Cabeçalho dentro do card branco */}
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.pageTitle}>
-              {t('checklistOverview.title', 'Checklists diários por máquina')}
-            </h1>
-            <p className={styles.pageSubtitle}>
+    <>
+      {/* Header padrão em card branco */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>
+          {t('checklistOverview.title', 'Checklists diários por máquina')}
+        </h1>
+        <p className={styles.subtitle}>
+          {t(
+            'checklistOverview.subtitle',
+            'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.'
+          )}
+        </p>
+      </header>
+
+      {/* Card branco principal */}
+      <div className={styles.listContainer}>
+        {/* Filtros */}
+        <div className={styles.filters}>
+          <div className={styles.filterBlock}>
+            <span className={styles.filterLabel}>
+              {t('checklistOverview.date', 'Dia')}
+            </span>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={handleDateChange}
+              className={styles.dateInput}
+            />
+          </div>
+
+          <label className={styles.onlyPendingWrapper}>
+            <input
+              type="checkbox"
+              checked={onlyPending}
+              onChange={(e) => setOnlyPending(e.target.checked)}
+            />
+            <span className={styles.checkboxText}>
               {t(
-                'checklistOverview.subtitle',
-                'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.'
+                'checklistOverview.onlyPending',
+                'Apenas pendentes'
               )}
-            </p>
-          </div>
+            </span>
+          </label>
 
-          <div className={styles.filters}>
-            <div className={styles.filterBlock}>
-              <span className={styles.filterLabel}>
-                {t('checklistOverview.date', 'Dia')}
-              </span>
-              <input
-                type="date"
-                value={dateFilter}
-                onChange={handleDateChange}
-                className={styles.dateInput}
-              />
-            </div>
-
-            <label className={styles.onlyPendingWrapper}>
-              <input
-                type="checkbox"
-                checked={onlyPending}
-                onChange={(e) => setOnlyPending(e.target.checked)}
-              />
-              <span className={styles.checkboxText}>
-                {t(
-                  'checklistOverview.onlyPending',
-                  'Apenas pendentes'
-                )}
-              </span>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setDateFilter(todayIso)}
-              className={styles.todayButton}
-              disabled={isToday}
-            >
-              {t('checklistOverview.today', 'Hoje')}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setDateFilter(todayIso)}
+            className={styles.todayButton}
+            disabled={isToday}
+          >
+            {t('checklistOverview.today', 'Hoje')}
+          </button>
         </div>
 
-        {/* Cards de resumo dentro do mesmo card */}
+        {/* Cards de resumo */}
         <div className={styles.summaryRow}>
           <div className={styles.summaryCard}>
             <span className={styles.summaryLabel}>
@@ -246,7 +249,7 @@ const ChecklistOverviewPage = ({ user }) => {
 
         {error && <div className={styles.errorBox}>{error}</div>}
 
-        {/* Tabela ainda dentro do mesmo card */}
+        {/* Tabela */}
         <div className={styles.tableHeader}>
           <span className={styles.tableTitle}>
             {t(
@@ -332,7 +335,7 @@ const ChecklistOverviewPage = ({ user }) => {
           </table>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

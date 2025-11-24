@@ -1,7 +1,42 @@
+/* Header em card branco, padrão das outras páginas */
+.pageHeader {
+  margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 0.95rem;
+}
+
+/* Container branco do calendário */
+.calendarContainer {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px;
+  margin-top: 12px; /* aproxima do header */
+}
+
+/* Legenda acima do calendário */
 .legend {
   display: flex;
   gap: 1rem;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .legendBox {
@@ -11,14 +46,16 @@
   margin-right: 4px;
 }
 
-/* remove a marcação azul do "hoje" */
-:global(.rbc-today) {
-  background-color: transparent !important;
-}
-
-/* opcional, para garantir o wrapper */
+/* Wrapper do componente do calendário */
 .calendarWrapper {
   padding-bottom: 20px;
+}
+
+/* Altura e visual do react-big-calendar */
+.calendarRoot {
+  height: 600px;
+  background-color: #fff;
+  border-radius: 8px;
 }
 
 /* estilização básica do evento */
@@ -30,39 +67,22 @@
   text-overflow: ellipsis;
 }
 
-
-.legend      { display:flex; gap:1rem; margin-bottom:1rem; }
-.legendBox   { width:16px; height:16px; display:inline-block; margin-right:4px; }
-
-.eventoNoCalendario { padding:2px 4px; font-size:0.85em; }
-
-.calendarContainer {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  margin: 16px;   
+/* texto de carregamento */
+.loading {
+  padding: 20px;
+  color: #667085;
 }
 
-/* empurra a legenda para perto do calendário */
-.legend {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 12px;
+/* remove a marcação azul do "hoje" */
+:global(.rbc-today) {
+  background-color: transparent !important;
 }
 
-.legendBox {
-  width: 16px;
-  height: 16px;
-  display: inline-block;
-  margin-right: 4px;
-}
-
+/* esconder coluna de hora na agenda */
 :global(.rbc-agenda-time-header) {
   display: none;
 }
 
-/* opcional: garante que as células de horário não ocupem espaço */
 :global(.rbc-agenda-time-cell) {
   display: none;
 }
@@ -71,33 +91,42 @@
   display: none;
 }
 
-/* já tínhamos isto para remover as células de hora */
 :global(.rbc-agenda-view .rbc-agenda-time-cell) {
   display: none;
 }
 
+/* Botões do modal */
 .modalButton {
-  background-color: #006400;      /* verde escuro, mesmo tom de “iniciado” */
-  color: #fff;                    /* texto branco */
+  background-color: #006400; /* verde escuro, mesmo tom de “iniciado” */
+  color: #fff;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
   margin-top: 1rem;
-  transition: background-color 0.2s ease;
   margin-left: 0.5rem;
+  transition: background-color 0.2s ease;
 }
 
 .modalButton:hover {
-  background-color: #004d00;      /* um pouco mais escuro no hover */
+  background-color: #004d00;
 }
 
+/* versão “perigosa” (excluir) */
+.dangerButton {
+  background-color: #d32f2f;
+}
+
+.dangerButton:hover {
+  background-color: #b71c1c;
+}
+
+/* Formulário dentro do modal de novo agendamento */
 .formGroup {
   margin-bottom: 16px;
 }
 
-/* rótulo acima do campo */
 .formGroup label {
   display: block;
   font-weight: 600;
@@ -105,7 +134,7 @@
   color: #333;
 }
 
-/* estilo base para input e textarea */
+/* estilo base para inputs/selects/textarea */
 .input,
 .select,
 .textarea {
@@ -131,7 +160,7 @@
   resize: vertical;
 }
 
-/* botão de ação */
+/* botão principal do formulário */
 .button {
   display: inline-block;
   background-color: #006400;
@@ -153,7 +182,7 @@
   transform: scale(0.98);
 }
 
-/* opcional: limite a largura do form e centralize */
+/* opcional: limite a largura do form e centralize (caso o Modal use .modalContent) */
 .modalContent form {
   max-width: 400px;
   margin: 0 auto;

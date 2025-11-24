@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   getMaquinas,
   listarChamados,
@@ -21,12 +21,13 @@ function getStoredUser() {
   }
 }
 
-const MaquinasPage = () => {
+const MaquinasPage = ({ user: userProp }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  const user = getStoredUser();
-  const isGestor = (user?.role || '').toLowerCase() === 'gestor' || (user?.role || '').toLowerCase() === 'admin';
+  // se vier pelo MainLayout, usa a prop; senão, cai no localStorage (compatibilidade)
+  const user = userProp || getStoredUser();
+  const role = (user?.role || '').toLowerCase();
+  const isGestor = role === 'gestor' || role === 'admin';
 
   const [maquinas, setMaquinas] = useState([]);
   const [chamadosAtivos, setChamadosAtivos] = useState([]);
@@ -75,27 +76,45 @@ const MaquinasPage = () => {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const maquinasComStatus = useMemo(() => {
     const statusPorMaquina = {};
     const prioridade = { corretiva: 3, preventiva: 2, preditiva: 1 };
+
     chamadosAtivos.forEach((chamado) => {
       const tipo = chamado.tipo || 'corretiva';
-      if (!statusPorMaquina[chamado.maquina] || prioridade[tipo] > prioridade[statusPorMaquina[chamado.maquina]]) {
-        statusPorMaquina[chamado.maquina] = tipo;
+      const nomeMaquina = chamado.maquina;
+      if (
+        !statusPorMaquina[nomeMaquina] ||
+        prioridade[tipo] > prioridade[statusPorMaquina[nomeMaquina]]
+      ) {
+        statusPorMaquina[nomeMaquina] = tipo;
       }
     });
-    return maquinas.map((m) => ({ ...m, statusDestaque: statusPorMaquina[m.nome] || 'normal' }));
+
+    return maquinas
+      .slice()
+      .sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'))
+      .map((m) => ({
+        ...m,
+        statusDestaque: statusPorMaquina[m.nome] || 'normal',
+      }));
   }, [maquinas, chamadosAtivos]);
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 'corretiva': return styles.statusCorretiva;
-      case 'preventiva': return styles.statusPreventiva;
-      case 'preditiva': return styles.statusPreditiva;
-      default: return styles.statusNormal;
+      case 'corretiva':
+        return styles.statusCorretiva;
+      case 'preventiva':
+        return styles.statusPreventiva;
+      case 'preditiva':
+        return styles.statusPreditiva;
+      default:
+        return styles.statusNormal;
     }
   };
 
@@ -105,12 +124,17 @@ const MaquinasPage = () => {
       toast.error(t('maquinas.toasts.nameRequired'));
       return;
     }
+
     try {
       const nova = await criarMaquina(
         { nome: nomeNovaMaquina.trim() },
         { email: user?.email, role: user?.role }
       );
-      setMaquinas((prev) => [nova, ...prev].sort((a, b) => a.nome.localeCompare(b.nome, 'pt')));
+      setMaquinas((prev) =>
+        [nova, ...prev].sort((a, b) =>
+          String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR')
+        )
+      );
       toast.success(t('maquinas.toasts.created', { name: nomeNovaMaquina }));
       setNomeNovaMaquina('');
       setIsModalOpen(false);
@@ -121,10 +145,12 @@ const MaquinasPage = () => {
   };
 
   // ======= AÇÕES (menu) =======
-  const toggleMenu = (id) => setOpenMenuId((prev) => (prev === id ? null : id));
+  const toggleMenu = (id) =>
+    setOpenMenuId((prev) => (prev === id ? null : id));
 
   const abrirEditar = (maquina, e) => {
-    e?.preventDefault(); e?.stopPropagation();
+    e?.preventDefault();
+    e?.stopPropagation();
     setOpenMenuId(null);
     setAlvo(maquina);
     setEditNome(maquina?.nome || '');
@@ -133,7 +159,8 @@ const MaquinasPage = () => {
   };
 
   const confirmarExclusao = (maquina, e) => {
-    e?.preventDefault(); e?.stopPropagation();
+    e?.preventDefault();
+    e?.stopPropagation();
     setAlvo(maquina);
     setIsDeleteOpen(true);
     setOpenMenuId(null);
@@ -144,14 +171,23 @@ const MaquinasPage = () => {
     setDeleting(true);
     try {
       await deletarMaquina(alvo.id, { role: user?.role, email: user?.email });
-      setMaquinas(prev => prev.filter(m => m.id !== alvo.id));
+      setMaquinas((prev) => prev.filter((m) => m.id !== alvo.id));
       toast.success(t('maquinas.toasts.deleted', { name: alvo.nome }));
     } catch (err) {
       const status = err?.status;
       let msg = t('maquinas.toasts.deleteError');
-      if (status === 403) msg = t('maquinas.toasts.deleteForbidden') || 'Permissão negada (somente gestor).';
-      else if (status === 404) msg = t('maquinas.toasts.deleteNotFound') || 'Máquina não encontrada (tente atualizar).';
-      else if (status === 409) msg = t('maquinas.toasts.deleteBlocked') || 'Máquina com vínculos.';
+      if (status === 403)
+        msg =
+          t('maquinas.toasts.deleteForbidden') ||
+          'Permissão negada (somente gestor).';
+      else if (status === 404)
+        msg =
+          t('maquinas.toasts.deleteNotFound') ||
+          'Máquina não encontrada (tente atualizar).';
+      else if (status === 409)
+        msg =
+          t('maquinas.toasts.deleteBlocked') ||
+          'Máquina com vínculos.';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -169,21 +205,35 @@ const MaquinasPage = () => {
       toast.error(t('maquinas.toasts.nameRequired'));
       return;
     }
+
     setSavingEdit(true);
     try {
-      const atualizado = await renomearMaquina(alvo.id, { nome: novo, syncTag: !!editSyncTag }, { role: user?.role, email: user?.email });
-      // Atualiza na lista e reordena
+      const atualizado = await renomearMaquina(
+        alvo.id,
+        { nome: novo, syncTag: !!editSyncTag },
+        { role: user?.role, email: user?.email }
+      );
+
       setMaquinas((prev) => {
-        const next = prev.map((m) => (m.id === alvo.id ? { ...m, ...atualizado } : m));
-        return next.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+        const next = prev.map((m) =>
+          m.id === alvo.id ? { ...m, ...atualizado } : m
+        );
+        return next.sort((a, b) =>
+          String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR')
+        );
       });
+
       toast.success(t('maquinas.toasts.renamed', { name: atualizado.nome }));
       setIsEditOpen(false);
       setAlvo(null);
     } catch (err) {
       const status = err?.status;
-      let msg = t('maquinas.toasts.renameError') || 'Erro ao renomear.';
-      if (status === 409) msg = t('maquinas.toasts.renameDuplicated') || 'Já existe uma máquina com esse nome/tag.';
+      let msg =
+        t('maquinas.toasts.renameError') || 'Erro ao renomear.';
+      if (status === 409)
+        msg =
+          t('maquinas.toasts.renameDuplicated') ||
+          'Já existe uma máquina com esse nome/tag.';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -192,91 +242,128 @@ const MaquinasPage = () => {
   };
 
   return (
-    <>
-      <header style={{ padding: '20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e0e0e0' }}>
-        <h1>{t('maquinas.title')}</h1>
-      </header>
-
-      <div style={{ padding: '20px' }}>
-        {loading ? (
-          <p>{t('maquinas.loading')}</p>
-        ) : (
-          <>
-            <div className={styles.legendContainer}>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendColorBox} ${styles.statusCorretiva}`} />
-                <span>{t('maquinas.legend.corretiva')}</span>
-              </div>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendColorBox} ${styles.statusPreventiva}`} />
-                <span>{t('maquinas.legend.preventiva')}</span>
-              </div>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendColorBox} ${styles.statusPreditiva}`} />
-                <span>{t('maquinas.legend.preditiva')}</span>
-              </div>
-            </div>
-
-            <div className={styles.grid}>
-              {maquinasComStatus.map((maquina) => (
-                <div key={maquina.id} className={`${styles.card} ${getStatusClass(maquina.statusDestaque)}`}>
-                  {/* botão 3 pontinhos (apenas gestor/admin) */}
-                  {isGestor && (
-                    <button
-                      className={styles.menuButton}
-                      aria-label={t('maquinas.actions')}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleMenu(maquina.id); }}
-                      title={t('maquinas.actions')}
-                    >
-                      <FiMoreVertical />
-                    </button>
-                  )}
-
-                  {/* dropdown  */}
-                  {isGestor && openMenuId === maquina.id && (
-                    <div className={styles.menu} onClick={(e) => e.stopPropagation()}>
-                      <button className={styles.menuItem} onClick={(e) => abrirEditar(maquina, e)}>
-                        <FiEdit2 /> {t('common.edit')}
-                      </button>
-                      <button
-                        className={`${styles.menuItem} ${styles.danger}`}
-                        onClick={(e) => confirmarExclusao(maquina, e)}
-                      >
-                        <FiTrash2 /> {t('common.delete')}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* conteúdo clicável do card */}
-                  <Link to={`/maquinas/${maquina.id}`} className={styles.cardLink}>
-                    <h2>{maquina.nome}</h2>
-                    <p>{t('maquinas.cardHint')}</p>
-                  </Link>
-                </div>
-              ))}
-
-              {/* CARD DE ADICIONAR */}
-              {isGestor && (
-                <div
-                  className={`${styles.card} ${styles.addCard}`}
-                  onClick={() => setIsModalOpen(true)}
-                  role="button"
-                  aria-label={t('maquinas.modal.title')}
-                  title={t('maquinas.modal.title')}
-                >
-                  <FiPlus className={styles.addIcon} />
-                </div>
-              )}
-            </div>
-          </>
-        )}
+    <div className={styles.page}>
+      {/* HEADER EM CARD BRANCO, IGUAL OUTRAS PÁGINAS */}
+      <div className={styles.headerCard}>
+        <div className={styles.headerText}>
+          <h1 className={styles.pageTitle}>{t('maquinas.title')}</h1>
+          <p className={styles.pageSubtitle}>
+            {t(
+              'maquinas.subtitle',
+              t('maquinas.cardHint') // fallback pra não quebrar tradução
+            )}
+          </p>
+        </div>
       </div>
 
+      {loading ? (
+        <p className={styles.loadingText}>{t('maquinas.loading')}</p>
+      ) : (
+        <>
+          {/* Legenda em card branco, mantendo o padrão de cards da tela */}
+          <div className={styles.legendContainer}>
+            <div className={styles.legendItem}>
+              <div
+                className={`${styles.legendColorBox} ${styles.statusCorretiva}`}
+              />
+              <span>{t('maquinas.legend.corretiva')}</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div
+                className={`${styles.legendColorBox} ${styles.statusPreventiva}`}
+              />
+              <span>{t('maquinas.legend.preventiva')}</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div
+                className={`${styles.legendColorBox} ${styles.statusPreditiva}`}
+              />
+              <span>{t('maquinas.legend.preditiva')}</span>
+            </div>
+          </div>
+
+          {/* Grid de máquinas */}
+          <div className={styles.grid}>
+            {maquinasComStatus.map((maquina) => (
+              <div
+                key={maquina.id}
+                className={`${styles.card} ${getStatusClass(
+                  maquina.statusDestaque
+                )}`}
+              >
+                {/* botão 3 pontinhos (apenas gestor/admin) */}
+                {isGestor && (
+                  <button
+                    className={styles.menuButton}
+                    aria-label={t('maquinas.actions')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleMenu(maquina.id);
+                    }}
+                    title={t('maquinas.actions')}
+                  >
+                    <FiMoreVertical />
+                  </button>
+                )}
+
+                {/* dropdown */}
+                {isGestor && openMenuId === maquina.id && (
+                  <div
+                    className={styles.menu}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className={styles.menuItem}
+                      onClick={(e) => abrirEditar(maquina, e)}
+                    >
+                      <FiEdit2 /> {t('common.edit')}
+                    </button>
+                    <button
+                      className={`${styles.menuItem} ${styles.danger}`}
+                      onClick={(e) => confirmarExclusao(maquina, e)}
+                    >
+                      <FiTrash2 /> {t('common.delete')}
+                    </button>
+                  </div>
+                )}
+
+                {/* conteúdo clicável do card */}
+                <Link
+                  to={`/maquinas/${maquina.id}`}
+                  className={styles.cardLink}
+                >
+                  <h2>{maquina.nome}</h2>
+                  <p>{t('maquinas.cardHint')}</p>
+                </Link>
+              </div>
+            ))}
+
+            {/* CARD DE ADICIONAR */}
+            {isGestor && (
+              <div
+                className={`${styles.card} ${styles.addCard}`}
+                onClick={() => setIsModalOpen(true)}
+                role="button"
+                aria-label={t('maquinas.modal.title')}
+                title={t('maquinas.modal.title')}
+              >
+                <FiPlus className={styles.addIcon} />
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
       {/* modal: criar máquina */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('maquinas.modal.title')}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={t('maquinas.modal.title')}
+      >
         <form onSubmit={handleCriarMaquina}>
-          <div style={{ marginBottom: '15px' }}>
-            <label htmlFor="nome-maquina" style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+          <div className={styles.modalField}>
+            <label htmlFor="nome-maquina" className={styles.modalLabel}>
               {t('maquinas.modal.nameLabel')}
             </label>
             <input
@@ -284,14 +371,11 @@ const MaquinasPage = () => {
               type="text"
               value={nomeNovaMaquina}
               onChange={(e) => setNomeNovaMaquina(e.target.value)}
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+              className={styles.modalInput}
               required
             />
           </div>
-          <button
-            type="submit"
-            style={{ padding: '10px 15px', border: 'none', borderRadius: '4px', backgroundColor: '#4B70E2', color: 'white', cursor: 'pointer' }}
-          >
+          <button type="submit" className={styles.modalPrimaryButton}>
             {t('maquinas.modal.save')}
           </button>
         </form>
@@ -304,8 +388,8 @@ const MaquinasPage = () => {
         title={t('maquinas.edit.title', { name: alvo?.nome ?? '' })}
       >
         <form onSubmit={salvarEdicao}>
-          <div style={{ marginBottom: 12 }}>
-            <label htmlFor="edit-nome" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
+          <div className={styles.modalField}>
+            <label htmlFor="edit-nome" className={styles.modalLabel}>
               {t('maquinas.edit.label')}
             </label>
             <input
@@ -313,12 +397,12 @@ const MaquinasPage = () => {
               type="text"
               value={editNome}
               onChange={(e) => setEditNome(e.target.value)}
-              style={{ width: '100%', padding: 8, boxSizing: 'border-box' }}
+              className={styles.modalInput}
               required
             />
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <label className={styles.modalCheckboxRow}>
             <input
               type="checkbox"
               checked={editSyncTag}
@@ -327,12 +411,18 @@ const MaquinasPage = () => {
             {t('maquinas.edit.syncTag')}
           </label>
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button type="button" onClick={() => setIsEditOpen(false)}>{t('common.cancel')}</button>
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.modalSecondaryButton}
+              onClick={() => setIsEditOpen(false)}
+            >
+              {t('common.cancel')}
+            </button>
             <button
               type="submit"
               disabled={savingEdit}
-              style={{ background: '#4B70E2', color: '#fff', border: 0, padding: '8px 12px', borderRadius: 6 }}
+              className={styles.modalPrimaryButton}
             >
               {savingEdit ? t('common.saving') : t('common.save')}
             </button>
@@ -346,19 +436,26 @@ const MaquinasPage = () => {
         onClose={() => setIsDeleteOpen(false)}
         title={t('maquinas.confirmDelete.title', { name: alvo?.nome ?? '' })}
       >
-        <p style={{ marginBottom: 16 }}>{t('maquinas.confirmDelete.text')}</p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => setIsDeleteOpen(false)}>{t('common.cancel')}</button>
+        <p className={styles.modalText}>
+          {t('maquinas.confirmDelete.text')}
+        </p>
+        <div className={styles.modalActions}>
           <button
+            className={styles.modalSecondaryButton}
+            onClick={() => setIsDeleteOpen(false)}
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            className={styles.modalDangerButton}
             onClick={excluir}
             disabled={deleting}
-            style={{ background: '#c62828', color: '#fff', border: 0, padding: '8px 12px', borderRadius: 6 }}
           >
             {t('common.delete')}
           </button>
         </div>
       </Modal>
-    </>
+    </div>
   );
 };
 

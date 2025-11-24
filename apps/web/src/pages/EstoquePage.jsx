@@ -37,27 +37,16 @@ export default function EstoquePage({ user }) {
     return () => { alive = false; };
   }, []);
 
-  // (Opcional) atualizações em tempo real via SSE
-  // useEffect(() => {
-  //   const unsub = subscribeSSE((msg) => {
-  //     if (msg?.topic === 'pecas' || msg?.topic === 'movimentacoes') {
-  //       listarPecas().then(setPecas).catch(console.error);
-  //     }
-  //   });
-  //   return () => unsub();
-  // }, []);
-
   const openModalMov = (peca, tipo) => {
     setSelectedPeca(peca);
     setModalTipo(tipo);
   };
 
-  const handleDeletePeca = async id => {
+  const handleDeletePeca = async (id) => {
     if (!window.confirm(t('estoque.confirm.delete'))) return;
     try {
       await excluirPeca(id, { role: user?.role, email: user?.email });
-      // Atualiza a lista local sem precisar reler tudo
-      setPecas(prev => prev.filter(p => p.id !== id));
+      setPecas((prev) => prev.filter((p) => p.id !== id));
       toast.success(t('estoque.toasts.deleted'));
     } catch (err) {
       console.error(err);
@@ -65,20 +54,20 @@ export default function EstoquePage({ user }) {
     }
   };
 
-  // Prepara dados para exportação em Excel
+  // Excel
   const handleExportExcel = () => {
-    const excelData = pecas.map(p => ({
-      [t('estoque.export.columns.code')]:      p.codigo,
-      [t('estoque.export.columns.name')]:      p.nome,
-      [t('estoque.export.columns.category')]:  p.categoria,
-      [t('estoque.export.columns.stock')]:     p.estoqueAtual,
-      [t('estoque.export.columns.min')]:       p.estoqueMinimo,
-      [t('estoque.export.columns.location')]:  p.localizacao,
+    const excelData = pecas.map((p) => ({
+      [t('estoque.export.columns.code')]:     p.codigo,
+      [t('estoque.export.columns.name')]:     p.nome,
+      [t('estoque.export.columns.category')]: p.categoria,
+      [t('estoque.export.columns.stock')]:    p.estoqueAtual,
+      [t('estoque.export.columns.min')]:      p.estoqueMinimo,
+      [t('estoque.export.columns.location')]: p.localizacao,
     }));
     exportToExcel(excelData, t('estoque.export.sheetName'), 'estoque');
   };
 
-  // Prepara dados e colunas para exportação em PDF
+  // PDF
   const handleExportPdf = () => {
     const pdfColumns = [
       { key: 'codigo',        label: t('estoque.export.columns.code') },
@@ -86,26 +75,34 @@ export default function EstoquePage({ user }) {
       { key: 'categoria',     label: t('estoque.export.columns.category') },
       { key: 'estoqueAtual',  label: t('estoque.export.columns.stock') },
       { key: 'estoqueMinimo', label: t('estoque.export.columns.min') },
-      { key: 'localizacao',   label: t('estoque.export.columns.location') }
+      { key: 'localizacao',   label: t('estoque.export.columns.location') },
     ];
-    const pdfData = pecas.map(p => ({
+    const pdfData = pecas.map((p) => ({
       codigo:        p.codigo,
       nome:          p.nome,
       categoria:     p.categoria,
       estoqueAtual:  p.estoqueAtual,
       estoqueMinimo: p.estoqueMinimo,
-      localizacao:   p.localizacao
+      localizacao:   p.localizacao,
     }));
     exportToPdf(pdfData, pdfColumns, 'estoque');
   };
 
   return (
     <>
-      <header className={styles.header}>
-        <h1>{t('estoque.title')}</h1>
+      {/* Header em card branco, padrão com as outras páginas */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('estoque.title')}</h1>
+        <p className={styles.subtitle}>
+          {t(
+            'estoque.subtitle',
+            'Gerencie o catálogo de peças, estoque mínimo e movimentações.'
+          )}
+        </p>
       </header>
 
-      <div className={styles.container}>
+      {/* Container branco principal */}
+      <div className={styles.listContainer}>
         {/* Toolbar: criação e exportação */}
         <div className={styles.toolbar}>
           {user?.role === 'gestor' && (
@@ -137,14 +134,24 @@ export default function EstoquePage({ user }) {
           ) : pecas.length === 0 ? (
             <p>{t('estoque.empty')}</p>
           ) : (
-            pecas.map(p => (
+            pecas.map((p) => (
               <div key={p.id} className={styles.cardCatalog}>
                 <h3>{p.nome}</h3>
-                <p><strong>{t('estoque.card.labels.code')}</strong> {p.codigo}</p>
-                <p><strong>{t('estoque.card.labels.category')}</strong> {p.categoria}</p>
-                <p><strong>{t('estoque.card.labels.stock')}</strong> {p.estoqueAtual}</p>
-                <p><strong>{t('estoque.card.labels.min')}</strong> {p.estoqueMinimo}</p>
-                <p><strong>{t('estoque.card.labels.location')}</strong> {p.localizacao}</p>
+                <p>
+                  <strong>{t('estoque.card.labels.code')}</strong> {p.codigo}
+                </p>
+                <p>
+                  <strong>{t('estoque.card.labels.category')}</strong> {p.categoria}
+                </p>
+                <p>
+                  <strong>{t('estoque.card.labels.stock')}</strong> {p.estoqueAtual}
+                </p>
+                <p>
+                  <strong>{t('estoque.card.labels.min')}</strong> {p.estoqueMinimo}
+                </p>
+                <p>
+                  <strong>{t('estoque.card.labels.location')}</strong> {p.localizacao}
+                </p>
 
                 {user?.role === 'gestor' && (
                   <div className={styles.cardButtons}>
@@ -181,37 +188,29 @@ export default function EstoquePage({ user }) {
 
         {/* Modais */}
         {selectedPeca && (
-          <>
-            {/* Se o seu MovimentacaoModal aceitar callback de sucesso,
-                você pode recarregar a lista assim:
-                onSaved={() => listarPecas().then(setPecas).catch(console.error)} */}
-            <MovimentacaoModal
-              peca={selectedPeca}
-              tipo={modalTipo}
-              user={user}
-              onClose={() => setSelectedPeca(null)}
-            />
-          </>
+          <MovimentacaoModal
+            peca={selectedPeca}
+            tipo={modalTipo}
+            user={user}
+            onClose={() => setSelectedPeca(null)}
+          />
         )}
 
         {editingPeca !== undefined && (
-          <>
-            {/* null = criar, objeto = editar */}
-            <PecaModal
-              peca={editingPeca}
-              user={user}
-              onClose={() => setEditingPeca(undefined)}
-              onSaved={(saved) => {
-                setPecas((prev) => {
-                  if (!saved || !saved.id) return prev;
-                  const sem = prev.filter((p) => p.id !== saved.id);
-                  return [...sem, saved].sort((a, b) =>
-                    String(a.codigo).localeCompare(String(b.codigo), 'pt')
-                  );
-                });
-              }}
-            />
-          </>
+          <PecaModal
+            peca={editingPeca}
+            user={user}
+            onClose={() => setEditingPeca(undefined)}
+            onSaved={(saved) => {
+              setPecas((prev) => {
+                if (!saved || !saved.id) return prev;
+                const sem = prev.filter((p) => p.id !== saved.id);
+                return [...sem, saved].sort((a, b) =>
+                  String(a.codigo).localeCompare(String(b.codigo), 'pt')
+                );
+              });
+            }}
+          />
         )}
       </div>
     </>

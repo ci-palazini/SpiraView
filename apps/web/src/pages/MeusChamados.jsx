@@ -1,4 +1,3 @@
-// src/pages/MeusChamados.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listarChamadosPorCriador, listarChamados } from '../services/apiClient';
@@ -78,6 +77,7 @@ export default function MeusChamados({ user }) {
     })();
   }, [email, role, reloadTick]);
 
+  // SSE para revalidar
   useEffect(() => {
     const unsubscribe = subscribeSSE((msg) => {
       if (msg?.topic === 'chamados') setReloadTick(n => n + 1);
@@ -138,19 +138,37 @@ export default function MeusChamados({ user }) {
     return arr;
   }, [docsAssigned, docsAtendidos, statusFiltro, busca, role]);
 
+  // Se não tiver e-mail (usuário não autenticado direito)
   if (!email) {
     return (
-      <div className={styles.container}>
-        <p>{t('meusChamados.loginFirst')}</p>
-      </div>
+      <>
+        <header className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>{t('meusChamados.title')}</h1>
+          <p className={styles.subtitle}>
+            {t(
+              'meusChamados.subtitle',
+              'Acompanhe os chamados atribuídos ou abertos por você.'
+            )}
+          </p>
+        </header>
+        <div className={styles.listContainer}>
+          <p className={styles.empty}>{t('meusChamados.loginFirst')}</p>
+        </div>
+      </>
     );
   }
 
   return (
     <>
-      {/* Faixa branca do título */}
-      <header style={{ padding: '20px', backgroundColor: '#fff', borderBottom: '1px solid #e0e0e0' }}>
-        <h1>{t('meusChamados.title')}</h1>
+      {/* Faixa branca do título em card, padrão das demais páginas */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('meusChamados.title')}</h1>
+        <p className={styles.subtitle}>
+          {t(
+            'meusChamados.subtitle',
+            'Acompanhe os chamados atribuídos ou abertos por você.'
+          )}
+        </p>
       </header>
 
       {/* Caixa branca do conteúdo */}
@@ -205,18 +223,25 @@ export default function MeusChamados({ user }) {
                     <td>{String(idx + 1).padStart(2, '0')}</td>
                     <td>{c.maquina || '—'}</td>
                     <td className={styles.descCell} title={c.descricao || ''}>
-                      {(c.descricao || '').slice(0, 80) + ((c.descricao || '').length > 80 ? '…' : '')}
+                      {(c.descricao || '').slice(0, 80) +
+                        ((c.descricao || '').length > 80 ? '…' : '')}
                     </td>
                     <td>
-                      <span className={`${styles.badge} ${styles[BADGE_BY_SK[statusKey(c.status)] || 'badge']}`}>
-                        {/* mostra traduzido, mas mantém status original no dado */}
+                      <span
+                        className={`${styles.badge} ${
+                          styles[BADGE_BY_SK[statusKey(c.status)] || 'badge']
+                        }`}
+                      >
                         {t(`status.${statusKey(c.status)}`)}
                       </span>
                     </td>
                     <td>{formatDate(c.assignedAt)}</td>
                     <td>{formatDate(c.dataAbertura)}</td>
                     <td>
-                      <Link to={`/maquinas/chamado/${c.id}`} className={styles.linkBtn}>
+                      <Link
+                        to={`/maquinas/chamado/${c.id}`}
+                        className={styles.linkBtn}
+                      >
                         {t('meusChamados.table.open')}
                       </Link>
                     </td>
@@ -230,5 +255,3 @@ export default function MeusChamados({ user }) {
     </>
   );
 }
-
-

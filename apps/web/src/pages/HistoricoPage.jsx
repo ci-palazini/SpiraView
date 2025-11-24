@@ -15,7 +15,7 @@ const HistoricoPage = () => {
   const [loading, setLoading] = useState(true);
   const [reloadTick, setReloadTick] = useState(0);
 
-  // ⬇️ DECLARE OS FILTROS AQUI, ANTES DE USAR
+  // filtros
   const [filtroTipoChamado, setFiltroTipoChamado] = useState('todos'); // 'todos' | 'corretiva' | 'preventiva' | 'preditiva'
   const [filtroMaquina, setFiltroMaquina] = useState('');
   const [busca, setBusca] = useState('');
@@ -35,7 +35,7 @@ const HistoricoPage = () => {
     return isNaN(d) ? null : d;
   }
 
-  // ✅ só DEPOIS use os filtros em memos/calculados
+  // histórico com filtros + ordenação
   const historicoFiltrado = useMemo(() => {
     let arr = Array.isArray(chamadosConcluidos) ? chamadosConcluidos.slice() : [];
 
@@ -107,6 +107,14 @@ const HistoricoPage = () => {
     return () => unsubscribe();
   }, []);
 
+  // Tradução para o tipo
+  function tipoLabel(tipo) {
+    if (tipo === 'corretiva') return t('historico.filters.typeOptions.corrective');
+    if (tipo === 'preventiva') return t('historico.filters.typeOptions.preventive');
+    if (tipo === 'preditiva') return t('historico.filters.typeOptions.predictive');
+    return tipo || '';
+  }
+
   // Dados para Excel
   const excelData = historicoFiltrado.map(c => ({
     [t('historico.export.columns.machine')]: c.maquina,
@@ -141,106 +149,149 @@ const HistoricoPage = () => {
     tipo: tipoLabel(c.tipo)
   }));
 
-  // Tradução para o tipo
-  function tipoLabel(tipo) {
-    if (tipo === 'corretiva') return t('historico.filters.typeOptions.corrective');
-    if (tipo === 'preventiva') return t('historico.filters.typeOptions.preventive');
-    if (tipo === 'preditiva') return t('historico.filters.typeOptions.predictive');
-    return tipo || '';
-  }
-
   return (
     <>
-      <header style={{ padding: '20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e0e0e0' }}>
-        <h1>{t('historico.title')}</h1>
+      {/* Faixa branca de título, padrão das outras páginas */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('historico.title')}</h1>
+        <p className={styles.subtitle}>
+          {t(
+            'historico.subtitle',
+            'Veja o histórico de chamados concluídos e filtre por tipo, máquina ou texto.'
+          )}
+        </p>
       </header>
 
-      <div style={{ padding: '20px' }}>
-        <div className={styles.card}>
-          {loading ? (
-            <p>{t('historico.loading')}</p>
-          ) : (
-            <>
-              {/* Área de exportação */}
-              <div className={styles.exportButtons}>
-                <button onClick={() => exportToExcel(excelData, t('historico.export.sheetName'), 'historico-chamados')}>
-                  {t('historico.export.downloadExcel')}
-                </button>
-                <button onClick={() => exportToPdf(pdfData, pdfColumns, 'historico-chamados')}>
-                  {t('historico.export.downloadPdf')}
-                </button>
+      {/* Container branco principal */}
+      <div className={styles.listContainer}>
+        {loading ? (
+          <p className={styles.loading}>{t('historico.loading')}</p>
+        ) : (
+          <>
+            {/* Área de exportação */}
+            <div className={styles.exportButtons}>
+              <button
+                onClick={() =>
+                  exportToExcel(
+                    excelData,
+                    t('historico.export.sheetName'),
+                    'historico-chamados'
+                  )
+                }
+              >
+                {t('historico.export.downloadExcel')}
+              </button>
+              <button
+                onClick={() =>
+                  exportToPdf(pdfData, pdfColumns, 'historico-chamados')
+                }
+              >
+                {t('historico.export.downloadPdf')}
+              </button>
+            </div>
+
+            {/* Filtros */}
+            <div className={styles.filterContainer}>
+              <div>
+                <label htmlFor="filtroTipoChamado">
+                  {t('historico.filters.byType')}
+                </label>
+                <select
+                  id="filtroTipoChamado"
+                  className={styles.select}
+                  value={filtroTipoChamado}
+                  onChange={e => setFiltroTipoChamado(e.target.value)}
+                >
+                  <option value="todos">
+                    {t('historico.filters.typeOptions.all')}
+                  </option>
+                  <option value="corretiva">
+                    {t('historico.filters.typeOptions.corrective')}
+                  </option>
+                  <option value="preventiva">
+                    {t('historico.filters.typeOptions.preventive')}
+                  </option>
+                  <option value="preditiva">
+                    {t('historico.filters.typeOptions.predictive')}
+                  </option>
+                </select>
               </div>
 
-              {/* Filtros */}
-              <div className={styles.filterContainer}>
-                <div>
-                  <label htmlFor="filtroTipoChamado">{t('historico.filters.byType')}</label>
-                  <select
-                    id="filtroTipoChamado"
-                    className={styles.select}
-                    value={filtroTipoChamado}
-                    onChange={e => setFiltroTipoChamado(e.target.value)}
+              <div>
+                <label htmlFor="filtroMaquina">
+                  {t('historico.filters.byMachine')}
+                </label>
+                <input
+                  id="filtroMaquina"
+                  className={styles.select}
+                  value={filtroMaquina}
+                  onChange={e => setFiltroMaquina(e.target.value)}
+                  placeholder={t('historico.filters.machineOptions.all')}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="busca">
+                  {t('historico.filters.search') || 'Busca'}
+                </label>
+                <input
+                  id="busca"
+                  className={styles.select}
+                  value={busca}
+                  onChange={e => setBusca(e.target.value)}
+                  placeholder={
+                    t('historico.filters.searchPlaceholder') ||
+                    t('historico.item.problem')
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Lista de cards */}
+            {historicoFiltrado.length === 0 ? (
+              <p className={styles.empty}>{t('historico.empty')}</p>
+            ) : (
+              <ul className={styles.chamadoList}>
+                {historicoFiltrado.map((chamado) => (
+                  <Link
+                    to={`chamado/${chamado.id}`}
+                    key={chamado.id}
+                    className={styles.chamadoLink}
                   >
-                    <option value="todos">{t('historico.filters.typeOptions.all')}</option>
-                    <option value="corretiva">{t('historico.filters.typeOptions.corrective')}</option>
-                    <option value="preventiva">{t('historico.filters.typeOptions.preventive')}</option>
-                    <option value="preditiva">{t('historico.filters.typeOptions.predictive')}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="filtroMaquina">{t('historico.filters.byMachine')}</label>
-                  <input
-                    id="filtroMaquina"
-                    className={styles.select}
-                    value={filtroMaquina}
-                    onChange={e => setFiltroMaquina(e.target.value)}
-                    placeholder={t('historico.filters.machineOptions.all')}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="busca">{t('historico.filters.search') || 'Busca'}</label>
-                  <input
-                    id="busca"
-                    className={styles.select}
-                    value={busca}
-                    onChange={e => setBusca(e.target.value)}
-                    placeholder={t('historico.filters.searchPlaceholder') || t('historico.item.problem')}
-                  />
-                </div>
-              </div>
-
-              {historicoFiltrado.length === 0 ? (
-                <p>{t('historico.empty')}</p>
-              ) : (
-                <ul className={styles.chamadoList}>
-                  {historicoFiltrado.map((chamado) => (
-                    <Link to={`chamado/${chamado.id}`} key={chamado.id} className={styles.chamadoLink}>
-                      <li className={styles.chamadoItem}>
-                        <div className={styles.chamadoInfo}>
-                          <strong>{t('historico.item.machine', { name: chamado.maquina })}</strong>
-                          <small>
-                            {t('historico.item.attendedBy', { name: chamado.manutentorNome || t('historico.item.unknown') })}
-                          </small>
-                          <small>
-                            {t('historico.item.concludedAt', {
-                              date: chamado.dataConclusao ? dtFmt.format(tsToDate(chamado.dataConclusao)) : '...'
-                            })}
-                          </small>
-                          <p className={styles.problemaPreview}>
-                            <strong>{t('historico.item.problem')}</strong>{' '}
-                            {chamado.descricao || t('historico.item.notSpecified')}
-                          </p>
-                        </div>
-                      </li>
-                    </Link>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>
+                    <li className={styles.chamadoItem}>
+                      <div className={styles.chamadoInfo}>
+                        <strong>
+                          {t('historico.item.machine', {
+                            name: chamado.maquina
+                          })}
+                        </strong>
+                        <small>
+                          {t('historico.item.attendedBy', {
+                            name:
+                              chamado.manutentorNome ||
+                              t('historico.item.unknown')
+                          })}
+                        </small>
+                        <small>
+                          {t('historico.item.concludedAt', {
+                            date: chamado.dataConclusao
+                              ? dtFmt.format(tsToDate(chamado.dataConclusao))
+                              : '...'
+                          })}
+                        </small>
+                        <p className={styles.problemaPreview}>
+                          <strong>{t('historico.item.problem')}</strong>{' '}
+                          {chamado.descricao ||
+                            t('historico.item.notSpecified')}
+                        </p>
+                      </div>
+                    </li>
+                  </Link>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
       </div>
     </>
   );

@@ -1,41 +1,62 @@
-/* src/pages/HistoricoPage.module.css */
-.card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.card {
-  background-color: transparent; /* Fundo transparente */
-  padding: 0;
-  box-shadow: none; /* Sem sombra */
+/* Header em card branco, padrão das outras telas */
+.pageHeader {
+  margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
-.cardTitle {
-  margin-top: 0;
+.pageTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
 }
 
+.subtitle {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 0.95rem;
+}
+
+/* Container branco principal */
+.listContainer {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px;
+  margin-top: 12px;
+}
+
+/* textos de loading/empty */
+.loading,
+.empty {
+  color: #667085;
+}
+
+/* Lista de cards */
 .chamadoList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/* 2. A MUDANÇA PRINCIPAL: Cada item da lista agora é um card. */
 .chamadoItem {
-  background-color: #ffffff; /* Fundo branco para o card */
+  background-color: #ffffff;
   padding: 20px;
-  border-radius: 8px; /* Bordas arredondadas */
-  margin-bottom: 16px; /* Espaçamento entre os cards */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.07); /* Sombra sutil */
-  border: 1px solid #eef0f3; /* Borda bem clara */
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.07);
+  border: 1px solid #eef0f3;
   transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
-/* Adicionamos um efeito ao passar o mouse para dar feedback */
 .chamadoItem:hover {
-    transform: translateY(-2px); /* Eleva o card levemente */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Sombra mais forte */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .chamadoInfo strong {
@@ -69,9 +90,10 @@
   max-width: 600px;
 }
 
+/* Filtros em card interno */
 .filterContainer {
   display: grid;
-  grid-template-columns: repeat(auto‑fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   background-color: #ffffff;
   padding: 1rem;
@@ -93,7 +115,7 @@
   color: #333;
 }
 
-/* selects customizados */
+/* inputs/selects usados nos filtros */
 .select {
   appearance: none;
   background-color: #fff;
@@ -104,10 +126,7 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* ícone de seta “invisível” por conta do appearance:none; 
-   se quiser, pode adicionar um background-image com SVG na própria classe .select */
-
-/* hover e focus states */
+/* hover e focus */
 .select:hover {
   border-color: #a3b1c2;
 }
@@ -117,11 +136,14 @@
   box-shadow: 0 0 0 2px rgba(98, 125, 152, 0.2);
 }
 
+/* Área de exportação */
 .exportButtons {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
+
 .exportButtons button {
   background-color: #16a085;
   color: #fff;
@@ -129,8 +151,11 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
   transition: background 0.2s;
 }
+
 .exportButtons button:hover {
   background-color: #13846d;
 }

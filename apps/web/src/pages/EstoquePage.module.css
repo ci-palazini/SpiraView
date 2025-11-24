@@ -1,49 +1,124 @@
-/* EstoquePage.module.css */
-
-.container {
- padding: 24px 16px;
+/* Header em card branco, igual Histórico / Meus Chamados */
+.pageHeader {
+  margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
-.header {
-  background-color: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.pageTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 0.95rem;
+}
+
+/* Container branco principal */
+.listContainer {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px;
+  margin-top: 12px;
+}
+
+/* Toolbar superior (novo + exportações) */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
+/* Botão "Nova peça" */
 .newButton {
   background-color: #006400;
-  color: #fff;
+  color: #ffffff;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 0.9rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  margin: 0;
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.05s ease;
 }
 
+.newButton:hover {
+  background-color: #004d00;
+}
+
+.newButton:active {
+  transform: translateY(1px);
+}
+
+/* Botões de exportação */
+.exportButton {
+  background-color: #16a085;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.05s ease;
+}
+
+.exportButton:hover {
+  background-color: #13846d;
+}
+
+.exportButton:active {
+  transform: translateY(1px);
+}
+
+/* Grid de cards */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
-  width: 100%;              /* <-- adicionado */
+  width: 100%;
 }
 
-/* Cada card ocupa no mínimo 280px e até 320px */
+/* Card de peça em catálogo */
 .cardCatalog {
-  background: #fff;
+  background: #ffffff;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  
-  /* Mantém flex interno para empilhar verticalmente */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eef0f3;
+
   display: flex;
   flex-direction: column;
-  flex: 1 1 280px;
-  max-width: 320px;
 }
 
+.cardCatalog h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.cardCatalog p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.cardCatalog p strong {
+  color: #111827;
+}
+
+/* Botões dentro do card */
 .cardButtons {
   margin-top: auto;
   display: flex;
@@ -53,41 +128,40 @@
 
 .buttonSmall {
   background-color: #006400;
-  color: #fff;
+  color: #ffffff;
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 0.8rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.buttonSmall:hover {
+  background-color: #004d00;
+}
+
+.buttonSmall:active {
+  transform: translateY(1px);
 }
 
 .buttonSmallDelete {
   background-color: #d32f2f;
-  color: #fff;
+  color: #ffffff;
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 0.8rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease, transform 0.05s ease;
 }
 
-.toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
+.buttonSmallDelete:hover {
+  background-color: #b71c1c;
 }
 
-/* Botões de export CSV/PDF */
-.exportButton {
-  background-color: #16a085;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.exportButton:hover {
-  background-color: #13846d;
+.buttonSmallDelete:active {
+  transform: translateY(1px);
 }

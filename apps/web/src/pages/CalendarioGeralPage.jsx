@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
@@ -20,7 +20,7 @@ import {
   iniciarAgendamento
 } from '../services/apiClient';
 import { getMaquinas } from '../services/apiClient';
-import { subscribeSSE } from "../services/sseClient";
+import { subscribeSSE } from '../services/sseClient';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -48,7 +48,11 @@ function toPlainText(v) {
     return v.texto ?? v.item ?? v.nome ?? v.label ?? v.key ?? '';
   }
 
-  try { return String(v); } catch { return ''; }
+  try {
+    return String(v);
+  } catch {
+    return '';
+  }
 }
 
 export default function CalendarioGeralPage({ user }) {
@@ -109,7 +113,6 @@ export default function CalendarioGeralPage({ user }) {
         if (!alive) return;
 
         const evs = lista.map(a => {
-          // itens_checklist pode ser array de strings/objetos — manter array para o modal e normalizar na renderização
           const itensArr = Array.isArray(a.itens_checklist) ? a.itens_checklist : [];
           const titulo = `${toPlainText(a.maquina_nome)}: ${toPlainText(a.descricao)}`;
 
@@ -122,7 +125,7 @@ export default function CalendarioGeralPage({ user }) {
             resource: {
               maquinaNome: toPlainText(a.maquina_nome),
               descricao: toPlainText(a.descricao),
-              itensChecklist: itensArr, // será normalizado no render
+              itensChecklist: itensArr,
               originalStart: a.original_start ? new Date(a.original_start) : null,
               originalEnd:   a.original_end   ? new Date(a.original_end)   : null,
               status: a.status,
@@ -140,7 +143,9 @@ export default function CalendarioGeralPage({ user }) {
       }
     })();
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [currentDate.getFullYear(), currentDate.getMonth(), reloadTick]);
 
   // carrega máquinas para dropdown
@@ -173,10 +178,10 @@ export default function CalendarioGeralPage({ user }) {
   }, []);
 
   const getContrastColor = (bg) => {
-    const r = parseInt(bg.slice(1,3),16),
-          g = parseInt(bg.slice(3,5),16),
-          b = parseInt(bg.slice(5,7),16);
-    const yiq = (r*299 + g*587 + b*114)/1000;
+    const r = parseInt(bg.slice(1, 3), 16);
+    const g = parseInt(bg.slice(3, 5), 16);
+    const b = parseInt(bg.slice(5, 7), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
     return yiq >= 128 ? '#000' : '#fff';
   };
 
@@ -217,7 +222,6 @@ export default function CalendarioGeralPage({ user }) {
     toast.success(t('calendarioGeral.toasts.created'));
     setShowNew(false);
     setReloadTick((n) => n + 1);
-    // recarrega mês atual
     setCurrentDate(new Date(currentDate));
   };
 
@@ -255,23 +259,48 @@ export default function CalendarioGeralPage({ user }) {
 
   return (
     <>
-      <header style={{ padding: '20px', backgroundColor: '#fff', borderBottom: '1px solid #e0e0e0' }}>
-        <h1>{t('calendarioGeral.title')}</h1>
+      {/* Header em card branco, padrão das demais páginas */}
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t('calendarioGeral.title')}</h1>
+        <p className={styles.subtitle}>
+          {t(
+            'calendarioGeral.subtitle',
+            'Visualize e gerencie as manutenções preventivas e preditivas agendadas.'
+          )}
+        </p>
       </header>
 
       <div className={styles.calendarContainer}>
         <div className={styles.legend}>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#8B0000'}}/> {t('calendarioGeral.legend.overdue')}</div>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#FFA500'}}/> {t('calendarioGeral.legend.today')}</div>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#90EE90'}}/> {t('calendarioGeral.legend.future')}</div>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#006400'}}/> {t('calendarioGeral.legend.started')}</div>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#00008B'}}/> {t('calendarioGeral.legend.finished')}</div>
-          <div><span className={styles.legendBox} style={{backgroundColor:'#8B008B'}}/> {t('calendarioGeral.legend.finishedLate')}</div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#8B0000' }} />{' '}
+            {t('calendarioGeral.legend.overdue')}
+          </div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#FFA500' }} />{' '}
+            {t('calendarioGeral.legend.today')}
+          </div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#90EE90' }} />{' '}
+            {t('calendarioGeral.legend.future')}
+          </div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#006400' }} />{' '}
+            {t('calendarioGeral.legend.started')}
+          </div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#00008B' }} />{' '}
+            {t('calendarioGeral.legend.finished')}
+          </div>
+          <div>
+            <span className={styles.legendBox} style={{ backgroundColor: '#8B008B' }} />{' '}
+            {t('calendarioGeral.legend.finishedLate')}
+          </div>
         </div>
 
         <div className={styles.calendarWrapper}>
           {loading ? (
-            <p style={{ padding: 20 }}>{t('calendarioGeral.loading')}</p>
+            <p className={styles.loading}>{t('calendarioGeral.loading')}</p>
           ) : (
             <DnDCalendar
               localizer={localizer}
@@ -280,7 +309,7 @@ export default function CalendarioGeralPage({ user }) {
               view={view}
               onView={setView}
               length={intervalDays}
-              views={['month','agenda']}
+              views={['month', 'agenda']}
               defaultView="month"
               toolbar
               messages={{
@@ -338,16 +367,27 @@ export default function CalendarioGeralPage({ user }) {
                   : undefined
               }
               eventPropGetter={(event) => {
-                const hoje = new Date(); hoje.setHours(0,0,0,0);
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
                 const inicio = event.start;
                 const s = event.resource.status;
                 let bg = '#FFFFFF';
-                if      (s === 'iniciado')                                    bg = '#006400';
-                else if (s === 'agendado' && inicio < hoje)                   bg = '#8B0000';
-                else if (s === 'agendado' && inicio.toDateString() === hoje.toDateString()) bg = '#FFA500';
-                else if (s === 'agendado')                                    bg = '#90EE90';
-                else if (event.resource.atrasado)                             bg = '#8B008B';
-                else if (s === 'concluido')                                   bg = '#00008B';
+                if (s === 'iniciado') {
+                  bg = '#006400';
+                } else if (s === 'agendado' && inicio < hoje) {
+                  bg = '#8B0000';
+                } else if (
+                  s === 'agendado' &&
+                  inicio.toDateString() === hoje.toDateString()
+                ) {
+                  bg = '#FFA500';
+                } else if (s === 'agendado') {
+                  bg = '#90EE90';
+                } else if (event.resource.atrasado) {
+                  bg = '#8B008B';
+                } else if (s === 'concluido') {
+                  bg = '#00008B';
+                }
                 return {
                   style: {
                     backgroundColor: bg,
@@ -365,20 +405,33 @@ export default function CalendarioGeralPage({ user }) {
                 ),
                 agenda: { time: () => null }
               }}
-              style={{ height: 600, backgroundColor: '#fff', borderRadius: 8 }}
+              className={styles.calendarRoot}
             />
           )}
         </div>
       </div>
 
       {/* Modal de detalhes do evento */}
-      <Modal isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title={toPlainText(selectedEvent?.title)}>
+      <Modal
+        isOpen={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        title={toPlainText(selectedEvent?.title)}
+      >
         {selectedEvent && (
           <div className={styles.modalDetails}>
-            <p><strong>{t('calendarioGeral.details.machine')}</strong> {toPlainText(selectedEvent.resource.maquinaNome)}</p>
-            <p><strong>{t('calendarioGeral.details.description')}</strong> {toPlainText(selectedEvent.resource.descricao)}</p>
+            <p>
+              <strong>{t('calendarioGeral.details.machine')}</strong>{' '}
+              {toPlainText(selectedEvent.resource.maquinaNome)}
+            </p>
+            <p>
+              <strong>{t('calendarioGeral.details.description')}</strong>{' '}
+              {toPlainText(selectedEvent.resource.descricao)}
+            </p>
 
-            <p><strong>{t('calendarioGeral.details.currentDate')}</strong> {fmtDate.format(selectedEvent.start)}</p>
+            <p>
+              <strong>{t('calendarioGeral.details.currentDate')}</strong>{' '}
+              {fmtDate.format(selectedEvent.start)}
+            </p>
             {selectedEvent.resource.originalStart && (
               <p>
                 <strong>{t('calendarioGeral.details.originalDate')}</strong>{' '}
@@ -386,7 +439,10 @@ export default function CalendarioGeralPage({ user }) {
               </p>
             )}
 
-            <p><strong>{t('calendarioGeral.details.status')}</strong> {toPlainText(selectedEvent.resource.status)}</p>
+            <p>
+              <strong>{t('calendarioGeral.details.status')}</strong>{' '}
+              {toPlainText(selectedEvent.resource.status)}
+            </p>
             {selectedEvent.resource.concluidoEm && (
               <p>
                 <strong>{t('calendarioGeral.details.finishedAt')}</strong>{' '}
@@ -394,16 +450,17 @@ export default function CalendarioGeralPage({ user }) {
               </p>
             )}
 
-            {Array.isArray(selectedEvent.resource.itensChecklist) && selectedEvent.resource.itensChecklist.length > 0 && (
-              <>
-                <h4>{t('calendarioGeral.details.checklistTitle')}</h4>
-                <ul>
-                  {selectedEvent.resource.itensChecklist.map((item, i) => (
-                    <li key={i}>{toPlainText(item)}</li>
-                  ))}
-                </ul>
-              </>
-            )}
+            {Array.isArray(selectedEvent.resource.itensChecklist) &&
+              selectedEvent.resource.itensChecklist.length > 0 && (
+                <>
+                  <h4>{t('calendarioGeral.details.checklistTitle')}</h4>
+                  <ul>
+                    {selectedEvent.resource.itensChecklist.map((item, i) => (
+                      <li key={i}>{toPlainText(item)}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
 
             {selectedEvent.resource.status !== 'iniciado' &&
               selectedEvent.resource.status !== 'concluido' &&
@@ -414,12 +471,11 @@ export default function CalendarioGeralPage({ user }) {
                 >
                   {t('calendarioGeral.actions.startNow')}
                 </button>
-            )}
+              )}
 
             {user.role === 'gestor' && (
               <button
-                className={styles.modalButton}
-                style={{ marginTop: 10, backgroundColor: '#d32f2f', color: '#fff' }}
+                className={`${styles.modalButton} ${styles.dangerButton}`}
                 onClick={handleDeleteAgendamento}
               >
                 {t('calendarioGeral.actions.delete')}
@@ -430,7 +486,11 @@ export default function CalendarioGeralPage({ user }) {
       </Modal>
 
       {/* Modal de novo agendamento */}
-      <Modal isOpen={showNew} onClose={() => setShowNew(false)} title={t('calendarioGeral.new.title')}>
+      <Modal
+        isOpen={showNew}
+        onClose={() => setShowNew(false)}
+        title={t('calendarioGeral.new.title')}
+      >
         <form onSubmit={handleSubmitNew}>
           <div className={styles.formGroup}>
             <label>{t('calendarioGeral.new.machine')}</label>
@@ -440,8 +500,14 @@ export default function CalendarioGeralPage({ user }) {
               className={styles.select}
               required
             >
-              <option value="" disabled>{t('calendarioGeral.new.selectPlaceholder')}</option>
-              {machines.map(m => <option key={m.id} value={m.id}>{toPlainText(m.nome)}</option>)}
+              <option value="" disabled>
+                {t('calendarioGeral.new.selectPlaceholder')}
+              </option>
+              {machines.map(m => (
+                <option key={m.id} value={m.id}>
+                  {toPlainText(m.nome)}
+                </option>
+              ))}
             </select>
           </div>
           <div className={styles.formGroup}>
@@ -461,7 +527,9 @@ export default function CalendarioGeralPage({ user }) {
                 const id = e.target.value;
                 setSelTemplate(id);
                 const tpl = templates.find(tpl => tpl.id === id);
-                const linhas = (tpl ? (tpl.itens || []) : []).map(toPlainText).filter(Boolean);
+                const linhas = (tpl ? (tpl.itens || []) : [])
+                  .map(toPlainText)
+                  .filter(Boolean);
                 setChecklistTxt(linhas.join('\n'));
               }}
               className={styles.select}

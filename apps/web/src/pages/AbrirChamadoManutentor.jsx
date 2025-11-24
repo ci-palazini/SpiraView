@@ -1,4 +1,3 @@
-// src/pages/AbrirChamadoManutentor.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { FiPlusCircle } from "react-icons/fi";
@@ -9,15 +8,16 @@ import styles from "./AbrirChamadoManutentor.module.css";
 export default function AbrirChamadoManutentor({ user }) {
   const { t } = useTranslation();
 
+  const role = (user?.role || "").toLowerCase();
+  const podeAbrir = role === "manutentor"; // página focada no manutentor
+
   const [selectedMachineId, setSelectedMachineId] = useState("");
   const [descricao, setDescricao] = useState("");
-  // ✅ desmarcada por padrão
+  // desmarcada por padrão
   const [assumirAgora, setAssumirAgora] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [maquinas, setMaquinas] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const podeAbrir = (user?.role === "manutentor" || user?.role === "gestor");
 
   useEffect(() => {
     (async () => {
@@ -37,7 +37,7 @@ export default function AbrirChamadoManutentor({ user }) {
   const sugestoesMaquinas = useMemo(() => {
     const itens = maquinas.map((m) => {
       const nome = m?.nome ?? m?.id ?? "";
-      const tag  = m?.tag ? ` (${m.tag})` : "";
+      const tag = m?.tag ? ` (${m.tag})` : "";
       return { label: `${nome}${tag}`, value: String(m?.id ?? "") };
     });
     return itens.sort((a, b) => a.label.localeCompare(b.label, "pt"));
@@ -54,19 +54,41 @@ export default function AbrirChamadoManutentor({ user }) {
       setEnviando(true);
 
       if (!selectedMachineId) {
-        throw new Error("Selecione uma máquina válida.");
+        throw new Error(
+          t(
+            "techOpen.errors.invalidMachine",
+            "Selecione uma máquina válida."
+          )
+        );
       }
       if (!user?.email) {
-        throw new Error("Seu usuário não possui e-mail carregado.");
+        throw new Error(
+          t(
+            "techOpen.errors.missingEmail",
+            "Seu usuário não possui e-mail carregado."
+          )
+        );
       }
       if (!descricao || descricao.trim().length < 5) {
-        throw new Error("Descreva o problema (mín. 5 caracteres).");
+        throw new Error(
+          t(
+            "techOpen.errors.descriptionTooShort",
+            "Descreva o problema (mín. 5 caracteres)."
+          )
+        );
       }
 
       const maquinaSel = maquinas.find(
         (m) => String(m.id) === String(selectedMachineId)
       );
-      if (!maquinaSel) throw new Error("Máquina não encontrada na lista local.");
+      if (!maquinaSel) {
+        throw new Error(
+          t(
+            "techOpen.errors.machineNotInList",
+            "Máquina não encontrada na lista local."
+          )
+        );
+      }
 
       const assume = !!assumirAgora;
 
@@ -75,7 +97,7 @@ export default function AbrirChamadoManutentor({ user }) {
         maquinaId: String(selectedMachineId),
         // opcionais (o back usa maquinaId, mas pode aproveitar)
         maquinaNome: maquinaSel?.nome || undefined,
-        maquinaTag:  maquinaSel?.tag  || undefined,
+        maquinaTag: maquinaSel?.tag || undefined,
 
         // Chamado
         tipo: "corretiva",
@@ -109,8 +131,8 @@ export default function AbrirChamadoManutentor({ user }) {
   if (!podeAbrir) {
     return (
       <>
-        <header className={styles.pageHeaderBar}>
-          <h1 className={styles.h1}>{t("techOpen.header.title")}</h1>
+        <header className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>{t("techOpen.header.title")}</h1>
         </header>
         <div className={styles.listContainer}>
           <p className={styles.helper}>{t("techOpen.noAccess")}</p>
@@ -121,8 +143,8 @@ export default function AbrirChamadoManutentor({ user }) {
 
   return (
     <>
-      <header style={{ padding: 20, background: "#fff", borderBottom: "1px solid #e0e0e0" }}>
-        <h1>{t("techOpen.header.title")}</h1>
+      <header className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>{t("techOpen.header.title")}</h1>
       </header>
 
       <div className={styles.listContainer}>
@@ -140,7 +162,9 @@ export default function AbrirChamadoManutentor({ user }) {
               disabled={loading}
             >
               <option value="" disabled>
-                {loading ? t("common.loading") : t("techOpen.placeholders.chooseMachine")}
+                {loading
+                  ? t("common.loading")
+                  : t("techOpen.placeholders.chooseMachine")}
               </option>
               {sugestoesMaquinas.map((m) => (
                 <option key={m.value} value={m.value}>
@@ -180,9 +204,15 @@ export default function AbrirChamadoManutentor({ user }) {
           </div>
 
           <div className={styles.actions}>
-            <button type="submit" className={styles.primaryBtn} disabled={desabilitado}>
+            <button
+              type="submit"
+              className={styles.primaryBtn}
+              disabled={desabilitado}
+            >
               <FiPlusCircle />
-              {enviando ? t("techOpen.cta.sending") : t("techOpen.cta.create")}
+              {enviando
+                ? t("techOpen.cta.sending")
+                : t("techOpen.cta.create")}
             </button>
           </div>
         </form>

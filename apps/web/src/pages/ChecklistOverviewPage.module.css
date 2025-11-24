@@ -1,44 +1,43 @@
-.page {
-  padding: 20px 24px;
-}
-
-/* card único que engloba título, filtros, resumo e tabela */
-.card {
+/* Header em card branco, padrão da aplicação */
+.pageHeader {
+  margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
   background-color: #ffffff;
-  border-radius: 16px;
   border: 1px solid #e5e7eb;
-  padding: 20px 20px 16px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-}
-
-/* Cabeçalho (título + filtros) */
-.headerRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 16px;
 }
 
 .pageTitle {
   margin: 0;
-  font-size: 24px;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #111827;
 }
 
-.pageSubtitle {
+.subtitle {
   margin: 4px 0 0;
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 0.95rem;
+  color: #667085;
 }
 
-/* Filtros à direita */
+/* Card branco principal */
+.listContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  margin: 16px;
+  margin-top: 12px;
+}
+
+/* Filtros (data + checkbox + botão Hoje) */
 .filters {
   display: flex;
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .filterBlock {
@@ -81,8 +80,9 @@
   font-size: 13px;
   font-weight: 500;
   background-color: #2563eb;
-  color: #fff;
+  color: #ffffff;
   cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .todayButton:disabled {
@@ -91,7 +91,6 @@
 }
 
 /* Cards de resumo */
-
 .summaryRow {
   display: flex;
   flex-wrap: wrap;
@@ -121,7 +120,6 @@
 }
 
 /* Erro */
-
 .errorBox {
   margin-bottom: 12px;
   padding: 10px 12px;
@@ -132,7 +130,6 @@
 }
 
 /* Tabela */
-
 .tableHeader {
   display: flex;
   align-items: center;
@@ -195,6 +192,7 @@
   color: #9ca3af;
 }
 
+/* Links / ações */
 .machineLink {
   color: #111827;
   font-weight: 500;
@@ -206,7 +204,6 @@
 }
 
 /* Badge de status */
-
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -237,8 +234,7 @@
   margin-left: 4px;
 }
 
-/* Ação */
-
+/* Ação na última coluna */
 .actionCell {
   white-space: nowrap;
 }
@@ -257,20 +253,13 @@
 }
 
 /* Responsivo */
-
 @media (max-width: 768px) {
-  .page {
-    padding: 16px;
+  .pageHeader {
+    margin: 12px;
   }
 
-  .card {
-    padding: 16px 14px 14px;
-  }
-
-  .headerRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .listContainer {
+    margin: 12px;
   }
 
   .filters {

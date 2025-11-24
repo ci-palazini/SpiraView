@@ -1,101 +1,55 @@
-/* src/pages/AnaliseFalhasPage.module.css */
-
-.card {
+/* Card branco padrão (igual outras páginas: MeusChamados, AbrirChamado etc.) */
+.listContainer {
   background-color: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 16px;
+  margin: 16px;
 }
 
+/* Container do gráfico */
 .chartContainer {
-  height: 500px; /* Define uma altura para o container do gráfico */
   position: relative;
+  height: 400px;
 }
 
+/* Filtros (datas + limpar) no topo do card */
 .filterContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
+
 .filterContainer > div {
   display: flex;
   flex-direction: column;
 }
+
 .filterContainer label {
   font-weight: 600;
   margin-bottom: 0.25rem;
-}
-.filterContainer input {
-  padding: 0.4rem;
-  border: 1px solid #ccd0d5;
-  border-radius: 4px;
-}
-.clearButton {
-  align-self: flex-end;
-  padding: 0.4rem 0.8rem;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.clearButton:hover {
-  background: #c0392b;
+  color: #333;
 }
 
-/* Card branco para header e gráfico */
-.card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  margin-bottom: 1.5rem;
-}
-
-/* Para o header dentro do card */
-.header {
-  margin: 0 0 1rem;
-}
-
-/* Container de filtros (único card que engloba os inputs) */
-.filterContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.filterContainer > div {
-  display: flex;
-  flex-direction: column;
-}
-.filterContainer label {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
 .filterContainer input {
   padding: 0.5rem;
   border: 1px solid #ccd0d5;
   border-radius: 4px;
 }
 
-/* Botão Limpar */
+/* Botão "Limpar" de filtro */
 .clearButton {
   align-self: flex-end;
   padding: 0.5rem 1rem;
   background: #e74c3c;
-  color: white;
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
-}
-.clearButton:hover {
-  background: #c0392b;
+  transition: background 0.2s ease;
 }
 
-/* Ajuste para o gráfico */
-.chartContainer {
-  position: relative;
-  height: 400px;
+.clearButton:hover {
+  background: #c0392b;
 }

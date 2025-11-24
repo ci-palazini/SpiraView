@@ -1,20 +1,51 @@
+/* Header da página em card branco (padrão das outras telas) */
+.pageHeader {
+  margin: 16px;
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
 /* Mesmo container branco usado em MeusChamados */
 .listContainer {
   background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 16px 20px;
   margin: 16px;
+  margin-top: 12px; /* aproxima do header */
 }
 
 /* Form */
-.form { display: flex; flex-direction: column; gap: 16px; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.label { font-weight: 600; color: #374151; }
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-weight: 600;
+  color: #374151;
+}
 
 .select,
 .textarea {
-  box-sizing: border-box;   /* ← garante que borda/padding entrem no 100% */
+  box-sizing: border-box; /* garante que borda/padding entrem no 100% */
   width: 100%;
   max-width: 100%;
   border: 1px solid #e5e7eb;
@@ -23,27 +54,72 @@
   font-size: 0.98rem;
   outline: none;
   background: #fafafa;
-  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
 }
-.select:focus, .textarea:focus {
+
+.select:focus,
+.textarea:focus {
   border-color: #94a3b8;
-  box-shadow: 0 0 0 3px rgba(148,163,184,0.25);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
   background: #fff;
 }
-.textarea { resize: vertical; min-height: 120px; }
 
-.inlineCheck { display: flex; flex-direction: column; gap: 6px; }
-.checkboxLabel { display: flex; align-items: center; gap: 10px; font-weight: 500; color: #374151; }
-.helper { color: #6b7280; font-size: 0.85rem; }
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.inlineCheck {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.helper {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
 
 /* Ações */
-.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
-.primaryBtn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 10px; border: none;
-  background: #3b82f6; color: #fff; font-weight: 600; cursor: pointer;
-  transition: transform .05s ease, filter .15s ease, opacity .15s ease;
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }
-.primaryBtn:hover { filter: brightness(1.05); }
-.primaryBtn:active { transform: translateY(1px); }
-.primaryBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.primaryBtn:hover {
+  filter: brightness(1.05);
+}
+
+.primaryBtn:active {
+  transform: translateY(1px);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
