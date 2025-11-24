@@ -1,0 +1,361 @@
+.page {
+  padding: 24px;
+  background-color: #f4f6fb;
+}
+
+.pageHeader {
+  padding: 20px 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.pageSubtitle {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: #4b5563;
+}
+
+/* Corpo da página */
+.page {
+  padding: 24px;
+  background-color: #f4f6fb;
+}
+
+/* linha dos filtros logo abaixo do header */
+.filtersRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* (restante do arquivo pode ficar como está, só garante que não tenha outro .page/.pageTitle/.pageSubtitle conflitante) */
+
+.filterBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.dateInput {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkboxText {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.todayButton {
+  border-radius: 999px;
+  border: 1px solid #2563eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.todayButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.pageSubtitle {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: #4b5563;
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.dateInput {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkboxText {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.todayButton {
+  border-radius: 999px;
+  border: 1px solid #2563eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.todayButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Cards de resumo */
+
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summaryCard {
+  min-width: 140px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.summaryValue {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Erro */
+
+.errorBox {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Tabela */
+
+.tableCard {
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tableTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.loadingInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 18px 8px;
+  color: #9ca3af;
+}
+
+.machineLink {
+  color: #111827;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.machineLink:hover {
+  text-decoration: underline;
+}
+
+/* Badge de status */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.statusBadge svg {
+  font-size: 14px;
+}
+
+.statusOk {
+  background-color: #ecfdf3;
+  color: #166534;
+}
+
+.statusPending {
+  background-color: #fef9c3;
+  color: #92400e;
+}
+
+.statusNames {
+  border-left: 1px solid rgba(148, 163, 184, 0.7);
+  padding-left: 6px;
+  margin-left: 4px;
+}
+
+/* Ação */
+
+.actionCell {
+  white-space: nowrap;
+}
+
+.detailsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.detailsLink:hover {
+  text-decoration: underline;
+}
+
+/* Responsivo */
+
+@media (max-width: 768px) {
+  .page {
+    padding: 16px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+  }
+
+  .filters {
+    align-items: flex-start;
+  }
+
+  .summaryRow {
+    justify-content: flex-start;
+  }
+}

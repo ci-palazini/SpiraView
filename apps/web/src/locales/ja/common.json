@@ -12,7 +12,10 @@
     "rootCauses": "根本原因",
     "manageUsers": "ユーザー管理",
     "activeCalls": "進行中の依頼",
-    "openCorrective": "チケットを作成"
+    "openCorrective": "チケットを作成",
+    "startShift": "シフト開始",
+    "dailyChecklists": "日次チェックリスト",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "未対応",
@@ -677,6 +680,26 @@
     "allDone": "すべてのチェックリストが完了しました！",
     "sendAndNext": "送信して次へ",
     "finishAll": "送信して完了"
+  },
+  "checklistOverview": {
+    "title": "機械別の日次チェックリスト",
+    "subtitle": "1回目と2回目のシフトのチェックリストが送信されたかをすぐに確認できます。",
+    "errorLoad": "データの読み込み中にエラーが発生しました。もう一度お試しください。",
+    "date": "日付",
+    "onlyPending": "未完了のみ",
+    "today": "今日",
+    "totalMachines": "機械合計",
+    "turn1": "第1シフト",
+    "turn2": "第2シフト",
+    "tableTitle": "機械別ステータス",
+    "machine": "機械",
+    "turn1Short": "第1シフト",
+    "turn2Short": "第2シフト",
+    "lastSent": "最新のチェックリスト",
+    "empty": "現在のフィルターでは機械が見つかりません。",
+    "sent": "送信済み",
+    "missing": "未完了",
+    "details": "詳細を見る"
   },
   "operatorDashboard": {
     "form": {

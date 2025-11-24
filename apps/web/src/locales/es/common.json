@@ -12,7 +12,10 @@
     "rootCauses": "Causas Raíz",
     "manageUsers": "Gestionar Usuarios",
     "activeCalls": "orden(es) activa(s)",
-    "openCorrective": "Abrir ticket"
+    "openCorrective": "Abrir ticket",
+    "startShift": "Inicio de turno",
+    "dailyChecklists": "Checklists diarios",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "Abierta",
@@ -677,6 +680,26 @@
     "allDone": "¡Listas de verificación completadas!",
     "sendAndNext": "Enviar y siguiente",
     "finishAll": "Enviar y finalizar"
+  },
+  "checklistOverview": {
+    "title": "Checklists diarios por máquina",
+    "subtitle": "Vea rápidamente si se enviaron los checklists del 1.º y 2.º turno.",
+    "errorLoad": "Error al cargar los datos. Intente nuevamente.",
+    "date": "Día",
+    "onlyPending": "Solo pendientes",
+    "today": "Hoy",
+    "totalMachines": "Total de máquinas",
+    "turn1": "1.er turno",
+    "turn2": "2.º turno",
+    "tableTitle": "Estado por máquina",
+    "machine": "Máquina",
+    "turn1Short": "1.er turno",
+    "turn2Short": "2.º turno",
+    "lastSent": "Último checklist",
+    "empty": "No se encontraron máquinas para el filtro actual.",
+    "sent": "Enviado",
+    "missing": "Pendiente",
+    "details": "Ver detalles"
   },
   "operatorDashboard": {
     "form": {

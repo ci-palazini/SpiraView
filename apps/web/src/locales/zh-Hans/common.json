@@ -12,7 +12,10 @@
     "rootCauses": "根本原因",
     "manageUsers": "用户管理",
     "activeCalls": "进行中的工单",
-    "openCorrective": "创建工单"
+    "openCorrective": "创建工单",
+    "startShift": "开始当班",
+    "dailyChecklists": "每日检查表",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "打开",
@@ -677,6 +680,26 @@
     "allDone": "检查清单已完成！",
     "sendAndNext": "提交并下一个",
     "finishAll": "提交并完成"
+  },
+  "checklistOverview": {
+    "title": "按设备的每日检查表",
+    "subtitle": "快速查看第一和第二班的检查表是否已提交。",
+    "errorLoad": "加载数据时出错，请重试。",
+    "date": "日期",
+    "onlyPending": "仅待完成",
+    "today": "今天",
+    "totalMachines": "设备总数",
+    "turn1": "第一班",
+    "turn2": "第二班",
+    "tableTitle": "按设备的状态",
+    "machine": "设备",
+    "turn1Short": "第一班",
+    "turn2Short": "第二班",
+    "lastSent": "最新检查表",
+    "empty": "当前筛选条件下未找到设备。",
+    "sent": "已提交",
+    "missing": "待完成",
+    "details": "查看详情"
   },
   "operatorDashboard": {
     "form": {

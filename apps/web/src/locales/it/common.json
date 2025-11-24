@@ -12,7 +12,10 @@
     "rootCauses": "Cause radice",
     "manageUsers": "Gestisci utenti",
     "activeCalls": "ordine/i attivo/i",
-    "openCorrective": "Apri ticket"
+    "openCorrective": "Apri ticket",
+    "startShift": "Inizio turno",
+    "dailyChecklists": "Checklist giornaliere",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "Aperto",
@@ -677,6 +680,26 @@
     "allDone": "Checklist completate!",
     "sendAndNext": "Invia e avanti",
     "finishAll": "Invia e termina"
+  },
+  "checklistOverview": {
+    "title": "Checklist giornaliere per macchina",
+    "subtitle": "Verifica rapidamente se le checklist del 1º e 2º turno sono state inviate.",
+    "errorLoad": "Errore nel caricamento dei dati. Riprova.",
+    "date": "Giorno",
+    "onlyPending": "Solo pendenti",
+    "today": "Oggi",
+    "totalMachines": "Totale macchine",
+    "turn1": "1º turno",
+    "turn2": "2º turno",
+    "tableTitle": "Stato per macchina",
+    "machine": "Macchina",
+    "turn1Short": "1º turno",
+    "turn2Short": "2º turno",
+    "lastSent": "Ultima checklist",
+    "empty": "Nessuna macchina trovata per il filtro attuale.",
+    "sent": "Inviato",
+    "missing": "In sospeso",
+    "details": "Vedi dettagli"
   },
   "operatorDashboard": {
     "form": {

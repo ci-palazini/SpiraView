@@ -12,7 +12,10 @@
     "rootCauses": "Causes racines",
     "manageUsers": "Gérer les utilisateurs",
     "activeCalls": "ordre(s) actif(s)",
-    "openCorrective": "Ouvrir un ticket"
+    "openCorrective": "Ouvrir un ticket",
+    "startShift": "Début de poste",
+    "dailyChecklists": "Checklists quotidiennes",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "Ouvert",
@@ -262,7 +265,7 @@
     "machine": "Machine",
     "loadError": "Erreur lors du chargement des données.",
     "back": "Retour"
-},
+  },
   "chamadoDetalhe": {
     "notFound": "Ordre non trouvé.",
     "header": {
@@ -677,6 +680,26 @@
     "allDone": "Listes de contrôle terminées !",
     "sendAndNext": "Envoyer et suivant",
     "finishAll": "Envoyer et terminer"
+  },
+  "checklistOverview": {
+    "title": "Checklists quotidiennes par machine",
+    "subtitle": "Voyez rapidement si les checklists des 1er et 2e quarts ont été envoyées.",
+    "errorLoad": "Erreur lors du chargement des données. Réessayez.",
+    "date": "Jour",
+    "onlyPending": "Seulement en attente",
+    "today": "Aujourd'hui",
+    "totalMachines": "Total de machines",
+    "turn1": "1er quart",
+    "turn2": "2e quart",
+    "tableTitle": "Statut par machine",
+    "machine": "Machine",
+    "turn1Short": "1er quart",
+    "turn2Short": "2e quart",
+    "lastSent": "Dernière checklist",
+    "empty": "Aucune machine trouvée pour le filtre actuel.",
+    "sent": "Envoyé",
+    "missing": "En attente",
+    "details": "Voir les détails"
   },
   "operatorDashboard": {
     "form": {

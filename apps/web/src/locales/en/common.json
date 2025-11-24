@@ -12,7 +12,10 @@
     "rootCauses": "Root Causes",
     "manageUsers": "Manage Users",
     "activeCalls": "active work order(s)",
-    "openCorrective": "Open ticket"
+    "openCorrective": "Open ticket",
+    "startShift": "Start shift",
+    "dailyChecklists": "Daily checklists",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "Open",
@@ -677,6 +680,26 @@
     "allDone": "Checklists completed!",
     "sendAndNext": "Send and Next",
     "finishAll": "Send and Finish"
+  },
+  "checklistOverview": {
+    "title": "Daily checklists by machine",
+    "subtitle": "Quickly see whether the 1st and 2nd shift checklists were sent.",
+    "errorLoad": "Error loading data. Try again.",
+    "date": "Day",
+    "onlyPending": "Only pending",
+    "today": "Today",
+    "totalMachines": "Total machines",
+    "turn1": "1st shift",
+    "turn2": "2nd shift",
+    "tableTitle": "Status by machine",
+    "machine": "Machine",
+    "turn1Short": "1st shift",
+    "turn2Short": "2nd shift",
+    "lastSent": "Last checklist",
+    "empty": "No machines found for the current filter.",
+    "sent": "Sent",
+    "missing": "Pending",
+    "details": "View details"
   },
   "operatorDashboard": {
     "form": {

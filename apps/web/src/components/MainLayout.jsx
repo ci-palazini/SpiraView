@@ -25,6 +25,7 @@ import MeusChamados from '../pages/MeusChamados';
 import AbrirChamadoManutentor from '../pages/AbrirChamadoManutentor.jsx';
 import LanguageMenu from '../components/LanguageMenu.jsx';
 import PziniChatBot from '../pages/PziniChatBot.jsx';
+import ChecklistOverviewPage from '../pages/ChecklistOverviewPage.jsx'; // ⬅ novo
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -251,6 +252,19 @@ const MainLayout = ({ user }) => {
         </NavLink>
       )}
 
+      {/* Checklists diários – apenas gestor */}
+      {role === 'gestor' && (
+        <NavLink
+          to="/checklists-diarios"
+          className={({ isActive }) =>
+            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+          }
+        >
+          <FiCheckSquare className={styles.navIcon} />
+          <span>{t('nav.dailyChecklists', 'Checklists diários')}</span>
+        </NavLink>
+      )}
+
       {(role === 'manutentor' || role === 'gestor') && (
         <NavLink to="/historico" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink}>
           <FiCheckSquare className={styles.navIcon} />
@@ -413,7 +427,21 @@ const MainLayout = ({ user }) => {
           <Route path="/causas-raiz" element={<CausasRaizPage user={user} />} />
           <Route path="/calendario-geral" element={<CalendarioGeralPage user={user} />} />
           <Route path="/estoque" element={<EstoquePage user={user} />} />
-          <Route path="/gerir-utilizadores" element={<GerirUtilizadoresPage user={user} />} />
+
+          {/* rota protegida: apenas gestor acessa, senão volta para "/" */}
+          <Route
+            path="/checklists-diarios"
+            element={
+              role === 'gestor'
+                ? <ChecklistOverviewPage user={user} />
+                : <Navigate to="/" replace />
+            }
+          />
+
+          <Route
+            path="/gerir-utilizadores"
+            element={<GerirUtilizadoresPage user={user} />}
+          />
           <Route
             path="/chatbot"
             element={isPt ? <PziniChatBot user={user} /> : <Navigate to="/" replace />}

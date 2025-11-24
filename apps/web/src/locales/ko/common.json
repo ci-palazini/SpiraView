@@ -12,7 +12,10 @@
     "rootCauses": "근본 원인",
     "manageUsers": "사용자 관리",
     "activeCalls": "진행 중 요청",
-    "openCorrective": "티켓 생성"
+    "openCorrective": "티켓 생성",
+    "startShift": "교대 시작",
+    "dailyChecklists": "일일 체크리스트",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "열림",
@@ -677,7 +680,26 @@
     "allDone": "체크리스트 완료!",
     "sendAndNext": "전송 후 다음",
     "finishAll": "전송하고 완료"
-
+  },
+  "checklistOverview": {
+    "title": "기계별 일일 체크리스트",
+    "subtitle": "1, 2교대 체크리스트가 제출되었는지 빠르게 확인하세요.",
+    "errorLoad": "데이터를 불러오는 중 오류가 발생했습니다. 다시 시도하세요.",
+    "date": "날짜",
+    "onlyPending": "미완료만",
+    "today": "오늘",
+    "totalMachines": "총 기계 수",
+    "turn1": "1교대",
+    "turn2": "2교대",
+    "tableTitle": "기계별 상태",
+    "machine": "기계",
+    "turn1Short": "1교대",
+    "turn2Short": "2교대",
+    "lastSent": "최근 체크리스트",
+    "empty": "현재 필터에 해당하는 기계가 없습니다.",
+    "sent": "제출됨",
+    "missing": "미완료",
+    "details": "자세히 보기"
   },
   "operatorDashboard": {
     "form": {

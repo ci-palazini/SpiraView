@@ -12,7 +12,10 @@
     "rootCauses": "Hauptursachen",
     "manageUsers": "Benutzer verwalten",
     "activeCalls": "aktive Arbeitsaufträge",
-    "openCorrective": "Ticket eröffnen"
+    "openCorrective": "Ticket eröffnen",
+    "startShift": "Schichtstart",
+    "dailyChecklists": "Tägliche Checklisten",
+    "pzinibot": "Pzini"
   },
   "status": {
     "open": "Offen",
@@ -677,6 +680,26 @@
     "allDone": "Checklisten abgeschlossen!",
     "sendAndNext": "Senden & Weiter",
     "finishAll": "Senden & Abschließen"
+  },
+  "checklistOverview": {
+    "title": "Tägliche Checklisten je Maschine",
+    "subtitle": "Sehen Sie schnell, ob die Checklisten der 1. und 2. Schicht gesendet wurden.",
+    "errorLoad": "Fehler beim Laden der Daten. Bitte erneut versuchen.",
+    "date": "Tag",
+    "onlyPending": "Nur ausstehende",
+    "today": "Heute",
+    "totalMachines": "Gesamtmaschinen",
+    "turn1": "1. Schicht",
+    "turn2": "2. Schicht",
+    "tableTitle": "Status nach Maschine",
+    "machine": "Maschine",
+    "turn1Short": "1. Schicht",
+    "turn2Short": "2. Schicht",
+    "lastSent": "Letzte Checkliste",
+    "empty": "Keine Maschinen für den aktuellen Filter gefunden.",
+    "sent": "Gesendet",
+    "missing": "Offen",
+    "details": "Details anzeigen"
   },
   "operatorDashboard": {
     "form": {
