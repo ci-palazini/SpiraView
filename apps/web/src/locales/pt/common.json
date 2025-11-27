@@ -321,6 +321,19 @@
         "solutionLabel": "Serviço Realizado / Solução Aplicada"
       }
     },
+    "photos": {
+      "title": "Fotos da manutenção",
+      "add": "Adicionar foto",
+      "hint": "Formatos aceitos: JPG, PNG",
+      "choose": "Escolher arquivo",
+      "noFile": "Nenhum arquivo selecionado",
+      "uploadButton": "Enviar foto",
+      "selectFile": "Selecione uma foto primeiro.",
+      "uploadSuccess": "Foto enviada com sucesso.",
+      "uploadError": "Falha ao enviar foto.",
+      "permissionDenied": "Você não tem permissão para enviar fotos.",
+      "empty": "Nenhuma foto adicionada até o momento."
+    },
     "delete": {
       "title": "Excluir definitivamente este chamado",
       "button": "Excluir Chamado",

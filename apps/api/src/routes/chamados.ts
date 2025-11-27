@@ -10,7 +10,18 @@ import {
   ObservacaoSchema,
 } from "@manutencao/shared";
 
+import multer from "multer";
+import { uploadChamadoFotoToStorage, getSignedUrlFromStorage } from "../utils/supabaseStorage";
+
 export const chamadosRouter: Router = Router();
+
+// upload em memória, só para fotos
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB (ajusta se precisar)
+  },
+});
 
 // ---------- Chamados: lista com filtros + paginação ----------
 chamadosRouter.get("/chamados", async (req, res) => {
@@ -249,6 +260,65 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
     res.status(500).json({ error: String(e) });
   }
 });
+
+
+// ---------- Chamados: listar fotos ----------
+chamadosRouter.get(
+  "/chamados/:id/fotos",
+  requireRole(["operador", "manutentor", "gestor", "admin"]),
+  async (req, res) => {
+    try {
+      const chamadoId = String(req.params.id || "").trim();
+      if (!chamadoId) {
+        return res.status(400).json({ error: "ID_INVALIDO" });
+      }
+
+      const { rows } = await pool.query(
+        `
+        SELECT
+          f.id,
+          f.storage_path,
+          f.mime_type,
+          f.tamanho_bytes,
+          to_char(f.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em,
+          COALESCE(u.nome, u.email, 'Sistema') AS autor_nome
+        FROM public.chamado_fotos f
+        LEFT JOIN public.usuarios u ON u.id = f.criado_por_id
+        WHERE f.chamado_id = $1
+        ORDER BY f.criado_em ASC
+        `,
+        [chamadoId]
+      );
+
+      // gera signed URLs para exibição no front
+      const items = await Promise.all(
+        rows.map(async (row) => {
+          let url: string | null = null;
+          try {
+            url = await getSignedUrlFromStorage(row.storage_path);
+          } catch (e) {
+            console.error("[chamados/:id/fotos] erro ao gerar signed URL", e);
+          }
+          return {
+            id: row.id,
+            url,
+            caminho: row.storage_path,
+            mimeType: row.mime_type,
+            tamanhoBytes: row.tamanho_bytes,
+            criadoEm: row.criado_em,
+            autorNome: row.autor_nome,
+          };
+        })
+      );
+
+      return res.json(items);
+    } catch (e: any) {
+      console.error(e);
+      return res.status(500).json({ error: String(e) });
+    }
+  }
+);
+
 
 // ---------- Chamados: observacoes ----------
 chamadosRouter.post(
@@ -563,6 +633,122 @@ chamadosRouter.post(
     }
   }
 );
+
+
+// ---------- Chamados: upload de foto ----------
+chamadosRouter.post(
+  "/chamados/:id/fotos",
+  requireRole(["manutentor", "gestor", "admin"]),
+  upload.single("file"), // campo "file" no form-data
+  async (req, res) => {
+    try {
+      const chamadoId = String(req.params.id || "").trim();
+      if (!chamadoId) {
+        return res.status(400).json({ error: "ID_INVALIDO" });
+      }
+
+      const user = req.user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "USUARIO_NAO_CADASTRADO" });
+      }
+
+      const file = req.file as Express.Multer.File | undefined;
+      if (!file) {
+        return res.status(400).json({ error: "ARQUIVO_OBRIGATORIO" });
+      }
+
+      if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+        return res.status(400).json({ error: "TIPO_INVALIDO", detalhe: "Envie apenas imagens." });
+      }
+
+      // valida se o usuário está associado ao chamado (igual ao patch checklist)
+      const { rows } = await pool.query(
+        `
+        SELECT status, manutentor_id, responsavel_atual_id, atendido_por_id
+          FROM public.chamados
+         WHERE id = $1
+         LIMIT 1
+        `,
+        [chamadoId]
+      );
+      if (!rows.length) {
+        return res.status(404).json({ error: "CHAMADO_NAO_ENCONTRADO" });
+      }
+
+      const atual = rows[0];
+      const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
+        .filter(Boolean)
+        .map((v: any) => String(v));
+
+      const role = String(user.role || "").toLowerCase();
+      const isGestorLike = role === "gestor" || role === "admin";
+
+      if (!isGestorLike && !associados.includes(String(user.id))) {
+        return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+      }
+
+      // upload no Supabase Storage
+      let storagePath: string;
+      try {
+        storagePath = await uploadChamadoFotoToStorage(chamadoId, file);
+      } catch (e) {
+        console.error("[chamados/:id/fotos] erro upload storage", e);
+        return res.status(500).json({ error: "UPLOAD_FAILED" });
+      }
+
+      // grava metadados no Postgres
+      const { rows: inserted } = await pool.query(
+        `
+        INSERT INTO public.chamado_fotos
+          (chamado_id, storage_path, mime_type, tamanho_bytes, criado_por_id)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING
+          id,
+          storage_path,
+          mime_type,
+          tamanho_bytes,
+          to_char(criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
+        `,
+        [chamadoId, storagePath, file.mimetype, file.size, user.id]
+      );
+
+      const foto = inserted[0];
+
+      let signedUrl: string | null = null;
+      try {
+        signedUrl = await getSignedUrlFromStorage(foto.storage_path);
+      } catch (e) {
+        console.error("[chamados/:id/fotos] erro signed URL após insert", e);
+      }
+
+      const payload = {
+        id: foto.id,
+        url: signedUrl,
+        caminho: foto.storage_path,
+        mimeType: foto.mime_type,
+        tamanhoBytes: foto.tamanho_bytes,
+        criadoEm: foto.criado_em,
+        autorId: user.id,
+        autorNome: (user.name as string) || (user.email as string) || null,
+      };
+
+      try {
+        sseBroadcast?.({
+          topic: "chamados",
+          action: "foto-criada",
+          id: chamadoId,
+          payload,
+        });
+      } catch {}
+
+      return res.status(201).json(payload);
+    } catch (e: any) {
+      console.error(e);
+      return res.status(500).json({ error: String(e) });
+    }
+  }
+);
+
 
 chamadosRouter.patch(
   "/chamados/:id/checklist",

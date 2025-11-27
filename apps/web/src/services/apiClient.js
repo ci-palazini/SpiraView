@@ -255,6 +255,63 @@ export async function getChamado(id, auth = {}) {
   return apiFetch(`/chamados/${id}`, { auth }); // { id, maquina, tipo, status, descricao, criado_por, ... }
 }
 
+
+// Listar fotos de um chamado
+export async function listarFotosChamado(id, auth = {}) {
+  const res = await fetch(`${BASE}/chamados/${encodeURIComponent(id)}/fotos`, {
+    headers: buildAuthHeaders(auth),
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("application/json")
+    ? await res.json().catch(() => [])
+    : { error: await res.text().catch(() => "") };
+
+  if (!res.ok) {
+    throw new Error(
+      data?.error || `Erro ao listar fotos do chamado (${res.status})`
+    );
+  }
+
+  // backend já retorna array simples
+  return Array.isArray(data) ? data : data.items || [];
+}
+
+// Enviar foto (file: File/Blob vindo do input type="file")
+export async function uploadFotoChamado(id, file, auth = {}) {
+  if (!file) {
+    throw new Error("Arquivo é obrigatório");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const headers = buildAuthHeaders(auth);
+  // ⚠️ Não setar Content-Type manualmente (deixa o browser montar o boundary)
+  delete headers["Content-Type"];
+
+  const res = await fetch(`${BASE}/chamados/${encodeURIComponent(id)}/fotos`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("application/json")
+    ? await res.json().catch(() => ({}))
+    : { error: await res.text().catch(() => "") };
+
+  if (!res.ok) {
+    throw new Error(
+      data?.error || `Erro ao enviar foto do chamado (${res.status})`
+    );
+  }
+
+  // esperado: { id, url, caminho, mimeType, tamanhoBytes, criadoEm, autorNome }
+  return data;
+}
+
+
 // Manutentores (para atribuiÃ§Ã£o)
 export async function listarManutentores(auth = {}) {
   const res = await fetch(`${BASE}/usuarios?role=manutentor`, {

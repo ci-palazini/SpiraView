@@ -6,6 +6,8 @@ import {
   atribuirChamado, removerAtribuicao, atenderChamado,
   adicionarObservacao, concluirChamado, deletarChamado,
   atualizarChecklistChamado,               // <<< IMPORTANTE
+  listarFotosChamado,          // <<< NOVO
+  uploadFotoChamado,           // <<< NOVO
 } from '../services/apiClient';
 import styles from './ChamadoDetalhe.module.css';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +51,11 @@ export default function ChamadoDetalhe({ user }) {
 
   // observações
   const [novaObservacao, setNovaObservacao] = useState('');
+
+  // fotos de manutencao
+  const [fotos, setFotos] = useState([]);
+  const [fotoFile, setFotoFile] = useState(null);
+  const [uploadingFoto, setUploadingFoto] = useState(false);
 
   // atribuição (gestor)
   const [manutentores, setManutentores] = useState([]);
@@ -135,6 +142,16 @@ export default function ChamadoDetalhe({ user }) {
         setCausa(mapped.causa || '');
         setChecklist(list);
         if (mapped.manutentorId) setSelectedManutentor(mapped.manutentorId);
+
+        // 👇 carrega fotos deste chamado
+        try {
+          const fotosLista = await listarFotosChamado(id);
+          if (alive) {
+            setFotos(Array.isArray(fotosLista) ? fotosLista : []);
+          }
+        } catch (errFotos) {
+          console.error('Erro ao listar fotos do chamado:', errFotos);
+        }
       } catch (e) {
         console.error(e);
         toast.error(t('chamadoDetalhe.toasts.loadError'));
@@ -196,6 +213,49 @@ export default function ChamadoDetalhe({ user }) {
     isOwner;
 
   // --------- handlers ---------
+  function handleFotoChange(e) {
+    const file = e.target.files?.[0] || null;
+    setFotoFile(file);
+  }
+
+  async function handleUploadFoto() {
+    if (!fotoFile) {
+      toast.error(t('chamadoDetalhe.photos.selectFile') || 'Selecione uma foto primeiro.');
+      return;
+    }
+
+    // pode mandar foto se for dono, manutentor ou gestor
+    if (!isOwner && !isManutentor && !isGestor) {
+      toast.error(
+        t('chamadoDetalhe.photos.permissionDenied') ||
+        'Você não tem permissão para enviar fotos.'
+      );
+      return;
+    }
+
+    setUploadingFoto(true);
+    try {
+      const nova = await uploadFotoChamado(id, fotoFile, {
+        role: user.role,
+        email: user.email,
+      });
+      setFotos((prev) => [...prev, nova]);
+      setFotoFile(null);
+      toast.success(
+        t('chamadoDetalhe.photos.uploadSuccess') ||
+        'Foto enviada com sucesso.'
+      );
+    } catch (e) {
+      console.error('Erro ao enviar foto:', e);
+      toast.error(
+        t('chamadoDetalhe.photos.uploadError') ||
+        'Falha ao enviar foto.'
+      );
+    } finally {
+      setUploadingFoto(false);
+    }
+  }
+
   async function handleAtribuir() {
     if (!selectedManutentor) {
       toast.error(t('chamadoDetalhe.toasts.selectMaint'));
@@ -494,6 +554,107 @@ export default function ChamadoDetalhe({ user }) {
           ))}
           {(!chamado.observacoes || chamado.observacoes.length === 0) && <p>{t('chamadoDetalhe.history.empty')}</p>}
         </ul>
+      </div>
+
+      {/* Fotos da manutenção */}
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>
+          {t('chamadoDetalhe.photos.title') || 'Fotos da manutenção'}
+        </h2>
+
+        {(() => {
+          const podeEnviarFoto =
+            (isOwner || isManutentor || isGestor) &&
+            chamado.status !== 'Concluido';
+
+          return (
+            <>
+              {podeEnviarFoto && (
+                <div className={styles.formGroup} style={{ marginBottom: 16 }}>
+                  <div className={styles.photoUploadWrapper}>
+                    <div className={styles.photoUploadHeader}>
+                      <span className={styles.photoUploadTitle}>
+                        {t('chamadoDetalhe.photos.add') || 'Adicionar foto'}
+                      </span>
+                      <span className={styles.photoUploadHint}>
+                        {t('chamadoDetalhe.photos.hint') || 'Formatos aceitos: JPG, PNG'}
+                      </span>
+                    </div>
+
+                    <div className={styles.photoUploadBox}>
+                      {/* input real (escondido) */}
+                      <input
+                        id="fotoUpload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFotoChange}
+                        disabled={uploadingFoto}
+                        className={styles.photoInputHidden}
+                      />
+
+                      {/* botão de escolher arquivo */}
+                      <label htmlFor="fotoUpload" className={styles.chooseFileButton}>
+                        {t('chamadoDetalhe.photos.choose') || 'Escolher arquivo'}
+                      </label>
+
+                      {/* nome do arquivo selecionado */}
+                      <span className={styles.fileName}>
+                        {fotoFile
+                          ? fotoFile.name
+                          : (t('chamadoDetalhe.photos.noFile') || 'Nenhum arquivo selecionado')}
+                      </span>
+
+                      {/* botão de enviar */}
+                      <button
+                        type="button"
+                        onClick={handleUploadFoto}
+                        className={styles.button}
+                        disabled={uploadingFoto || !fotoFile}
+                      >
+                        {uploadingFoto
+                          ? (t('common.saving') || 'Enviando...')
+                          : (t('chamadoDetalhe.photos.uploadButton') || 'Enviar foto')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(!fotos || fotos.length === 0) ? (
+                <p>
+                  {t('chamadoDetalhe.photos.empty') ||
+                    'Nenhuma foto adicionada até o momento.'}
+                </p>
+              ) : (
+                <div className={styles.photosGrid}>
+                  {fotos.map((f) => (
+                    <div key={f.id} className={styles.photoItem}>
+                      {f.url ? (
+                        <a href={f.url} target="_blank" rel="noreferrer">
+                          <img
+                            src={f.url}
+                            alt="Foto da manutenção"
+                            className={styles.photoThumb}
+                          />
+                        </a>
+                      ) : (
+                        <div className={styles.photoThumbFallback}>
+                          <span>URL indisponível</span>
+                        </div>
+                      )}
+                      <small>
+                        {f.autorNome ? `${f.autorNome} • ` : ''}
+                        {f.criadoEm
+                          ? fmtDateTime.format(asDate(f.criadoEm))
+                          : ''}
+                      </small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Ações */}
