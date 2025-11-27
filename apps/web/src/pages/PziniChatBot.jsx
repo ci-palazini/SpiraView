@@ -31,7 +31,7 @@ const MAX_CHIP_CHARS = 28;
 function shortenLabel(s, max = MAX_CHIP_CHARS) {
   const txt = String(s ?? '').trim();
   if (txt.length <= max) return txt;
-  return txt.slice(0, max - 1) + '…';
+  return txt.slice(0, max - 3) + '...';
 }
 
 function loadLS(key, def = []) {
@@ -104,7 +104,7 @@ function fallbackSuggestionsFromRows(rows = []) {
   }
   if (ms[1]) out.push(`Quais as principais causas da ${ms[1]} nos últimos 90 dias?`);
   if (ms[2]) out.push(`Quais as principais causas da ${ms[2]} nos últimos 90 dias?`);
-  out.push('/fts vazament');
+  out.push('/fts vazamento');
   return out;
 }
 
@@ -221,7 +221,7 @@ function DataTable({ rows = [], fields, onCellClick, pageSize = 50 }) {
       {limited && (
         <div style={pagerBar}>
           <span style={{ color: '#64748b', fontSize: 12 }}>
-            Mostrando {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} de{' '}
+            Mostrando {page * pageSize + 1}-{Math.min((page + 1) * pageSize, total)} de{' '}
             {total}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -911,7 +911,7 @@ export default function PziniChatBot() {
                 justifyContent: 'flex-start'
               }}
             >
-              <div style={assistantBubble}>Gerando…</div>
+              <div style={assistantBubble}>Gerando...</div>
             </div>
           )}
         </div>
@@ -922,7 +922,7 @@ export default function PziniChatBot() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Escreva sua pergunta…  (dica: /fts vazament)  —  ↑/↓ histórico, Ctrl/⌘+Enter envia"
+            placeholder="Escreva sua pergunta...  (dica: /fts vazamentos)  —  ↑/↓ histórico, Ctrl/⌘+Enter envia"
             style={inputBox}
           />
           <button
