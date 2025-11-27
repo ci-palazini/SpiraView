@@ -41,3 +41,5 @@ apps/web/dev-dist/
 
 # Mantém infra no repositório
 # (NÃO ignore 'infra/' nem 'init-sql/')
+
+dump.sql
