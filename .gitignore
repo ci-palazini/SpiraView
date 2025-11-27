@@ -1,12 +1,13 @@
 # Node / TS
 node_modules/
-dist/
+**/dist/
 build/
 coverage/
 .tmp/
 .temp/
 .cache/
 .vite/
+apps/**/dev-dist/
 
 # pnpm
 .pnpm-store/
