@@ -26,14 +26,14 @@ const upload = multer({
 // ---------- Chamados: lista com filtros + paginação ----------
 chamadosRouter.get("/chamados", async (req, res) => {
   try {
-    const status          = req.query.status as string | undefined;
-    const tipo            = req.query.tipo   as string | undefined;
-    const maquinaTag      = req.query.maquinaTag as string | undefined;
-    const maquinaId       = req.query.maquinaId as string | undefined;
-    const criadoPorEmail  = req.query.criadoPorEmail as string | undefined;
+    const status = req.query.status as string | undefined;
+    const tipo = req.query.tipo as string | undefined;
+    const maquinaTag = req.query.maquinaTag as string | undefined;
+    const maquinaId = req.query.maquinaId as string | undefined;
+    const criadoPorEmail = req.query.criadoPorEmail as string | undefined;
     const manutentorEmail = req.query.manutentorEmail as string | undefined;
-    const from            = req.query.from as string | undefined;
-    const to              = req.query.to   as string | undefined;
+    const from = req.query.from as string | undefined;
+    const to = req.query.to as string | undefined;
 
     const page = Math.max(parseInt(String(req.query.page ?? "1"), 10) || 1, 1);
     const pageSize = Math.min(Math.max(parseInt(String(req.query.pageSize ?? "20"), 10) || 20, 1), 100);
@@ -255,7 +255,7 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
     );
 
     res.json({ ...chamado, observacoes: obs.rows });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -339,10 +339,10 @@ chamadosRouter.post(
       const { texto } = parsed.data;
 
       const user = req.user;
-      const autorId   = user?.id ?? null;
+      const autorId = user?.id ?? null;
       const autorNome = user?.name ? String(user.name).trim()
-                        : user?.email ? String(user.email).trim()
-                        : null;
+        : user?.email ? String(user.email).trim()
+          : null;
 
       const { rows } = await pool.query(
         `INSERT INTO public.chamado_observacoes
@@ -375,7 +375,7 @@ chamadosRouter.post(
           id: chamadoId,
           payload: ultimaObservacao,
         });
-      } catch {}
+      } catch { }
 
       return res.status(201).json({ ok: true, observacao: ultimaObservacao, observacoes: lista });
     } catch (error: any) {
@@ -400,9 +400,9 @@ chamadosRouter.post(
       }
 
       const chamadoId = String(req.params.id);
-      const atendenteId    = user.id;
+      const atendenteId = user.id;
       const atendenteEmail = user.email ? String(user.email).trim() : null;
-      const atendenteNome  = user.name  ? String(user.name).trim()  : null;
+      const atendenteNome = user.name ? String(user.name).trim() : null;
 
       const resultado = await withTx(async (client) => {
         // trava a linha para transição segura
@@ -462,7 +462,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch {}
+      } catch { }
 
       // mantém o mesmo shape de retorno que você já usa
       return res.json({ ok: true, chamado: resultado.row });
@@ -624,7 +624,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch {}
+      } catch { }
 
       return res.json({ ok: true, chamado: chamadoAtualizado });
     } catch (error) {
@@ -739,7 +739,7 @@ chamadosRouter.post(
           id: chamadoId,
           payload,
         });
-      } catch {}
+      } catch { }
 
       return res.status(201).json(payload);
     } catch (e: any) {
@@ -805,7 +805,7 @@ chamadosRouter.patch(
         [chamadoId, JSON.stringify(checklist)]
       );
 
-      try { sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId }); } catch {}
+      try { sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId }); } catch { }
 
       return res.json({ ok: true });
     } catch (e: any) {
@@ -976,7 +976,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
       [chamadoId]
     );
 
-    try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch {}
+    try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch { }
     return res.status(201).json(rows[0]);
 
   } catch (e: any) {
@@ -1011,8 +1011,8 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
     if (!statusNorm) return res.status(400).json({ error: "STATUS_INVALIDO" });
 
     const isEmAndamento = statusNorm === CHAMADO_STATUS.EM_ANDAMENTO;
-    const isConcluido   = statusNorm === CHAMADO_STATUS.CONCLUIDO;
-    const isAberto      = statusNorm === CHAMADO_STATUS.ABERTO;
+    const isConcluido = statusNorm === CHAMADO_STATUS.CONCLUIDO;
+    const isAberto = statusNorm === CHAMADO_STATUS.ABERTO;
 
     if (isEmAndamento && !(role === "manutentor" || role === "gestor")) {
       return res.status(403).json({ error: "Apenas manutentor/gestor podem mover para 'Em Andamento'." });
@@ -1160,9 +1160,9 @@ chamadosRouter.post(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch {}
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
-    } catch (e:any) {
+    } catch (e: any) {
       console.error(e);
       return res.status(500).json({ error: String(e) });
     }
@@ -1212,9 +1212,9 @@ chamadosRouter.delete(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch {}
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
-    } catch (e:any) {
+    } catch (e: any) {
       console.error(e);
       return res.status(500).json({ error: String(e) });
     }
@@ -1265,9 +1265,9 @@ chamadosRouter.post(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch {}
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
-    } catch (e:any) {
+    } catch (e: any) {
       console.error(e);
       return res.status(500).json({ error: String(e) });
     }
