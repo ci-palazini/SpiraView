@@ -1,5 +1,5 @@
-// ChamadosAbertosPage.jsx - Página de chamados em aberto (não concluídos)
-import React, { useState, useEffect, useMemo } from 'react';
+// src/features/chamados/pages/ChamadosAbertosPage.tsx
+import { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { listarChamados } from '../../../services/apiClient';
 import { subscribeSSE } from '../../../services/sseClient';
@@ -9,16 +9,50 @@ import styles from './ChamadosAbertosPage.module.css';
 import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 
+interface ChamadoAberto {
+    id: string;
+    maquina?: string;
+    tipo?: string;
+    descricao?: string;
+    manutentorNome?: string;
+    dataAbertura?: string | null;
+    status?: string;
+    prioridade?: string;
+}
+
+interface ApiChamado {
+    id: string;
+    maquina?: string;
+    tipo?: string;
+    descricao?: string;
+    manutentor?: string;
+    criado_em?: string;
+    status?: string;
+    prioridade?: string;
+}
+
+type FiltroTipo = 'todos' | 'corretiva' | 'preventiva' | 'preditiva';
+type FiltroStatus = 'todos' | 'aberto' | 'em andamento' | 'aguardando';
+
+function tsToDate(ts: string | Date | { toDate: () => Date } | null | undefined): Date | null {
+    if (!ts) return null;
+    if (typeof ts === 'string') return new Date(ts.replace(' ', 'T'));
+    if (typeof (ts as { toDate: () => Date }).toDate === 'function') {
+        return (ts as { toDate: () => Date }).toDate();
+    }
+    const d = ts instanceof Date ? ts : new Date(ts as string);
+    return isNaN(d.getTime()) ? null : d;
+}
+
 const ChamadosAbertosPage = () => {
     const { t, i18n } = useTranslation();
 
-    const [chamados, setChamados] = useState([]);
+    const [chamados, setChamados] = useState<ChamadoAberto[]>([]);
     const [loading, setLoading] = useState(true);
     const [reloadTick, setReloadTick] = useState(0);
 
-    // Filtros
-    const [filtroTipo, setFiltroTipo] = useState('todos');
-    const [filtroStatus, setFiltroStatus] = useState('todos');
+    const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
+    const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('todos');
     const [filtroMaquina, setFiltroMaquina] = useState('');
     const [busca, setBusca] = useState('');
 
@@ -27,15 +61,6 @@ const ChamadosAbertosPage = () => {
         [i18n.language]
     );
 
-    function tsToDate(ts) {
-        if (!ts) return null;
-        if (typeof ts === 'string') return new Date(ts.replace(' ', 'T'));
-        if (typeof ts.toDate === 'function') return ts.toDate();
-        const d = ts instanceof Date ? ts : new Date(ts);
-        return isNaN(d) ? null : d;
-    }
-
-    // Filtrar e ordenar
     const chamadosFiltrados = useMemo(() => {
         let arr = Array.isArray(chamados) ? chamados.slice() : [];
 
@@ -57,32 +82,28 @@ const ChamadosAbertosPage = () => {
             );
         }
 
-        // Ordenar por data de abertura (mais recentes primeiro)
         arr.sort((a, b) => {
-            const ad = tsToDate(a.dataAbertura) || 0;
-            const bd = tsToDate(b.dataAbertura) || 0;
-            return bd - ad;
+            const ad = tsToDate(a.dataAbertura) || new Date(0);
+            const bd = tsToDate(b.dataAbertura) || new Date(0);
+            return bd.getTime() - ad.getTime();
         });
 
         return arr;
     }, [chamados, filtroTipo, filtroStatus, filtroMaquina, busca]);
 
-    // Buscar chamados em aberto
     useEffect(() => {
         let alive = true;
         setLoading(true);
         (async () => {
             try {
-                // Buscar chamados que NÃO estão concluídos
                 const data = await listarChamados({ page: 1, pageSize: 500 });
-                const rows = data.items ?? data;
+                const rows: ApiChamado[] = data.items ?? data;
 
-                // Filtrar apenas os não concluídos
-                const abertos = rows.filter(r =>
-                    !['Concluido', 'Concluído'].includes(r.status)
+                const abertos = rows.filter((r: ApiChamado) =>
+                    !['Concluido', 'Concluído'].includes(r.status || '')
                 );
 
-                const mapped = abertos.map(r => ({
+                const mapped: ChamadoAberto[] = abertos.map((r: ApiChamado) => ({
                     id: r.id,
                     maquina: r.maquina,
                     tipo: r.tipo,
@@ -104,9 +125,8 @@ const ChamadosAbertosPage = () => {
         return () => { alive = false; };
     }, [reloadTick]);
 
-    // SSE para atualizações em tempo real
     useEffect(() => {
-        const unsubscribe = subscribeSSE((msg) => {
+        const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
             if (msg?.topic === 'chamados') {
                 setReloadTick(n => n + 1);
             }
@@ -114,14 +134,14 @@ const ChamadosAbertosPage = () => {
         return () => unsubscribe();
     }, []);
 
-    function tipoLabel(tipo) {
+    function tipoLabel(tipo: string | undefined): string {
         if (tipo === 'corretiva') return t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva');
         if (tipo === 'preventiva') return t('chamadosAbertos.filters.typeOptions.preventive', 'Preventiva');
         if (tipo === 'preditiva') return t('chamadosAbertos.filters.typeOptions.predictive', 'Preditiva');
         return tipo || '';
     }
 
-    function statusLabel(status) {
+    function statusLabel(status: string | undefined): string {
         if (!status) return '';
         const s = status.toLowerCase();
         if (s === 'aberto') return t('chamadosAbertos.status.open', 'Aberto');
@@ -130,7 +150,7 @@ const ChamadosAbertosPage = () => {
         return status;
     }
 
-    function statusClass(status) {
+    function statusClass(status: string | undefined): string {
         if (!status) return '';
         const s = status.toLowerCase();
         if (s === 'aberto') return styles.statusAberto;
@@ -139,13 +159,12 @@ const ChamadosAbertosPage = () => {
         return '';
     }
 
-    // Dados para exportação
     const excelData = chamadosFiltrados.map(c => ({
         [t('chamadosAbertos.export.columns.machine', 'Máquina')]: c.maquina,
         [t('chamadosAbertos.export.columns.type', 'Tipo')]: tipoLabel(c.tipo),
         [t('chamadosAbertos.export.columns.status', 'Status')]: statusLabel(c.status),
         [t('chamadosAbertos.export.columns.openedAt', 'Aberto em')]:
-            c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)) : '',
+            c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)!) : '',
         [t('chamadosAbertos.export.columns.assignee', 'Responsável')]: c.manutentorNome || '',
         [t('chamadosAbertos.export.columns.description', 'Descrição')]: c.descricao || ''
     }));
@@ -161,7 +180,7 @@ const ChamadosAbertosPage = () => {
 
     const pdfData = chamadosFiltrados.map(c => ({
         ...c,
-        dataAbertura: c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)) : '',
+        dataAbertura: c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)!) : '',
         tipo: tipoLabel(c.tipo),
         status: statusLabel(c.status)
     }));
@@ -178,7 +197,6 @@ const ChamadosAbertosPage = () => {
                     <p className={styles.loading}>{t('common.loading', 'Carregando...')}</p>
                 ) : (
                     <>
-                        {/* Botões de exportação */}
                         <div className={styles.exportButtons}>
                             <button
                                 onClick={() =>
@@ -200,7 +218,6 @@ const ChamadosAbertosPage = () => {
                             </button>
                         </div>
 
-                        {/* Filtros */}
                         <div className={styles.filterContainer}>
                             <div>
                                 <label htmlFor="filtroTipo">
@@ -210,7 +227,7 @@ const ChamadosAbertosPage = () => {
                                     id="filtroTipo"
                                     className={styles.select}
                                     value={filtroTipo}
-                                    onChange={e => setFiltroTipo(e.target.value)}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroTipo(e.target.value as FiltroTipo)}
                                 >
                                     <option value="todos">{t('chamadosAbertos.filters.typeOptions.all', 'Todos')}</option>
                                     <option value="corretiva">{t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva')}</option>
@@ -227,7 +244,7 @@ const ChamadosAbertosPage = () => {
                                     id="filtroStatus"
                                     className={styles.select}
                                     value={filtroStatus}
-                                    onChange={e => setFiltroStatus(e.target.value)}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroStatus(e.target.value as FiltroStatus)}
                                 >
                                     <option value="todos">{t('chamadosAbertos.filters.statusOptions.all', 'Todos')}</option>
                                     <option value="aberto">{t('chamadosAbertos.filters.statusOptions.open', 'Aberto')}</option>
@@ -244,7 +261,7 @@ const ChamadosAbertosPage = () => {
                                     id="filtroMaquina"
                                     className={styles.select}
                                     value={filtroMaquina}
-                                    onChange={e => setFiltroMaquina(e.target.value)}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltroMaquina(e.target.value)}
                                     placeholder={t('chamadosAbertos.filters.allMachines', 'Todas')}
                                 />
                             </div>
@@ -257,18 +274,16 @@ const ChamadosAbertosPage = () => {
                                     id="busca"
                                     className={styles.select}
                                     value={busca}
-                                    onChange={e => setBusca(e.target.value)}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBusca(e.target.value)}
                                     placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'Descrição ou responsável...')}
                                 />
                             </div>
                         </div>
 
-                        {/* Contador */}
                         <p className={styles.contador}>
                             {t('chamadosAbertos.count', { count: chamadosFiltrados.length }, `${chamadosFiltrados.length} chamado(s) encontrado(s)`)}
                         </p>
 
-                        {/* Lista de cards */}
                         {chamadosFiltrados.length === 0 ? (
                             <p className={styles.empty}>{t('chamadosAbertos.empty', 'Nenhum chamado em aberto.')}</p>
                         ) : (
@@ -290,7 +305,7 @@ const ChamadosAbertosPage = () => {
                                                 </small>
                                                 <small>
                                                     <strong>{t('chamadosAbertos.item.openedAt', 'Aberto em')}:</strong>{' '}
-                                                    {chamado.dataAbertura ? dtFmt.format(tsToDate(chamado.dataAbertura)) : '...'}
+                                                    {chamado.dataAbertura ? dtFmt.format(tsToDate(chamado.dataAbertura)!) : '...'}
                                                 </small>
                                                 {chamado.manutentorNome && (
                                                     <small>

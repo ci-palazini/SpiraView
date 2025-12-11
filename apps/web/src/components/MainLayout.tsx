@@ -26,8 +26,8 @@ import OperatorDashboard from './OperatorDashboard';
 import MaquinasPage from '../features/maquinas/pages/MaquinasPage.jsx';
 import MaquinaDetalhePage from '../features/maquinas/pages/MaquinaDetalhePage.jsx';
 import InicioPage from '../pages/InicioPage.jsx';
-import ChamadoDetalhe from '../features/chamados/pages/ChamadoDetalhe.jsx';
-import HistoricoPage from '../features/chamados/pages/HistoricoPage.jsx';
+import ChamadoDetalhe from '../features/chamados/pages/ChamadoDetalhe';
+import HistoricoPage from '../features/chamados/pages/HistoricoPage';
 import PerfilPage from '../features/usuarios/pages/PerfilPage.jsx';
 import AnaliseFalhasPage from '../features/analytics/pages/AnaliseFalhasPage.jsx';
 import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresPage.jsx';
@@ -39,7 +39,7 @@ import AbrirChamadoManutentor from '../features/chamados/pages/AbrirChamadoManut
 import LanguageMenu from './LanguageMenu';
 import PziniChatBot from '../features/analytics/pages/PziniChatBot.jsx';
 import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage.jsx';
-import ChamadosAbertosPage from '../features/chamados/pages/ChamadosAbertosPage.jsx';
+import ChamadosAbertosPage from '../features/chamados/pages/ChamadosAbertosPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
