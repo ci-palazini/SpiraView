@@ -1,0 +1,317 @@
+// ChamadosAbertosPage.jsx - Página de chamados em aberto (não concluídos)
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { listarChamados } from '../../../services/apiClient';
+import { subscribeSSE } from '../../../services/sseClient';
+import { exportToExcel } from '../../../utils/exportExcel';
+import { exportToPdf } from '../../../utils/exportPdf';
+import styles from './ChamadosAbertosPage.module.css';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
+import { useTranslation } from 'react-i18next';
+
+const ChamadosAbertosPage = () => {
+    const { t, i18n } = useTranslation();
+
+    const [chamados, setChamados] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [reloadTick, setReloadTick] = useState(0);
+
+    // Filtros
+    const [filtroTipo, setFiltroTipo] = useState('todos');
+    const [filtroStatus, setFiltroStatus] = useState('todos');
+    const [filtroMaquina, setFiltroMaquina] = useState('');
+    const [busca, setBusca] = useState('');
+
+    const dtFmt = useMemo(
+        () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }),
+        [i18n.language]
+    );
+
+    function tsToDate(ts) {
+        if (!ts) return null;
+        if (typeof ts === 'string') return new Date(ts.replace(' ', 'T'));
+        if (typeof ts.toDate === 'function') return ts.toDate();
+        const d = ts instanceof Date ? ts : new Date(ts);
+        return isNaN(d) ? null : d;
+    }
+
+    // Filtrar e ordenar
+    const chamadosFiltrados = useMemo(() => {
+        let arr = Array.isArray(chamados) ? chamados.slice() : [];
+
+        if (filtroTipo && filtroTipo !== 'todos') {
+            arr = arr.filter(c => (c.tipo || '').toLowerCase() === filtroTipo.toLowerCase());
+        }
+        if (filtroStatus && filtroStatus !== 'todos') {
+            arr = arr.filter(c => (c.status || '').toLowerCase() === filtroStatus.toLowerCase());
+        }
+        if (filtroMaquina.trim()) {
+            const q = filtroMaquina.trim().toLowerCase();
+            arr = arr.filter(c => (c.maquina || '').toLowerCase().includes(q));
+        }
+        if (busca.trim()) {
+            const q = busca.trim().toLowerCase();
+            arr = arr.filter(c =>
+                (c.descricao || '').toLowerCase().includes(q) ||
+                (c.manutentorNome || '').toLowerCase().includes(q)
+            );
+        }
+
+        // Ordenar por data de abertura (mais recentes primeiro)
+        arr.sort((a, b) => {
+            const ad = tsToDate(a.dataAbertura) || 0;
+            const bd = tsToDate(b.dataAbertura) || 0;
+            return bd - ad;
+        });
+
+        return arr;
+    }, [chamados, filtroTipo, filtroStatus, filtroMaquina, busca]);
+
+    // Buscar chamados em aberto
+    useEffect(() => {
+        let alive = true;
+        setLoading(true);
+        (async () => {
+            try {
+                // Buscar chamados que NÃO estão concluídos
+                const data = await listarChamados({ page: 1, pageSize: 500 });
+                const rows = data.items ?? data;
+
+                // Filtrar apenas os não concluídos
+                const abertos = rows.filter(r =>
+                    !['Concluido', 'Concluído'].includes(r.status)
+                );
+
+                const mapped = abertos.map(r => ({
+                    id: r.id,
+                    maquina: r.maquina,
+                    tipo: r.tipo,
+                    descricao: r.descricao,
+                    manutentorNome: r.manutentor || '',
+                    dataAbertura: r.criado_em || null,
+                    status: r.status,
+                    prioridade: r.prioridade || 'normal'
+                }));
+
+                if (!alive) return;
+                setChamados(mapped);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (alive) setLoading(false);
+            }
+        })();
+        return () => { alive = false; };
+    }, [reloadTick]);
+
+    // SSE para atualizações em tempo real
+    useEffect(() => {
+        const unsubscribe = subscribeSSE((msg) => {
+            if (msg?.topic === 'chamados') {
+                setReloadTick(n => n + 1);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    function tipoLabel(tipo) {
+        if (tipo === 'corretiva') return t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva');
+        if (tipo === 'preventiva') return t('chamadosAbertos.filters.typeOptions.preventive', 'Preventiva');
+        if (tipo === 'preditiva') return t('chamadosAbertos.filters.typeOptions.predictive', 'Preditiva');
+        return tipo || '';
+    }
+
+    function statusLabel(status) {
+        if (!status) return '';
+        const s = status.toLowerCase();
+        if (s === 'aberto') return t('chamadosAbertos.status.open', 'Aberto');
+        if (s === 'em andamento') return t('chamadosAbertos.status.inProgress', 'Em Andamento');
+        if (s === 'aguardando') return t('chamadosAbertos.status.waiting', 'Aguardando');
+        return status;
+    }
+
+    function statusClass(status) {
+        if (!status) return '';
+        const s = status.toLowerCase();
+        if (s === 'aberto') return styles.statusAberto;
+        if (s === 'em andamento') return styles.statusEmAndamento;
+        if (s === 'aguardando') return styles.statusAguardando;
+        return '';
+    }
+
+    // Dados para exportação
+    const excelData = chamadosFiltrados.map(c => ({
+        [t('chamadosAbertos.export.columns.machine', 'Máquina')]: c.maquina,
+        [t('chamadosAbertos.export.columns.type', 'Tipo')]: tipoLabel(c.tipo),
+        [t('chamadosAbertos.export.columns.status', 'Status')]: statusLabel(c.status),
+        [t('chamadosAbertos.export.columns.openedAt', 'Aberto em')]:
+            c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)) : '',
+        [t('chamadosAbertos.export.columns.assignee', 'Responsável')]: c.manutentorNome || '',
+        [t('chamadosAbertos.export.columns.description', 'Descrição')]: c.descricao || ''
+    }));
+
+    const pdfColumns = [
+        { key: 'maquina', label: t('chamadosAbertos.export.columns.machine', 'Máquina') },
+        { key: 'tipo', label: t('chamadosAbertos.export.columns.type', 'Tipo') },
+        { key: 'status', label: t('chamadosAbertos.export.columns.status', 'Status') },
+        { key: 'dataAbertura', label: t('chamadosAbertos.export.columns.openedAt', 'Aberto em') },
+        { key: 'manutentorNome', label: t('chamadosAbertos.export.columns.assignee', 'Responsável') },
+        { key: 'descricao', label: t('chamadosAbertos.export.columns.description', 'Descrição') }
+    ];
+
+    const pdfData = chamadosFiltrados.map(c => ({
+        ...c,
+        dataAbertura: c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)) : '',
+        tipo: tipoLabel(c.tipo),
+        status: statusLabel(c.status)
+    }));
+
+    return (
+        <>
+            <PageHeader
+                title={t('chamadosAbertos.title', 'Chamados em Aberto')}
+                subtitle={t('chamadosAbertos.subtitle', 'Visualize todos os chamados pendentes de conclusão.')}
+            />
+
+            <div className={styles.listContainer}>
+                {loading ? (
+                    <p className={styles.loading}>{t('common.loading', 'Carregando...')}</p>
+                ) : (
+                    <>
+                        {/* Botões de exportação */}
+                        <div className={styles.exportButtons}>
+                            <button
+                                onClick={() =>
+                                    exportToExcel(
+                                        excelData,
+                                        t('chamadosAbertos.export.sheetName', 'Chamados Abertos'),
+                                        'chamados-abertos'
+                                    )
+                                }
+                            >
+                                {t('chamadosAbertos.export.downloadExcel', 'Baixar Excel')}
+                            </button>
+                            <button
+                                onClick={() =>
+                                    exportToPdf(pdfData, pdfColumns, 'chamados-abertos')
+                                }
+                            >
+                                {t('chamadosAbertos.export.downloadPdf', 'Baixar PDF')}
+                            </button>
+                        </div>
+
+                        {/* Filtros */}
+                        <div className={styles.filterContainer}>
+                            <div>
+                                <label htmlFor="filtroTipo">
+                                    {t('chamadosAbertos.filters.byType', 'Tipo')}
+                                </label>
+                                <select
+                                    id="filtroTipo"
+                                    className={styles.select}
+                                    value={filtroTipo}
+                                    onChange={e => setFiltroTipo(e.target.value)}
+                                >
+                                    <option value="todos">{t('chamadosAbertos.filters.typeOptions.all', 'Todos')}</option>
+                                    <option value="corretiva">{t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva')}</option>
+                                    <option value="preventiva">{t('chamadosAbertos.filters.typeOptions.preventive', 'Preventiva')}</option>
+                                    <option value="preditiva">{t('chamadosAbertos.filters.typeOptions.predictive', 'Preditiva')}</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label htmlFor="filtroStatus">
+                                    {t('chamadosAbertos.filters.byStatus', 'Status')}
+                                </label>
+                                <select
+                                    id="filtroStatus"
+                                    className={styles.select}
+                                    value={filtroStatus}
+                                    onChange={e => setFiltroStatus(e.target.value)}
+                                >
+                                    <option value="todos">{t('chamadosAbertos.filters.statusOptions.all', 'Todos')}</option>
+                                    <option value="aberto">{t('chamadosAbertos.filters.statusOptions.open', 'Aberto')}</option>
+                                    <option value="em andamento">{t('chamadosAbertos.filters.statusOptions.inProgress', 'Em Andamento')}</option>
+                                    <option value="aguardando">{t('chamadosAbertos.filters.statusOptions.waiting', 'Aguardando')}</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label htmlFor="filtroMaquina">
+                                    {t('chamadosAbertos.filters.byMachine', 'Máquina')}
+                                </label>
+                                <input
+                                    id="filtroMaquina"
+                                    className={styles.select}
+                                    value={filtroMaquina}
+                                    onChange={e => setFiltroMaquina(e.target.value)}
+                                    placeholder={t('chamadosAbertos.filters.allMachines', 'Todas')}
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="busca">
+                                    {t('chamadosAbertos.filters.search', 'Busca')}
+                                </label>
+                                <input
+                                    id="busca"
+                                    className={styles.select}
+                                    value={busca}
+                                    onChange={e => setBusca(e.target.value)}
+                                    placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'Descrição ou responsável...')}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Contador */}
+                        <p className={styles.contador}>
+                            {t('chamadosAbertos.count', { count: chamadosFiltrados.length }, `${chamadosFiltrados.length} chamado(s) encontrado(s)`)}
+                        </p>
+
+                        {/* Lista de cards */}
+                        {chamadosFiltrados.length === 0 ? (
+                            <p className={styles.empty}>{t('chamadosAbertos.empty', 'Nenhum chamado em aberto.')}</p>
+                        ) : (
+                            <ul className={styles.chamadoList}>
+                                {chamadosFiltrados.map((chamado) => (
+                                    <Link
+                                        to={`/maquinas/chamado/${chamado.id}`}
+                                        key={chamado.id}
+                                        className={styles.chamadoLink}
+                                    >
+                                        <li className={`${styles.chamadoItem} ${statusClass(chamado.status)}`}>
+                                            <div className={styles.chamadoHeader}>
+                                                <strong>{chamado.maquina}</strong>
+                                                <span className={styles.statusBadge}>{statusLabel(chamado.status)}</span>
+                                            </div>
+                                            <div className={styles.chamadoInfo}>
+                                                <small>
+                                                    <strong>{t('chamadosAbertos.item.type', 'Tipo')}:</strong> {tipoLabel(chamado.tipo)}
+                                                </small>
+                                                <small>
+                                                    <strong>{t('chamadosAbertos.item.openedAt', 'Aberto em')}:</strong>{' '}
+                                                    {chamado.dataAbertura ? dtFmt.format(tsToDate(chamado.dataAbertura)) : '...'}
+                                                </small>
+                                                {chamado.manutentorNome && (
+                                                    <small>
+                                                        <strong>{t('chamadosAbertos.item.assignee', 'Responsável')}:</strong>{' '}
+                                                        {chamado.manutentorNome}
+                                                    </small>
+                                                )}
+                                                <p className={styles.descricaoPreview}>
+                                                    {chamado.descricao || t('chamadosAbertos.item.noDescription', 'Sem descrição')}
+                                                </p>
+                                            </div>
+                                        </li>
+                                    </Link>
+                                ))}
+                            </ul>
+                        )}
+                    </>
+                )}
+            </div>
+        </>
+    );
+};
+
+export default ChamadosAbertosPage;

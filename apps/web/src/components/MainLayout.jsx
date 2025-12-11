@@ -17,6 +17,7 @@ import {
   FiPlusCircle,
   FiMessageSquare,
   FiFileText,
+  FiAlertCircle,
 } from 'react-icons/fi';
 import styles from './MainLayout.module.css';
 
@@ -37,6 +38,7 @@ import AbrirChamadoManutentor from '../features/chamados/pages/AbrirChamadoManut
 import LanguageMenu from '../components/LanguageMenu.jsx';
 import PziniChatBot from '../features/analytics/pages/PziniChatBot.jsx';
 import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage.jsx';
+import ChamadosAbertosPage from '../features/chamados/pages/ChamadosAbertosPage.jsx';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -262,6 +264,19 @@ const MainLayout = ({ user }) => {
             <span>{t('nav.machines')}</span>
           </NavLink>
         </>
+      )}
+
+      {/* Chamados em Aberto - gestor e manutentor */}
+      {isMaintLike && (
+        <NavLink
+          to="/chamados-abertos"
+          className={({ isActive }) =>
+            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+          }
+        >
+          <FiAlertCircle className={styles.navIcon} />
+          <span>{t('nav.openTickets', 'Chamados Abertos')}</span>
+        </NavLink>
       )}
 
       {isMaintainer && (
@@ -543,6 +558,11 @@ const MainLayout = ({ user }) => {
           <Route
             path="/historico/chamado/:id"
             element={canAccess(['manutentor', 'gestor'], <ChamadoDetalhe user={user} />)}
+          />
+
+          <Route
+            path="/chamados-abertos"
+            element={canAccess(['manutentor', 'gestor'], <ChamadosAbertosPage user={user} />)}
           />
 
           <Route
