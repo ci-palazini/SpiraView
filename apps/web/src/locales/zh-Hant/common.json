@@ -15,7 +15,8 @@
     "openCorrective": "建立工單",
     "startShift": "開始當班",
     "dailyChecklists": "每日檢查表",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "未結工單"
   },
   "status": {
     "open": "開啟",
@@ -455,6 +456,56 @@
       "concludedAt": "完成於：{{date}}",
       "problem": "問題：",
       "notSpecified": "未指定"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "未結工單",
+    "subtitle": "檢視所有尚未完成的工單。",
+    "empty": "沒有未結工單。",
+    "count": "共找到 {{count}} 個工單",
+    "status": {
+      "open": "未結",
+      "inProgress": "處理中",
+      "waiting": "等待中"
+    },
+    "filters": {
+      "byType": "類型",
+      "byStatus": "狀態",
+      "byMachine": "設備",
+      "search": "搜尋",
+      "allMachines": "全部",
+      "searchPlaceholder": "描述或負責人...",
+      "typeOptions": {
+        "all": "全部",
+        "corrective": "矯正性維護",
+        "preventive": "預防性維護",
+        "predictive": "預測性維護"
+      },
+      "statusOptions": {
+        "all": "全部",
+        "open": "未結",
+        "inProgress": "處理中",
+        "waiting": "等待中"
+      }
+    },
+    "item": {
+      "type": "類型",
+      "openedAt": "建立於",
+      "assignee": "負責人",
+      "noDescription": "無描述"
+    },
+    "export": {
+      "downloadExcel": "下載 Excel",
+      "downloadPdf": "下載 PDF",
+      "sheetName": "未結工單",
+      "columns": {
+        "machine": "設備",
+        "type": "類型",
+        "status": "狀態",
+        "openedAt": "建立於",
+        "assignee": "負責人",
+        "description": "描述"
+      }
     }
   },
   "estoque": {

@@ -15,7 +15,8 @@
     "openCorrective": "チケットを作成",
     "startShift": "シフト開始",
     "dailyChecklists": "日次チェックリスト",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "未解決チケット"
   },
   "status": {
     "open": "未対応",
@@ -455,6 +456,56 @@
       "concludedAt": "完了日：{{date}}",
       "problem": "問題：",
       "notSpecified": "未指定"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "未解決チケット",
+    "subtitle": "未解決のチケットをすべて表示します。",
+    "empty": "未解決のチケットはありません。",
+    "count": "{{count}} 件のチケットが見つかりました",
+    "status": {
+      "open": "未対応",
+      "inProgress": "対応中",
+      "waiting": "保留中"
+    },
+    "filters": {
+      "byType": "種別",
+      "byStatus": "ステータス",
+      "byMachine": "機械",
+      "search": "検索",
+      "allMachines": "すべて",
+      "searchPlaceholder": "説明または担当者名...",
+      "typeOptions": {
+        "all": "すべて",
+        "corrective": "事後保全",
+        "preventive": "予防保全",
+        "predictive": "予知保全"
+      },
+      "statusOptions": {
+        "all": "すべて",
+        "open": "未対応",
+        "inProgress": "対応中",
+        "waiting": "保留中"
+      }
+    },
+    "item": {
+      "type": "種別",
+      "openedAt": "作成日",
+      "assignee": "担当者",
+      "noDescription": "説明なし"
+    },
+    "export": {
+      "downloadExcel": "Excel をダウンロード",
+      "downloadPdf": "PDF をダウンロード",
+      "sheetName": "未解決チケット",
+      "columns": {
+        "machine": "機械",
+        "type": "種別",
+        "status": "ステータス",
+        "openedAt": "作成日",
+        "assignee": "担当者",
+        "description": "説明"
+      }
     }
   },
   "estoque": {

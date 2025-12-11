@@ -15,7 +15,8 @@
     "openCorrective": "创建工单",
     "startShift": "开始当班",
     "dailyChecklists": "每日检查表",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "未结工单"
   },
   "status": {
     "open": "打开",
@@ -455,6 +456,56 @@
       "concludedAt": "完成于：{{date}}",
       "problem": "问题：",
       "notSpecified": "未指定"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "未结工单",
+    "subtitle": "查看所有尚未完成的工单。",
+    "empty": "没有未结工单。",
+    "count": "共找到 {{count}} 个工单",
+    "status": {
+      "open": "未结",
+      "inProgress": "处理中",
+      "waiting": "等待中"
+    },
+    "filters": {
+      "byType": "类型",
+      "byStatus": "状态",
+      "byMachine": "设备",
+      "search": "搜索",
+      "allMachines": "全部",
+      "searchPlaceholder": "描述或负责人...",
+      "typeOptions": {
+        "all": "全部",
+        "corrective": "纠正性维护",
+        "preventive": "预防性维护",
+        "predictive": "预测性维护"
+      },
+      "statusOptions": {
+        "all": "全部",
+        "open": "未结",
+        "inProgress": "处理中",
+        "waiting": "等待中"
+      }
+    },
+    "item": {
+      "type": "类型",
+      "openedAt": "创建于",
+      "assignee": "负责人",
+      "noDescription": "无描述"
+    },
+    "export": {
+      "downloadExcel": "下载 Excel",
+      "downloadPdf": "下载 PDF",
+      "sheetName": "未结工单",
+      "columns": {
+        "machine": "设备",
+        "type": "类型",
+        "status": "状态",
+        "openedAt": "创建于",
+        "assignee": "负责人",
+        "description": "描述"
+      }
     }
   },
   "estoque": {

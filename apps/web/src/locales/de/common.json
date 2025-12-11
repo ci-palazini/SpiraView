@@ -15,7 +15,8 @@
     "openCorrective": "Ticket eröffnen",
     "startShift": "Schichtstart",
     "dailyChecklists": "Tägliche Checklisten",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "Offene Tickets"
   },
   "status": {
     "open": "Offen",
@@ -455,6 +456,56 @@
       "concludedAt": "Abgeschlossen am: {{date}}",
       "problem": "Problem:",
       "notSpecified": "Nicht spezifiziert"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "Offene Tickets",
+    "subtitle": "Alle noch nicht abgeschlossenen Tickets anzeigen.",
+    "empty": "Keine offenen Tickets.",
+    "count": "{{count}} Ticket(s) gefunden",
+    "status": {
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "waiting": "Wartend"
+    },
+    "filters": {
+      "byType": "Typ",
+      "byStatus": "Status",
+      "byMachine": "Maschine",
+      "search": "Suche",
+      "allMachines": "Alle",
+      "searchPlaceholder": "Beschreibung oder Bearbeiter...",
+      "typeOptions": {
+        "all": "Alle",
+        "corrective": "Korrektiv",
+        "preventive": "Präventiv",
+        "predictive": "Prädiktiv"
+      },
+      "statusOptions": {
+        "all": "Alle",
+        "open": "Offen",
+        "inProgress": "In Bearbeitung",
+        "waiting": "Wartend"
+      }
+    },
+    "item": {
+      "type": "Typ",
+      "openedAt": "Eröffnet am",
+      "assignee": "Bearbeiter",
+      "noDescription": "Keine Beschreibung"
+    },
+    "export": {
+      "downloadExcel": "Excel herunterladen",
+      "downloadPdf": "PDF herunterladen",
+      "sheetName": "Offene Tickets",
+      "columns": {
+        "machine": "Maschine",
+        "type": "Typ",
+        "status": "Status",
+        "openedAt": "Eröffnet am",
+        "assignee": "Bearbeiter",
+        "description": "Beschreibung"
+      }
     }
   },
   "estoque": {

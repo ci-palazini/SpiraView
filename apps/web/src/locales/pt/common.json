@@ -15,7 +15,8 @@
     "openCorrective": "Abrir Chamado",
     "startShift": "Início de turno",
     "dailyChecklists": "Checklists diários",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "Chamados Abertos"
   },
   "status": {
     "open": "Aberto",
@@ -468,6 +469,56 @@
       "concludedAt": "Concluido em: {{date}}",
       "problem": "Problema:",
       "notSpecified": "Não especificado"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "Chamados em Aberto",
+    "subtitle": "Visualize todos os chamados pendentes de conclusão.",
+    "empty": "Nenhum chamado em aberto.",
+    "count": "{{count}} chamado(s) encontrado(s)",
+    "status": {
+      "open": "Aberto",
+      "inProgress": "Em Andamento",
+      "waiting": "Aguardando"
+    },
+    "filters": {
+      "byType": "Tipo",
+      "byStatus": "Status",
+      "byMachine": "Máquina",
+      "search": "Busca",
+      "allMachines": "Todas",
+      "searchPlaceholder": "Descrição ou responsável...",
+      "typeOptions": {
+        "all": "Todos",
+        "corrective": "Corretiva",
+        "preventive": "Preventiva",
+        "predictive": "Preditiva"
+      },
+      "statusOptions": {
+        "all": "Todos",
+        "open": "Aberto",
+        "inProgress": "Em Andamento",
+        "waiting": "Aguardando"
+      }
+    },
+    "item": {
+      "type": "Tipo",
+      "openedAt": "Aberto em",
+      "assignee": "Responsável",
+      "noDescription": "Sem descrição"
+    },
+    "export": {
+      "downloadExcel": "Baixar Excel",
+      "downloadPdf": "Baixar PDF",
+      "sheetName": "Chamados Abertos",
+      "columns": {
+        "machine": "Máquina",
+        "type": "Tipo",
+        "status": "Status",
+        "openedAt": "Aberto em",
+        "assignee": "Responsável",
+        "description": "Descrição"
+      }
     }
   },
   "estoque": {

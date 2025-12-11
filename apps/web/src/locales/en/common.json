@@ -15,7 +15,8 @@
     "openCorrective": "Open ticket",
     "startShift": "Start shift",
     "dailyChecklists": "Daily checklists",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "Open Tickets"
   },
   "status": {
     "open": "Open",
@@ -455,6 +456,56 @@
       "concludedAt": "Closed on: {{date}}",
       "problem": "Problem:",
       "notSpecified": "Not specified"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "Open Tickets",
+    "subtitle": "View all pending work orders.",
+    "empty": "No open tickets.",
+    "count": "{{count}} ticket(s) found",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "waiting": "Waiting"
+    },
+    "filters": {
+      "byType": "Type",
+      "byStatus": "Status",
+      "byMachine": "Machine",
+      "search": "Search",
+      "allMachines": "All",
+      "searchPlaceholder": "Description or assignee...",
+      "typeOptions": {
+        "all": "All",
+        "corrective": "Corrective",
+        "preventive": "Preventive",
+        "predictive": "Predictive"
+      },
+      "statusOptions": {
+        "all": "All",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "waiting": "Waiting"
+      }
+    },
+    "item": {
+      "type": "Type",
+      "openedAt": "Opened on",
+      "assignee": "Assignee",
+      "noDescription": "No description"
+    },
+    "export": {
+      "downloadExcel": "Download Excel",
+      "downloadPdf": "Download PDF",
+      "sheetName": "Open Tickets",
+      "columns": {
+        "machine": "Machine",
+        "type": "Type",
+        "status": "Status",
+        "openedAt": "Opened on",
+        "assignee": "Assignee",
+        "description": "Description"
+      }
     }
   },
   "estoque": {

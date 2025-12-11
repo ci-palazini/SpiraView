@@ -15,7 +15,8 @@
     "openCorrective": "티켓 생성",
     "startShift": "교대 시작",
     "dailyChecklists": "일일 체크리스트",
-    "pzinibot": "Pzini"
+    "pzinibot": "Pzini",
+    "openTickets": "열린 티켓"
   },
   "status": {
     "open": "열림",
@@ -455,6 +456,56 @@
       "concludedAt": "완료일: {{date}}",
       "problem": "문제:",
       "notSpecified": "미지정"
+    }
+  },
+  "chamadosAbertos": {
+    "title": "열린 티켓",
+    "subtitle": "완료 대기 중인 모든 티켓을 확인하세요.",
+    "empty": "열린 티켓이 없습니다.",
+    "count": "{{count}}개의 티켓을 찾았습니다",
+    "status": {
+      "open": "열림",
+      "inProgress": "진행 중",
+      "waiting": "대기 중"
+    },
+    "filters": {
+      "byType": "유형",
+      "byStatus": "상태",
+      "byMachine": "설비",
+      "search": "검색",
+      "allMachines": "전체",
+      "searchPlaceholder": "설명 또는 담당자...",
+      "typeOptions": {
+        "all": "전체",
+        "corrective": "사후 보전",
+        "preventive": "예방 보전",
+        "predictive": "예지 보전"
+      },
+      "statusOptions": {
+        "all": "전체",
+        "open": "열림",
+        "inProgress": "진행 중",
+        "waiting": "대기 중"
+      }
+    },
+    "item": {
+      "type": "유형",
+      "openedAt": "생성일",
+      "assignee": "담당자",
+      "noDescription": "설명 없음"
+    },
+    "export": {
+      "downloadExcel": "Excel 다운로드",
+      "downloadPdf": "PDF 다운로드",
+      "sheetName": "열린 티켓",
+      "columns": {
+        "machine": "설비",
+        "type": "유형",
+        "status": "상태",
+        "openedAt": "생성일",
+        "assignee": "담당자",
+        "description": "설명"
+      }
     }
   },
   "estoque": {
