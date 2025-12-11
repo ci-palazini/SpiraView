@@ -5,8 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
-import LoginPage from './components/LoginPage.jsx';
-import MainLayout from './components/MainLayout.jsx';
+import LoginPage from './components/LoginPage';
+import MainLayout from './components/MainLayout';
 import InicioTurnoPage from './features/checklists/pages/InicioTurnoPage.jsx';
 
 const AUTH_EVENT = 'auth-user-changed';

@@ -6,7 +6,7 @@ import App from './App';
 import './index.css';
 import './i18n';
 
-import SWUpdateBanner from './components/SWUpdateBanner.jsx';
+import SWUpdateBanner from './components/SWUpdateBanner';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element not found');
