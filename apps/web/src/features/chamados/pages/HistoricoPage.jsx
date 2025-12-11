@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { listarChamados } from '../services/apiClient';
-import { subscribeSSE } from '../services/sseClient';
-import { exportToExcel } from '../utils/exportExcel';
-import { exportToPdf }   from '../utils/exportPdf';
+import { listarChamados } from '../../../services/apiClient';
+import { subscribeSSE } from '../../../services/sseClient';
+import { exportToExcel } from '../../../utils/exportExcel';
+import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './HistoricoPage.module.css';
 import { useTranslation } from 'react-i18next';
 
@@ -131,14 +131,14 @@ const HistoricoPage = () => {
 
   // Colunas PDF
   const pdfColumns = [
-    { key: 'maquina',        label: t('historico.export.columns.machine') },
-    { key: 'tipo',           label: t('historico.export.columns.callType') },
-    { key: 'dataAbertura',   label: t('historico.export.columns.openedAt') },
+    { key: 'maquina', label: t('historico.export.columns.machine') },
+    { key: 'tipo', label: t('historico.export.columns.callType') },
+    { key: 'dataAbertura', label: t('historico.export.columns.openedAt') },
     { key: 'manutentorNome', label: t('historico.export.columns.attendedBy') },
-    { key: 'solucao',        label: t('historico.export.columns.performedService') },
-    { key: 'causa',          label: t('historico.export.columns.cause') },
-    { key: 'dataConclusao',  label: t('historico.export.columns.concludedAt') },
-    { key: 'descricao',      label: t('historico.export.columns.problem') }
+    { key: 'solucao', label: t('historico.export.columns.performedService') },
+    { key: 'causa', label: t('historico.export.columns.cause') },
+    { key: 'dataConclusao', label: t('historico.export.columns.concludedAt') },
+    { key: 'descricao', label: t('historico.export.columns.problem') }
   ];
 
   // Dados PDF

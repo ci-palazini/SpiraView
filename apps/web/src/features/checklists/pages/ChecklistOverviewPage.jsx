@@ -8,8 +8,8 @@ import {
   FiRefreshCw,
 } from 'react-icons/fi';
 
-import { listarMaquinas, getMaquina } from '../services/apiClient';
-import { df } from '../i18n/format';
+import { listarMaquinas, getMaquina } from '../../../services/apiClient';
+import { df } from '../../../i18n/format';
 import styles from './ChecklistOverviewPage.module.css';
 
 const ChecklistOverviewPage = ({ user }) => {
@@ -142,9 +142,8 @@ const ChecklistOverviewPage = ({ user }) => {
 
   const renderStatusBadge = (ok, nomes) => (
     <span
-      className={`${styles.statusBadge} ${
-        ok ? styles.statusOk : styles.statusPending
-      }`}
+      className={`${styles.statusBadge} ${ok ? styles.statusOk : styles.statusPending
+        }`}
     >
       {ok ? (
         <>

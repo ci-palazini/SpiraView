@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './GerirUtilizadoresPage.module.css';
-import Modal from '../components/Modal.jsx';
+import Modal from '../../../shared/components/Modal.jsx';
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import {
   criarUsuario,
   atualizarUsuario,
   excluirUsuario
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 
 const GerirUtilizadoresPage = ({ user }) => {
   const { t } = useTranslation();
@@ -234,7 +234,7 @@ const GerirUtilizadoresPage = ({ user }) => {
           </p>
         </div>
 
-        <button className={styles.button} onClick={ abrirModalCriacao }>
+        <button className={styles.button} onClick={abrirModalCriacao}>
           <FiPlus />
           {t('users.actions.create')}
         </button>
@@ -381,8 +381,8 @@ const GerirUtilizadoresPage = ({ user }) => {
             {isSaving
               ? t('users.form.saving')
               : modoEdicao
-              ? t('users.form.saveChanges')
-              : t('users.form.createUser')}
+                ? t('users.form.saveChanges')
+                : t('users.form.createUser')}
           </button>
         </form>
       </Modal>

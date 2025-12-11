@@ -5,12 +5,12 @@ import moment from 'moment';
 import 'moment/locale/pt-br';
 import 'moment/locale/es';
 import toast from 'react-hot-toast';
-import Modal from '../components/Modal.jsx';
+import Modal from '../../../shared/components/Modal.jsx';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './CalendarioGeralPage.module.css';
 import { useTranslation } from 'react-i18next';
-import { df } from '../i18n/format';
+import { df } from '../../../i18n/format';
 
 import {
   listarAgendamentos,
@@ -18,9 +18,9 @@ import {
   atualizarAgendamento,
   excluirAgendamento,
   iniciarAgendamento
-} from '../services/apiClient';
-import { getMaquinas } from '../services/apiClient';
-import { subscribeSSE } from '../services/sseClient';
+} from '../../../services/apiClient';
+import { getMaquinas } from '../../../services/apiClient';
+import { subscribeSSE } from '../../../services/sseClient';
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -58,23 +58,23 @@ function toPlainText(v) {
 export default function CalendarioGeralPage({ user }) {
   const { t, i18n } = useTranslation();
 
-  const [events, setEvents]               = useState([]);
-  const [loading, setLoading]             = useState(true);
-  const [currentDate, setCurrentDate]     = useState(new Date());
-  const [view, setView]                   = useState('month');
-  const [reloadTick, setReloadTick]       = useState(0);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState('month');
+  const [reloadTick, setReloadTick] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showNew, setShowNew]             = useState(false);
-  const [slotInfo, setSlotInfo]           = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [slotInfo, setSlotInfo] = useState(null);
 
-  const [machines, setMachines]               = useState([]);
-  const [selMachine, setSelMachine]           = useState('');
+  const [machines, setMachines] = useState([]);
+  const [selMachine, setSelMachine] = useState('');
   const [descAgendamento, setDescAgendamento] = useState('');
-  const [checklistTxt, setChecklistTxt]       = useState('');
+  const [checklistTxt, setChecklistTxt] = useState('');
 
   // Templates (para importar checklist)
-  const [templates, setTemplates]             = useState([]);
-  const [selTemplate, setSelTemplate]         = useState('');
+  const [templates, setTemplates] = useState([]);
+  const [selTemplate, setSelTemplate] = useState('');
 
   const intervalDays = 90;
 
@@ -105,10 +105,10 @@ export default function CalendarioGeralPage({ user }) {
     (async () => {
       try {
         const from = new Date(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
-        const to   = new Date(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
+        const to = new Date(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0));
         const lista = await listarAgendamentos({
           from: from.toISOString(),
-          to:   to.toISOString()
+          to: to.toISOString()
         });
         if (!alive) return;
 
@@ -120,14 +120,14 @@ export default function CalendarioGeralPage({ user }) {
             id: a.id,
             title: toPlainText(titulo),
             start: new Date(a.start_ts),
-            end:   new Date(a.end_ts),
+            end: new Date(a.end_ts),
             allDay: true,
             resource: {
               maquinaNome: toPlainText(a.maquina_nome),
               descricao: toPlainText(a.descricao),
               itensChecklist: itensArr,
               originalStart: a.original_start ? new Date(a.original_start) : null,
-              originalEnd:   a.original_end   ? new Date(a.original_end)   : null,
+              originalEnd: a.original_end ? new Date(a.original_end) : null,
               status: a.status,
               concluidoEm: a.concluido_em ? new Date(a.concluido_em) : null,
               atrasado: !!a.atrasado
@@ -214,7 +214,7 @@ export default function CalendarioGeralPage({ user }) {
         descricao: toPlainText(descAgendamento),
         itensChecklist: itensArray,
         start: slotInfo.start.toISOString(),
-        end:   slotInfo.end.toISOString()
+        end: slotInfo.end.toISOString()
       },
       { email: user?.email, role: user?.role }
     );
@@ -334,36 +334,36 @@ export default function CalendarioGeralPage({ user }) {
               onEventDrop={
                 user?.role === 'gestor'
                   ? async ({ event, start, end }) => {
-                      const previousStart = event.start;
-                      const previousEnd = event.end;
-                      const nextStart = new Date(start);
-                      const nextEnd = new Date(end);
+                    const previousStart = event.start;
+                    const previousEnd = event.end;
+                    const nextStart = new Date(start);
+                    const nextEnd = new Date(end);
 
+                    setEvents((prevEvents) =>
+                      prevEvents.map((ev) =>
+                        ev.id === event.id ? { ...ev, start: nextStart, end: nextEnd } : ev
+                      )
+                    );
+
+                    try {
+                      await atualizarAgendamento(
+                        event.id,
+                        { start: nextStart.toISOString(), end: nextEnd.toISOString() },
+                        { email: user?.email, role: user?.role }
+                      );
+                      setReloadTick((n) => n + 1);
+                    } catch (err) {
+                      console.error(err);
+                      toast.error(t('calendarioGeral.toasts.rescheduleFail'));
                       setEvents((prevEvents) =>
                         prevEvents.map((ev) =>
-                          ev.id === event.id ? { ...ev, start: nextStart, end: nextEnd } : ev
+                          ev.id === event.id
+                            ? { ...ev, start: previousStart, end: previousEnd }
+                            : ev
                         )
                       );
-
-                      try {
-                        await atualizarAgendamento(
-                          event.id,
-                          { start: nextStart.toISOString(), end: nextEnd.toISOString() },
-                          { email: user?.email, role: user?.role }
-                        );
-                        setReloadTick((n) => n + 1);
-                      } catch (err) {
-                        console.error(err);
-                        toast.error(t('calendarioGeral.toasts.rescheduleFail'));
-                        setEvents((prevEvents) =>
-                          prevEvents.map((ev) =>
-                            ev.id === event.id
-                              ? { ...ev, start: previousStart, end: previousEnd }
-                              : ev
-                          )
-                        );
-                      }
                     }
+                  }
                   : undefined
               }
               eventPropGetter={(event) => {

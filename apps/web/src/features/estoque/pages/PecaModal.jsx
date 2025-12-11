@@ -1,8 +1,8 @@
 // src/pages/PecaModal.jsx
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { criarPeca, atualizarPeca } from '../services/apiClient';
-import Modal from '../components/Modal.jsx';
+import { criarPeca, atualizarPeca } from '../../../services/apiClient';
+import Modal from '../../../shared/components/Modal.jsx';
 import toast from 'react-hot-toast';
 import styles from './PecaModal.module.css';
 

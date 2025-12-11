@@ -1,8 +1,8 @@
 // src/pages/MovimentacaoModal.jsx
 import React, { useState } from 'react';
-import { registrarMovimentacao } from '../services/apiClient';
+import { registrarMovimentacao } from '../../../services/apiClient';
 import styles from './MovimentacaoModal.module.css';
-import Modal from '../components/Modal.jsx';
+import Modal from '../../../shared/components/Modal.jsx';
 import toast from 'react-hot-toast';
 
 export default function MovimentacaoModal({ peca, tipo, user, onClose }) {

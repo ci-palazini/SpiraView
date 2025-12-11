@@ -8,10 +8,10 @@ import {
   atualizarChecklistChamado,               // <<< IMPORTANTE
   listarFotosChamado,          // <<< NOVO
   uploadFotoChamado,           // <<< NOVO
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 import styles from './ChamadoDetalhe.module.css';
 import { useTranslation } from 'react-i18next';
-import { statusKey } from '../i18n/format';
+import { statusKey } from '../../../i18n/format';
 
 function asDate(v) {
   try {
@@ -84,53 +84,53 @@ export default function ChamadoDetalhe({ user }) {
         const c = await getChamado(id);
 
         // normaliza responsabilidades do chamado
-        const normId    = c.manutentor_id_norm
-               ?? c.responsavel_atual_id
-               ?? c.atendido_por_id
-               ?? c.atribuido_para_id
-               ?? null;
+        const normId = c.manutentor_id_norm
+          ?? c.responsavel_atual_id
+          ?? c.atendido_por_id
+          ?? c.atribuido_para_id
+          ?? null;
 
-        const normNome  = c.manutentor_nome_norm
-                      ?? c.responsavel_atual_nome
-                      ?? c.atendido_por_nome
-                      ?? c.atribuido_para_nome
-                      ?? '';
+        const normNome = c.manutentor_nome_norm
+          ?? c.responsavel_atual_nome
+          ?? c.atendido_por_nome
+          ?? c.atribuido_para_nome
+          ?? '';
 
         const normEmail = (c.manutentor_email_norm
-                      ?? c.responsavel_atual_email
-                      ?? c.atendido_por_email
-                      ?? c.atribuido_para_email
-                      ?? '').toLowerCase();
+          ?? c.responsavel_atual_email
+          ?? c.atendido_por_email
+          ?? c.atribuido_para_email
+          ?? '').toLowerCase();
 
-        const attendedById    = c.atendido_por_id ?? null;
-        const attendedByNome  = c.atendido_por_nome ?? '';
+        const attendedById = c.atendido_por_id ?? null;
+        const attendedByNome = c.atendido_por_nome ?? '';
         const attendedByEmail = (c.atendido_por_email ?? '').toLowerCase();
-        const attendedEm      = c.atendido_em ?? null;
+        const attendedEm = c.atendido_em ?? null;
 
         const mapped = {
           ...c,
-          operadorNome:  c.operadorNome ?? c.criado_por ?? '',
-          dataAbertura:  c.dataAbertura ?? c.criado_em ?? null,
+          operadorNome: c.operadorNome ?? c.criado_por ?? '',
+          dataAbertura: c.dataAbertura ?? c.criado_em ?? null,
           dataConclusao: c.dataConclusao ?? c.concluido_em ?? null,
 
           // 👇 “dono” do chamado para permissão (isOwner)
-          manutentorId:    normId,
-          manutentorNome:  normNome,
+          manutentorId: normId,
+          manutentorNome: normNome,
           manutentorEmail: normEmail,
 
           // exibimos também quem atendeu
-          atendidoPorId:    attendedById,
-          atendidoPorNome:  attendedByNome,
+          atendidoPorId: attendedById,
+          atendidoPorNome: attendedByNome,
           atendidoPorEmail: attendedByEmail,
-          atendidoEm:       attendedEm,
+          atendidoEm: attendedEm,
 
           // usado para bloquear “atender” se já tem dono
-          assignedTo:     normId,
+          assignedTo: normId,
           assignedToNome: normNome,
 
           observacoes: (c.observacoes || []).map(o => ({
             autor: o.autor,
-            data:  o.criado_em || o.data,
+            data: o.criado_em || o.data,
             texto: o.texto,
           })),
         };
@@ -726,7 +726,7 @@ export default function ChamadoDetalhe({ user }) {
         )
       )}
 
-      {(isGestor && ['Aberto','Em Andamento','Concluido'].includes(chamado.status)) && (
+      {(isGestor && ['Aberto', 'Em Andamento', 'Concluido'].includes(chamado.status)) && (
         <div className={styles.card} style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={handleExcluirChamado}

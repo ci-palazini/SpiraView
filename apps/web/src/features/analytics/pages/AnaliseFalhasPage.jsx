@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 
 import { useTranslation } from 'react-i18next';
-import { listarChamados } from '../services/apiClient';
+import { listarChamados } from '../../../services/apiClient';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -22,7 +22,7 @@ const AnaliseFalhasPage = () => {
   const { t } = useTranslation();
 
   const [startDate, setStartDate] = useState(null); // Date | null
-  const [endDate, setEndDate]     = useState(null); // Date | null
+  const [endDate, setEndDate] = useState(null); // Date | null
   const [chamadosCorretivos, setChamadosCorretivos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,14 +47,14 @@ const AnaliseFalhasPage = () => {
           tipo: 'corretiva',
           status: 'Concluido',
           from: from.toISOString(),
-          to:   to.toISOString(),
+          to: to.toISOString(),
         });
 
         const arr = Array.isArray(res?.items)
           ? res.items
           : Array.isArray(res)
-          ? res
-          : [];
+            ? res
+            : [];
 
         if (!alive) return;
         setChamadosCorretivos(arr);

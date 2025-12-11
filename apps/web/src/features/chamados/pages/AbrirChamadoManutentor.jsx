@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { FiPlusCircle } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { getMaquinas, criarChamado } from "../services/apiClient";
+import { getMaquinas, criarChamado } from "../../../services/apiClient";
 import styles from "./AbrirChamadoManutentor.module.css";
 
 export default function AbrirChamadoManutentor({ user }) {

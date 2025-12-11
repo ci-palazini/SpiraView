@@ -11,7 +11,7 @@ import {
   listarSubmissoesDiarias,
   enviarChecklistDiaria,
   getMaquina, // usa checklist_diario / checklistDiario da máquina
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 
 function hojeISO() {
   return new Date().toISOString().slice(0, 10);
@@ -57,8 +57,8 @@ export default function InicioTurnoPage({ user }) {
       try {
         setLoading(true);
         const lista = await listarMaquinas(); // [{id,nome,...}]
-        const ordenada = [...lista].sort((a,b) =>
-          String(a.nome||'').localeCompare(String(b.nome||''), 'pt')
+        const ordenada = [...lista].sort((a, b) =>
+          String(a.nome || '').localeCompare(String(b.nome || ''), 'pt')
         );
         if (!alive) return;
         setTodasMaquinas(ordenada);
@@ -171,7 +171,7 @@ export default function InicioTurnoPage({ user }) {
 
   // Sair (limpa sessão)
   const handleLogout = () => {
-    try { localStorage.removeItem('usuario'); } catch {}
+    try { localStorage.removeItem('usuario'); } catch { }
     navigate('/login', { replace: true });
   };
 
@@ -238,7 +238,7 @@ export default function InicioTurnoPage({ user }) {
             </button>
             <button
               className={styles.buttonSecondary}
-              onClick={() => navigate('/', { replace:true })}
+              onClick={() => navigate('/', { replace: true })}
             >
               {t('common.cancel', 'Cancelar')}
             </button>

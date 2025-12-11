@@ -7,13 +7,13 @@ import {
   addChecklistItem,
   removeChecklistItem,
   listarSubmissoesDiarias, // <— vamos usar para abrir o detalhe
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './MaquinaDetalhePage.module.css';
 import { FiTrash2, FiCheckCircle, FiXCircle, FiDownload } from 'react-icons/fi';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
-import { df, statusKey } from '../i18n/format';
+import { df, statusKey } from '../../../i18n/format';
 
 const MaquinaDetalhePage = ({ user }) => {
   const { t, i18n } = useTranslation();

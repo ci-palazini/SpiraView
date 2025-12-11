@@ -16,7 +16,7 @@ import {
   FiBarChart2,
   FiTool
 } from 'react-icons/fi';
-import { aiChatSql, aiTextSearch } from '../services/apiClient';
+import { aiChatSql, aiTextSearch } from '../../../services/apiClient';
 import styles from './PziniChatBot.module.css';
 
 /* ========== helpers (LS, formatação, etc) ========== */
@@ -45,7 +45,7 @@ function loadLS(key, def = []) {
 function saveLS(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch { }
 }
 function addRecent(q) {
   const now = (q || '').trim();
@@ -235,7 +235,7 @@ function SqlBlock({ sql }) {
       await navigator.clipboard.writeText(sql || '');
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {}
+    } catch { }
   }
 
   if (!sql) return null;
@@ -248,12 +248,12 @@ function SqlBlock({ sql }) {
         </button>
       </div>
       <pre className={styles.preSql}>
-SELECT
-{sql
-  .trim()
-  .split('\n')
-  .map((l) => '  ' + l)
-  .join('\n')}
+        SELECT
+        {sql
+          .trim()
+          .split('\n')
+          .map((l) => '  ' + l)
+          .join('\n')}
       </pre>
     </div>
   );
@@ -656,14 +656,12 @@ export default function PziniChatBot() {
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`${styles.messageRow} ${
-                m.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant
-              }`}
+              className={`${styles.messageRow} ${m.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant
+                }`}
             >
               <div
-                className={`${styles.bubble} ${
-                  m.role === 'user' ? styles.userBubble : styles.assistantBubble
-                }`}
+                className={`${styles.bubble} ${m.role === 'user' ? styles.userBubble : styles.assistantBubble
+                  }`}
               >
                 {m.type === 'text' && (
                   <div className={styles.messageText}>

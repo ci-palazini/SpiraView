@@ -6,10 +6,10 @@ import {
   criarMaquina,
   deletarMaquina,
   renomearMaquina,
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './MaquinasPage.module.css';
-import Modal from '../components/Modal.jsx';
+import Modal from '../../../shared/components/Modal.jsx';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { listarChamadosPorCriador, listarChamados } from '../services/apiClient';
-import { subscribeSSE } from '../services/sseClient';
+import { listarChamadosPorCriador, listarChamados } from '../../../services/apiClient';
+import { subscribeSSE } from '../../../services/sseClient';
 import styles from './MeusChamados.module.css';
 import { useTranslation } from 'react-i18next';
-import { statusKey } from '../i18n/format';
+import { statusKey } from '../../../i18n/format';
 
 function tsToDate(ts) {
   if (!ts) return null;
@@ -36,7 +36,7 @@ export default function MeusChamados({ user }) {
   const [reloadTick, setReloadTick] = useState(0);
 
   const email = user?.email;
-  const role  = user?.role; // "operador" | "manutentor" | "gestor"
+  const role = user?.role; // "operador" | "manutentor" | "gestor"
 
   const dtFmt = useMemo(
     () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }),
@@ -228,9 +228,8 @@ export default function MeusChamados({ user }) {
                     </td>
                     <td>
                       <span
-                        className={`${styles.badge} ${
-                          styles[BADGE_BY_SK[statusKey(c.status)] || 'badge']
-                        }`}
+                        className={`${styles.badge} ${styles[BADGE_BY_SK[statusKey(c.status)] || 'badge']
+                          }`}
                       >
                         {t(`status.${statusKey(c.status)}`)}
                       </span>

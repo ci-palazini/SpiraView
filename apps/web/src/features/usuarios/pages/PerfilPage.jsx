@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import styles from './PerfilPage.module.css';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { changePassword } from '../services/apiClient';
+import { changePassword } from '../../../services/apiClient';
 
 const PerfilPage = ({ user }) => {
   const { t, i18n } = useTranslation();

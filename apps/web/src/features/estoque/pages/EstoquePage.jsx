@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { listarPecas, excluirPeca } from '../services/apiClient';
+import { listarPecas, excluirPeca } from '../../../services/apiClient';
 
 import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal.jsx';
@@ -8,17 +8,17 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
 // Reaproveitando as helpers do histórico
-import { exportToExcel } from '../utils/exportExcel';
-import { exportToPdf }   from '../utils/exportPdf';
+import { exportToExcel } from '../../../utils/exportExcel';
+import { exportToPdf } from '../../../utils/exportPdf';
 
 export default function EstoquePage({ user }) {
   const { t } = useTranslation();
 
-  const [pecas, setPecas]               = useState([]);
-  const [loading, setLoading]           = useState(true);
+  const [pecas, setPecas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPeca, setSelectedPeca] = useState(null);
-  const [modalTipo, setModalTipo]       = useState('entrada');
-  const [editingPeca, setEditingPeca]   = useState(undefined);
+  const [modalTipo, setModalTipo] = useState('entrada');
+  const [editingPeca, setEditingPeca] = useState(undefined);
 
   useEffect(() => {
     let alive = true;
@@ -57,11 +57,11 @@ export default function EstoquePage({ user }) {
   // Excel
   const handleExportExcel = () => {
     const excelData = pecas.map((p) => ({
-      [t('estoque.export.columns.code')]:     p.codigo,
-      [t('estoque.export.columns.name')]:     p.nome,
+      [t('estoque.export.columns.code')]: p.codigo,
+      [t('estoque.export.columns.name')]: p.nome,
       [t('estoque.export.columns.category')]: p.categoria,
-      [t('estoque.export.columns.stock')]:    p.estoqueAtual,
-      [t('estoque.export.columns.min')]:      p.estoqueMinimo,
+      [t('estoque.export.columns.stock')]: p.estoqueAtual,
+      [t('estoque.export.columns.min')]: p.estoqueMinimo,
       [t('estoque.export.columns.location')]: p.localizacao,
     }));
     exportToExcel(excelData, t('estoque.export.sheetName'), 'estoque');
@@ -70,20 +70,20 @@ export default function EstoquePage({ user }) {
   // PDF
   const handleExportPdf = () => {
     const pdfColumns = [
-      { key: 'codigo',        label: t('estoque.export.columns.code') },
-      { key: 'nome',          label: t('estoque.export.columns.name') },
-      { key: 'categoria',     label: t('estoque.export.columns.category') },
-      { key: 'estoqueAtual',  label: t('estoque.export.columns.stock') },
+      { key: 'codigo', label: t('estoque.export.columns.code') },
+      { key: 'nome', label: t('estoque.export.columns.name') },
+      { key: 'categoria', label: t('estoque.export.columns.category') },
+      { key: 'estoqueAtual', label: t('estoque.export.columns.stock') },
       { key: 'estoqueMinimo', label: t('estoque.export.columns.min') },
-      { key: 'localizacao',   label: t('estoque.export.columns.location') },
+      { key: 'localizacao', label: t('estoque.export.columns.location') },
     ];
     const pdfData = pecas.map((p) => ({
-      codigo:        p.codigo,
-      nome:          p.nome,
-      categoria:     p.categoria,
-      estoqueAtual:  p.estoqueAtual,
+      codigo: p.codigo,
+      nome: p.nome,
+      categoria: p.categoria,
+      estoqueAtual: p.estoqueAtual,
       estoqueMinimo: p.estoqueMinimo,
-      localizacao:   p.localizacao,
+      localizacao: p.localizacao,
     }));
     exportToPdf(pdfData, pdfColumns, 'estoque');
   };

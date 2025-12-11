@@ -18,7 +18,7 @@ import {
   criarCausa,
   excluirCausa,
   listarParetoCausas,
-} from '../services/apiClient';
+} from '../../../services/apiClient';
 
 /* =========================
    CRUD de Causas Raiz

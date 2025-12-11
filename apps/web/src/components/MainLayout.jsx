@@ -21,29 +21,29 @@ import {
 import styles from './MainLayout.module.css';
 
 import OperatorDashboard from './OperatorDashboard.jsx';
-import MaquinasPage from '../pages/MaquinasPage.jsx';
-import MaquinaDetalhePage from '../pages/MaquinaDetalhePage.jsx';
+import MaquinasPage from '../features/maquinas/pages/MaquinasPage.jsx';
+import MaquinaDetalhePage from '../features/maquinas/pages/MaquinaDetalhePage.jsx';
 import InicioPage from '../pages/InicioPage.jsx';
-import ChamadoDetalhe from '../pages/ChamadoDetalhe.jsx';
-import HistoricoPage from '../pages/HistoricoPage.jsx';
-import PerfilPage from '../pages/PerfilPage.jsx';
+import ChamadoDetalhe from '../features/chamados/pages/ChamadoDetalhe.jsx';
+import HistoricoPage from '../features/chamados/pages/HistoricoPage.jsx';
+import PerfilPage from '../features/usuarios/pages/PerfilPage.jsx';
 import MaquinasLayout from '../pages/MaquinasLayout.jsx';
 import HistoricoLayout from '../pages/HistoricoLayout.jsx';
-import AnaliseFalhasPage from '../pages/AnaliseFalhasPage.jsx';
-import GerirUtilizadoresPage from '../pages/GerirUtilizadoresPage.jsx';
-import CalendarioGeralPage from '../pages/CalendarioGeralPage.jsx';
-import CausasRaizPage from '../pages/CausasRaizPage.jsx';
-import EstoquePage from '../pages/EstoquePage.jsx';
-import MeusChamados from '../pages/MeusChamados';
-import AbrirChamadoManutentor from '../pages/AbrirChamadoManutentor.jsx';
+import AnaliseFalhasPage from '../features/analytics/pages/AnaliseFalhasPage.jsx';
+import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresPage.jsx';
+import CalendarioGeralPage from '../features/calendario/pages/CalendarioGeralPage.jsx';
+import CausasRaizPage from '../features/analytics/pages/CausasRaizPage.jsx';
+import EstoquePage from '../features/estoque/pages/EstoquePage.jsx';
+import MeusChamados from '../features/chamados/pages/MeusChamados';
+import AbrirChamadoManutentor from '../features/chamados/pages/AbrirChamadoManutentor.jsx';
 import LanguageMenu from '../components/LanguageMenu.jsx';
-import PziniChatBot from '../pages/PziniChatBot.jsx';
-import ChecklistOverviewPage from '../pages/ChecklistOverviewPage.jsx';
+import PziniChatBot from '../features/analytics/pages/PziniChatBot.jsx';
+import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage.jsx';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
 
-// API (sem Firebase)
+// API
 import { listarChamados, listarAgendamentos, connectSSE } from '../services/apiClient';
 
 const MainLayout = ({ user }) => {
@@ -111,7 +111,7 @@ const MainLayout = ({ user }) => {
       const a = await listarChamados({ status: 'Aberto', pageSize: 1 });
       const e = await listarChamados({ status: 'Em Andamento', pageSize: 1 });
       setHasOpenCalls(((a?.total || 0) + (e?.total || 0)) > 0);
-    } catch {}
+    } catch { }
   };
 
   const refreshSoonDue = async () => {
@@ -127,7 +127,7 @@ const MainLayout = ({ user }) => {
         (a) => a.status === 'agendado' && new Date(a.start_ts) <= to
       ).length;
       setHasSoonDue(qtd > 0);
-    } catch {}
+    } catch { }
   };
 
   const refreshMyActive = async () => {
@@ -147,7 +147,7 @@ const MainLayout = ({ user }) => {
         pageSize: 1,
       });
       setMyActiveCount((a?.total || 0) + (e?.total || 0));
-    } catch {}
+    } catch { }
   };
 
   // Conexão SSE + primeira carga dos badges
@@ -179,7 +179,7 @@ const MainLayout = ({ user }) => {
     try {
       localStorage.removeItem('usuario');
       localStorage.removeItem('dadosTurno');
-    } catch {}
+    } catch { }
     window.dispatchEvent(new Event('auth-user-changed'));
     navigate('/login', { replace: true });
   };
@@ -434,9 +434,8 @@ const MainLayout = ({ user }) => {
 
       {/* SIDEBAR MOBILE */}
       <aside
-        className={`${styles.mobileNav} ${
-          isMobileMenuOpen ? styles.open : ''
-        }`}
+        className={`${styles.mobileNav} ${isMobileMenuOpen ? styles.open : ''
+          }`}
       >
         <div className={styles.sidebarHeader}>
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
