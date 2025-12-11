@@ -9,6 +9,7 @@ analyticsRouter.get('/analytics/pareto-causas', async (req, res) => {
   try {
     const from = req.query.from ? new Date(String(req.query.from)) : null;
     const to = req.query.to ? new Date(String(req.query.to)) : null;
+    const maquinaId = req.query.maquinaId ? String(req.query.maquinaId) : null;
 
     const now = new Date();
     const defaultTo = new Date(now);
@@ -17,6 +18,11 @@ analyticsRouter.get('/analytics/pareto-causas', async (req, res) => {
 
     const rangeFrom = (from ?? defaultFrom).toISOString();
     const rangeTo = (to ?? defaultTo).toISOString();
+
+    // Build dynamic WHERE clause for maquina filter
+    const maquinaFilter = maquinaId ? `AND c.maquina_id = $3` : '';
+    const params: (string | number)[] = [rangeFrom, rangeTo];
+    if (maquinaId) params.push(maquinaId);
 
     const { rows } = await pool.query<ParetoRow>(
       `WITH base AS (
@@ -27,6 +33,7 @@ analyticsRouter.get('/analytics/pareto-causas', async (req, res) => {
             AND COALESCE(c.concluido_em, c.criado_em) <  $2::timestamptz
             AND c.causa IS NOT NULL
             AND btrim(c.causa) <> ''
+            ${maquinaFilter}
        ),
        norm AS (
          SELECT CASE
@@ -42,7 +49,7 @@ analyticsRouter.get('/analytics/pareto-causas', async (req, res) => {
          FROM norm
         GROUP BY causa
         ORDER BY chamados DESC, causa;`,
-      [rangeFrom, rangeTo]
+      params
     );
 
     const total = rows.reduce((sum: number, row) => sum + Number(row.chamados || 0), 0);

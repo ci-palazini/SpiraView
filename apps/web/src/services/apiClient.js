@@ -18,14 +18,14 @@ function getLoggedUserEmail() {
       obj?.perfil?.email ||
       obj?.current?.email;
     return email ? String(email).trim().toLowerCase() : '';
-  } catch {}
+  } catch { }
   return '';
 }
 
 function getDevEmail() {
   try {
     return (localStorage.getItem('devEmail') || '').trim().toLowerCase();
-  } catch {}
+  } catch { }
   return '';
 }
 
@@ -121,12 +121,12 @@ export async function criarChamado({
     ...extras
   };
 
-  if (maquinaId)       body.maquinaId       = String(maquinaId);
-  if (maquinaTag)      body.maquinaTag      = String(maquinaTag).trim();
-  if (maquinaNome)     body.maquinaNome     = String(maquinaNome).trim();
+  if (maquinaId) body.maquinaId = String(maquinaId);
+  if (maquinaTag) body.maquinaTag = String(maquinaTag).trim();
+  if (maquinaNome) body.maquinaNome = String(maquinaNome).trim();
   if (manutentorEmail) body.manutentorEmail = String(manutentorEmail).trim().toLowerCase();
-  if (checklistItemKey)body.checklistItemKey= String(checklistItemKey).trim();
-  if (item)            body.item            = String(item).trim();
+  if (checklistItemKey) body.checklistItemKey = String(checklistItemKey).trim();
+  if (item) body.item = String(item).trim();
 
   const res = await fetch(`${BASE}/chamados`, {
     method: 'POST',
@@ -171,8 +171,8 @@ export async function listarChamados(params = {}) {
 
   // --- NormalizaÃ§Ã£o: SEMPRE devolver objeto com items/total/paginaÃ§Ã£o ---
   const items = Array.isArray(data) ? data
-              : Array.isArray(data?.items) ? data.items
-              : [];
+    : Array.isArray(data?.items) ? data.items
+      : [];
 
   const total = typeof data?.total === 'number' ? data.total : items.length;
   const page = Number(data?.page ?? 1);
@@ -205,7 +205,7 @@ export async function criarMaquina({ nome, tag, setor, critico }, auth = {}) {
 
 export async function listarAgendamentos(params = {}) {
   const qs = new URLSearchParams(
-    Object.entries(params).filter(([,v]) => v !== undefined && v !== null && v !== "")
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
   ).toString();
   const res = await fetch(`${BASE}/agendamentos?${qs}`);
   const data = await res.json();
@@ -316,7 +316,7 @@ export async function uploadFotoChamado(id, file, auth = {}) {
 export async function listarManutentores(auth = {}) {
   const res = await fetch(`${BASE}/usuarios?role=manutentor`, {
     headers: {
-      'x-user-role':  auth.role  || 'gestor',   // papel com permissÃ£o
+      'x-user-role': auth.role || 'gestor',   // papel com permissÃ£o
       'x-user-email': auth.email || ''          // email do usuÃ¡rio logado
     }
   });
@@ -727,8 +727,9 @@ export async function changePassword({ email, senhaAtual, novaSenha }) {
 
 export async function listarParetoCausas(params = {}, auth) {
   const qs = new URLSearchParams();
-  if (params.from) qs.set("from", params.from);   // se nÃ£o usa perÃ­odo, pode remover
-  if (params.to)   qs.set("to", params.to);
+  if (params.from) qs.set("from", params.from);
+  if (params.to) qs.set("to", params.to);
+  if (params.maquinaId) qs.set("maquinaId", params.maquinaId);
 
   const url = `${BASE}/analytics/pareto-causas${qs.toString() ? `?${qs}` : ""}`;
   const res = await fetch(url, { headers: buildAuthHeaders(auth) });
@@ -809,7 +810,7 @@ export async function renomearMaquina(id, { nome, syncTag = true }, auth = {}) {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'x-user-role':  auth.role  || '',
+      'x-user-role': auth.role || '',
       'x-user-email': auth.email || '',
     },
     body: JSON.stringify({ nome, syncTag }),
@@ -882,13 +883,13 @@ export async function aiTextSearch({ q, limit = 20 } = {}, auth = {}) {
 
 export function connectSSE(handlers = {}) {
   const es = new EventSource(`${BASE}/events`);
-  es.addEventListener('hello',       e => handlers.hello?.(JSON.parse(e.data)));
-  es.addEventListener('chamados',    e => handlers.chamados?.(JSON.parse(e.data)));
-  es.addEventListener('agendamentos',e => handlers.agendamentos?.(JSON.parse(e.data)));
-  es.addEventListener('checklist',   e => handlers.checklist?.(JSON.parse(e.data)));
-  es.addEventListener('pecas',       e => handlers.pecas?.(JSON.parse(e.data)));
+  es.addEventListener('hello', e => handlers.hello?.(JSON.parse(e.data)));
+  es.addEventListener('chamados', e => handlers.chamados?.(JSON.parse(e.data)));
+  es.addEventListener('agendamentos', e => handlers.agendamentos?.(JSON.parse(e.data)));
+  es.addEventListener('checklist', e => handlers.checklist?.(JSON.parse(e.data)));
+  es.addEventListener('pecas', e => handlers.pecas?.(JSON.parse(e.data)));
   es.onerror = (err) => handlers.onError?.(err);
-  es.onopen  = ()    => handlers.onOpen?.();
+  es.onopen = () => handlers.onOpen?.();
   return () => es.close();
 }
 
@@ -902,7 +903,7 @@ export function subscribeSSE(onEvent, opts = {}) {
   // Se o ambiente nÃ£o suportar EventSource, apenas no-op
   if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
     console.warn('EventSource nÃ£o disponÃ­vel; subscribeSSE serÃ¡ no-op.');
-    return () => {};
+    return () => { };
   }
 
   const es = new EventSource(url, { withCredentials: false });
@@ -925,6 +926,6 @@ export function subscribeSSE(onEvent, opts = {}) {
   };
 
   return () => {
-    try { es.close(); } catch {}
+    try { es.close(); } catch { }
   };
 }

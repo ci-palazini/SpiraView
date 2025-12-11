@@ -62,3 +62,68 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Filtros do Pareto */
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.filterField label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.select,
+.dateInput {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #111827;
+  min-width: 140px;
+}
+
+.select:focus,
+.dateInput:focus {
+  outline: none;
+  border-color: #4b70e2;
+  box-shadow: 0 0 0 2px rgba(75, 112, 226, 0.15);
+}
+
+.clearButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  background: #6b7280;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.clearButton:hover {
+  background: #4b5563;
+}
+
+.muted {
+  color: #6b7280;
+  font-style: italic;
+  padding: 16px 0;
+}

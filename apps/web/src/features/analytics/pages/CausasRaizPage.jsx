@@ -18,6 +18,7 @@ import {
   criarCausa,
   excluirCausa,
   listarParetoCausas,
+  getMaquinas,
 } from '../../../services/apiClient';
 
 /* =========================
@@ -152,14 +153,37 @@ function ParetoChart() {
   const { t } = useTranslation();
   const [dados, setDados] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [maquinas, setMaquinas] = useState([]);
 
+  // Filtros
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [maquinaId, setMaquinaId] = useState('');
+
+  // Carregar lista de máquinas
+  useEffect(() => {
+    getMaquinas().then(list => {
+      const arr = Array.isArray(list?.items) ? list.items : (Array.isArray(list) ? list : []);
+      setMaquinas(arr.sort((a, b) => (a.nome || a.tag || '').localeCompare(b.nome || b.tag || '', 'pt')));
+    }).catch(console.error);
+  }, []);
+
+  // Carregar dados do Pareto
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         setLoading(true);
-        // Sem filtros -> considera todos os chamados concluídos
-        const resp = await listarParetoCausas();
+        const params = {};
+        if (startDate) params.from = startDate.toISOString();
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          params.to = end.toISOString();
+        }
+        if (maquinaId) params.maquinaId = maquinaId;
+
+        const resp = await listarParetoCausas(params);
         const items = Array.isArray(resp?.items) ? resp.items : (Array.isArray(resp) ? resp : []);
         const data = items.map(it => ({
           causa: it.causa,
@@ -175,51 +199,103 @@ function ParetoChart() {
       }
     })();
     return () => { alive = false; };
-  }, []);
-
-  if (loading) {
-    return <p className={styles.muted}>{t('common.loading', 'Carregando...')}</p>;
-  }
-
-  if (!dados.length) {
-    return <p className={styles.muted}>{t('causas.chart.empty', 'Sem dados para exibir')}</p>;
-  }
+  }, [startDate, endDate, maquinaId]);
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <ComposedChart data={dados}>
-        <CartesianGrid stroke="#f5f5f5" />
-        <XAxis
-          dataKey="causa"
-          label={{ value: t('causas.chart.xLabel'), position: 'insideBottom', offset: -5 }}
-        />
-        <YAxis
-          yAxisId="left"
-          label={{ value: t('causas.chart.yLeft'), angle: -90, position: 'insideLeft' }}
-        />
-        <YAxis
-          yAxisId="right"
-          orientation="right"
-          domain={[0, 100]}
-          label={{ value: t('causas.chart.yRight'), angle: 90, position: 'insideRight' }}
-        />
-        <Tooltip />
-        <Legend />
-        <Bar
-          yAxisId="left"
-          dataKey="count"
-          name={t('causas.chart.seriesCalls')}
-          fill="#8884d8"
-        />
-        <Line
-          yAxisId="right"
-          type="monotone"
-          dataKey="acumPercent"
-          name={t('causas.chart.seriesAccumPct')}
-          stroke="#ff7300"
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
+    <>
+      {/* Filtros */}
+      <div className={styles.filterContainer}>
+        <div className={styles.filterField}>
+          <label htmlFor="maquinaFilter">{t('causas.filters.machine', 'Máquina')}</label>
+          <select
+            id="maquinaFilter"
+            className={styles.select}
+            value={maquinaId}
+            onChange={(e) => setMaquinaId(e.target.value)}
+          >
+            <option value="">{t('causas.filters.allMachines', 'Todas')}</option>
+            {maquinas.map((m) => (
+              <option key={m.id} value={m.id}>{m.nome || m.tag}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.filterField}>
+          <label htmlFor="startDateFilter">{t('causas.filters.start', 'De')}</label>
+          <input
+            type="date"
+            id="startDateFilter"
+            className={styles.dateInput}
+            value={startDate ? startDate.toISOString().slice(0, 10) : ''}
+            onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null)}
+          />
+        </div>
+
+        <div className={styles.filterField}>
+          <label htmlFor="endDateFilter">{t('causas.filters.end', 'Até')}</label>
+          <input
+            type="date"
+            id="endDateFilter"
+            className={styles.dateInput}
+            value={endDate ? endDate.toISOString().slice(0, 10) : ''}
+            onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null)}
+          />
+        </div>
+
+        <button
+          type="button"
+          className={styles.clearButton}
+          onClick={() => {
+            setStartDate(null);
+            setEndDate(null);
+            setMaquinaId('');
+          }}
+        >
+          {t('causas.filters.clear', 'Limpar')}
+        </button>
+      </div>
+
+      {loading ? (
+        <p className={styles.muted}>{t('common.loading', 'Carregando...')}</p>
+      ) : !dados.length ? (
+        <p className={styles.muted}>{t('causas.chart.empty', 'Sem dados para exibir')}</p>
+      ) : (
+        <ResponsiveContainer width="100%" height={400}>
+          <ComposedChart data={dados}>
+            <CartesianGrid stroke="#f5f5f5" />
+            <XAxis
+              dataKey="causa"
+              label={{ value: t('causas.chart.xLabel'), position: 'insideBottom', offset: -5 }}
+            />
+            <YAxis
+              yAxisId="left"
+              label={{ value: t('causas.chart.yLeft'), angle: -90, position: 'insideLeft' }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, 100]}
+              label={{ value: t('causas.chart.yRight'), angle: 90, position: 'insideRight' }}
+            />
+            <Tooltip />
+            <Legend />
+            <Bar
+              yAxisId="left"
+              dataKey="count"
+              name={t('causas.chart.seriesCalls')}
+              fill="#8884d8"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="acumPercent"
+              name={t('causas.chart.seriesAccumPct')}
+              stroke="#ff7300"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      )}
+    </>
   );
 }
 
