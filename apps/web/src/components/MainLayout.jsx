@@ -27,8 +27,6 @@ import InicioPage from '../pages/InicioPage.jsx';
 import ChamadoDetalhe from '../features/chamados/pages/ChamadoDetalhe.jsx';
 import HistoricoPage from '../features/chamados/pages/HistoricoPage.jsx';
 import PerfilPage from '../features/usuarios/pages/PerfilPage.jsx';
-import MaquinasLayout from '../pages/MaquinasLayout.jsx';
-import HistoricoLayout from '../pages/HistoricoLayout.jsx';
 import AnaliseFalhasPage from '../features/analytics/pages/AnaliseFalhasPage.jsx';
 import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresPage.jsx';
 import CalendarioGeralPage from '../features/calendario/pages/CalendarioGeralPage.jsx';
@@ -519,13 +517,17 @@ const MainLayout = ({ user }) => {
           />
 
           <Route
-            path="/maquinas/*"
-            element={canAccess(['manutentor', 'gestor'], <MaquinasLayout />)}
-          >
-            <Route index element={<MaquinasPage />} />
-            <Route path="chamado/:id" element={<ChamadoDetalhe user={user} />} />
-            <Route path=":id" element={<MaquinaDetalhePage user={user} />} />
-          </Route>
+            path="/maquinas"
+            element={canAccess(['manutentor', 'gestor'], <MaquinasPage user={user} />)}
+          />
+          <Route
+            path="/maquinas/chamado/:id"
+            element={canAccess(['manutentor', 'gestor'], <ChamadoDetalhe user={user} />)}
+          />
+          <Route
+            path="/maquinas/:id"
+            element={canAccess(['manutentor', 'gestor'], <MaquinaDetalhePage user={user} />)}
+          />
 
           <Route path="/perfil" element={<PerfilPage user={user} />} />
 
@@ -535,12 +537,13 @@ const MainLayout = ({ user }) => {
           />
 
           <Route
-            path="/historico/*"
-            element={canAccess(['manutentor', 'gestor'], <HistoricoLayout />)}
-          >
-            <Route index element={<HistoricoPage />} />
-            <Route path="chamado/:id" element={<ChamadoDetalhe user={user} />} />
-          </Route>
+            path="/historico"
+            element={canAccess(['manutentor', 'gestor'], <HistoricoPage user={user} />)}
+          />
+          <Route
+            path="/historico/chamado/:id"
+            element={canAccess(['manutentor', 'gestor'], <ChamadoDetalhe user={user} />)}
+          />
 
           <Route
             path="/abrir-chamado"

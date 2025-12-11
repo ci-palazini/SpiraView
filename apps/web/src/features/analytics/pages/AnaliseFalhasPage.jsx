@@ -15,6 +15,7 @@ import {
 
 import { useTranslation } from 'react-i18next';
 import { listarChamados } from '../../../services/apiClient';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -131,16 +132,10 @@ const AnaliseFalhasPage = () => {
 
   return (
     <>
-      {/* Card de header – igual padrão do Histórico */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('analiseFalhas.title')}</h1>
-        <p className={styles.subtitle}>
-          {t(
-            'analiseFalhas.subtitle',
-            'Veja a distribuição de falhas corretivas por máquina no período selecionado.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('analiseFalhas.title')}
+        subtitle={t('analiseFalhas.subtitle', 'Veja a distribuição de falhas corretivas por máquina no período selecionado.')}
+      />
 
       {/* Card principal (filtros + gráfico) */}
       <div className={styles.listContainer}>

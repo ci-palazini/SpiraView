@@ -4,6 +4,7 @@ import { listarPecas, excluirPeca } from '../../../services/apiClient';
 import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal.jsx';
 import PecaModal from './PecaModal.jsx';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
@@ -90,16 +91,10 @@ export default function EstoquePage({ user }) {
 
   return (
     <>
-      {/* Header em card branco, padrão com as outras páginas */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('estoque.title')}</h1>
-        <p className={styles.subtitle}>
-          {t(
-            'estoque.subtitle',
-            'Gerencie o catálogo de peças, estoque mínimo e movimentações.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('estoque.title')}
+        subtitle={t('estoque.subtitle', 'Gerencie o catálogo de peças, estoque mínimo e movimentações.')}
+      />
 
       {/* Container branco principal */}
       <div className={styles.listContainer}>

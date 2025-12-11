@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { listarChamadosPorCriador, listarChamados } from '../../../services/apiClient';
 import { subscribeSSE } from '../../../services/sseClient';
 import styles from './MeusChamados.module.css';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
 
@@ -142,15 +143,10 @@ export default function MeusChamados({ user }) {
   if (!email) {
     return (
       <>
-        <header className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>{t('meusChamados.title')}</h1>
-          <p className={styles.subtitle}>
-            {t(
-              'meusChamados.subtitle',
-              'Acompanhe os chamados atribuídos ou abertos por você.'
-            )}
-          </p>
-        </header>
+        <PageHeader
+          title={t('meusChamados.title')}
+          subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuídos ou abertos por você.')}
+        />
         <div className={styles.listContainer}>
           <p className={styles.empty}>{t('meusChamados.loginFirst')}</p>
         </div>
@@ -160,16 +156,10 @@ export default function MeusChamados({ user }) {
 
   return (
     <>
-      {/* Faixa branca do título em card, padrão das demais páginas */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('meusChamados.title')}</h1>
-        <p className={styles.subtitle}>
-          {t(
-            'meusChamados.subtitle',
-            'Acompanhe os chamados atribuídos ou abertos por você.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('meusChamados.title')}
+        subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuídos ou abertos por você.')}
+      />
 
       {/* Caixa branca do conteúdo */}
       <div className={styles.listContainer}>

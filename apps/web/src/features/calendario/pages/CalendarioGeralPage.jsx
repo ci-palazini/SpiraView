@@ -9,6 +9,7 @@ import Modal from '../../../shared/components/Modal.jsx';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './CalendarioGeralPage.module.css';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import { useTranslation } from 'react-i18next';
 import { df } from '../../../i18n/format';
 
@@ -259,16 +260,10 @@ export default function CalendarioGeralPage({ user }) {
 
   return (
     <>
-      {/* Header em card branco, padrão das demais páginas */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('calendarioGeral.title')}</h1>
-        <p className={styles.subtitle}>
-          {t(
-            'calendarioGeral.subtitle',
-            'Visualize e gerencie as manutenções preventivas e preditivas agendadas.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('calendarioGeral.title')}
+        subtitle={t('calendarioGeral.subtitle', 'Visualize e gerencie as manutenções preventivas e preditivas agendadas.')}
+      />
 
       <div className={styles.calendarContainer}>
         <div className={styles.legend}>

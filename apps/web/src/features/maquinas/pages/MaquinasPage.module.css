@@ -1,5 +1,5 @@
-.page {
-  padding: 24px;
+.contentArea {
+  padding: 0 24px 24px 24px;
 }
 
 /* HEADER EM CARD (mesmo padrão das outras telas novas) */
@@ -186,7 +186,8 @@
   background-color: #f8f9fa;
   border-color: #adb5bd;
   color: #495057;
-  transform: none; /* remove o “levantar” para o card de add */
+  transform: none;
+  /* remove o “levantar” para o card de add */
   box-shadow: none;
 }
 

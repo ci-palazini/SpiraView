@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import styles from './MaquinasPage.module.css';
 import Modal from '../../../shared/components/Modal.jsx';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
@@ -242,220 +243,215 @@ const MaquinasPage = ({ user: userProp }) => {
   };
 
   return (
-    <div className={styles.page}>
-      {/* HEADER EM CARD BRANCO, IGUAL OUTRAS PÁGINAS */}
-      <div className={styles.headerCard}>
-        <div className={styles.headerText}>
-          <h1 className={styles.pageTitle}>{t('maquinas.title')}</h1>
-          <p className={styles.pageSubtitle}>
-            {t(
-              'maquinas.subtitle',
-              t('maquinas.cardHint') // fallback pra não quebrar tradução
-            )}
-          </p>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title={t('maquinas.title')}
+        subtitle={t('maquinas.subtitle', t('maquinas.cardHint'))}
+      />
 
-      {loading ? (
-        <p className={styles.loadingText}>{t('maquinas.loading')}</p>
-      ) : (
-        <>
-          {/* Legenda em card branco, mantendo o padrão de cards da tela */}
-          <div className={styles.legendContainer}>
-            <div className={styles.legendItem}>
-              <div
-                className={`${styles.legendColorBox} ${styles.statusCorretiva}`}
-              />
-              <span>{t('maquinas.legend.corretiva')}</span>
+      <div className={styles.contentArea}>
+
+        {loading ? (
+          <p className={styles.loadingText}>{t('maquinas.loading')}</p>
+        ) : (
+          <>
+            {/* Legenda em card branco, mantendo o padrão de cards da tela */}
+            <div className={styles.legendContainer}>
+              <div className={styles.legendItem}>
+                <div
+                  className={`${styles.legendColorBox} ${styles.statusCorretiva}`}
+                />
+                <span>{t('maquinas.legend.corretiva')}</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div
+                  className={`${styles.legendColorBox} ${styles.statusPreventiva}`}
+                />
+                <span>{t('maquinas.legend.preventiva')}</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div
+                  className={`${styles.legendColorBox} ${styles.statusPreditiva}`}
+                />
+                <span>{t('maquinas.legend.preditiva')}</span>
+              </div>
             </div>
-            <div className={styles.legendItem}>
-              <div
-                className={`${styles.legendColorBox} ${styles.statusPreventiva}`}
-              />
-              <span>{t('maquinas.legend.preventiva')}</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div
-                className={`${styles.legendColorBox} ${styles.statusPreditiva}`}
-              />
-              <span>{t('maquinas.legend.preditiva')}</span>
-            </div>
-          </div>
 
-          {/* Grid de máquinas */}
-          <div className={styles.grid}>
-            {maquinasComStatus.map((maquina) => (
-              <div
-                key={maquina.id}
-                className={`${styles.card} ${getStatusClass(
-                  maquina.statusDestaque
-                )}`}
-              >
-                {/* botão 3 pontinhos (apenas gestor/admin) */}
-                {isGestor && (
-                  <button
-                    className={styles.menuButton}
-                    aria-label={t('maquinas.actions')}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleMenu(maquina.id);
-                    }}
-                    title={t('maquinas.actions')}
-                  >
-                    <FiMoreVertical />
-                  </button>
-                )}
-
-                {/* dropdown */}
-                {isGestor && openMenuId === maquina.id && (
-                  <div
-                    className={styles.menu}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      className={styles.menuItem}
-                      onClick={(e) => abrirEditar(maquina, e)}
-                    >
-                      <FiEdit2 /> {t('common.edit')}
-                    </button>
-                    <button
-                      className={`${styles.menuItem} ${styles.danger}`}
-                      onClick={(e) => confirmarExclusao(maquina, e)}
-                    >
-                      <FiTrash2 /> {t('common.delete')}
-                    </button>
-                  </div>
-                )}
-
-                {/* conteúdo clicável do card */}
-                <Link
-                  to={`/maquinas/${maquina.id}`}
-                  className={styles.cardLink}
+            {/* Grid de máquinas */}
+            <div className={styles.grid}>
+              {maquinasComStatus.map((maquina) => (
+                <div
+                  key={maquina.id}
+                  className={`${styles.card} ${getStatusClass(
+                    maquina.statusDestaque
+                  )}`}
                 >
-                  <h2>{maquina.nome}</h2>
-                  <p>{t('maquinas.cardHint')}</p>
-                </Link>
-              </div>
-            ))}
+                  {/* botão 3 pontinhos (apenas gestor/admin) */}
+                  {isGestor && (
+                    <button
+                      className={styles.menuButton}
+                      aria-label={t('maquinas.actions')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleMenu(maquina.id);
+                      }}
+                      title={t('maquinas.actions')}
+                    >
+                      <FiMoreVertical />
+                    </button>
+                  )}
 
-            {/* CARD DE ADICIONAR */}
-            {isGestor && (
-              <div
-                className={`${styles.card} ${styles.addCard}`}
-                onClick={() => setIsModalOpen(true)}
-                role="button"
-                aria-label={t('maquinas.modal.title')}
-                title={t('maquinas.modal.title')}
+                  {/* dropdown */}
+                  {isGestor && openMenuId === maquina.id && (
+                    <div
+                      className={styles.menu}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        className={styles.menuItem}
+                        onClick={(e) => abrirEditar(maquina, e)}
+                      >
+                        <FiEdit2 /> {t('common.edit')}
+                      </button>
+                      <button
+                        className={`${styles.menuItem} ${styles.danger}`}
+                        onClick={(e) => confirmarExclusao(maquina, e)}
+                      >
+                        <FiTrash2 /> {t('common.delete')}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* conteúdo clicável do card */}
+                  <Link
+                    to={`/maquinas/${maquina.id}`}
+                    className={styles.cardLink}
+                  >
+                    <h2>{maquina.nome}</h2>
+                    <p>{t('maquinas.cardHint')}</p>
+                  </Link>
+                </div>
+              ))}
+
+              {/* CARD DE ADICIONAR */}
+              {isGestor && (
+                <div
+                  className={`${styles.card} ${styles.addCard}`}
+                  onClick={() => setIsModalOpen(true)}
+                  role="button"
+                  aria-label={t('maquinas.modal.title')}
+                  title={t('maquinas.modal.title')}
+                >
+                  <FiPlus className={styles.addIcon} />
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* modal: criar máquina */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={t('maquinas.modal.title')}
+        >
+          <form onSubmit={handleCriarMaquina}>
+            <div className={styles.modalField}>
+              <label htmlFor="nome-maquina" className={styles.modalLabel}>
+                {t('maquinas.modal.nameLabel')}
+              </label>
+              <input
+                id="nome-maquina"
+                type="text"
+                value={nomeNovaMaquina}
+                onChange={(e) => setNomeNovaMaquina(e.target.value)}
+                className={styles.modalInput}
+                required
+              />
+            </div>
+            <button type="submit" className={styles.modalPrimaryButton}>
+              {t('maquinas.modal.save')}
+            </button>
+          </form>
+        </Modal>
+
+        {/* modal: editar machine */}
+        <Modal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          title={t('maquinas.edit.title', { name: alvo?.nome ?? '' })}
+        >
+          <form onSubmit={salvarEdicao}>
+            <div className={styles.modalField}>
+              <label htmlFor="edit-nome" className={styles.modalLabel}>
+                {t('maquinas.edit.label')}
+              </label>
+              <input
+                id="edit-nome"
+                type="text"
+                value={editNome}
+                onChange={(e) => setEditNome(e.target.value)}
+                className={styles.modalInput}
+                required
+              />
+            </div>
+
+            <label className={styles.modalCheckboxRow}>
+              <input
+                type="checkbox"
+                checked={editSyncTag}
+                onChange={(e) => setEditSyncTag(e.target.checked)}
+              />
+              {t('maquinas.edit.syncTag')}
+            </label>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalSecondaryButton}
+                onClick={() => setIsEditOpen(false)}
               >
-                <FiPlus className={styles.addIcon} />
-              </div>
-            )}
-          </div>
-        </>
-      )}
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={savingEdit}
+                className={styles.modalPrimaryButton}
+              >
+                {savingEdit ? t('common.saving') : t('common.save')}
+              </button>
+            </div>
+          </form>
+        </Modal>
 
-      {/* modal: criar máquina */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={t('maquinas.modal.title')}
-      >
-        <form onSubmit={handleCriarMaquina}>
-          <div className={styles.modalField}>
-            <label htmlFor="nome-maquina" className={styles.modalLabel}>
-              {t('maquinas.modal.nameLabel')}
-            </label>
-            <input
-              id="nome-maquina"
-              type="text"
-              value={nomeNovaMaquina}
-              onChange={(e) => setNomeNovaMaquina(e.target.value)}
-              className={styles.modalInput}
-              required
-            />
-          </div>
-          <button type="submit" className={styles.modalPrimaryButton}>
-            {t('maquinas.modal.save')}
-          </button>
-        </form>
-      </Modal>
-
-      {/* modal: editar machine */}
-      <Modal
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        title={t('maquinas.edit.title', { name: alvo?.nome ?? '' })}
-      >
-        <form onSubmit={salvarEdicao}>
-          <div className={styles.modalField}>
-            <label htmlFor="edit-nome" className={styles.modalLabel}>
-              {t('maquinas.edit.label')}
-            </label>
-            <input
-              id="edit-nome"
-              type="text"
-              value={editNome}
-              onChange={(e) => setEditNome(e.target.value)}
-              className={styles.modalInput}
-              required
-            />
-          </div>
-
-          <label className={styles.modalCheckboxRow}>
-            <input
-              type="checkbox"
-              checked={editSyncTag}
-              onChange={(e) => setEditSyncTag(e.target.checked)}
-            />
-            {t('maquinas.edit.syncTag')}
-          </label>
-
+        {/* modal: confirmar exclusão */}
+        <Modal
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          title={t('maquinas.confirmDelete.title', { name: alvo?.nome ?? '' })}
+        >
+          <p className={styles.modalText}>
+            {t('maquinas.confirmDelete.text')}
+          </p>
           <div className={styles.modalActions}>
             <button
-              type="button"
               className={styles.modalSecondaryButton}
-              onClick={() => setIsEditOpen(false)}
+              onClick={() => setIsDeleteOpen(false)}
             >
               {t('common.cancel')}
             </button>
             <button
-              type="submit"
-              disabled={savingEdit}
-              className={styles.modalPrimaryButton}
+              className={styles.modalDangerButton}
+              onClick={excluir}
+              disabled={deleting}
             >
-              {savingEdit ? t('common.saving') : t('common.save')}
+              {t('common.delete')}
             </button>
           </div>
-        </form>
-      </Modal>
-
-      {/* modal: confirmar exclusão */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title={t('maquinas.confirmDelete.title', { name: alvo?.nome ?? '' })}
-      >
-        <p className={styles.modalText}>
-          {t('maquinas.confirmDelete.text')}
-        </p>
-        <div className={styles.modalActions}>
-          <button
-            className={styles.modalSecondaryButton}
-            onClick={() => setIsDeleteOpen(false)}
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            className={styles.modalDangerButton}
-            onClick={excluir}
-            disabled={deleting}
-          >
-            {t('common.delete')}
-          </button>
-        </div>
-      </Modal>
-    </div>
+        </Modal>
+      </div>
+    </>
   );
 };
 

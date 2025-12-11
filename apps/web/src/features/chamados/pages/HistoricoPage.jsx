@@ -5,6 +5,7 @@ import { subscribeSSE } from '../../../services/sseClient';
 import { exportToExcel } from '../../../utils/exportExcel';
 import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './HistoricoPage.module.css';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import { useTranslation } from 'react-i18next';
 
 const HistoricoPage = () => {
@@ -151,16 +152,10 @@ const HistoricoPage = () => {
 
   return (
     <>
-      {/* Faixa branca de título, padrão das outras páginas */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('historico.title')}</h1>
-        <p className={styles.subtitle}>
-          {t(
-            'historico.subtitle',
-            'Veja o histórico de chamados concluídos e filtre por tipo, máquina ou texto.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('historico.title')}
+        subtitle={t('historico.subtitle', 'Veja o histórico de chamados concluídos e filtre por tipo, máquina ou texto.')}
+      />
 
       {/* Container branco principal */}
       <div className={styles.listContainer}>

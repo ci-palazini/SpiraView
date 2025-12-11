@@ -10,6 +10,7 @@ import {
 
 import { listarMaquinas, getMaquina } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
+import PageHeader from '../../../shared/components/PageHeader.jsx';
 import styles from './ChecklistOverviewPage.module.css';
 
 const ChecklistOverviewPage = ({ user }) => {
@@ -164,18 +165,10 @@ const ChecklistOverviewPage = ({ user }) => {
 
   return (
     <>
-      {/* Header padrão em card branco */}
-      <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>
-          {t('checklistOverview.title', 'Checklists diários por máquina')}
-        </h1>
-        <p className={styles.subtitle}>
-          {t(
-            'checklistOverview.subtitle',
-            'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.'
-          )}
-        </p>
-      </header>
+      <PageHeader
+        title={t('checklistOverview.title', 'Checklists diários por máquina')}
+        subtitle={t('checklistOverview.subtitle', 'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.')}
+      />
 
       {/* Card branco principal */}
       <div className={styles.listContainer}>

@@ -1,0 +1,54 @@
+/* PageHeader - Header padrão para todas as páginas (estilo MaquinasPage) */
+.pageHeader {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    padding: 16px 20px;
+    margin: 24px 24px 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.pageHeaderContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pageTitle {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.pageHeaderActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .pageHeader {
+        padding: 12px 14px;
+        border-radius: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pageHeaderActions {
+        align-self: stretch;
+        justify-content: center;
+    }
+}
