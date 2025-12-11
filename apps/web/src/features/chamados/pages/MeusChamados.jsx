@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { listarChamadosPorCriador, listarChamados } from '../../../services/apiClient';
 import { subscribeSSE } from '../../../services/sseClient';
 import styles from './MeusChamados.module.css';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
 

@@ -15,7 +15,7 @@ import {
 
 import { useTranslation } from 'react-i18next';
 import { listarChamados } from '../../../services/apiClient';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 

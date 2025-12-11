@@ -6,7 +6,7 @@ import { subscribeSSE } from '../../../services/sseClient';
 import { exportToExcel } from '../../../utils/exportExcel';
 import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './ChamadosAbertosPage.module.css';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 
 const ChamadosAbertosPage = () => {

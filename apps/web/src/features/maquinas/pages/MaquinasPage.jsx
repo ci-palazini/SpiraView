@@ -1,4 +1,4 @@
-Ôªøimport React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   getMaquinas,
@@ -10,7 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import styles from './MaquinasPage.module.css';
 import Modal from '../../../shared/components/Modal.jsx';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +25,7 @@ function getStoredUser() {
 const MaquinasPage = ({ user: userProp }) => {
   const { t } = useTranslation();
 
-  // se vier pelo MainLayout, usa a prop; sen√£o, cai no localStorage (compatibilidade)
+  // se vier pelo MainLayout, usa a prop; sen„o, cai no localStorage (compatibilidade)
   const user = userProp || getStoredUser();
   const role = (user?.role || '').toLowerCase();
   const isGestor = role === 'gestor' || role === 'admin';
@@ -38,7 +38,7 @@ const MaquinasPage = ({ user: userProp }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nomeNovaMaquina, setNomeNovaMaquina] = useState('');
 
-  // menu/a√ß√£o: editar/excluir
+  // menu/aÁ„o: editar/excluir
   const [openMenuId, setOpenMenuId] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [alvo, setAlvo] = useState(null);
@@ -55,7 +55,7 @@ const MaquinasPage = ({ user: userProp }) => {
     setLoading(true);
     (async () => {
       try {
-        // 1) M√°quinas
+        // 1) M·quinas
         const lista = await getMaquinas();
         if (!alive) return;
         setMaquinas(lista);
@@ -145,7 +145,7 @@ const MaquinasPage = ({ user: userProp }) => {
     }
   };
 
-  // ======= A√á√ïES (menu) =======
+  // ======= A«’ES (menu) =======
   const toggleMenu = (id) =>
     setOpenMenuId((prev) => (prev === id ? null : id));
 
@@ -155,7 +155,7 @@ const MaquinasPage = ({ user: userProp }) => {
     setOpenMenuId(null);
     setAlvo(maquina);
     setEditNome(maquina?.nome || '');
-    setEditSyncTag(true); // padr√£o: manter tag = nome
+    setEditSyncTag(true); // padr„o: manter tag = nome
     setIsEditOpen(true);
   };
 
@@ -180,15 +180,15 @@ const MaquinasPage = ({ user: userProp }) => {
       if (status === 403)
         msg =
           t('maquinas.toasts.deleteForbidden') ||
-          'Permiss√£o negada (somente gestor).';
+          'Permiss„o negada (somente gestor).';
       else if (status === 404)
         msg =
           t('maquinas.toasts.deleteNotFound') ||
-          'M√°quina n√£o encontrada (tente atualizar).';
+          'M·quina n„o encontrada (tente atualizar).';
       else if (status === 409)
         msg =
           t('maquinas.toasts.deleteBlocked') ||
-          'M√°quina com v√≠nculos.';
+          'M·quina com vÌnculos.';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -234,7 +234,7 @@ const MaquinasPage = ({ user: userProp }) => {
       if (status === 409)
         msg =
           t('maquinas.toasts.renameDuplicated') ||
-          'J√° existe uma m√°quina com esse nome/tag.';
+          'J· existe uma m·quina com esse nome/tag.';
       toast.error(msg);
       console.error(err);
     } finally {
@@ -255,7 +255,7 @@ const MaquinasPage = ({ user: userProp }) => {
           <p className={styles.loadingText}>{t('maquinas.loading')}</p>
         ) : (
           <>
-            {/* Legenda em card branco, mantendo o padr√£o de cards da tela */}
+            {/* Legenda em card branco, mantendo o padr„o de cards da tela */}
             <div className={styles.legendContainer}>
               <div className={styles.legendItem}>
                 <div
@@ -277,7 +277,7 @@ const MaquinasPage = ({ user: userProp }) => {
               </div>
             </div>
 
-            {/* Grid de m√°quinas */}
+            {/* Grid de m·quinas */}
             <div className={styles.grid}>
               {maquinasComStatus.map((maquina) => (
                 <div
@@ -286,7 +286,7 @@ const MaquinasPage = ({ user: userProp }) => {
                     maquina.statusDestaque
                   )}`}
                 >
-                  {/* bot√£o 3 pontinhos (apenas gestor/admin) */}
+                  {/* bot„o 3 pontinhos (apenas gestor/admin) */}
                   {isGestor && (
                     <button
                       className={styles.menuButton}
@@ -323,7 +323,7 @@ const MaquinasPage = ({ user: userProp }) => {
                     </div>
                   )}
 
-                  {/* conte√∫do clic√°vel do card */}
+                  {/* conte˙do clic·vel do card */}
                   <Link
                     to={`/maquinas/${maquina.id}`}
                     className={styles.cardLink}
@@ -350,7 +350,7 @@ const MaquinasPage = ({ user: userProp }) => {
           </>
         )}
 
-        {/* modal: criar m√°quina */}
+        {/* modal: criar m·quina */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -425,7 +425,7 @@ const MaquinasPage = ({ user: userProp }) => {
           </form>
         </Modal>
 
-        {/* modal: confirmar exclus√£o */}
+        {/* modal: confirmar exclus„o */}
         <Modal
           isOpen={isDeleteOpen}
           onClose={() => setIsDeleteOpen(false)}

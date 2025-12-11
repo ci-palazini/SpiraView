@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
@@ -9,7 +9,7 @@ import Modal from '../../../shared/components/Modal.jsx';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './CalendarioGeralPage.module.css';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 import { df } from '../../../i18n/format';
 
@@ -26,7 +26,7 @@ import { subscribeSSE } from '../../../services/sseClient';
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
-// ---- Helper para garantir que tudo que vai para o JSX Ã© string legÃ­vel
+// ---- Helper para garantir que tudo que vai para o JSX é string legível
 function toPlainText(v) {
   if (v == null) return '';
   if (typeof v === 'string') return v;
@@ -42,7 +42,7 @@ function toPlainText(v) {
         return String(x);
       })
       .filter(Boolean)
-      .join(' â€¢ ');
+      .join(' • ');
   }
 
   if (typeof v === 'object') {
@@ -89,7 +89,7 @@ export default function CalendarioGeralPage({ user }) {
     [i18n.language]
   );
 
-  // SSE para reagir a mudanÃ§as de agendamentos
+  // SSE para reagir a mudanças de agendamentos
   useEffect(() => {
     const unsubscribe = subscribeSSE((msg) => {
       if (msg?.topic === 'agendamentos') {
@@ -99,7 +99,7 @@ export default function CalendarioGeralPage({ user }) {
     return () => unsubscribe();
   }, []);
 
-  // carrega agendamentos do mÃªs visÃ­vel
+  // carrega agendamentos do mês visível
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -149,7 +149,7 @@ export default function CalendarioGeralPage({ user }) {
     };
   }, [currentDate.getFullYear(), currentDate.getMonth(), reloadTick]);
 
-  // carrega mÃ¡quinas para dropdown
+  // carrega máquinas para dropdown
   useEffect(() => {
     (async () => {
       try {
@@ -161,7 +161,7 @@ export default function CalendarioGeralPage({ user }) {
     })();
   }, []);
 
-  // Ãºltimos templates para importar checklist
+  // últimos templates para importar checklist
   useEffect(() => {
     (async () => {
       try {
@@ -262,7 +262,7 @@ export default function CalendarioGeralPage({ user }) {
     <>
       <PageHeader
         title={t('calendarioGeral.title')}
-        subtitle={t('calendarioGeral.subtitle', 'Visualize e gerencie as manutenÃ§Ãµes preventivas e preditivas agendadas.')}
+        subtitle={t('calendarioGeral.subtitle', 'Visualize e gerencie as manutenções preventivas e preditivas agendadas.')}
       />
 
       <div className={styles.calendarContainer}>
@@ -317,7 +317,7 @@ export default function CalendarioGeralPage({ user }) {
               }}
               formats={{
                 agendaHeaderFormat: ({ start, end }) =>
-                  `${moment(start).format('DD/MM/YYYY')} â€“ ${moment(end).format('DD/MM/YYYY')}`
+                  `${moment(start).format('DD/MM/YYYY')} – ${moment(end).format('DD/MM/YYYY')}`
               }}
               events={events}
               startAccessor="start"
@@ -532,7 +532,7 @@ export default function CalendarioGeralPage({ user }) {
               <option value="">{t('calendarioGeral.new.none')}</option>
               {templates.map(tpl => (
                 <option key={tpl.id} value={tpl.id}>
-                  {`${tpl.maquinaNome} â€” ${fmtDate.format(tpl.date)}`}
+                  {`${tpl.maquinaNome} — ${fmtDate.format(tpl.date)}`}
                 </option>
               ))}
             </select>

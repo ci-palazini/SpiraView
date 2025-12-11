@@ -1,15 +1,17 @@
-// PageHeader - Componente de header de página reutilizável
-import React from 'react';
+// src/shared/components/PageHeader.tsx
+import { ReactNode } from 'react';
 import styles from './PageHeader.module.css';
 
-/**
- * Header padrão para páginas do sistema.
- * 
- * @param {string} title - Título principal da página (obrigatório)
- * @param {string} subtitle - Subtítulo/descrição (opcional)
- * @param {React.ReactNode} actions - Ações/buttons à direita (opcional)
- */
-export default function PageHeader({ title, subtitle, actions }) {
+interface PageHeaderProps {
+    /** Título principal da página (obrigatório) */
+    title: string;
+    /** Subtítulo/descrição (opcional) */
+    subtitle?: string;
+    /** Ações/buttons à direita (opcional) */
+    actions?: ReactNode;
+}
+
+export default function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
     return (
         <header className={styles.pageHeader}>
             <div className={styles.pageHeaderContent}>

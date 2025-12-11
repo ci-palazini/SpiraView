@@ -4,7 +4,7 @@ import { listarPecas, excluirPeca } from '../../../services/apiClient';
 import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal.jsx';
 import PecaModal from './PecaModal.jsx';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 

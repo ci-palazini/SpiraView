@@ -10,7 +10,7 @@ import {
 
 import { listarMaquinas, getMaquina } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
-import PageHeader from '../../../shared/components/PageHeader.jsx';
+import PageHeader from '../../../shared/components/PageHeader';
 import styles from './ChecklistOverviewPage.module.css';
 
 const ChecklistOverviewPage = ({ user }) => {
