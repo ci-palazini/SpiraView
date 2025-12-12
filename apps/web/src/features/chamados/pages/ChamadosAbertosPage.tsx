@@ -37,11 +37,13 @@ type FiltroStatus = 'todos' | 'aberto' | 'em andamento' | 'aguardando';
 function tsToDate(ts: string | Date | { toDate: () => Date } | null | undefined): Date | null {
     if (!ts) return null;
     if (typeof ts === 'string') return new Date(ts.replace(' ', 'T'));
-    if (typeof (ts as { toDate: () => Date }).toDate === 'function') {
-        return (ts as { toDate: () => Date }).toDate();
+    if (ts instanceof Date) {
+        return isNaN(ts.getTime()) ? null : ts;
     }
-    const d = ts instanceof Date ? ts : new Date(ts as string);
-    return isNaN(d.getTime()) ? null : d;
+    if (typeof ts === 'object' && 'toDate' in ts && typeof ts.toDate === 'function') {
+        return ts.toDate();
+    }
+    return null;
 }
 
 const ChamadosAbertosPage = () => {
@@ -281,7 +283,7 @@ const ChamadosAbertosPage = () => {
                         </div>
 
                         <p className={styles.contador}>
-                            {t('chamadosAbertos.count', { count: chamadosFiltrados.length }, `${chamadosFiltrados.length} chamado(s) encontrado(s)`)}
+                            {t('chamadosAbertos.count', { count: chamadosFiltrados.length, defaultValue: '{{count}} chamado(s) encontrado(s)' })}
                         </p>
 
                         {chamadosFiltrados.length === 0 ? (
