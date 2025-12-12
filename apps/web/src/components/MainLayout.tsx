@@ -54,8 +54,8 @@ interface MainLayoutProps {
 }
 
 interface Agendamento {
-    status: string;
-    start_ts: string;
+    status?: string;
+    start_ts?: string;
 }
 
 const MainLayout = ({ user }: MainLayoutProps) => {
@@ -131,7 +131,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 to: to.toISOString(),
             });
             const qtd = (lista || []).filter(
-                (a) => a.status === 'agendado' && new Date(a.start_ts) <= to
+                (a) => a.status === 'agendado' && a.start_ts && new Date(a.start_ts) <= to
             ).length;
             setHasSoonDue(qtd > 0);
         } catch { /* ignore */ }
@@ -550,7 +550,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
                     <Route
                         path="/historico"
-                        element={canAccess(['manutentor', 'gestor'], <HistoricoPage user={user} />)}
+                        element={canAccess(['manutentor', 'gestor'], <HistoricoPage />)}
                     />
                     <Route
                         path="/historico/chamado/:id"
@@ -559,7 +559,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
                     <Route
                         path="/chamados-abertos"
-                        element={canAccess(['manutentor', 'gestor'], <ChamadosAbertosPage user={user} />)}
+                        element={canAccess(['manutentor', 'gestor'], <ChamadosAbertosPage />)}
                     />
 
                     <Route
