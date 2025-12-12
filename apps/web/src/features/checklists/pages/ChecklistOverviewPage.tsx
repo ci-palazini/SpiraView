@@ -16,6 +16,7 @@ import { listarMaquinas, getMaquina } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './ChecklistOverviewPage.module.css';
+import Skeleton from '@mui/material/Skeleton';
 
 // ---------- Types ----------
 interface User {
@@ -432,38 +433,51 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
 
                 {/* Cards de resumo */}
                 <div className={styles.summaryRow}>
-                    <div className={styles.summaryCard}>
-                        <span className={styles.summaryLabel}>
-                            {t(
-                                'checklistOverview.machinesWithChecklist',
-                                'Máquinas com checklist'
+                    {loading ? (
+                        <>
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className={styles.summaryCard}>
+                                    <Skeleton variant="text" width={100} height={18} />
+                                    <Skeleton variant="text" width={40} height={32} />
+                                </div>
+                            ))}
+                        </>
+                    ) : (
+                        <>
+                            <div className={styles.summaryCard}>
+                                <span className={styles.summaryLabel}>
+                                    {t(
+                                        'checklistOverview.machinesWithChecklist',
+                                        'Máquinas com checklist'
+                                    )}
+                                </span>
+                                <strong className={styles.summaryValue}>{totals.total}</strong>
+                            </div>
+                            <div className={styles.summaryCard}>
+                                <span className={styles.summaryLabel}>
+                                    {t('checklistOverview.turn1', '1º turno')}
+                                </span>
+                                <strong className={styles.summaryValue}>
+                                    {totals.t1ok}/{totals.total}
+                                </strong>
+                            </div>
+                            <div className={styles.summaryCard}>
+                                <span className={styles.summaryLabel}>
+                                    {t('checklistOverview.turn2', '2º turno')}
+                                </span>
+                                <strong className={styles.summaryValue}>
+                                    {totals.t2ok}/{totals.total}
+                                </strong>
+                            </div>
+                            {totals.noChecklist > 0 && (
+                                <div className={`${styles.summaryCard} ${styles.summaryCardMuted}`}>
+                                    <span className={styles.summaryLabel}>
+                                        {t('checklistOverview.noChecklistCount', 'Sem checklist')}
+                                    </span>
+                                    <strong className={styles.summaryValue}>{totals.noChecklist}</strong>
+                                </div>
                             )}
-                        </span>
-                        <strong className={styles.summaryValue}>{totals.total}</strong>
-                    </div>
-                    <div className={styles.summaryCard}>
-                        <span className={styles.summaryLabel}>
-                            {t('checklistOverview.turn1', '1º turno')}
-                        </span>
-                        <strong className={styles.summaryValue}>
-                            {totals.t1ok}/{totals.total}
-                        </strong>
-                    </div>
-                    <div className={styles.summaryCard}>
-                        <span className={styles.summaryLabel}>
-                            {t('checklistOverview.turn2', '2º turno')}
-                        </span>
-                        <strong className={styles.summaryValue}>
-                            {totals.t2ok}/{totals.total}
-                        </strong>
-                    </div>
-                    {totals.noChecklist > 0 && (
-                        <div className={`${styles.summaryCard} ${styles.summaryCardMuted}`}>
-                            <span className={styles.summaryLabel}>
-                                {t('checklistOverview.noChecklistCount', 'Sem checklist')}
-                            </span>
-                            <strong className={styles.summaryValue}>{totals.noChecklist}</strong>
-                        </div>
+                        </>
                     )}
                 </div>
 
@@ -505,7 +519,19 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {!loading && visibleItems.length === 0 && (
+                            {loading ? (
+                                <>
+                                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                                        <tr key={i}>
+                                            <td><Skeleton variant="text" width="80%" height={20} /></td>
+                                            <td><Skeleton variant="rectangular" width={90} height={28} sx={{ borderRadius: 1 }} /></td>
+                                            <td><Skeleton variant="rectangular" width={90} height={28} sx={{ borderRadius: 1 }} /></td>
+                                            <td><Skeleton variant="text" width={120} height={20} /></td>
+                                            <td><Skeleton variant="rectangular" width={100} height={28} sx={{ borderRadius: 1 }} /></td>
+                                        </tr>
+                                    ))}
+                                </>
+                            ) : visibleItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className={styles.emptyCell}>
                                         {t(
@@ -514,9 +540,9 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                                         )}
                                     </td>
                                 </tr>
-                            )}
+                            ) : null}
 
-                            {visibleItems.map((m) => {
+                            {!loading && visibleItems.map((m) => {
                                 const lastSent = m.ultimaSub?.criado_em
                                     ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
                                     : '—';
