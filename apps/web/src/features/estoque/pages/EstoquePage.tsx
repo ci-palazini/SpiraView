@@ -9,6 +9,7 @@ import PecaModal from './PecaModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import Skeleton from '@mui/material/Skeleton';
 
 // Reaproveitando as helpers do histórico
 import { exportToExcel } from '../../../utils/exportExcel';
@@ -138,7 +139,24 @@ export default function EstoquePage({ user }: EstoquePageProps) {
                 {/* Grid de cards */}
                 <div className={styles.grid}>
                     {loading ? (
-                        <p>{t('estoque.loading')}</p>
+                        <>
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className={styles.cardCatalog}>
+                                    <Skeleton variant="text" width="60%" height={28} sx={{ marginBottom: 1 }} />
+                                    <Skeleton variant="text" width="80%" height={18} />
+                                    <Skeleton variant="text" width="70%" height={18} />
+                                    <Skeleton variant="text" width="50%" height={18} />
+                                    <Skeleton variant="text" width="50%" height={18} />
+                                    <Skeleton variant="text" width="65%" height={18} />
+                                    <div className={styles.cardButtons} style={{ marginTop: 12 }}>
+                                        <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                                        <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                                        <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                                        <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </>
                     ) : pecas.length === 0 ? (
                         <p>{t('estoque.empty')}</p>
                     ) : (
