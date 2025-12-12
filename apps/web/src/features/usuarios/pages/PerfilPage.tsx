@@ -56,8 +56,14 @@ const PerfilPage = ({ user }: PerfilPageProps) => {
         }
 
         try {
+            if (!user?.email) {
+                toast.error(t('perfil.toasts.noEmail', 'E-mail não encontrado.'));
+                setLoading(false);
+                return;
+            }
+
             await changePassword({
-                email: user?.email,
+                email: user.email,
                 senhaAtual,
                 novaSenha
             });
