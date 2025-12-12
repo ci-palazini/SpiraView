@@ -66,6 +66,7 @@ export interface Observacao {
 
 export interface ListaChamadosParams {
     status?: string;
+    tipo?: string;
     maquinaId?: string;
     criadoPorEmail?: string;
     manutentorEmail?: string;

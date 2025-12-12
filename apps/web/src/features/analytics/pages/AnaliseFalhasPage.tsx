@@ -17,19 +17,11 @@ import {
 
 import { useTranslation } from 'react-i18next';
 import { listarChamados } from '../../../services/apiClient';
+import type { Chamado } from '../../../types/api';
 import PageHeader from '../../../shared/components/PageHeader';
+import Skeleton from '@mui/material/Skeleton';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-// ---------- Types ----------
-interface Chamado {
-    maquina?: string;
-    [key: string]: unknown;
-}
-
-interface ApiResponse {
-    items?: Chamado[];
-}
 
 // ---------- Component ----------
 const AnaliseFalhasPage = () => {
@@ -57,18 +49,14 @@ const AnaliseFalhasPage = () => {
                 const to = endDate ? new Date(endDate) : new Date(now);
                 to.setHours(23, 59, 59, 999); // incluir o dia final
 
-                const res: ApiResponse | Chamado[] = await listarChamados({
+                const res = await listarChamados({
                     tipo: 'corretiva',
                     status: 'Concluido',
                     from: from.toISOString(),
                     to: to.toISOString(),
                 });
 
-                const arr = Array.isArray((res as ApiResponse)?.items)
-                    ? (res as ApiResponse).items!
-                    : Array.isArray(res)
-                        ? res
-                        : [];
+                const arr: Chamado[] = Array.isArray(res) ? res : (res.items ?? []);
 
                 if (!alive) return;
                 setChamadosCorretivos(arr);
@@ -174,7 +162,30 @@ const AnaliseFalhasPage = () => {
             {/* Card principal (filtros + gráfico) */}
             <div className={styles.listContainer}>
                 {loading ? (
-                    <p className={styles.loading}>{t('analiseFalhas.loading')}</p>
+                    <>
+                        {/* Skeleton dos filtros */}
+                        <div className={styles.filterContainer}>
+                            <div className={styles.filterField}>
+                                <Skeleton variant="text" width={80} height={20} sx={{ marginBottom: 0.5 }} />
+                                <Skeleton variant="rectangular" width={150} height={36} sx={{ borderRadius: 1 }} />
+                            </div>
+                            <div className={styles.filterField}>
+                                <Skeleton variant="text" width={80} height={20} sx={{ marginBottom: 0.5 }} />
+                                <Skeleton variant="rectangular" width={150} height={36} sx={{ borderRadius: 1 }} />
+                            </div>
+                            <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: 1, alignSelf: 'flex-end' }} />
+                        </div>
+
+                        {/* Skeleton do gráfico */}
+                        <div className={styles.chartContainer}>
+                            <Skeleton variant="text" width={250} height={28} sx={{ marginBottom: 2, marginX: 'auto' }} />
+                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 300 }}>
+                                {[180, 140, 200, 120, 160, 100, 80].map((h, i) => (
+                                    <Skeleton key={i} variant="rectangular" width={40} height={h} sx={{ borderRadius: 1 }} />
+                                ))}
+                            </div>
+                        </div>
+                    </>
                 ) : (
                     <>
                         <div className={styles.filterContainer}>
