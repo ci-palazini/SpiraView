@@ -28,7 +28,13 @@
   border-radius: 12px;
   padding: 16px 20px;
   margin: 16px;
-  margin-top: 12px; /* aproxima do header */
+  margin-top: 12px;
+  /* aproxima do header */
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 180px);
+  /* Altura fixa baseada na viewport */
+  overflow: hidden;
 }
 
 /* Legenda acima do calendário */
@@ -48,12 +54,15 @@
 
 /* Wrapper do componente do calendário */
 .calendarWrapper {
-  padding-bottom: 20px;
+  flex: 1;
+  min-height: 0;
+  /* Importante para flexbox */
+  overflow: hidden;
 }
 
 /* Altura e visual do react-big-calendar */
 .calendarRoot {
-  height: 600px;
+  height: 100% !important;
   background-color: #fff;
   border-radius: 8px;
 }
@@ -97,7 +106,8 @@
 
 /* Botões do modal */
 .modalButton {
-  background-color: #006400; /* verde escuro, mesmo tom de “iniciado” */
+  background-color: #006400;
+  /* verde escuro, mesmo tom de “iniciado” */
   color: #fff;
   border: none;
   padding: 8px 16px;
