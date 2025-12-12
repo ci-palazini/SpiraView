@@ -46,6 +46,8 @@ interface Submissao {
     id?: string;
     criado_em?: string;
     operador_nome?: string;
+    operador_email?: string;
+    maquina_id?: string;
     respostas?: Record<string, string>;
     turno?: string;
 }
@@ -55,57 +57,10 @@ interface Chamado {
     criado_em?: string;
     tipo?: string;
     status?: string;
-    maquina?: string;
     descricao?: string;
-    assunto?: string;
 }
 
 type TabType = 'ativos' | 'historico' | 'checklist' | 'qrcode';
-
-// ---------- Helper Components ----------
-interface ListaDeChamadosProps {
-    lista: Chamado[];
-    titulo: string;
-    mensagemVazia: string;
-}
-
-function ListaDeChamados({ lista, titulo, mensagemVazia }: ListaDeChamadosProps) {
-    const { t, i18n } = useTranslation();
-    const fmtDate = useMemo(() => df({ dateStyle: 'short' }), [i18n.language]);
-
-    if (!lista.length) {
-        return (
-            <div className={styles.listaVazia}>
-                <h3>{titulo}</h3>
-                <p>{mensagemVazia}</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className={styles.listaContainer}>
-            <h3>{titulo}</h3>
-            <ul className={styles.chamadosList}>
-                {lista.map((chamado) => (
-                    <li key={chamado.id} className={styles.chamadoItem}>
-                        <Link to={`/chamados/${chamado.id}`} className={styles.chamadoLink}>
-                            <span className={styles.chamadoTipo}>{chamado.tipo}</span>
-                            <span className={styles.chamadoAssunto}>
-                                {chamado.assunto || chamado.descricao || '—'}
-                            </span>
-                            <span className={styles.chamadoStatus}>
-                                {t(statusKey(chamado.status || ''))}
-                            </span>
-                            <span className={styles.chamadoData}>
-                                {chamado.criado_em ? fmtDate.format(new Date(chamado.criado_em)) : '—'}
-                            </span>
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
 
 // ---------- Main Component ----------
 const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
@@ -116,6 +71,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
     const [chamadosConcluidos, setChamadosConcluidos] = useState<Chamado[]>([]);
     const [chamadosAtivos, setChamadosAtivos] = useState<Chamado[]>([]);
 
+    // Histórico do back
     const [historicoDiario, setHistoricoDiario] = useState<HistoricoDia[]>([]);
     const [submissoesRecentes, setSubmissoesRecentes] = useState<Submissao[]>([]);
 
@@ -133,15 +89,14 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
     const fmtDate = useMemo(() => df({ dateStyle: 'short' }), [i18n.language]);
     const fmtDateTime = useMemo(() => df({ dateStyle: 'short', timeStyle: 'short' }), [i18n.language]);
 
-    const isGestor = user?.role === 'gestor' || user?.role === 'admin';
-
     useEffect(() => {
         let alive = true;
         (async () => {
             try {
                 setLoading(true);
 
-                const m: Maquina = await getMaquina(id!);
+                // 1) Máquina + histórico (o back já manda)
+                const m = await getMaquina(id!);
                 if (!alive) return;
 
                 setMaquina({
@@ -152,6 +107,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 setHistoricoDiario(Array.isArray(m.historicoChecklist) ? m.historicoChecklist : []);
                 setSubmissoesRecentes(Array.isArray(m.checklistHistorico) ? m.checklistHistorico : []);
 
+                // 2) Chamados
                 const [abertos, andamento, concluidos] = await Promise.all([
                     listarChamadosPorMaquina(id!, { status: 'Aberto' }),
                     listarChamadosPorMaquina(id!, { status: 'Em Andamento' }),
@@ -201,110 +157,170 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
         }
     };
 
+    if (loading) return <p style={{ padding: 20 }}>{t('maquinaDetalhe.loading')}</p>;
+    if (!maquina) return <p style={{ padding: 20 }}>{t('maquinaDetalhe.notFound')}</p>;
+
+    // ---------- ListaDeChamados interno (igual ao JSX original) ----------
+    interface ListaDeChamadosProps {
+        lista: Chamado[];
+        titulo: string;
+        mensagemVazia: string;
+    }
+
+    const ListaDeChamados = ({ lista, titulo, mensagemVazia }: ListaDeChamadosProps) => (
+        <div>
+            <h2>{titulo}</h2>
+            {lista.length === 0 ? <p>{mensagemVazia}</p> : (
+                <ul className={styles.chamadoList}>
+                    {lista.map(chamado => {
+                        const tipoChamado = chamado.tipo || 'corretiva';
+                        const isConcluido = chamado.status === 'Concluido';
+                        const statusClass =
+                            isConcluido
+                                ? styles.concluidoCard
+                                : (tipoChamado === 'corretiva' ? styles.corretiva
+                                    : (tipoChamado === 'preventiva' ? styles.preventiva
+                                        : (tipoChamado === 'preditiva' ? styles.preditiva : styles.normal)));
+
+                        return (
+                            <Link to={`/maquinas/chamado/${chamado.id}`} key={chamado.id} className={styles.chamadoCard}>
+                                <li className={`${styles.chamadoItem} ${statusClass}`}>
+                                    <strong>{chamado.descricao}</strong>
+                                    <p>
+                                        {t('maquinaDetalhe.listas.statusLabel', {
+                                            status: t(`status.${statusKey ? statusKey(chamado.status || '') : 'open'}`)
+                                        })}
+                                    </p>
+                                    <small>
+                                        {t('maquinaDetalhe.listas.openedAt', {
+                                            date: chamado.criado_em ? fmtDateTime.format(new Date(chamado.criado_em)) : 'N/A'
+                                        })}
+                                    </small>
+                                </li>
+                            </Link>
+                        );
+                    })}
+                </ul>
+            )}
+        </div>
+    );
+
     const handleDownloadQRCode = () => {
         const canvas = qrCodeRef.current?.querySelector('canvas');
-        if (!canvas) return;
-        const url = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `qrcode-${maquina?.nome || id}.png`;
-        link.click();
-    };
-
-    const splitNomes = (str: string | undefined): string[] =>
-        (str || '').split(',').map(s => s.trim()).filter(Boolean);
-
-    const fmtDia = (iso: string) => {
-        try {
-            return fmtDate.format(new Date(iso + 'T12:00:00'));
-        } catch {
-            return iso;
+        if (canvas) {
+            const pngUrl = (canvas as HTMLCanvasElement).toDataURL('image/png').replace('image/png', 'image/octet-stream');
+            const downloadLink = document.createElement('a');
+            downloadLink.href = pngUrl;
+            downloadLink.download = `${maquina.nome}-QRCode.png`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
         }
     };
 
-    const abrirDetalheOperador = async (dia: string, turno: string, operadorNome: string) => {
+    // ========= Detalhe por operador (modal) =========
+    const deriveTurno = (turno: string | undefined, criadoEmStr: string | undefined): string => {
+        const turnoStr = String(turno || '').toLowerCase();
+        if (turnoStr === 'turno1' || turnoStr === '1' || turnoStr === '1º') return 'turno1';
+        if (turnoStr === 'turno2' || turnoStr === '2' || turnoStr === '2º') return 'turno2';
+        // sem turno explícito: deduz pelo horário
+        const hh = parseInt((criadoEmStr || '').slice(11, 13), 10);
+        return !isNaN(hh) && hh >= 14 ? 'turno2' : 'turno1';
+    };
+
+    const abrirDetalheOperador = async (diaISO: string, turno: string, operadorNome: string) => {
         try {
-            const resp = await listarSubmissoesDiarias({
-                maquinaId: id,
-                date: dia,
-                turno,
+            // 1) Fallback local: procurar nas submissões recentes que já vieram do back
+            const locais = (submissoesRecentes || []).filter((s) => {
+                const sDia = String(s.criado_em || '').slice(0, 10);
+                const sTurno = deriveTurno(s.turno, s.criado_em);
+                return (
+                    String(s.maquina_id) === String(id) &&
+                    sDia === diaISO &&
+                    sTurno === turno &&
+                    String(s.operador_nome || '').trim() === String(operadorNome || '').trim() &&
+                    s.respostas
+                );
             });
-            const items: Submissao[] = Array.isArray(resp)
-                ? resp
-                : (Array.isArray((resp as { items?: Submissao[] })?.items) ? (resp as { items: Submissao[] }).items : []);
 
-            const filtradas = items.filter(
-                (s) => (s.operador_nome || '').toLowerCase() === operadorNome.toLowerCase()
+            if (locais.length > 0) {
+                setModalTitulo(
+                    `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} • ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} • ${operadorNome}`
+                );
+                setModalSubmissoes(locais);
+                setModalOpen(true);
+                return;
+            }
+
+            // 2) Se não encontrou localmente, tenta via e-mail
+            const email = (submissoesRecentes || []).find((s) => {
+                const sDia = String(s.criado_em || '').slice(0, 10);
+                const sTurno = deriveTurno(s.turno, s.criado_em);
+                return (
+                    sDia === diaISO &&
+                    sTurno === turno &&
+                    String(s.operador_nome || '').trim() === String(operadorNome || '').trim() &&
+                    s.operador_email
+                );
+            })?.operador_email;
+
+            if (!email) {
+                toast.error(t('maquinaDetalhe.checklist.detailNoEmail', 'Não foi possível localizar o e-mail deste operador para esse dia.'));
+                return;
+            }
+
+            const subms = await listarSubmissoesDiarias({ operadorEmail: email, date: diaISO });
+            const items: Submissao[] = Array.isArray(subms) ? subms : (Array.isArray((subms as { items?: Submissao[] })?.items) ? (subms as { items: Submissao[] }).items : []);
+            const filtradas = items.filter((s) => {
+                if (String(s.maquina_id) !== String(id)) return false;
+                const sTurno = deriveTurno(s.turno, s.criado_em);
+                return sTurno === turno;
+            });
+
+            if (filtradas.length === 0) {
+                toast(t('maquinaDetalhe.checklist.detailEmpty', 'Não há submissões encontradas para esse dia/turno.'));
+                return;
+            }
+
+            setModalTitulo(
+                `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} • ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} • ${operadorNome}`
             );
-
-            setModalTitulo(`${operadorNome} — ${fmtDia(dia)} (${turno === 'turno1' ? '1º turno' : '2º turno'})`);
-            setModalSubmissoes(filtradas.length ? filtradas : items);
+            setModalSubmissoes(filtradas);
             setModalOpen(true);
         } catch (e) {
             console.error(e);
-            toast.error(t('maquinaDetalhe.toasts.loadSubmissionError', 'Erro ao carregar submissão'));
+            toast.error(t('maquinaDetalhe.toasts.loadError'));
         }
     };
 
-    if (loading) {
-        return (
-            <div className={styles.pageContainer}>
-                <p>{t('common.loading', 'Carregando...')}</p>
-            </div>
-        );
-    }
+    // helper para transformar "Fulano, Sicrana" em array
+    const splitNomes = (s: string | undefined): string[] =>
+        String(s || '')
+            .split(',')
+            .map((x) => x.trim())
+            .filter(Boolean);
 
-    if (!maquina) {
-        return (
-            <div className={styles.pageContainer}>
-                <p>{t('maquinaDetalhe.notFound', 'Máquina não encontrada.')}</p>
-                <Link to="/maquinas">{t('maquinaDetalhe.backToList', 'Voltar para lista')}</Link>
-            </div>
-        );
-    }
-
-    const checklistItems = maquina.checklistDiario || [];
+    // Helper para formatar a string YYYY-MM-DD vinda do back
+    const fmtDia = (diaStr: string): string => {
+        try { return fmtDate.format(new Date(`${diaStr}T00:00:00`)); }
+        catch { return diaStr; }
+    };
 
     return (
         <>
             <header className={styles.header}>
-                <div>
-                    <h1>{maquina.nome}</h1>
-                    <Link to="/maquinas" className={styles.backLink}>
-                        {t('maquinaDetalhe.backToList', '← Voltar')}
-                    </Link>
-                </div>
+                <h1>{maquina.nome}</h1>
+                <p>{t('maquinaDetalhe.subtitle')}</p>
             </header>
 
-            {/* Tabs para gestor */}
-            {isGestor ? (
-                <div className={styles.tabContainer}>
-                    <div className={styles.tabs}>
-                        <button
-                            className={activeTab === 'ativos' ? styles.activeTab : ''}
-                            onClick={() => setActiveTab('ativos')}
-                        >
-                            {t('maquinaDetalhe.tabs.active', 'Ativos')}
-                        </button>
-                        <button
-                            className={activeTab === 'historico' ? styles.activeTab : ''}
-                            onClick={() => setActiveTab('historico')}
-                        >
-                            {t('maquinaDetalhe.tabs.history', 'Histórico')}
-                        </button>
-                        <button
-                            className={activeTab === 'checklist' ? styles.activeTab : ''}
-                            onClick={() => setActiveTab('checklist')}
-                        >
-                            {t('maquinaDetalhe.tabs.checklist', 'Checklist')}
-                        </button>
-                        <button
-                            className={activeTab === 'qrcode' ? styles.activeTab : ''}
-                            onClick={() => setActiveTab('qrcode')}
-                        >
-                            {t('maquinaDetalhe.tabs.qrcode', 'QR Code')}
-                        </button>
-                    </div>
+            {user.role === 'gestor' ? (
+                <div>
+                    <nav className={styles.tabs}>
+                        <button className={`${styles.tabButton} ${activeTab === 'ativos' ? styles.active : ''}`} onClick={() => setActiveTab('ativos')}>{t('maquinaDetalhe.tabs.active')}</button>
+                        <button className={`${styles.tabButton} ${activeTab === 'historico' ? styles.active : ''}`} onClick={() => setActiveTab('historico')}>{t('maquinaDetalhe.tabs.history')}</button>
+                        <button className={`${styles.tabButton} ${activeTab === 'checklist' ? styles.active : ''}`} onClick={() => setActiveTab('checklist')}>{t('maquinaDetalhe.tabs.checklist')}</button>
+                        <button className={`${styles.tabButton} ${activeTab === 'qrcode' ? styles.active : ''}`} onClick={() => setActiveTab('qrcode')}>{t('maquinaDetalhe.tabs.qrcode')}</button>
+                    </nav>
 
                     <div className={styles.tabContent}>
                         {activeTab === 'ativos' && (
@@ -324,17 +340,21 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                         )}
 
                         {activeTab === 'checklist' && (
-                            <div className={styles.checklistSection}>
-                                <h3>{t('maquinaDetalhe.checklist.title')}</h3>
+                            <div className={styles.checklistEditor}>
+                                <h3>{t('maquinaDetalhe.checklist.title', { name: maquina.nome })}</h3>
 
-                                <ul className={styles.checklistList}>
-                                    {checklistItems.map((item, idx) => (
-                                        <li key={idx} className={styles.checklistItem}>
+                                {(!maquina.checklistDiario || maquina.checklistDiario.length === 0) && (
+                                    <p>{t('maquinaDetalhe.checklist.empty')}</p>
+                                )}
+
+                                <ul className={styles.operatorList}>
+                                    {maquina.checklistDiario?.map((item, index) => (
+                                        <li key={index} className={styles.checklistItemManage}>
                                             <span>{item}</span>
                                             <button
                                                 onClick={() => handleRemoverItemChecklist(item)}
-                                                className={styles.removeButton}
-                                                title={t('common.delete')}
+                                                className={`${styles.opActionButton} ${styles.removeButton}`}
+                                                title={t('maquinaDetalhe.checklist.remove')}
                                             >
                                                 <FiTrash2 />
                                             </button>
@@ -343,11 +363,11 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                 </ul>
 
                                 <form
+                                    className={styles.checklistInputForm}
                                     onSubmit={(e: FormEvent) => {
                                         e.preventDefault();
                                         handleAdicionarItemChecklist();
                                     }}
-                                    className={styles.checklistForm}
                                 >
                                     <input
                                         type="text"
@@ -466,7 +486,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 </div>
             )}
 
-            {/* Modal simples com o detalhe das respostas */}
+            {/* ===== Modal simples com o detalhe das respostas ===== */}
             {modalOpen && (
                 <div
                     onClick={() => setModalOpen(false)}

@@ -90,6 +90,42 @@
   cursor: default;
 }
 
+/* Botão Exportar Excel */
+.exportButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  border: 1px solid #10b981;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+.exportButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.exportButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.exportButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exportButton svg {
+  font-size: 14px;
+}
+
 /* Cards de resumo */
 .summaryRow {
   display: flex;
@@ -117,6 +153,19 @@
   font-size: 18px;
   font-weight: 600;
   color: #111827;
+}
+
+.summaryCardMuted {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.summaryCardMuted .summaryLabel {
+  color: #9ca3af;
+}
+
+.summaryCardMuted .summaryValue {
+  color: #6b7280;
 }
 
 /* Erro */
@@ -226,6 +275,11 @@
 .statusPending {
   background-color: #fef9c3;
   color: #92400e;
+}
+
+.statusNoChecklist {
+  background-color: #f3f4f6;
+  color: #6b7280;
 }
 
 .statusNames {

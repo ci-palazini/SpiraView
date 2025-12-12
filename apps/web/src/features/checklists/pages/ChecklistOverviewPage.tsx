@@ -7,7 +7,10 @@ import {
     FiAlertTriangle,
     FiInfo,
     FiRefreshCw,
+    FiDownload,
 } from 'react-icons/fi';
+
+import { exportEngajamentoTPMExcel } from '../../../utils/exportEngajamentoTPMExcel';
 
 import { listarMaquinas, getMaquina } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
@@ -42,6 +45,8 @@ interface MaquinaDetalhe {
     historicoChecklist?: HistoricoDia[];
     historicoDiario?: HistoricoDia[];
     checklistHistorico?: Submissao[];
+    checklist_diario?: string[];
+    checklistDiario?: string[];
 }
 
 interface ItemMaquina {
@@ -53,6 +58,7 @@ interface ItemMaquina {
     turno1Nomes: string[];
     turno2Nomes: string[];
     ultimaSub: Submissao | null;
+    hasChecklist: boolean;
 }
 
 // ---------- Component ----------
@@ -66,6 +72,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
     const [onlyPending, setOnlyPending] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [exporting, setExporting] = useState(false);
 
     const fmtDateTime = useMemo(
         () => df({ dateStyle: 'short', timeStyle: 'short' }),
@@ -121,6 +128,10 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             }
                         }
 
+                        // Verifica se a máquina tem checklist configurado
+                        const checklistItems = det.checklist_diario ?? det.checklistDiario ?? [];
+                        const hasChecklist = Array.isArray(checklistItems) && checklistItems.length > 0;
+
                         return {
                             id: m.id,
                             nome: m.nome || '',
@@ -130,6 +141,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             turno1Nomes,
                             turno2Nomes,
                             ultimaSub,
+                            hasChecklist,
                         };
                     })
                 );
@@ -173,10 +185,12 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
     );
 
     const totals = useMemo(() => {
-        const total = items.length;
-        const t1ok = items.filter((i) => i.turno1Ok).length;
-        const t2ok = items.filter((i) => i.turno2Ok).length;
-        return { total, t1ok, t2ok };
+        const withChecklist = items.filter((i) => i.hasChecklist);
+        const noChecklist = items.filter((i) => !i.hasChecklist).length;
+        const total = withChecklist.length;
+        const t1ok = withChecklist.filter((i) => i.turno1Ok).length;
+        const t2ok = withChecklist.filter((i) => i.turno2Ok).length;
+        return { total, t1ok, t2ok, noChecklist };
     }, [items]);
 
     const todayIso = new Date().toISOString().slice(0, 10);
@@ -184,27 +198,176 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
 
     const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => setDateFilter(e.target.value);
 
-    const renderStatusBadge = (ok: boolean, nomes: string[]): ReactNode => (
-        <span
-            className={`${styles.statusBadge} ${ok ? styles.statusOk : styles.statusPending
-                }`}
-        >
-            {ok ? (
-                <>
-                    <FiCheckCircle />
-                    <span>{t('checklistOverview.sent', 'Enviado')}</span>
-                </>
-            ) : (
-                <>
-                    <FiAlertTriangle />
-                    <span>{t('checklistOverview.missing', 'Pendente')}</span>
-                </>
-            )}
-            {ok && nomes?.length > 0 && (
-                <span className={styles.statusNames}>{nomes.join(', ')}</span>
-            )}
-        </span>
-    );
+    // ---------- Helpers e Handler de Exportação Excel ----------
+    const toIsoLocal = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    const weekDayNamePt = (d: Date) => {
+        const n = d.getDay();
+        if (n === 6) return 'Sábado';
+        if (n === 0) return 'Domingo';
+        return '';
+    };
+
+    const handleExportExcel = async () => {
+        try {
+            setExporting(true);
+
+            const end = new Date(`${dateFilter}T00:00:00`);
+            const start = new Date(end);
+            start.setDate(1);
+
+            const maquinas = await listarMaquinas();
+            const detalhes = await Promise.all(
+                (maquinas || []).map(async (m: { id: string; nome?: string }) => {
+                    const det: MaquinaDetalhe = await getMaquina(m.id);
+
+                    const historicoDias = Array.isArray(det.historicoChecklist ?? det.historicoDiario)
+                        ? (det.historicoChecklist ?? det.historicoDiario ?? [])
+                        : [];
+
+                    const checklistItems = det.checklist_diario ?? det.checklistDiario ?? [];
+                    const hasChecklist = Array.isArray(checklistItems) && checklistItems.length > 0;
+
+                    const nome = m.nome || '';
+
+                    return { id: m.id, nome, historicoDias, hasChecklist };
+                })
+            );
+
+            // Separar máquinas com e sem checklist
+            const comChecklist = detalhes.filter((m) => m.hasChecklist);
+            const semChecklist = detalhes.filter((m) => !m.hasChecklist);
+            const maquinasSemChecklist = semChecklist.map((m) => m.nome);
+            const total = comChecklist.length;
+
+            const linhas: Array<{
+                dateIso: string;
+                enviadoT1: string;
+                enviadoT2: string;
+                semEnvioT1: string;
+                semEnvioT2: string;
+                isWeekend?: boolean;
+            }> = [];
+
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const iso = toIsoLocal(d);
+                const weekendLabel = weekDayNamePt(d);
+
+                if (weekendLabel) {
+                    linhas.push({
+                        dateIso: iso,
+                        enviadoT1: weekendLabel,
+                        enviadoT2: weekendLabel,
+                        semEnvioT1: weekendLabel,
+                        semEnvioT2: weekendLabel,
+                        isWeekend: true,
+                    });
+                    continue;
+                }
+
+                let ok1 = 0;
+                let ok2 = 0;
+                const pend1: string[] = [];
+                const pend2: string[] = [];
+
+                // Contabilizar apenas máquinas COM checklist
+                for (const maq of comChecklist) {
+                    const rowDia = maq.historicoDias.find((r: HistoricoDia) => r.dia === iso) || null;
+
+                    const t1 = rowDia ? !!rowDia.turno1_ok : false;
+                    const t2 = rowDia ? !!rowDia.turno2_ok : false;
+
+                    if (t1) ok1++;
+                    else pend1.push(maq.nome);
+
+                    if (t2) ok2++;
+                    else pend2.push(maq.nome);
+                }
+
+                // Se quiser o "-" do 2º turno no "hoje", simples: se é hoje e ainda não é hora do 2º turno, mostra "-"
+                const now = new Date();
+                const TURN2_START_HOUR = 14; // ajuste conforme sua operação
+                const turn2NotExpectedYet = iso === todayIso && now.getHours() < TURN2_START_HOUR;
+
+                const sem1 =
+                    pend1.length === 0 ? '-' : pend1.length === total ? 'Todas' : pend1.join(', ');
+                const sem2 =
+                    turn2NotExpectedYet
+                        ? '-'
+                        : pend2.length === 0 ? '-' : pend2.length === total ? 'Todas' : pend2.join(', ');
+
+                linhas.push({
+                    dateIso: iso,
+                    enviadoT1: `${ok1}/${total}`,
+                    enviadoT2: turn2NotExpectedYet ? '-' : `${ok2}/${total}`,
+                    semEnvioT1: sem1,
+                    semEnvioT2: sem2,
+                });
+            }
+
+            // Aba opcional de detalhes do dia (usa o que já renderiza)
+            const detalhesDoDia = items.map((m) => ({
+                maquina: m.nome,
+                turno1: (m.turno1Ok ? 'Enviado' : 'Pendente') as 'Enviado' | 'Pendente',
+                operadores1: m.turno1Nomes.join(', '),
+                turno2: (m.turno2Ok ? 'Enviado' : 'Pendente') as 'Enviado' | 'Pendente',
+                operadores2: m.turno2Nomes.join(', '),
+                ultimoChecklist: m.ultimaSub?.criado_em
+                    ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
+                    : '—',
+            }));
+
+            await exportEngajamentoTPMExcel({
+                linhas,
+                detalhesDoDia,
+                maquinasSemChecklist,
+                fileName: `Engajamento_TPM_${dateFilter}`,
+            });
+        } catch (e) {
+            console.error(e);
+            setError(t('checklistOverview.exportError', 'Erro ao exportar Excel.'));
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const renderStatusBadge = (ok: boolean, nomes: string[], hasChecklist: boolean): ReactNode => {
+        // Se a máquina não tem checklist configurado
+        if (!hasChecklist) {
+            return (
+                <span className={`${styles.statusBadge} ${styles.statusNoChecklist}`}>
+                    <FiInfo />
+                    <span>{t('checklistOverview.noChecklist', 'Sem checklist')}</span>
+                </span>
+            );
+        }
+
+        return (
+            <span
+                className={`${styles.statusBadge} ${ok ? styles.statusOk : styles.statusPending}`}
+            >
+                {ok ? (
+                    <>
+                        <FiCheckCircle />
+                        <span>{t('checklistOverview.sent', 'Enviado')}</span>
+                    </>
+                ) : (
+                    <>
+                        <FiAlertTriangle />
+                        <span>{t('checklistOverview.missing', 'Pendente')}</span>
+                    </>
+                )}
+                {ok && nomes?.length > 0 && (
+                    <span className={styles.statusNames}>{nomes.join(', ')}</span>
+                )}
+            </span>
+        );
+    };
 
     return (
         <>
@@ -251,6 +414,20 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                     >
                         {t('checklistOverview.today', 'Hoje')}
                     </button>
+
+                    <button
+                        type="button"
+                        onClick={handleExportExcel}
+                        className={styles.exportButton}
+                        disabled={loading || exporting}
+                    >
+                        <FiDownload />
+                        <span>
+                            {exporting
+                                ? t('checklistOverview.exporting', 'Exportando...')
+                                : t('checklistOverview.exportExcel', 'Exportar Excel')}
+                        </span>
+                    </button>
                 </div>
 
                 {/* Cards de resumo */}
@@ -258,8 +435,8 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                     <div className={styles.summaryCard}>
                         <span className={styles.summaryLabel}>
                             {t(
-                                'checklistOverview.totalMachines',
-                                'Total de máquinas'
+                                'checklistOverview.machinesWithChecklist',
+                                'Máquinas com checklist'
                             )}
                         </span>
                         <strong className={styles.summaryValue}>{totals.total}</strong>
@@ -280,6 +457,14 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             {totals.t2ok}/{totals.total}
                         </strong>
                     </div>
+                    {totals.noChecklist > 0 && (
+                        <div className={`${styles.summaryCard} ${styles.summaryCardMuted}`}>
+                            <span className={styles.summaryLabel}>
+                                {t('checklistOverview.noChecklistCount', 'Sem checklist')}
+                            </span>
+                            <strong className={styles.summaryValue}>{totals.noChecklist}</strong>
+                        </div>
+                    )}
                 </div>
 
                 {error && <div className={styles.errorBox}>{error}</div>}
@@ -346,8 +531,8 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                                                 {m.nome}
                                             </Link>
                                         </td>
-                                        <td>{renderStatusBadge(m.turno1Ok, m.turno1Nomes)}</td>
-                                        <td>{renderStatusBadge(m.turno2Ok, m.turno2Nomes)}</td>
+                                        <td>{renderStatusBadge(m.turno1Ok, m.turno1Nomes, m.hasChecklist)}</td>
+                                        <td>{renderStatusBadge(m.turno2Ok, m.turno2Nomes, m.hasChecklist)}</td>
                                         <td>{lastSent}</td>
                                         <td className={styles.actionCell}>
                                             <Link
