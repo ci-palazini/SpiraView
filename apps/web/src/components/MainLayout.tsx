@@ -23,22 +23,22 @@ import {
 import styles from './MainLayout.module.css';
 
 import OperatorDashboard from './OperatorDashboard';
-import MaquinasPage from '../features/maquinas/pages/MaquinasPage.jsx';
-import MaquinaDetalhePage from '../features/maquinas/pages/MaquinaDetalhePage.jsx';
-import InicioPage from '../pages/InicioPage.jsx';
+import MaquinasPage from '../features/maquinas/pages/MaquinasPage';
+import MaquinaDetalhePage from '../features/maquinas/pages/MaquinaDetalhePage';
+import InicioPage from '../pages/InicioPage';
 import ChamadoDetalhe from '../features/chamados/pages/ChamadoDetalhe';
 import HistoricoPage from '../features/chamados/pages/HistoricoPage';
-import PerfilPage from '../features/usuarios/pages/PerfilPage.jsx';
-import AnaliseFalhasPage from '../features/analytics/pages/AnaliseFalhasPage.jsx';
-import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresPage.jsx';
-import CalendarioGeralPage from '../features/calendario/pages/CalendarioGeralPage.jsx';
-import CausasRaizPage from '../features/analytics/pages/CausasRaizPage.jsx';
-import EstoquePage from '../features/estoque/pages/EstoquePage.jsx';
+import PerfilPage from '../features/usuarios/pages/PerfilPage';
+import AnaliseFalhasPage from '../features/analytics/pages/AnaliseFalhasPage';
+import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresPage';
+import CalendarioGeralPage from '../features/calendario/pages/CalendarioGeralPage';
+import CausasRaizPage from '../features/analytics/pages/CausasRaizPage';
+import EstoquePage from '../features/estoque/pages/EstoquePage';
 import MeusChamados from '../features/chamados/pages/MeusChamados';
 import AbrirChamadoManutentor from '../features/chamados/pages/AbrirChamadoManutentor';
 import LanguageMenu from './LanguageMenu';
-import PziniChatBot from '../features/analytics/pages/PziniChatBot.jsx';
-import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage.jsx';
+import PziniChatBot from '../features/analytics/pages/PziniChatBot';
+import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage';
 import ChamadosAbertosPage from '../features/chamados/pages/ChamadosAbertosPage';
 
 import logo from '../assets/logo-sidebar.png';

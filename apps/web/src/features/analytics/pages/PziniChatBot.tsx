@@ -62,6 +62,18 @@ interface SuggestionItem {
     q: string;
 }
 
+interface User {
+    id: string;
+    nome?: string;
+    email?: string;
+    role?: string;
+    funcao?: string;
+}
+
+export interface PziniChatBotProps {
+    user?: User;
+}
+
 // ---------- Helpers (LS, formatação, etc) ----------
 const LS_RECENTS = 'pzini_chat_recents';
 const LS_FAVORITES = 'pzini_chat_favorites';
@@ -383,7 +395,7 @@ function EmptyStarter({ onPick }: EmptyStarterProps) {
 }
 
 // ---------- Main Component ----------
-export default function PziniChatBot() {
+export default function PziniChatBot(_props: PziniChatBotProps) {
     const [searchParams] = useSearchParams();
     const [input, setInput] = useState(
         'Top 5 máquinas por número de chamados nos últimos 90 dias'

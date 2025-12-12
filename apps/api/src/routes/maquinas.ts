@@ -122,7 +122,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
 
     // 3) Últimas submissões de checklist (com totais e qtd de "nao")
     //    Usamos LATERAL para calcular total/nao em uma única varredura.
-        const subms = await pool.query(
+    const subms = await pool.query(
       `
       SELECT
         s.id,
@@ -149,32 +149,29 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
     );
 
     // 4) histórico agregado por dia/turno (para a tabela "histórico de Conformidade Diária")
-        const historico = await pool.query(
+    // IMPORTANTE: usamos data_ref (que já considera a regra de turnos) ao invés de created_at
+    const historico = await pool.query(
       `
       WITH base AS (
         SELECT
-          (COALESCE(created_at, criado_em) AT TIME ZONE $2)  AS dt,
-          COALESCE(NULLIF(turno,''),'')                      AS turno_raw,
-          COALESCE(operador_nome,'')                         AS operador_nome
+          data_ref AS dia,
+          COALESCE(NULLIF(turno,''),'') AS turno_raw,
+          COALESCE(operador_nome,'') AS operador_nome
         FROM checklist_submissoes
         WHERE maquina_id = $1
       ),
       norm AS (
         SELECT
-          dt::date AS dia,
+          dia,
           /* normaliza: aceita 1, 1º, 1o, 1°, primeiro, turno1; idem para 2 */
           CASE
             WHEN lower(turno_raw) IN ('1','1º','1o','1°','primeiro','turno1') THEN '1º'
             WHEN lower(turno_raw) IN ('2','2º','2o','2°','segundo','turno2')   THEN '2º'
-            WHEN turno_raw = '' THEN CASE WHEN EXTRACT(HOUR FROM dt) < 14 THEN '1º' ELSE '2º' END
-            ELSE CASE
-              WHEN regexp_replace(lower(turno_raw), '[^0-9]', '', 'g') = '1' THEN '1º'
-              WHEN regexp_replace(lower(turno_raw), '[^0-9]', '', 'g') = '2' THEN '2º'
-              ELSE CASE WHEN EXTRACT(HOUR FROM dt) < 14 THEN '1º' ELSE '2º' END
-            END
+            ELSE turno_raw
           END AS turno_norm,
           operador_nome
         FROM base
+        WHERE dia IS NOT NULL
       )
       SELECT
         to_char(dia, 'YYYY-MM-DD') AS dia,
@@ -189,7 +186,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
       ORDER BY 1 DESC
       LIMIT 60
       `,
-      [id, TZ]
+      [id]
     );
 
     // 5) Resposta
@@ -211,9 +208,9 @@ maquinasRouter.patch(
   async (req, res) => {
     const id = String(req.params.id || '').trim();
     const novoNome = String(req.body?.nome ?? '').trim();
-    const syncTag  = Boolean(req.body?.syncTag ?? true);
+    const syncTag = Boolean(req.body?.syncTag ?? true);
 
-    if (!id)       return res.status(400).json({ error: 'ID_OBRIGATORIO' });
+    if (!id) return res.status(400).json({ error: 'ID_OBRIGATORIO' });
     if (!novoNome) return res.status(400).json({ error: 'NOME_OBRIGATORIO' });
 
     try {
@@ -254,7 +251,7 @@ maquinasRouter.patch(
         [id, novoNome, syncTag]
       );
 
-      try { sseBroadcast({ topic: 'maquinas', action: 'updated', id }); } catch {}
+      try { sseBroadcast({ topic: 'maquinas', action: 'updated', id }); } catch { }
       return res.json(upd.rows[0]);
     } catch (e: any) {
       console.error('PATCH /maquinas/:id/nome error:', {
@@ -273,7 +270,7 @@ maquinasRouter.patch(
 // ADICIONAR ITEM AO CHECKLIST DIÁRIO DA MÁQUINA
 maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
   try {
-    const id   = String(req.params.id);
+    const id = String(req.params.id);
     const item = String(req.body?.item || '').trim();
 
     if (!item) return res.status(400).json({ error: 'Item inválido.' });
@@ -300,7 +297,7 @@ maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
 
     if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
     res.json({ checklistDiario: rows[0].checklist_diario });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -309,7 +306,7 @@ maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
 // REMOVER ITEM DO CHECKLIST DIÁRIO DA MÁQUINA
 maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
   try {
-    const id   = String(req.params.id);
+    const id = String(req.params.id);
     const item = String(req.body?.item || '').trim();
     if (!item) return res.status(400).json({ error: 'Item inválido.' });
 
@@ -329,7 +326,7 @@ maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
 
     if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
     res.json({ checklistDiario: rows[0].checklist_diario });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }

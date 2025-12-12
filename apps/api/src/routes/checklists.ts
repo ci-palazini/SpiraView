@@ -35,27 +35,37 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
     const maquinaNomeFinal = maquinaNome || m.rows[0].nome || '';
 
     // 1) grava submissão
+    // REGRA DE TURNOS:
+    // - 1º turno: 05:30 às 15:18 (do mesmo dia)
+    // - 2º turno: 15:18 às 00:44 (do dia seguinte)
+    // Se a hora for entre 00:00 e 00:44, é 2º turno do DIA ANTERIOR
     await pool.query(
       `INSERT INTO checklist_submissoes
         (operador_id, operador_nome, operador_email,
           maquina_id,  maquina_nome,  respostas, turno, created_at, data_ref)
       VALUES (
         $1,$2,$3,$4,$5,$6::jsonb,
-        /* turno normalizado */
+        /* turno normalizado - se hora < 00:45, é 2º turno */
         CASE
+          WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '00:45' THEN '2º'
           WHEN lower($7) IN ('turno1','1','1º','1o','1°','primeiro') THEN '1º'
           WHEN lower($7) IN ('turno2','2','2º','2o','2°','segundo')   THEN '2º'
           WHEN coalesce($7,'') = '' THEN
-            CASE WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '14:00' THEN '1º' ELSE '2º' END
+            CASE WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '15:18' THEN '1º' ELSE '2º' END
           ELSE
             CASE
               WHEN regexp_replace(lower($7),'[^0-9]','','g') = '1' THEN '1º'
               WHEN regexp_replace(lower($7),'[^0-9]','','g') = '2' THEN '2º'
-              ELSE CASE WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '14:00' THEN '1º' ELSE '2º' END
+              ELSE CASE WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '15:18' THEN '1º' ELSE '2º' END
             END
         END,
         now(),
-        (now() AT TIME ZONE 'America/Sao_Paulo')::date
+        /* data_ref: se hora < 00:45, usar dia anterior (2º turno do dia anterior) */
+        CASE 
+          WHEN (now() AT TIME ZONE 'America/Sao_Paulo')::time < '00:45' 
+          THEN (now() AT TIME ZONE 'America/Sao_Paulo')::date - interval '1 day'
+          ELSE (now() AT TIME ZONE 'America/Sao_Paulo')::date
+        END
       )
       ON CONFLICT (operador_id, maquina_id, data_ref)
       DO UPDATE SET
@@ -67,6 +77,7 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
       ,
       [operadorId, operadorNomeFinal, operadorEmail, maquinaId, maquinaNomeFinal, JSON.stringify(respostas), turno]
     );
+
 
     // 2) cria chamados preditivos para itens 'nao' (sem duplicar)
     let gerados = 0;
@@ -97,7 +108,7 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
           VALUES ($1, 'preditiva', 'Aberto', $2, $3, $4, $5)`,
           [maquinaId, descricao, operadorId, pergunta, key]
         );
-        try { sseBroadcast?.({ topic: 'chamados', action: 'created' }); } catch {}
+        try { sseBroadcast?.({ topic: 'chamados', action: 'created' }); } catch { }
         gerados++;
       } catch (e: any) {
         if (e.code === '23505') {
@@ -109,7 +120,7 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
     }
 
     res.json({ ok: true, chamados_gerados: gerados });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -150,7 +161,7 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
     );
 
     res.json({ items: rows });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }

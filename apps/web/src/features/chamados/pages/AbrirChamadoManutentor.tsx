@@ -18,7 +18,7 @@ interface MaquinaSugestao {
     value: string;
 }
 
-interface AbrirChamadoManutentorProps {
+export interface AbrirChamadoManutentorProps {
     user: User;
 }
 

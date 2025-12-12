@@ -7,7 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
-import InicioTurnoPage from './features/checklists/pages/InicioTurnoPage.jsx';
+import InicioTurnoPage from './features/checklists/pages/InicioTurnoPage';
 
 const AUTH_EVENT = 'auth-user-changed';
 
