@@ -2,6 +2,7 @@
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { criarPeca, atualizarPeca } from '../../../services/apiClient';
+import type { Peca } from '../../../types/api';
 import Modal from '../../../shared/components/Modal';
 import toast from 'react-hot-toast';
 import styles from './PecaModal.module.css';
@@ -10,17 +11,6 @@ import styles from './PecaModal.module.css';
 interface User {
     role?: string;
     email?: string;
-}
-
-interface Peca {
-    id: string;
-    codigo: string;
-    nome: string;
-    categoria?: string;
-    unidade?: string;
-    estoqueAtual?: number;
-    estoqueMinimo?: number;
-    localizacao?: string;
 }
 
 interface PecaModalProps {
@@ -71,10 +61,10 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
             const payload = {
                 codigo: codigo.trim(),
                 nome: nome.trim(),
-                categoria: categoria?.trim() || null,
+                categoria: categoria?.trim() || undefined,
                 estoqueAtual: Number(estoqueAtual || 0),
                 estoqueMinimo: Number(estoqueMinimo || 0),
-                localizacao: localizacao?.trim() || null,
+                localizacao: localizacao?.trim() || undefined,
             };
 
             let saved: Peca;

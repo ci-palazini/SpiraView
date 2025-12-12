@@ -1,6 +1,7 @@
 // src/features/estoque/pages/EstoquePage.tsx
 import React, { useState, useEffect } from 'react';
 import { listarPecas, excluirPeca } from '../../../services/apiClient';
+import type { Peca } from '../../../types/api';
 
 import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal';
@@ -21,17 +22,6 @@ interface User {
 
 export interface EstoquePageProps {
     user: User;
-}
-
-interface Peca {
-    id: string;
-    codigo: string;
-    nome: string;
-    categoria?: string;
-    unidade?: string;
-    estoqueAtual: number;
-    estoqueMinimo: number;
-    localizacao?: string;
 }
 
 // ---------- Component ----------

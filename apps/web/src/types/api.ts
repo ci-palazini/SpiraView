@@ -167,6 +167,7 @@ export interface Peca {
     codigo?: string;
     nome: string;
     categoria?: string;
+    unidade?: string;
     estoqueAtual?: number;
     estoqueMinimo?: number;
     localizacao?: string;

@@ -1,6 +1,7 @@
 // src/features/estoque/pages/MovimentacaoModal.tsx
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { registrarMovimentacao } from '../../../services/apiClient';
+import type { Peca } from '../../../types/api';
 import styles from './MovimentacaoModal.module.css';
 import Modal from '../../../shared/components/Modal';
 import toast from 'react-hot-toast';
@@ -9,12 +10,6 @@ import toast from 'react-hot-toast';
 interface User {
     role?: string;
     email?: string;
-}
-
-interface Peca {
-    id: string;
-    codigo: string;
-    nome: string;
 }
 
 interface MovimentacaoModalProps {
