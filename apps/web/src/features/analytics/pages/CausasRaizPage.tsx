@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import styles from './CausasRaizPage.module.css';
 import { useTranslation } from 'react-i18next';
+import Skeleton from '@mui/material/Skeleton';
 import {
     listarCausas,
     criarCausa,
@@ -159,26 +160,35 @@ function CausasCrud({ user }: CausasCrudProps) {
                 </button>
             </form>
 
-            {loading && <p className={styles.muted}>{t('common.loading', 'Carregando...')}</p>}
-
-            {!loading && causas.length === 0 && (
+            {loading ? (
+                <ul className={styles.list}>
+                    {[1, 2, 3, 4].map((i) => (
+                        <li key={i} className={styles.listItem}>
+                            <Skeleton variant="text" width="60%" height={24} />
+                            <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                        </li>
+                    ))}
+                </ul>
+            ) : causas.length === 0 ? (
                 <p className={styles.muted}>{t('causas.list.empty', 'Nenhuma causa cadastrada')}</p>
-            )}
+            ) : null}
 
-            <ul className={styles.list}>
-                {causas.map((c, i) => (
-                    <li key={c.id ?? `${c.nome}__${i}`} className={styles.listItem}>
-                        {c.nome}
-                        <button
-                            className={styles.deleteButton}
-                            onClick={() => handleDelete(c)}
-                            title={t('causas.list.delete')}
-                        >
-                            {t('causas.list.delete')}
-                        </button>
-                    </li>
-                ))}
-            </ul>
+            {!loading && causas.length > 0 && (
+                <ul className={styles.list}>
+                    {causas.map((c, i) => (
+                        <li key={c.id ?? `${c.nome}__${i}`} className={styles.listItem}>
+                            {c.nome}
+                            <button
+                                className={styles.deleteButton}
+                                onClick={() => handleDelete(c)}
+                                title={t('causas.list.delete')}
+                            >
+                                {t('causas.list.delete')}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }
@@ -305,7 +315,17 @@ function ParetoChart() {
             </div>
 
             {loading ? (
-                <p className={styles.muted}>{t('common.loading', 'Carregando...')}</p>
+                <>
+                    {/* Skeleton do gráfico Pareto */}
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 350, marginTop: 16 }}>
+                        {[180, 150, 120, 90, 60, 40, 25].map((h, i) => (
+                            <Skeleton key={i} variant="rectangular" width={50} height={h} sx={{ borderRadius: 1 }} />
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+                        <Skeleton variant="text" width={200} height={20} />
+                    </div>
+                </>
             ) : !dados.length ? (
                 <p className={styles.muted}>{t('causas.chart.empty', 'Sem dados para exibir')}</p>
             ) : (
