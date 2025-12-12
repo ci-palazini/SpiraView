@@ -14,6 +14,7 @@ import Modal from '../../../shared/components/Modal';
 import PageHeader from '../../../shared/components/PageHeader';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
+import Skeleton from '@mui/material/Skeleton';
 
 // ---------- Types ----------
 interface User {
@@ -94,8 +95,8 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                     listarChamados({ status: 'Aberto', page: 1, pageSize: 200 }),
                     listarChamados({ status: 'Em Andamento', page: 1, pageSize: 200 }),
                 ]);
-                const itemsAbertos: Chamado[] = (abertos as { items?: Chamado[] }).items ?? abertos;
-                const itemsAnd: Chamado[] = (emAndamento as { items?: Chamado[] }).items ?? emAndamento;
+                const itemsAbertos: Chamado[] = Array.isArray(abertos) ? abertos : (abertos.items ?? []);
+                const itemsAnd: Chamado[] = Array.isArray(emAndamento) ? emAndamento : (emAndamento.items ?? []);
                 const porId = new Map<string, Chamado>();
                 [...itemsAbertos, ...itemsAnd].forEach((c) => porId.set(c.id, c));
                 if (!alive) return;
@@ -260,7 +261,23 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
             <div className={styles.contentArea}>
 
                 {loading ? (
-                    <p className={styles.loadingText}>{t('maquinas.loading')}</p>
+                    <>
+                        {/* Skeleton da legenda */}
+                        <div className={styles.legendContainer}>
+                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
+                        </div>
+                        {/* Skeleton dos cards */}
+                        <div className={styles.grid}>
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className={styles.card} style={{ borderLeftColor: '#e0e0e0' }}>
+                                    <Skeleton variant="text" width="70%" height={28} sx={{ marginBottom: 1 }} />
+                                    <Skeleton variant="text" width="50%" height={16} />
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 ) : (
                     <>
                         {/* Legenda em card branco */}
