@@ -81,6 +81,10 @@
       "profile": {
         "title": "Mein Profil",
         "desc": "Eigene Daten ansehen und Passwort ändern."
+      },
+      "openCalls": {
+        "title": "Offene Tickets",
+        "desc": "Alle noch nicht abgeschlossenen Tickets anzeigen."
       }
     }
   },

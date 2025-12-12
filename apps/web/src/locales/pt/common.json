@@ -81,6 +81,10 @@
       "profile": {
         "title": "Meu Perfil",
         "desc": "Visualize suas informações e altere sua senha."
+      },
+      "openCalls": {
+        "title": "Chamados Abertos",
+        "desc": "Visualize todos os chamados pendentes de conclusão."
       }
     }
   },

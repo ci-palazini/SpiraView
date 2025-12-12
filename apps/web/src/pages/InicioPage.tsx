@@ -13,7 +13,8 @@ import {
     FiUser,
     FiPackage,
     FiClipboard,
-    FiPlusCircle
+    FiPlusCircle,
+    FiAlertCircle
 } from 'react-icons/fi';
 
 // ---------- Types ----------
@@ -52,6 +53,16 @@ const InicioPage = ({ user }: InicioPageProps) => {
                             <h3 className={styles.cardTitle}>{t('inicio.cards.machines.title')}</h3>
                             <p className={styles.cardDescription}>
                                 {t('inicio.cards.machines.desc')}
+                            </p>
+                        </Link>
+                    )}
+
+                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                        <Link to="/chamados-abertos" className={styles.actionCard}>
+                            <FiAlertCircle className={styles.cardIcon} />
+                            <h3 className={styles.cardTitle}>{t('inicio.cards.openCalls.title')}</h3>
+                            <p className={styles.cardDescription}>
+                                {t('inicio.cards.openCalls.desc')}
                             </p>
                         </Link>
                     )}

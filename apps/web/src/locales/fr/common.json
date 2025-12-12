@@ -81,6 +81,10 @@
       "profile": {
         "title": "Mon profil",
         "desc": "Consultez vos informations et changez votre mot de passe."
+      },
+      "openCalls": {
+        "title": "Tickets ouverts",
+        "desc": "Visualisez tous les tickets en attente de clôture."
       }
     }
   },

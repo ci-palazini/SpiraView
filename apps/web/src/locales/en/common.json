@@ -81,6 +81,10 @@
       "profile": {
         "title": "My Profile",
         "desc": "View your information and change your password."
+      },
+      "openCalls": {
+        "title": "Open Tickets",
+        "desc": "View all pending work orders."
       }
     }
   },
