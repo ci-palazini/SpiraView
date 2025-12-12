@@ -5,6 +5,7 @@ import Modal from '../../../shared/components/Modal';
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import Skeleton from '@mui/material/Skeleton';
 import {
     listarUsuarios,
     criarUsuario,
@@ -236,7 +237,30 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 </div>
 
                 {loading ? (
-                    <p>{t('users.loading')}</p>
+                    <>
+                        {/* Skeleton do header da tabela */}
+                        <div className={styles.userListHeader}>
+                            <Skeleton variant="text" width={100} height={20} />
+                            <Skeleton variant="text" width={100} height={20} />
+                            <Skeleton variant="text" width={80} height={20} />
+                            <Skeleton variant="text" width={60} height={20} style={{ marginLeft: 'auto' }} />
+                        </div>
+
+                        {/* Skeleton da lista de usuários */}
+                        <ul className={styles.userList} style={{ padding: 0, margin: 0 }}>
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <li key={i} className={styles.userItem}>
+                                    <Skeleton variant="text" width="40%" height={24} />
+                                    <Skeleton variant="text" width="25%" height={20} />
+                                    <Skeleton variant="text" width="15%" height={20} />
+                                    <div className={styles.actions}>
+                                        <Skeleton variant="circular" width={32} height={32} />
+                                        <Skeleton variant="circular" width={32} height={32} />
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </>
                 ) : (
                     <>
                         <div className={styles.userListHeader}>
