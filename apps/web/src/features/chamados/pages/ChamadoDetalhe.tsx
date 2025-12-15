@@ -13,6 +13,7 @@ import {
 import styles from './ChamadoDetalhe.module.css';
 import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
+import { Button, Select, Card, CardHeader, Badge } from '../../../shared/components';
 
 // ---------- Types ----------
 interface User {
@@ -183,6 +184,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     // --------- carregar chamado ---------
     useEffect(() => {
+        if (!id) return;
         let alive = true;
         (async () => {
             try {
@@ -379,7 +381,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         setAssigning(true);
         try {
             const alvo = manutentores.find((m) => m.uid === selectedManutentor);
-            await atribuirChamado(id as string, { manutentorEmail: alvo?.email || null, role: user.role, email: user.email });
+            await atribuirChamado(id as string, { manutentorEmail: alvo?.email || '', role: user.role, email: user.email });
             toast.success(t('chamadoDetalhe.toasts.assigned'));
             setReloadTick(n => n + 1);
         } catch (e) {
@@ -516,7 +518,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 </small>
             </header>
 
-            <div className={styles.card}>
+            <Card>
                 <div className={styles.detailsGrid}>
                     <div className={styles.detailItem}>
                         <strong>{t('chamadoDetalhe.fields.status')}</strong>
@@ -574,11 +576,10 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                         <div className={styles.detailItem}>
                             <strong>{t('chamadoDetalhe.fields.cause')}</strong>
                             {chamado.status === 'Em Andamento' ? (
-                                <select
+                                <Select
                                     id="causa"
                                     value={causa}
                                     onChange={(e) => setCausa(e.target.value)}
-                                    className={styles.select}
                                     required
                                 >
                                     <option value="" disabled>{t('chamadoDetalhe.selects.causePlaceholder')}</option>
@@ -587,50 +588,43 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                             {nome.charAt(0).toUpperCase() + nome.slice(1)}
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                             ) : (
                                 <p className={styles.readonlyField}>{chamado.causa || '–'}</p>
                             )}
                         </div>
                     )}
                 </div>
-            </div>
+            </Card>
 
             {/* Atribuição (gestor) */}
             {isGestor && chamado.status !== 'Concluido' && (
                 <div className={styles.card}>
                     <h2 className={styles.cardTitle}>{t('chamadoDetalhe.assign.title')}</h2>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="manutentor">{t('chamadoDetalhe.assign.label')}</label>
-                        <select
-                            id="manutentor"
-                            className={styles.select}
-                            value={selectedManutentor}
-                            onChange={(e) => setSelectedManutentor(e.target.value)}
-                        >
-                            <option value="">{t('chamadoDetalhe.assign.placeholder')}</option>
-                            {manutentores.map((m) => (
-                                <option key={m.uid} value={m.uid}>{m.nome}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <Select
+                        id="manutentor"
+                        label={t('chamadoDetalhe.assign.label')}
+                        value={selectedManutentor}
+                        onChange={(e) => setSelectedManutentor(e.target.value)}
+                    >
+                        <option value="">{t('chamadoDetalhe.assign.placeholder')}</option>
+                        {manutentores.map((m) => (
+                            <option key={m.uid} value={m.uid}>{m.nome}</option>
+                        ))}
+                    </Select>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        <button onClick={handleAtribuir} className={styles.button} disabled={assigning || !selectedManutentor}>
-                            {assigning ? t('common.processing') : (chamado.assignedTo ? t('chamadoDetalhe.assign.reassign') : t('chamadoDetalhe.assign.assign'))}
-                        </button>
+                        <Button onClick={handleAtribuir} loading={assigning} disabled={!selectedManutentor}>
+                            {chamado.assignedTo ? t('chamadoDetalhe.assign.reassign') : t('chamadoDetalhe.assign.assign')}
+                        </Button>
                         {chamado.assignedTo && (
-                            <button
-                                onClick={handleRemoverAtribuicao}
-                                className={styles.button}
-                                disabled={assigning}
-                                style={{ backgroundColor: '#6c757d' }}
-                            >
-                                {assigning ? t('common.processing') : t('chamadoDetalhe.assign.remove')}
-                            </button>
+                            <Button variant="secondary" onClick={handleRemoverAtribuicao} loading={assigning}>
+                                {t('chamadoDetalhe.assign.remove')}
+                            </Button>
                         )}
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* Observações */}
             <div className={`${styles.card} ${styles.historySection}`}>
@@ -646,14 +640,9 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                             value={novaObservacao}
                             onChange={(e) => setNovaObservacao(e.target.value)}
                         />
-                        <button
-                            onClick={handleAdicionarObservacao}
-                            className={styles.button}
-                            disabled={busy}
-                            style={{ marginTop: 10 }}
-                        >
-                            {busy ? t('common.saving') : t('chamadoDetalhe.history.saveNote')}
-                        </button>
+                        <Button onClick={handleAdicionarObservacao} loading={busy} style={{ marginTop: 10 }}>
+                            {t('chamadoDetalhe.history.saveNote')}
+                        </Button>
                     </div>
                 )}
 
@@ -720,16 +709,14 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                             </span>
 
                                             {/* botão de enviar */}
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={handleUploadFoto}
-                                                className={styles.button}
-                                                disabled={uploadingFoto || !fotoFile}
+                                                loading={uploadingFoto}
+                                                disabled={!fotoFile}
                                             >
-                                                {uploadingFoto
-                                                    ? (t('common.saving') || 'Enviando...')
-                                                    : (t('chamadoDetalhe.photos.uploadButton') || 'Enviar foto')}
-                                            </button>
+                                                {t('chamadoDetalhe.photos.uploadButton') || 'Enviar foto'}
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
@@ -773,86 +760,92 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             </div>
 
             {/* Ações */}
-            {podeAtender && (
-                <div className={styles.card}>
-                    <button onClick={handleAtenderChamado} className={styles.button} disabled={busy}>
-                        {busy ? t('common.processing') : t('chamadoDetalhe.actions.take')}
-                    </button>
-                </div>
-            )}
-
-            {podeConcluir && (
-                isPreventiva ? (
+            {
+                podeAtender && (
                     <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>{t('chamadoDetalhe.preventive.title')}</h2>
-                        <form onSubmit={handleConcluirChamado} className={styles.checklistContainer}>
-                            {checklist.map((item, idx) => {
-                                const label = item.item || '(sem texto)';
-                                return (
-                                    <div key={idx} className={styles.checklistItem}>
-                                        <span className={styles.itemLabel}>{label}</span>
-                                        <div className={styles.radioGroup}>
-                                            <input
-                                                type="radio"
-                                                id={`sim-${idx}`}
-                                                name={`resposta-${idx}`}
-                                                checked={item.resposta === 'sim'}
-                                                onChange={() => handleChecklistItemToggle(idx, 'sim')}
-                                            />
-                                            <label htmlFor={`sim-${idx}`}>{t('common.yes')}</label>
-
-                                            <input
-                                                type="radio"
-                                                id={`nao-${idx}`}
-                                                name={`resposta-${idx}`}
-                                                checked={item.resposta === 'nao'}
-                                                onChange={() => handleChecklistItemToggle(idx, 'nao')}
-                                            />
-                                            <label htmlFor={`nao-${idx}`}>{t('common.no')}</label>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <button type="submit" className={styles.button} disabled={busy}>
-                                {busy ? t('chamadoDetalhe.actions.finishing') : t('chamadoDetalhe.actions.finish')}
-                            </button>
-                        </form>
-                    </div>
-                ) : (
-                    <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>{t('chamadoDetalhe.corrective.title')}</h2>
-                        <form onSubmit={handleConcluirChamado}>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="solucao">{t('chamadoDetalhe.corrective.solutionLabel')}</label>
-                                <textarea
-                                    id="solucao"
-                                    className={styles.textarea}
-                                    rows={5}
-                                    value={solucao}
-                                    onChange={(e) => setSolucao(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className={styles.button} disabled={busy || !causa}>
-                                {busy ? t('common.saving') : t('chamadoDetalhe.actions.finish')}
-                            </button>
-                        </form>
+                        <Button onClick={handleAtenderChamado} loading={busy}>
+                            {t('chamadoDetalhe.actions.take')}
+                        </Button>
                     </div>
                 )
-            )}
+            }
 
-            {(isGestor && ['Aberto', 'Em Andamento', 'Concluido'].includes(chamado.status)) && (
-                <div className={styles.card} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                        onClick={handleExcluirChamado}
-                        className={`${styles.button} ${styles.buttonDanger}`}
-                        disabled={busy}
-                        title={t('chamadoDetalhe.delete.title')}
-                    >
-                        {busy ? t('common.deleting') : t('chamadoDetalhe.delete.button')}
-                    </button>
-                </div>
-            )}
+            {
+                podeConcluir && (
+                    isPreventiva ? (
+                        <div className={styles.card}>
+                            <h2 className={styles.cardTitle}>{t('chamadoDetalhe.preventive.title')}</h2>
+                            <form onSubmit={handleConcluirChamado} className={styles.checklistContainer}>
+                                {checklist.map((item, idx) => {
+                                    const label = item.item || '(sem texto)';
+                                    return (
+                                        <div key={idx} className={styles.checklistItem}>
+                                            <span className={styles.itemLabel}>{label}</span>
+                                            <div className={styles.radioGroup}>
+                                                <input
+                                                    type="radio"
+                                                    id={`sim-${idx}`}
+                                                    name={`resposta-${idx}`}
+                                                    checked={item.resposta === 'sim'}
+                                                    onChange={() => handleChecklistItemToggle(idx, 'sim')}
+                                                />
+                                                <label htmlFor={`sim-${idx}`}>{t('common.yes')}</label>
+
+                                                <input
+                                                    type="radio"
+                                                    id={`nao-${idx}`}
+                                                    name={`resposta-${idx}`}
+                                                    checked={item.resposta === 'nao'}
+                                                    onChange={() => handleChecklistItemToggle(idx, 'nao')}
+                                                />
+                                                <label htmlFor={`nao-${idx}`}>{t('common.no')}</label>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                <Button type="submit" loading={busy}>
+                                    {t('chamadoDetalhe.actions.finish')}
+                                </Button>
+                            </form>
+                        </div>
+                    ) : (
+                        <div className={styles.card}>
+                            <h2 className={styles.cardTitle}>{t('chamadoDetalhe.corrective.title')}</h2>
+                            <form onSubmit={handleConcluirChamado}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="solucao">{t('chamadoDetalhe.corrective.solutionLabel')}</label>
+                                    <textarea
+                                        id="solucao"
+                                        className={styles.textarea}
+                                        rows={5}
+                                        value={solucao}
+                                        onChange={(e) => setSolucao(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <Button type="submit" loading={busy} disabled={!causa}>
+                                    {t('chamadoDetalhe.actions.finish')}
+                                </Button>
+                            </form>
+                        </div>
+                    )
+                )
+            }
+
+            {
+                (isGestor && ['Aberto', 'Em Andamento', 'Concluido'].includes(chamado.status)) && (
+                    <div className={styles.card} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            variant="danger"
+                            onClick={handleExcluirChamado}
+                            loading={busy}
+                            title={t('chamadoDetalhe.delete.title')}
+                        >
+                            {t('chamadoDetalhe.delete.button')}
+                        </Button>
+                    </div>
+                )
+            }
         </div>
     );
 }
