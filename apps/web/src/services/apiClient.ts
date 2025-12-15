@@ -504,6 +504,21 @@ export async function getChecklistDiario(maquinaId: string): Promise<ChecklistDi
     return items;
 }
 
+export async function reorderChecklistItems(maquinaId: string, items: string[], auth: AuthParams): Promise<unknown> {
+    const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-reorder`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth?.role || '',
+            'x-user-email': auth?.email || ''
+        },
+        body: JSON.stringify({ items })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j?.error || 'Falha ao reordenar itens');
+    return j;
+}
+
 export async function enviarChecklistDiaria(data: SubmissaoDiariaCreate): Promise<unknown> {
     const res = await fetch(`${BASE}/checklists/daily/submit`, {
         method: 'POST',

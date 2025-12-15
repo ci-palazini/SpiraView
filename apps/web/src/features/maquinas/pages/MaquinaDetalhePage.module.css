@@ -1,403 +1,579 @@
-/* src/pages/MaquinaDetalhePage.module.css */
+/* src/pages/MaquinaDetalhePage.module.css - Modernized */
 
+/* ==================== HEADER ==================== */
 .header {
-  padding: 24px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  padding: var(--spacing-6);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
+  border-bottom: 1px solid var(--color-neutral-200);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
+
 .header h1 {
   margin: 0;
-  font-size: 1.75rem;
-}
-.header p {
-  margin: 4px 0 0 0;
-  color: #555;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
 }
 
-.tabs {
-  flex-wrap: wrap; /* Permite quebra em telas pequenas */
-  gap: 8px; /* Espaço entre eles */
-  display: flex;
-  border-bottom: 1px solid #ccc;
-  background-color: #f9f9f9;
+.header p {
+  margin: var(--spacing-1) 0 0 0;
+  color: var(--color-neutral-500);
+  font-size: var(--font-size-sm);
 }
+
+/* ==================== TABS ==================== */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--color-neutral-50);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
 .tabButton {
-  padding: 14px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
   cursor: pointer;
   border: none;
-  background-color: transparent;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #555;
-  border-bottom: 3px solid transparent;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-500);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
 }
+
+.tabButton:hover {
+  color: var(--color-primary-600);
+  background: rgba(59, 130, 246, 0.08);
+}
+
 .tabButton.active {
-  color: #4B70E2;
-  border-bottom: 3px solid #4B70E2;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+  box-shadow: var(--shadow-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.tabButton .tabIcon {
+  font-size: 16px;
+  display: flex;
 }
 
 .tabContent {
-  padding: 20px;
+  padding: var(--spacing-5);
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* --- Estilos para a lista de histórico --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==================== CHAMADO LIST ==================== */
 .chamadoList {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px; 
+  gap: var(--spacing-3);
 }
+
 .chamadoCard {
   display: block;
   text-decoration: none;
   color: inherit;
 }
+
 .chamadoItem {
-  background-color: #ffffff;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #eef0f3;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: box-shadow 0.2s, transform 0.2s;
+  background: #fff;
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
 }
+
 .chamadoItem:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-200);
 }
+
 .chamadoItem strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-1);
+  color: var(--color-neutral-800);
 }
+
 .chamadoItem p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
 }
+
 .chamadoItem small {
-  font-size: 0.8rem;
-  color: #888;
-  margin-top: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  margin-top: var(--spacing-2);
   display: block;
 }
 
-/* --- Estilos para a aba de planos --- */
-.actionButton:hover {
-  opacity: 0.85;
-}
-.form h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-.input, .select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+/* Border colors for chamado types */
+.corretiva {
+  border-left: 4px solid var(--color-danger-500);
 }
 
-/* --- Estilos para a aba de checklist --- */
-.checklistEditor {
-  background-color: #ffffff;
-  padding: 24px;
-  border-radius: 8px;
-  border: 1px solid #eef0f3;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+.preventiva {
+  border-left: 4px solid var(--color-primary-500);
 }
+
+.preditiva {
+  border-left: 4px solid var(--color-warning-500);
+}
+
+.normal {
+  border-left: 4px solid var(--color-neutral-200);
+}
+
+.concluidoCard {
+  border-left: none !important;
+  opacity: 0.7;
+}
+
+/* ==================== CHECKLIST EDITOR ==================== */
+.checklistEditor {
+  background: #fff;
+  padding: var(--spacing-6);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-md);
+}
+
 .checklistItemManage {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.checklistItemManage:last-child {
-  border-bottom: none;
-}
-.checklistItemManage span {
-  flex-grow: 1;
-}
-.checklistInputForm {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-.checklistInput {
-  flex-grow: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.checklistAddButton {
-  padding: 8px 15px;
-  border: none;
-  background-color: #28a745;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.historyReport {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px dashed #ccc;
-}
-.dayEntry {
-  display: grid;
-  grid-template-columns: 1fr 2fr 2fr;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-.dayEntry:last-child {
-  border-bottom: none;
-}
-.dayHeader {
-  font-weight: bold;
-  color: #333;
-}
-.turnStatus {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.turnStatus.completed {
-  color: #28a745;
-}
-.turnStatus.pending {
-  color: #dc3545;
-}
-.detailItem {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-.detailItem:last-child {
-  border-bottom: none;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200);
+  transition: all var(--transition-fast);
 }
 
-/* --- Estilos para a aba de operadores --- */
-.operatorList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.checklistItemManage:hover {
+  background: #fff;
+  border-color: var(--color-primary-200);
+  box-shadow: var(--shadow-sm);
 }
-.opActionButton {
+
+.checklistItemManage:last-child {
+  margin-bottom: 0;
+}
+
+.checklistItemNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  max-width: 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.checklistItemManage span {
+  flex-grow: 1;
+  color: var(--color-neutral-700);
+  font-weight: var(--font-weight-medium);
+}
+
+.checklistItemActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.orderButton {
   background: none;
-  border: 1px solid #ccc;
-  border-radius: 50%;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
   width: 28px;
   height: 28px;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.2s;
+  color: var(--color-neutral-500);
+  transition: all var(--transition-fast);
 }
-.removeButton {
-  color: #dc3545;
+
+.orderButton:hover:not(:disabled) {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-600);
 }
+
+.orderButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.checklistInputForm {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-5);
+  padding-top: var(--spacing-5);
+  border-top: 1px solid var(--color-neutral-100);
+}
+
+.checklistInput {
+  flex-grow: 1;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.checklistInput:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checklistAddButton {
+  padding: var(--spacing-3) var(--spacing-5);
+  border: none;
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-success);
+  transition: all var(--transition-fast);
+}
+
+.checklistAddButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+}
+
+/* ==================== HISTORY REPORT ==================== */
+.historyReport {
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-6);
+  border-top: 2px dashed var(--color-neutral-200);
+}
+
+.dayEntry {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  align-items: center;
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.dayEntry:last-child {
+  border-bottom: none;
+}
+
+.dayHeader {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-800);
+}
+
+.turnStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+}
+
+.turnStatus.completed {
+  color: var(--color-success-600);
+}
+
+.turnStatus.pending {
+  color: var(--color-danger-600);
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--color-neutral-100);
+  font-size: var(--font-size-sm);
+}
+
+.detailItem:last-child {
+  border-bottom: none;
+}
+
+/* ==================== OPERATOR SECTION ==================== */
+.operatorList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.opActionButton {
+  background: none;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-full);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
 .opActionButton:hover {
-  background-color: #e9ecef;
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
 }
 
-.corretiva {
-  border-left-color: #dc3545; 
-  border-left-width: 6px;
+.removeButton {
+  color: var(--color-danger-500);
 }
 
-.preventiva {
-  border-left-color: #0d6efd; 
-  border-left-width: 6px;
+.removeButton:hover {
+  background: var(--color-danger-50);
+  border-color: var(--color-danger-300);
 }
 
-.preditiva {
-  border-left-color: #ffc107; 
-  border-left-width: 6px;
-}
-
-.normal {
-  border-left-color: #eef0f3; 
-  border-left-width: 6px;
-}
-
-.concluidoCard {
-  border-left: none !important;
-}
-
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 1.5rem;
-  }
-
-  /* Ajusta o relatório de checklist para telas pequenas */
-  .dayEntry {
-    grid-template-columns: 1fr; /* Cada item ocupa uma linha */
-    gap: 10px;
-    text-align: center;
-    padding: 16px 8px;
-  }
-
-  .dayHeader {
-    display: none; /* Esconde o cabeçalho da tabela em telas pequenas */
-  }
-
-  .turnStatus::before {
-    font-weight: bold;
-    margin-right: 8px;
-  }
-
-  /* Adiciona um label de texto antes do status de cada turno */
-  .dayEntry .turnStatus:nth-of-type(1)::before {
-    content: '1º Turno:';
-  }
-  .dayEntry .turnStatus:nth-of-type(2)::before {
-    content: '2º Turno:';
-  }
-}
-
-
-
-@media (max-width: 768px) {
-  .formGroup {
-    width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .checklistInputForm {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .checklistAddButton {
-    width: 100%;
-  }
-}
-
+/* ==================== QR CODE SECTION ==================== */
 .qrCodeSection {
-  display: flex; /* Adicionamos flexbox */
-  flex-direction: column; /* Para alinhar os itens em coluna */
-  align-items: center; /* Para centralizar horizontalmente */
-  gap: 0px; /* Espaço entre o QR Code e o botão */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
   text-align: center;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #eef0f3;
+  padding: var(--spacing-6);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-md);
 }
 
 .qrCodeSection h3 {
-  margin-top: 0;
+  margin: 0;
+  color: var(--color-neutral-800);
+  font-weight: var(--font-weight-semibold);
 }
 
 .qrCodeCanvas {
-  padding: 15px;
-  background-color: white;
-  border-radius: 8px;
+  padding: var(--spacing-4);
+  background: #fff;
+  border-radius: var(--radius-lg);
   display: inline-block;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
 }
 
-.downloadButton { /* Renomeado de printButton para clareza */
-  margin-top: 20px;
-  padding: 10px 20px;
+.downloadButton {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-5);
   border: none;
-  border-radius: 4px;
-  background-color: #4B70E2;
-  color: white;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+  color: #fff;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: var(--font-weight-semibold);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-2);
+  box-shadow: var(--shadow-primary);
+  transition: all var(--transition-fast);
 }
 
-.eventoNoCalendario {
-  font-size: 0.8rem;
-  padding: 2px 5px;
+.downloadButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-hover);
 }
 
-
+/* ==================== LEGEND ==================== */
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-lg);
 }
+
 .legendBox {
   width: 16px;
   height: 16px;
   display: inline-block;
   vertical-align: middle;
-  margin-right: 4px;
+  margin-right: var(--spacing-1);
+  border-radius: var(--radius-sm);
 }
 
+/* ==================== FORM ELEMENTS ==================== */
 .formGroup {
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-4);
 }
+
 .formGroup label {
   display: block;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #333;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-2);
+  color: var(--color-neutral-800);
+  font-size: var(--font-size-sm);
 }
+
 .input,
+.select,
 .textarea {
   width: 100%;
-  padding: 8px 12px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-}	
-.button {
-  display: inline-block;
-  background-color: #006400;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+  background: #fff;
 }
 
-.button:hover {
-  background-color: #004d00;
-}
-
-.button:active {
-  transform: scale(0.98);
-}
+.input:focus,
+.select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #006400;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* textarea um pouco maior */
 .textarea {
   min-height: 100px;
   resize: vertical;
 }
 
-.modalButton {
-  background-color: #006400;      /* verde escuro, mesmo tom de “iniciado” */
-  color: #fff;                    /* texto branco */
+/* ==================== BUTTONS ==================== */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-700) 100%);
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: var(--spacing-3) var(--spacing-5);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  transition: background-color 0.2s ease;
-  margin-left: 0.5rem;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-success);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.modalButton {
+  background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-700) 100%);
+  color: #fff;
+  border: none;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-4);
+  margin-left: var(--spacing-2);
+  transition: all var(--transition-fast);
 }
 
 .modalButton:hover {
-  background-color: #004d00;      /* um pouco mais escuro no hover */
+  opacity: 0.9;
+}
+
+.actionButton:hover {
+  opacity: 0.85;
+}
+
+.eventoNoCalendario {
+  font-size: var(--font-size-xs);
+  padding: 2px var(--spacing-2);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-sm);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .tabs {
+    padding: var(--spacing-2);
+  }
+
+  .tabButton {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+
+  .dayEntry {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+    text-align: center;
+    padding: var(--spacing-4) var(--spacing-2);
+  }
+
+  .dayHeader {
+    display: none;
+  }
+
+  .turnStatus::before {
+    font-weight: var(--font-weight-bold);
+    margin-right: var(--spacing-2);
+  }
+
+  .dayEntry .turnStatus:nth-of-type(1)::before {
+    content: '1º Turno:';
+  }
+
+  .dayEntry .turnStatus:nth-of-type(2)::before {
+    content: '2º Turno:';
+  }
+
+  .checklistInputForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .checklistAddButton {
+    width: 100%;
+  }
+
+  .formGroup {
+    width: 100%;
+  }
 }

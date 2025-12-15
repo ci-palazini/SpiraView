@@ -6,11 +6,13 @@ import {
     listarChamadosPorMaquina,
     addChecklistItem,
     removeChecklistItem,
+    reorderChecklistItems,
     listarSubmissoesDiarias,
 } from '../../../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './MaquinaDetalhePage.module.css';
 import { FiTrash2, FiCheckCircle, FiXCircle, FiDownload } from 'react-icons/fi';
+import { ChevronUp, ChevronDown, AlertCircle, History, ClipboardList, QrCode } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { df, statusKey } from '../../../i18n/format';
@@ -154,6 +156,25 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
         } catch (e) {
             console.error(e);
             toast.error(t('maquinaDetalhe.toasts.itemRemoveError'));
+        }
+    };
+
+    const handleMoveItem = async (index: number, direction: 'up' | 'down') => {
+        if (!maquina?.checklistDiario) return;
+        const items = [...maquina.checklistDiario];
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+
+        if (newIndex < 0 || newIndex >= items.length) return;
+
+        // Swap items
+        [items[index], items[newIndex]] = [items[newIndex], items[index]];
+
+        try {
+            await reorderChecklistItems(id!, items, { role: user.role, email: user.email });
+            setMaquina(prev => prev ? { ...prev, checklistDiario: items } : prev);
+        } catch (e) {
+            console.error(e);
+            toast.error(t('maquinaDetalhe.toasts.reorderError', 'Erro ao reordenar itens'));
         }
     };
 
@@ -316,10 +337,22 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
             {user.role === 'gestor' ? (
                 <div>
                     <nav className={styles.tabs}>
-                        <button className={`${styles.tabButton} ${activeTab === 'ativos' ? styles.active : ''}`} onClick={() => setActiveTab('ativos')}>{t('maquinaDetalhe.tabs.active')}</button>
-                        <button className={`${styles.tabButton} ${activeTab === 'historico' ? styles.active : ''}`} onClick={() => setActiveTab('historico')}>{t('maquinaDetalhe.tabs.history')}</button>
-                        <button className={`${styles.tabButton} ${activeTab === 'checklist' ? styles.active : ''}`} onClick={() => setActiveTab('checklist')}>{t('maquinaDetalhe.tabs.checklist')}</button>
-                        <button className={`${styles.tabButton} ${activeTab === 'qrcode' ? styles.active : ''}`} onClick={() => setActiveTab('qrcode')}>{t('maquinaDetalhe.tabs.qrcode')}</button>
+                        <button className={`${styles.tabButton} ${activeTab === 'ativos' ? styles.active : ''}`} onClick={() => setActiveTab('ativos')}>
+                            <AlertCircle size={16} />
+                            {t('maquinaDetalhe.tabs.active')}
+                        </button>
+                        <button className={`${styles.tabButton} ${activeTab === 'historico' ? styles.active : ''}`} onClick={() => setActiveTab('historico')}>
+                            <History size={16} />
+                            {t('maquinaDetalhe.tabs.history')}
+                        </button>
+                        <button className={`${styles.tabButton} ${activeTab === 'checklist' ? styles.active : ''}`} onClick={() => setActiveTab('checklist')}>
+                            <ClipboardList size={16} />
+                            {t('maquinaDetalhe.tabs.checklist')}
+                        </button>
+                        <button className={`${styles.tabButton} ${activeTab === 'qrcode' ? styles.active : ''}`} onClick={() => setActiveTab('qrcode')}>
+                            <QrCode size={16} />
+                            {t('maquinaDetalhe.tabs.qrcode')}
+                        </button>
                     </nav>
 
                     <div className={styles.tabContent}>
@@ -350,14 +383,33 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                 <ul className={styles.operatorList}>
                                     {maquina.checklistDiario?.map((item, index) => (
                                         <li key={index} className={styles.checklistItemManage}>
+                                            <span className={styles.checklistItemNumber}>{index + 1}</span>
                                             <span>{item}</span>
-                                            <button
-                                                onClick={() => handleRemoverItemChecklist(item)}
-                                                className={`${styles.opActionButton} ${styles.removeButton}`}
-                                                title={t('maquinaDetalhe.checklist.remove')}
-                                            >
-                                                <FiTrash2 />
-                                            </button>
+                                            <div className={styles.checklistItemActions}>
+                                                <button
+                                                    onClick={() => handleMoveItem(index, 'up')}
+                                                    className={styles.orderButton}
+                                                    disabled={index === 0}
+                                                    title={t('maquinaDetalhe.checklist.moveUp', 'Mover para cima')}
+                                                >
+                                                    <ChevronUp size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleMoveItem(index, 'down')}
+                                                    className={styles.orderButton}
+                                                    disabled={index === (maquina.checklistDiario?.length || 0) - 1}
+                                                    title={t('maquinaDetalhe.checklist.moveDown', 'Mover para baixo')}
+                                                >
+                                                    <ChevronDown size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRemoverItemChecklist(item)}
+                                                    className={`${styles.opActionButton} ${styles.removeButton}`}
+                                                    title={t('maquinaDetalhe.checklist.remove')}
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>

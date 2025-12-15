@@ -340,6 +340,37 @@ maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
   }
 });
 
+// REORDENAR ITENS DO CHECKLIST DIÁRIO DA MÁQUINA
+maquinasRouter.post('/maquinas/:id/checklist-reorder', async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const items = req.body?.items;
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ error: 'Items deve ser um array.' });
+    }
+
+    // Valida que são strings
+    const validItems = items.filter((i: unknown) => typeof i === 'string' && i.trim());
+
+    const { rows } = await pool.query(
+      `
+      UPDATE maquinas
+         SET checklist_diario = $2::jsonb
+       WHERE id = $1
+       RETURNING COALESCE(checklist_diario,'[]'::jsonb) AS checklist_diario;
+      `,
+      [id, JSON.stringify(validItems)]
+    );
+
+    if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
+    res.json({ checklistDiario: rows[0].checklist_diario });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 // DELETE /maquinas/:id  (somente gestor)
 maquinasRouter.delete('/maquinas/:id', requireRole(['gestor']), async (req: Request, res: Response) => {
   const { id } = req.params;
