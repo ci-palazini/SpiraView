@@ -261,6 +261,59 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
   }
 });
 
+// ---------- Chamados: excluir (gestor/admin) ----------
+chamadosRouter.delete(
+  "/chamados/:id",
+  requireRole(["gestor", "admin"]),
+  async (req, res) => {
+    try {
+      const chamadoId = String(req.params.id || "").trim();
+      if (!chamadoId) {
+        return res.status(400).json({ error: "ID_INVALIDO" });
+      }
+
+      const user = req.user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "USUARIO_NAO_CADASTRADO" });
+      }
+
+      // Verifica se o chamado existe
+      const { rows } = await pool.query(
+        `SELECT id FROM public.chamados WHERE id = $1`,
+        [chamadoId]
+      );
+
+      if (!rows.length) {
+        return res.status(404).json({ error: "CHAMADO_NAO_ENCONTRADO" });
+      }
+
+      // Exclui registros relacionados primeiro (fotos, observações)
+      await pool.query(
+        `DELETE FROM public.chamado_fotos WHERE chamado_id = $1`,
+        [chamadoId]
+      );
+      await pool.query(
+        `DELETE FROM public.chamado_observacoes WHERE chamado_id = $1`,
+        [chamadoId]
+      );
+
+      // Exclui o chamado
+      await pool.query(
+        `DELETE FROM public.chamados WHERE id = $1`,
+        [chamadoId]
+      );
+
+      try {
+        sseBroadcast?.({ topic: "chamados", action: "deleted", id: chamadoId });
+      } catch { }
+
+      return res.json({ ok: true, message: "Chamado excluído com sucesso." });
+    } catch (e: any) {
+      console.error(e);
+      return res.status(500).json({ error: String(e) });
+    }
+  }
+);
 
 // ---------- Chamados: listar fotos ----------
 chamadosRouter.get(
