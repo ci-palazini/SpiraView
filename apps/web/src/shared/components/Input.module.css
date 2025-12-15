@@ -1,0 +1,70 @@
+/* Input.module.css */
+
+.fieldGroup {
+    margin-bottom: var(--spacing-4);
+}
+
+.label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-800);
+    margin-bottom: var(--spacing-2);
+}
+
+.required {
+    color: var(--color-danger-500);
+    margin-left: 2px;
+}
+
+.input {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-neutral-200);
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-800);
+    background: #fff;
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.input::placeholder {
+    color: var(--color-neutral-400);
+}
+
+.input:focus {
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:disabled {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-400);
+    cursor: not-allowed;
+}
+
+/* Error state */
+.inputError {
+    border-color: var(--color-danger-400);
+}
+
+.inputError:focus {
+    border-color: var(--color-danger-500);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.errorMessage {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-danger-500);
+    margin-top: var(--spacing-1);
+}
+
+/* Helper text */
+.helperText {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+    margin-top: var(--spacing-1);
+}

@@ -133,16 +133,14 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
       .trim()
       .toLowerCase();           // normalize no parâmetro
     const dateISO = String(req.query.date || '').slice(0, 10); // 'YYYY-MM-DD'
+    const maquinaId = req.query.maquinaId ? String(req.query.maquinaId).trim() : null;
 
     if (!operadorEmail || !dateISO) {
       return res.status(400).json({ error: 'Informe operadorEmail e date (YYYY-MM-DD).' });
     }
 
-    // janela do dia em UTC: [date 00:00Z, date+1 00:00Z)
-    const start = `${dateISO}T00:00:00Z`;
-
-    const { rows } = await pool.query(
-      `SELECT
+    // Monta a query base
+    let sql = `SELECT
         id,
         operador_id,
         operador_nome,
@@ -155,10 +153,19 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
       FROM checklist_submissoes
       WHERE operador_email = $1
         AND created_at >= ($2::date AT TIME ZONE 'America/Sao_Paulo')
-        AND created_at <  (($2::date + interval '1 day') AT TIME ZONE 'America/Sao_Paulo')
-      ORDER BY created_at DESC`,
-      [operadorEmail, dateISO]  // aqui $2 é só 'YYYY-MM-DD'
-    );
+        AND created_at <  (($2::date + interval '1 day') AT TIME ZONE 'America/Sao_Paulo')`;
+
+    const params: (string | null)[] = [operadorEmail, dateISO];
+
+    // Se maquinaId foi informado, filtra também
+    if (maquinaId) {
+      sql += ` AND maquina_id = $3`;
+      params.push(maquinaId);
+    }
+
+    sql += ` ORDER BY created_at DESC`;
+
+    const { rows } = await pool.query(sql, params);
 
     res.json({ items: rows });
   } catch (e: any) {

@@ -82,7 +82,7 @@
 /* CARD DA MÁQUINA */
 .card {
   position: relative;
-  height: 55px;
+  min-height: 100px;
   background-color: #ffffff;
   border-radius: 8px;
   padding: 24px;

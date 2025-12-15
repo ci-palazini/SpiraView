@@ -4,6 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import styles from './InicioTurnoPage.module.css';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import {
+    LogOut,
+    ArrowLeft,
+    ArrowRight,
+    CheckCircle2,
+    AlertTriangle,
+    ClipboardCheck,
+    User,
+    Send,
+} from 'lucide-react';
 
 // API já existentes
 import {
@@ -272,7 +282,16 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     };
 
     // ------------- RENDER -------------
-    if (loading) return <div className={styles.pageContainer}><p>Carregando…</p></div>;
+    if (loading) {
+        return (
+            <div className={styles.pageContainer}>
+                <div className={styles.loadingContainer}>
+                    <div className={styles.spinner} />
+                    <p>{t('common.loading', 'Carregando…')}</p>
+                </div>
+            </div>
+        );
+    }
 
     if (modo === 'selecionar') {
         return (
@@ -280,10 +299,17 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 <div className={styles.card}>
                     <div className={styles.header}>
                         <div className={styles.headerTitle}>
-                            <h1>{t('inicioTurno.title', 'Início de turno')}</h1>
-                            <p>{t('inicioTurno.greeting', { name: operadorNome })}</p>
+                            <h1>
+                                <ClipboardCheck size={28} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+                                {t('inicioTurno.title', 'Início de turno')}
+                            </h1>
+                            <p>
+                                <User size={16} />
+                                {t('inicioTurno.greeting', { name: operadorNome })}
+                            </p>
                         </div>
                         <button className={styles.escapeButton} onClick={handleLogout}>
+                            <LogOut size={18} />
                             {t('common.logout', 'Sair')}
                         </button>
                     </div>
@@ -318,7 +344,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                             {m.nome}
                                             {jaEnviou && (
                                                 <span className={styles.badgeEnviada}>
-                                                    {t('inicioTurno.sentToday', '✓ enviada hoje')}
+                                                    <CheckCircle2 size={12} />
+                                                    {t('inicioTurno.sentToday', 'enviado')}
                                                 </span>
                                             )}
                                         </label>
@@ -329,14 +356,16 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                     </div>
 
                     <div className={styles.actionsRow}>
-                        <button className={styles.button} onClick={iniciarChecklists}>
-                            {t('inicioTurno.confirmBtn', 'Confirmar e iniciar checklists')}
-                        </button>
                         <button
                             className={styles.buttonSecondary}
                             onClick={() => navigate('/', { replace: true })}
                         >
+                            <ArrowLeft size={18} />
                             {t('common.cancel', 'Cancelar')}
+                        </button>
+                        <button className={styles.button} onClick={iniciarChecklists}>
+                            {t('inicioTurno.confirmBtn', 'Confirmar e iniciar')}
+                            <ArrowRight size={18} />
                         </button>
                     </div>
                 </div>
@@ -351,29 +380,38 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 <div className={styles.header}>
                     <div className={styles.headerTitle}>
                         <h1>
-                            {t('checklist.title', { machine: maquinaAtual?.nome || '' })}{' '}
-                            <small>({idx + 1}/{selecionadas.length})</small>
+                            {maquinaAtual?.nome || ''}
+                            <small> ({idx + 1}/{selecionadas.length})</small>
                         </h1>
-                        <p>{t('checklist.greeting', { name: operadorNome })}</p>
+                        <p>
+                            <User size={16} />
+                            {t('checklist.greeting', { name: operadorNome })}
+                        </p>
                     </div>
                     <button className={styles.escapeButton} onClick={handleLogout}>
+                        <LogOut size={18} />
                         {t('common.logout', 'Sair')}
                     </button>
                 </div>
 
-                {perguntas.length === 0 && (
-                    <p>{t('checklist.empty', 'Não há itens configurados para esta máquina.')}</p>
+                {jaEnviouEsta && (
+                    <div className={styles.badgeEnviada} style={{ marginBottom: 20, display: 'inline-flex' }}>
+                        <CheckCircle2 size={14} />
+                        {t('checklist.alreadySent', 'Checklist já enviado hoje')}
+                    </div>
                 )}
 
-                {jaEnviouEsta && (
-                    <div className={styles.badgeEnviada} style={{ marginBottom: 16, display: 'inline-block' }}>
-                        {t('checklist.alreadySent', '✓ Checklist já enviado hoje')}
+                {perguntas.length === 0 && (
+                    <div className={styles.emptyState}>
+                        {t('checklist.empty', 'Não há itens configurados para esta máquina.')}
                     </div>
                 )}
 
                 {perguntas.map((pergunta, i) => {
                     const itemKey = slugify(pergunta);
                     const isLocked = itensBloqueados.has(itemKey);
+                    const resp = respostas[pergunta];
+                    const isDisabled = isLocked || jaEnviouEsta;
 
                     return (
                         <div
@@ -385,30 +423,37 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                 {pergunta}
                                 {isLocked && (
                                     <span className={styles.badgeChamadoAberto}>
+                                        <AlertTriangle size={12} />
                                         {t('checklist.itemLocked', 'Chamado aberto')}
                                     </span>
                                 )}
                             </span>
                             <div className={styles.optionGroup}>
-                                <input
-                                    type="radio"
-                                    id={`sim-${i}`}
-                                    name={`item-${i}`}
-                                    checked={respostas[pergunta] === 'sim'}
-                                    onChange={() => handleResp(pergunta, 'sim')}
-                                    disabled={isLocked || jaEnviouEsta}
-                                />
-                                <label htmlFor={`sim-${i}`}>{t('checklist.yes', 'Sim')}</label>
+                                <button
+                                    type="button"
+                                    className={`${resp === 'sim'
+                                            ? styles.radioButtonSimActive
+                                            : styles.radioButtonSim
+                                        } ${isDisabled ? styles.radioButtonDisabled : ''}`}
+                                    onClick={() => !isDisabled && handleResp(pergunta, 'sim')}
+                                    disabled={isDisabled}
+                                >
+                                    <CheckCircle2 size={20} />
+                                    {t('checklist.yes', 'OK')}
+                                </button>
 
-                                <input
-                                    type="radio"
-                                    id={`nao-${i}`}
-                                    name={`item-${i}`}
-                                    checked={respostas[pergunta] === 'nao'}
-                                    onChange={() => handleResp(pergunta, 'nao')}
-                                    disabled={isLocked || jaEnviouEsta}
-                                />
-                                <label htmlFor={`nao-${i}`}>{t('checklist.no', 'Não')}</label>
+                                <button
+                                    type="button"
+                                    className={`${resp === 'nao'
+                                            ? styles.radioButtonNaoActive
+                                            : styles.radioButtonNao
+                                        } ${isDisabled ? styles.radioButtonDisabled : ''}`}
+                                    onClick={() => !isDisabled && handleResp(pergunta, 'nao')}
+                                    disabled={isDisabled}
+                                >
+                                    <AlertTriangle size={20} />
+                                    {t('checklist.no', 'Problema')}
+                                </button>
                             </div>
                         </div>
                     );
@@ -426,6 +471,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                             }
                         }}
                     >
+                        <ArrowLeft size={18} />
                         {t('common.back', 'Voltar')}
                     </button>
 
@@ -435,11 +481,16 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         onClick={enviarChecklistAtual}
                         title={t('checklist.send', 'Enviar')}
                     >
-                        {salvando ? t('checklist.sending', 'Enviando…') :
-                            (idx + 1 < selecionadas.length
-                                ? t('checklist.sendAndNext', 'Enviar e próxima')
-                                : t('checklist.finishAll', 'Enviar e finalizar'))
-                        }
+                        {salvando ? (
+                            t('checklist.sending', 'Enviando…')
+                        ) : (
+                            <>
+                                <Send size={20} />
+                                {idx + 1 < selecionadas.length
+                                    ? t('checklist.sendAndNext', 'Enviar e próxima')
+                                    : t('checklist.finishAll', 'Enviar e finalizar')}
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

@@ -1,11 +1,10 @@
-/* Fundo geral da página com a MESMA imagem de antes */
+/* LoginPage.module.css - Modernized with Design Tokens */
+
+/* ==================== PAGE WRAPPER ==================== */
 .pageWrapper {
-  box-sizing: border-box;
-  /* padding conta dentro dos 100% */
   width: 100%;
   height: 100vh;
-  /* travado na viewport */
-  padding: 24px 16px;
+  padding: var(--spacing-6) var(--spacing-4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,42 +13,85 @@
   background-size: cover;
 }
 
-/* Overlay clarinho por cima da imagem (igual conceito antigo) */
+/* Overlay com gradiente */
 .pageWrapper::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(224, 242, 255, 0.85) 0, rgba(241, 245, 249, 0.9) 45%, rgba(226, 232, 240, 0.95) 100%);
+  background: radial-gradient(circle at top,
+      rgba(224, 242, 255, 0.85) 0,
+      rgba(241, 245, 249, 0.9) 45%,
+      rgba(226, 232, 240, 0.95) 100%);
   z-index: 0;
 }
 
-/* Wrapper para limitar largura do card */
+/* ==================== CARD WRAPPER ==================== */
 .cardWrapper {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 880px;
+  max-width: 900px;
+  animation: slideUp 0.5s ease-out;
 }
 
-/* Card principal (desktop: 2 colunas; mobile: 1 coluna) */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== LOGIN CARD ==================== */
 .loginCard {
   display: flex;
-  background-color: #ffffff;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  background: #ffffff;
+  border-radius: var(--radius-2xl);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow:
+    0 25px 50px -12px rgba(15, 23, 42, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
   overflow: hidden;
 }
 
-/* --- LADO ESQUERDO: BRAND / LOGO --- */
+/* ==================== BRAND SECTION (LEFT) ==================== */
 .brandSection {
   flex: 1;
   min-width: 0;
-  background: #f8fafc;
-  border-right: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-primary-50) 100%);
+  border-right: 1px solid var(--color-neutral-200);
   display: flex;
   flex-direction: column;
-  padding: 32px 32px;
+  padding: var(--spacing-8);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circles */
+.brandSection::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: var(--radius-full);
+}
+
+.brandSection::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: -30px;
+  width: 100px;
+  height: 100px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: var(--radius-full);
 }
 
 .brandInner {
@@ -57,18 +99,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .brandLogo {
   max-width: 260px;
   width: 100%;
   height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+  transition: transform var(--transition-base);
+}
+
+.brandLogo:hover {
+  transform: scale(1.02);
 }
 
 .brandFooter {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 16px;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+  margin-top: var(--spacing-4);
+  position: relative;
+  z-index: 1;
 }
 
 .brandCopy {
@@ -76,83 +128,82 @@
   margin-top: 2px;
 }
 
-/* --- LADO DIREITO: FORMULÁRIO --- */
+/* ==================== FORM SECTION (RIGHT) ==================== */
 .formSection {
   flex: 1.1;
   min-width: 0;
-  padding: 40px 40px 32px;
-  background-color: #ffffff;
+  padding: var(--spacing-10) var(--spacing-10) var(--spacing-8);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
 
 .accessLabel {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
-  margin-bottom: 4px;
+  color: var(--color-neutral-400);
+  margin-bottom: var(--spacing-1);
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0 0 4px;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  margin: 0 0 var(--spacing-1);
 }
 
 .subtitle {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0 0 24px;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+  margin: 0 0 var(--spacing-6);
 }
 
 .loginForm {
-  margin-top: 4px;
+  margin-top: var(--spacing-1);
 }
 
-/* Campos */
+/* ==================== FORM FIELDS ==================== */
 .fieldGroup {
-  margin-bottom: 18px;
+  margin-bottom: var(--spacing-5);
 }
 
 .fieldLabel {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #0f172a;
-  margin-bottom: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-800);
+  margin-bottom: var(--spacing-2);
 }
 
 .requiredMark {
-  color: #ef4444;
+  color: var(--color-danger-500);
   margin-left: 3px;
 }
 
 .fieldInput {
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: #0f172a;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-neutral-200);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-800);
+  background: #ffffff;
+  transition: all var(--transition-fast);
 }
 
 .fieldInput::placeholder {
-  color: #94a3b8;
+  color: var(--color-neutral-400);
 }
 
 .fieldInput:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Senha + botão de mostrar/ocultar */
+/* Password field */
 .passwordWrapper {
   position: relative;
   display: flex;
@@ -160,124 +211,128 @@
 }
 
 .passwordWrapper .fieldInput {
-  padding-right: 38px;
+  padding-right: 44px;
 }
 
 .passwordToggle {
   position: absolute;
-  right: 10px;
+  right: var(--spacing-3);
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #94a3b8;
+  color: var(--color-neutral-400);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
 .passwordToggle:hover {
-  color: #64748b;
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-100);
 }
 
-/* Texto de "esqueceu a senha" */
 .forgotHint {
-  font-size: 12px;
-  color: #94a3b8;
-  margin: 4px 0 18px;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  margin: var(--spacing-1) 0 var(--spacing-4);
 }
 
-/* Botão principal */
+/* ==================== SUBMIT BUTTON ==================== */
 .submitButton {
   width: 100%;
-  height: 44px;
-  border-radius: 8px;
+  min-height: 48px;
+  border-radius: var(--radius-lg);
   border: none;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  background-color: #2563eb;
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
   color: #ffffff;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-primary);
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #1d4ed8;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
+  box-shadow: var(--shadow-primary-hover);
+  transform: translateY(-2px);
 }
 
 .submitButton:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+  transform: translateY(0);
 }
 
 .submitButton:disabled {
-  background-color: #cbd5e1;
+  background: var(--color-neutral-300);
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* === Divisor "ou" === */
+/* ==================== DIVIDER ==================== */
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 24px 0 20px;
+  gap: var(--spacing-4);
+  margin: var(--spacing-6) 0 var(--spacing-5);
 }
 
 .dividerLine {
   flex: 1;
   height: 1px;
-  background: #e2e8f0;
+  background: linear-gradient(90deg, transparent 0%, var(--color-neutral-200) 50%, transparent 100%);
 }
 
 .dividerText {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-medium);
 }
 
-/* === Botão Operação === */
+/* ==================== OPERATOR BUTTON ==================== */
 .operatorButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--spacing-3);
   width: 100%;
-  padding: 16px 24px;
-  border-radius: 12px;
-  border: 2px solid #10b981;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  color: #047857;
-  font-size: 17px;
-  font-weight: 600;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--color-success-500);
+  background: linear-gradient(135deg, var(--color-success-50) 0%, var(--color-success-100) 100%);
+  color: var(--color-success-700);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .operatorButton:hover {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border-color: #059669;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-success-200) 100%);
+  border-color: var(--color-success-600);
+  box-shadow: var(--shadow-success);
+  transform: translateY(-2px);
 }
 
 .operatorButton:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .operatorIcon {
-  font-size: 22px;
+  font-size: 24px;
 }
 
-/* === Language switcher (mesmo padrão anterior) === */
+/* ==================== LANGUAGE MENU ==================== */
 .loginLangMenu {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 1000;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  z-index: var(--z-fixed);
 }
 
 .flag {
@@ -285,12 +340,10 @@
   line-height: 1;
 }
 
-/* RESPONSIVO: MOBILE (CARD ÚNICO CENTRALIZADO) */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .pageWrapper {
-    padding: 24px 12px;
-    height: 100vh;
-    /* continua travando na viewport */
+    padding: var(--spacing-6) var(--spacing-3);
   }
 
   .loginCard {
@@ -301,14 +354,15 @@
 
   .brandSection {
     border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 24px 24px 18px;
+    border-bottom: 1px solid var(--color-neutral-200);
+    padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
     align-items: center;
     text-align: center;
   }
 
-  .brandInner {
-    justify-content: center;
+  .brandSection::before,
+  .brandSection::after {
+    display: none;
   }
 
   .brandLogo {
@@ -316,17 +370,17 @@
   }
 
   .brandFooter {
-    margin-top: 12px;
+    margin-top: var(--spacing-3);
   }
 
   .formSection {
-    padding: 28px 24px 24px;
+    padding: var(--spacing-6);
   }
 }
 
 @media (max-width: 480px) {
   .loginLangMenu {
-    top: 12px;
-    right: 12px;
+    top: var(--spacing-3);
+    right: var(--spacing-3);
   }
 }

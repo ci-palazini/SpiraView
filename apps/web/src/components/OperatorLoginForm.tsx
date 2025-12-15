@@ -1,9 +1,10 @@
 // src/components/OperatorLoginForm.tsx
-import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiArrowLeft, FiUser, FiLoader } from 'react-icons/fi';
+import { ArrowLeft, User, Loader } from 'lucide-react';
 import { listarOperadoresAtivos, loginOperador, OperadorListItem } from '../services/apiClient';
 import toast from 'react-hot-toast';
+import { SelectList, NumericKeypad } from '../shared/components';
 import styles from './OperatorLoginForm.module.css';
 
 interface OperatorLoginFormProps {
@@ -19,6 +20,7 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
     const [selectedId, setSelectedId] = useState('');
     const [matricula, setMatricula] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [keypadOpen, setKeypadOpen] = useState(false);
 
     // Carregar lista de operadores
     useEffect(() => {
@@ -36,8 +38,8 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
         load();
     }, [t]);
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: FormEvent<HTMLFormElement>) => {
+        e?.preventDefault();
         if (submitting) return;
 
         if (!selectedId) {
@@ -68,21 +70,31 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
         }
     };
 
-    // Formatar matrícula: apenas dígitos, máximo 4
-    const handleMatriculaChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-        setMatricula(value);
+    const handleKeypadConfirm = () => {
+        setKeypadOpen(false);
+        if (selectedId && matricula.length === 4) {
+            handleSubmit();
+        }
     };
+
+    // Converter operadores para formato do SelectList
+    const operadorOptions = operadores.map((op) => ({
+        id: op.id,
+        label: op.nome,
+    }));
+
+    // Display da matrícula como ****
+    const matriculaDisplay = matricula.length > 0 ? '●'.repeat(matricula.length) : '';
 
     return (
         <div className={styles.container}>
             <button type="button" className={styles.backButton} onClick={onBack}>
-                <FiArrowLeft />
+                <ArrowLeft size={16} />
                 {t('login.operatorMode.backToNormal', 'Voltar para login normal')}
             </button>
 
             <div className={styles.header}>
-                <FiUser className={styles.headerIcon} />
+                <User className={styles.headerIcon} />
                 <h2 className={styles.title}>
                     {t('login.operatorMode.title', 'Acesso Operador')}
                 </h2>
@@ -90,7 +102,7 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
 
             {loading ? (
                 <div className={styles.loadingContainer}>
-                    <FiLoader className={styles.spinner} />
+                    <Loader className={styles.spinner} size={24} />
                     <span>{t('login.operatorMode.loading', 'Carregando operadores...')}</span>
                 </div>
             ) : operadores.length === 0 ? (
@@ -99,45 +111,29 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className={styles.form}>
-                    <div className={styles.fieldGroup}>
-                        <label htmlFor="operador" className={styles.fieldLabel}>
-                            {t('login.operatorMode.selectOperator', 'Selecione seu nome')}
-                        </label>
-                        <select
-                            id="operador"
-                            className={styles.select}
-                            value={selectedId}
-                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedId(e.target.value)}
-                            disabled={submitting}
-                        >
-                            <option value="">
-                                {t('login.operatorMode.selectPlaceholder', 'Escolha...')}
-                            </option>
-                            {operadores.map((op) => (
-                                <option key={op.id} value={op.id}>
-                                    {op.nome}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <SelectList
+                        label={t('login.operatorMode.selectOperator', 'Selecione seu nome')}
+                        options={operadorOptions}
+                        value={selectedId}
+                        onChange={setSelectedId}
+                        searchable={operadores.length > 6}
+                        searchPlaceholder={t('login.operatorMode.searchPlaceholder', 'Buscar operador...')}
+                        emptyMessage={t('login.operatorMode.noResults', 'Nenhum operador encontrado')}
+                        disabled={submitting}
+                    />
 
                     <div className={styles.fieldGroup}>
-                        <label htmlFor="matricula" className={styles.fieldLabel}>
+                        <label className={styles.fieldLabel}>
                             {t('login.operatorMode.matricula', 'Matrícula (4 dígitos)')}
                         </label>
-                        <input
-                            type="password"
-                            id="matricula"
-                            className={styles.input}
-                            value={matricula}
-                            onChange={handleMatriculaChange}
-                            placeholder={t('login.operatorMode.matriculaPlaceholder', 'Digite sua matrícula')}
-                            maxLength={4}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
+                        <button
+                            type="button"
+                            className={`${styles.matriculaButton} ${matricula.length > 0 ? styles.hasDots : ''}`}
+                            onClick={() => setKeypadOpen(true)}
                             disabled={submitting}
-                            autoComplete="off"
-                        />
+                        >
+                            {matriculaDisplay || t('login.operatorMode.matriculaPlaceholder', 'Toque para digitar')}
+                        </button>
                     </div>
 
                     <button
@@ -151,6 +147,16 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
                     </button>
                 </form>
             )}
+
+            <NumericKeypad
+                isOpen={keypadOpen}
+                onClose={() => setKeypadOpen(false)}
+                value={matricula}
+                onChange={setMatricula}
+                onConfirm={handleKeypadConfirm}
+                maxLength={4}
+                title={t('login.operatorMode.matricula', 'Matrícula (4 dígitos)')}
+            />
         </div>
     );
 }

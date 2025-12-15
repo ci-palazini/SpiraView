@@ -1,15 +1,37 @@
 /* src/index.css */
 
-body, html {
+/* Design System */
+@import './styles/design-tokens.css';
+@import './styles/utilities.css';
+
+body,
+html {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif; /* Ou a fonte que você escolheu */
+  font-family: var(--font-family-base);
   height: 100%;
-  background-color: #f0f2f5; /* Fundo cinza claro para a aplicação */
+  background-color: var(--color-neutral-100);
 }
 
 #root {
   width: 100%;
   height: 100%;
+}
+
+/* Reset básico */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
 }

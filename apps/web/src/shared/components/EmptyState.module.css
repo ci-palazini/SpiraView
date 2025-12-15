@@ -1,0 +1,43 @@
+/* EmptyState.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--spacing-10) var(--spacing-5);
+    background: var(--color-neutral-50);
+    border: 2px dashed var(--color-neutral-200);
+    border-radius: var(--radius-xl);
+}
+
+.iconWrapper {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-neutral-100);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--spacing-4);
+    color: var(--color-neutral-400);
+}
+
+.title {
+    margin: 0 0 var(--spacing-2);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-700);
+}
+
+.description {
+    margin: 0 0 var(--spacing-5);
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-500);
+    max-width: 300px;
+}
+
+.actions {
+    margin-top: var(--spacing-2);
+}
