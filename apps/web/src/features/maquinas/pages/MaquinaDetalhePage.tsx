@@ -16,6 +16,9 @@ import { ChevronUp, ChevronDown, AlertCircle, History, ClipboardList, QrCode } f
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { df, statusKey } from '../../../i18n/format';
+import { Button, Input, EmptyState } from '../../../shared/components';
+import Modal from '../../../shared/components/Modal';
+import PageHeader from '../../../shared/components/PageHeader';
 
 // ---------- Types ----------
 interface User {
@@ -329,10 +332,10 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
 
     return (
         <>
-            <header className={styles.header}>
-                <h1>{maquina.nome}</h1>
-                <p>{t('maquinaDetalhe.subtitle')}</p>
-            </header>
+            <PageHeader
+                title={maquina.nome}
+                subtitle={t('maquinaDetalhe.subtitle')}
+            />
 
             {user.role === 'gestor' ? (
                 <div>
@@ -377,7 +380,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                 <h3>{t('maquinaDetalhe.checklist.title', { name: maquina.nome })}</h3>
 
                                 {(!maquina.checklistDiario || maquina.checklistDiario.length === 0) && (
-                                    <p>{t('maquinaDetalhe.checklist.empty')}</p>
+                                    <EmptyState title={t('maquinaDetalhe.checklist.empty')} />
                                 )}
 
                                 <ul className={styles.operatorList}>
@@ -421,16 +424,16 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                         handleAdicionarItemChecklist();
                                     }}
                                 >
-                                    <input
+                                    <Input
+                                        id="novo-item-checklist"
                                         type="text"
                                         value={novoItemChecklist}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setNovoItemChecklist(e.target.value)}
-                                        className={styles.checklistInput}
+                                        onChange={(e) => setNovoItemChecklist(e.target.value)}
                                         placeholder={t('maquinaDetalhe.checklist.placeholder')}
                                     />
-                                    <button type="submit" className={styles.checklistAddButton}>
+                                    <Button type="submit">
                                         {t('maquinaDetalhe.checklist.add')}
-                                    </button>
+                                    </Button>
                                 </form>
 
                                 <div className={styles.historyReport}>
@@ -514,9 +517,9 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                     />
                                 </div>
 
-                                <button onClick={handleDownloadQRCode} className={styles.downloadButton}>
+                                <Button onClick={handleDownloadQRCode}>
                                     <FiDownload /> {t('maquinaDetalhe.qrcode.download')}
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -538,58 +541,40 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 </div>
             )}
 
-            {/* ===== Modal simples com o detalhe das respostas ===== */}
-            {modalOpen && (
-                <div
-                    onClick={() => setModalOpen(false)}
-                    style={{
-                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.35)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-                    }}
-                >
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            background: '#fff', borderRadius: 12, width: 'min(900px, 95vw)', maxHeight: '85vh',
-                            overflow: 'auto', padding: 20, boxShadow: '0 10px 30px rgba(0,0,0,.2)'
-                        }}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                            <h3 style={{ margin: 0 }}>{modalTitulo}</h3>
-                            <button onClick={() => setModalOpen(false)} style={{ border: 'none', background: 'transparent', fontSize: 20, cursor: 'pointer' }}>×</button>
+            <Modal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title={modalTitulo}
+            >
+                {modalSubmissoes.map((s) => (
+                    <div key={s.id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                        <div style={{ marginBottom: 8, fontSize: 13, color: '#6b7280' }}>
+                            {t('maquinaDetalhe.checklist.submittedAt', 'Enviado em')}: {s.criado_em ? fmtDateTime.format(new Date(s.criado_em)) : '—'}
                         </div>
-
-                        {modalSubmissoes.map((s) => (
-                            <div key={s.id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 12 }}>
-                                <div style={{ marginBottom: 8, fontSize: 13, color: '#6b7280' }}>
-                                    {t('maquinaDetalhe.checklist.submittedAt', 'Enviado em')}: {s.criado_em ? fmtDateTime.format(new Date(s.criado_em)) : '—'}
-                                </div>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #e5e7eb' }}>{t('maquinaDetalhe.checklist.item', 'Item')}</th>
-                                            <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #e5e7eb' }}>{t('maquinaDetalhe.checklist.answer', 'Resposta')}</th>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #e5e7eb' }}>{t('maquinaDetalhe.checklist.item', 'Item')}</th>
+                                    <th style={{ textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid #e5e7eb' }}>{t('maquinaDetalhe.checklist.answer', 'Resposta')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(s.respostas || {}).map(([pergunta, resp]) => {
+                                    const isNao = String(resp).toLowerCase() === 'nao';
+                                    return (
+                                        <tr key={pergunta}>
+                                            <td style={{ padding: '6px', borderBottom: '1px solid #f3f4f6' }}>{pergunta}</td>
+                                            <td style={{ padding: '6px', borderBottom: '1px solid #f3f4f6', fontWeight: 600, color: isNao ? '#b91c1c' : '#065f46' }}>
+                                                {isNao ? t('checklist.no') : t('checklist.yes')}
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {Object.entries(s.respostas || {}).map(([pergunta, resp]) => {
-                                            const isNao = String(resp).toLowerCase() === 'nao';
-                                            return (
-                                                <tr key={pergunta}>
-                                                    <td style={{ padding: '6px', borderBottom: '1px solid #f3f4f6' }}>{pergunta}</td>
-                                                    <td style={{ padding: '6px', borderBottom: '1px solid #f3f4f6', fontWeight: 600, color: isNao ? '#b91c1c' : '#065f46' }}>
-                                                        {isNao ? t('checklist.no') : t('checklist.yes')}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            )}
+                ))}
+            </Modal>
         </>
     );
 };
