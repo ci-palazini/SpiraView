@@ -546,7 +546,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                         </div>
                     )}
 
-                    <div className={styles.detailItem}>
+                    <div className={`${styles.detailItem} ${styles.detailItemFull}`}>
                         <strong>{t('chamadoDetalhe.fields.reportedProblem')}</strong>
                         <p style={{ wordBreak: 'break-word' }}>{chamado.descricao}</p>
                     </div>
@@ -560,7 +560,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                 </p>
                             </div>
                         ) : (
-                            <div className={styles.detailItem}>
+                            <div className={`${styles.detailItem} ${styles.detailItemFull}`}>
                                 <strong>{t('chamadoDetalhe.fields.performedService')}</strong>
                                 <p style={{ wordBreak: 'break-word' }}>{chamado.solucao}</p>
                                 <small>{t('chamadoDetalhe.fields.finishedAt', {
