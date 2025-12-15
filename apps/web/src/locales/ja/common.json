@@ -35,7 +35,24 @@
     "invalid": "ユーザー名またはパスワードが無効です。",
     "next": "次へ",
     "loading": "ログイン中...",
-    "forgotHint": "パスワードを忘れましたか？ 継続的改善の担当者に連絡してください。"
+    "forgotHint": "パスワードを忘れましたか？ 継続的改善の担当者に連絡してください。",
+    "or": "または",
+    "operationBtn": "オペレーション",
+    "operatorMode": {
+      "title": "オペレーターアクセス",
+      "selectOperator": "名前を選択してください",
+      "selectPlaceholder": "選択...",
+      "matricula": "社員番号（4桁）",
+      "matriculaPlaceholder": "社員番号を入力",
+      "enter": "入る",
+      "submitting": "ログイン中...",
+      "backToNormal": "通常ログインに戻る",
+      "loading": "オペレーターを読み込み中...",
+      "loadError": "オペレーターの読み込みに失敗しました。",
+      "empty": "登録されたオペレーターがいません。",
+      "selectRequired": "オペレーターを選択してください。",
+      "matriculaRequired": "社員番号を入力してください（4桁）。"
+    }
   },
   "inicio": {
     "title": "ホーム",
@@ -325,6 +342,19 @@
         "title": "解決内容を登録して完了",
         "solutionLabel": "実施作業／適用した解決策"
       }
+    },
+    "photos": {
+      "title": "メンテナンスの写真",
+      "add": "写真を追加",
+      "hint": "対応形式: JPG, PNG",
+      "choose": "ファイルを選択",
+      "noFile": "ファイルが選択されていません",
+      "uploadButton": "写真をアップロード",
+      "selectFile": "先に写真を選択してください。",
+      "uploadSuccess": "写真をアップロードしました。",
+      "uploadError": "写真のアップロードに失敗しました。",
+      "permissionDenied": "写真をアップロードする権限がありません。",
+      "empty": "まだ写真が追加されていません。"
     },
     "delete": {
       "title": "この依頼を完全に削除",
@@ -646,7 +676,10 @@
       "role": "役割",
       "saving": "保存中...",
       "saveChanges": "変更を保存",
-      "createUser": "ユーザーを作成"
+      "createUser": "ユーザーを作成",
+      "matricula": "社員番号",
+      "matriculaPlaceholder": "例: 1234",
+      "matriculaHint": "簡易ログイン用の4桁の数字"
     },
     "roles": {
       "all": "すべて",
@@ -748,7 +781,10 @@
     "toastFail": "チェックリストを送信できませんでした。",
     "allDone": "すべてのチェックリストが完了しました！",
     "sendAndNext": "送信して次へ",
-    "finishAll": "送信して完了"
+    "finishAll": "送信して完了",
+    "itemLocked": "未対応の依頼",
+    "itemLockedHint": "この項目には既に未対応の依頼があります",
+    "alreadySent": "✓ 本日のチェックリストは送信済みです"
   },
   "checklistOverview": {
     "title": "機械別の日次チェックリスト",

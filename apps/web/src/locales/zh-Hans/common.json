@@ -35,7 +35,24 @@
     "invalid": "用户名或密码无效。",
     "next": "下一步",
     "loading": "正在登录...",
-    "forgotHint": "忘记密码了吗？请联系持续改进负责人。"
+    "forgotHint": "忘记密码？请联系持续改进负责人。",
+    "or": "或",
+    "operationBtn": "运营",
+    "operatorMode": {
+      "title": "操作员登录",
+      "selectOperator": "选择您的姓名",
+      "selectPlaceholder": "选择...",
+      "matricula": "工号（4位数字）",
+      "matriculaPlaceholder": "输入您的工号",
+      "enter": "进入",
+      "submitting": "登录中...",
+      "backToNormal": "返回正常登录",
+      "loading": "加载操作员中...",
+      "loadError": "加载操作员失败。",
+      "empty": "没有已注册的操作员。",
+      "selectRequired": "请选择一个操作员。",
+      "matriculaRequired": "请输入您的工号（4位数字）。"
+    }
   },
   "inicio": {
     "title": "首页",
@@ -325,6 +342,19 @@
         "title": "登记解决方案并完成",
         "solutionLabel": "已执行的服务 / 采用的解决方案"
       }
+    },
+    "photos": {
+      "title": "维修照片",
+      "add": "添加照片",
+      "hint": "支持格式: JPG, PNG",
+      "choose": "选择文件",
+      "noFile": "未选择文件",
+      "uploadButton": "上传照片",
+      "selectFile": "请先选择照片。",
+      "uploadSuccess": "照片上传成功。",
+      "uploadError": "照片上传失败。",
+      "permissionDenied": "您没有上传照片的权限。",
+      "empty": "暂无照片。"
     },
     "delete": {
       "title": "永久删除此工单",
@@ -646,7 +676,10 @@
       "role": "角色",
       "saving": "正在保存...",
       "saveChanges": "保存更改",
-      "createUser": "创建用户"
+      "createUser": "创建用户",
+      "matricula": "工号",
+      "matriculaPlaceholder": "例: 1234",
+      "matriculaHint": "简化登录用4位数字"
     },
     "roles": {
       "all": "全部",
@@ -746,9 +779,12 @@
     "sending": "正在提交...",
     "toastSent": "检查表已提交！已生成 {{count}} 个工单。",
     "toastFail": "无法提交检查表。",
-    "allDone": "检查清单已完成！",
-    "sendAndNext": "提交并下一个",
-    "finishAll": "提交并完成"
+    "allDone": "检查单已完成！",
+    "sendAndNext": "发送并继续",
+    "finishAll": "发送并完成",
+    "itemLocked": "未处理工单",
+    "itemLockedHint": "该项已有未处理的工单",
+    "alreadySent": "✓ 今日检查单已提交"
   },
   "checklistOverview": {
     "title": "按设备的每日检查表",

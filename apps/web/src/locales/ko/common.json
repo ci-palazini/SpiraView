@@ -35,7 +35,24 @@
     "invalid": "사용자 이름 또는 비밀번호가 잘못되었습니다.",
     "next": "다음",
     "loading": "로그인 중...",
-    "forgotHint": "비밀번호를 잊으셨나요? 지속적 개선 담당자에게 문의하세요."
+    "forgotHint": "비밀번호를 잊으셨나요? 지속적 개선 담당자에게 문의하세요.",
+    "or": "또는",
+    "operationBtn": "운영",
+    "operatorMode": {
+      "title": "작업자 접근",
+      "selectOperator": "이름을 선택하세요",
+      "selectPlaceholder": "선택...",
+      "matricula": "사원번호 (4자리)",
+      "matriculaPlaceholder": "사원번호 입력",
+      "enter": "입장",
+      "submitting": "로그인 중...",
+      "backToNormal": "일반 로그인으로 돌아가기",
+      "loading": "작업자 로딩 중...",
+      "loadError": "작업자 로드 오류.",
+      "empty": "등록된 작업자가 없습니다.",
+      "selectRequired": "작업자를 선택하세요.",
+      "matriculaRequired": "사원번호를 입력하세요 (4자리)."
+    }
   },
   "inicio": {
     "title": "홈",
@@ -325,6 +342,19 @@
         "title": "해결 내용 기록 후 완료",
         "solutionLabel": "수행 작업 / 적용된 해결책"
       }
+    },
+    "photos": {
+      "title": "유지보수 사진",
+      "add": "사진 추가",
+      "hint": "허용 형식: JPG, PNG",
+      "choose": "파일 선택",
+      "noFile": "파일이 선택되지 않음",
+      "uploadButton": "사진 업로드",
+      "selectFile": "먼저 사진을 선택하세요.",
+      "uploadSuccess": "사진이 업로드되었습니다.",
+      "uploadError": "사진 업로드에 실패했습니다.",
+      "permissionDenied": "사진 업로드 권한이 없습니다.",
+      "empty": "아직 사진이 추가되지 않았습니다."
     },
     "delete": {
       "title": "이 요청을 영구 삭제",
@@ -646,7 +676,10 @@
       "role": "역할",
       "saving": "저장 중...",
       "saveChanges": "변경 저장",
-      "createUser": "사용자 생성"
+      "createUser": "사용자 생성",
+      "matricula": "사원번호",
+      "matriculaPlaceholder": "예: 1234",
+      "matriculaHint": "간편 로그인을 위한 4자리 숫자"
     },
     "roles": {
       "all": "전체",
@@ -748,7 +781,10 @@
     "toastFail": "체크리스트를 제출할 수 없습니다.",
     "allDone": "체크리스트 완료!",
     "sendAndNext": "전송 후 다음",
-    "finishAll": "전송하고 완료"
+    "finishAll": "전송하고 완료",
+    "itemLocked": "열린 요청",
+    "itemLockedHint": "이 항목에는 이미 열린 요청이 있습니다",
+    "alreadySent": "✓ 오늘 체크리스트 전송 완료"
   },
   "checklistOverview": {
     "title": "기계별 일일 체크리스트",

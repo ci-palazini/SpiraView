@@ -35,7 +35,24 @@
     "invalid": "Ungültiger Benutzername oder Passwort.",
     "next": "Weiter",
     "loading": "Anmeldung läuft...",
-    "forgotHint": "Passwort vergessen? Wenden Sie sich an den Verantwortlichen für Kontinuierliche Verbesserung."
+    "forgotHint": "Passwort vergessen? Wenden Sie sich an den Verantwortlichen für Kontinuierliche Verbesserung.",
+    "or": "oder",
+    "operationBtn": "Betrieb",
+    "operatorMode": {
+      "title": "Bediener-Zugang",
+      "selectOperator": "Wählen Sie Ihren Namen",
+      "selectPlaceholder": "Auswählen...",
+      "matricula": "Personalnummer (4 Ziffern)",
+      "matriculaPlaceholder": "Geben Sie Ihre Personalnummer ein",
+      "enter": "Eintreten",
+      "submitting": "Anmeldung...",
+      "backToNormal": "Zurück zur normalen Anmeldung",
+      "loading": "Bediener werden geladen...",
+      "loadError": "Fehler beim Laden der Bediener.",
+      "empty": "Keine Bediener registriert.",
+      "selectRequired": "Bitte wählen Sie einen Bediener.",
+      "matriculaRequired": "Geben Sie Ihre Personalnummer ein (4 Ziffern)."
+    }
   },
   "inicio": {
     "title": "Startseite",
@@ -325,6 +342,19 @@
         "title": "Lösung erfassen und abschließen",
         "solutionLabel": "Durchgeführte Leistung / Angewandte Lösung"
       }
+    },
+    "photos": {
+      "title": "Fotos zur Wartung",
+      "add": "Foto hinzufügen",
+      "hint": "Akzeptierte Formate: JPG, PNG",
+      "choose": "Datei auswählen",
+      "noFile": "Keine Datei ausgewählt",
+      "uploadButton": "Foto hochladen",
+      "selectFile": "Bitte wählen Sie zuerst ein Foto aus.",
+      "uploadSuccess": "Foto erfolgreich hochgeladen.",
+      "uploadError": "Fehler beim Hochladen des Fotos.",
+      "permissionDenied": "Sie haben keine Berechtigung, Fotos hochzuladen.",
+      "empty": "Bisher keine Fotos hinzugefügt."
     },
     "delete": {
       "title": "Diesen Arbeitsauftrag dauerhaft löschen",
@@ -646,7 +676,10 @@
       "role": "Rolle",
       "saving": "Speichern...",
       "saveChanges": "Änderungen speichern",
-      "createUser": "Benutzer erstellen"
+      "createUser": "Benutzer erstellen",
+      "matricula": "Personalnummer",
+      "matriculaPlaceholder": "z. B.: 1234",
+      "matriculaHint": "4-stellige Nummer für vereinfachte Anmeldung"
     },
     "roles": {
       "all": "Alle",
@@ -748,7 +781,10 @@
     "toastFail": "Checkliste konnte nicht gesendet werden.",
     "allDone": "Checklisten abgeschlossen!",
     "sendAndNext": "Senden & Weiter",
-    "finishAll": "Senden & Abschließen"
+    "finishAll": "Senden & Abschließen",
+    "itemLocked": "Offener Arbeitsauftrag",
+    "itemLockedHint": "Dieses Element hat bereits einen offenen Arbeitsauftrag",
+    "alreadySent": "✓ Checkliste heute bereits gesendet"
   },
   "checklistOverview": {
     "title": "Tägliche Checklisten je Maschine",

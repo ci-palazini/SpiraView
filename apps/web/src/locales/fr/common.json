@@ -35,7 +35,24 @@
     "invalid": "Nom d’utilisateur ou mot de passe invalide.",
     "next": "Suivant",
     "loading": "Connexion…",
-    "forgotHint": "Mot de passe oublié ? Contactez le responsable de l’Amélioration Continue."
+    "forgotHint": "Mot de passe oublié ? Contactez le responsable de l’Amélioration Continue.",
+    "or": "ou",
+    "operationBtn": "Opération",
+    "operatorMode": {
+      "title": "Accès Opérateur",
+      "selectOperator": "Sélectionnez votre nom",
+      "selectPlaceholder": "Choisir...",
+      "matricula": "Matricule (4 chiffres)",
+      "matriculaPlaceholder": "Entrez votre matricule",
+      "enter": "Entrer",
+      "submitting": "Connexion...",
+      "backToNormal": "Retour à la connexion normale",
+      "loading": "Chargement des opérateurs...",
+      "loadError": "Erreur lors du chargement des opérateurs.",
+      "empty": "Aucun opérateur enregistré.",
+      "selectRequired": "Sélectionnez un opérateur.",
+      "matriculaRequired": "Entrez votre matricule (4 chiffres)."
+    }
   },
   "inicio": {
     "title": "Page d’accueil",
@@ -56,7 +73,7 @@
       },
       "calendar": {
         "title": "Calendrier général",
-        "desc": "Vue d’ensemble de toutes les maintenances."
+        "desc": "Vue d’overview de toutes les maintenances."
       },
       "history": {
         "title": "Historique général",
@@ -116,7 +133,7 @@
   },
   "maquinas": {
     "title": "Tableau des machines",
-    "subtitle": "Vue d’ensemble des machines et de leur statut en évidence.",
+    "subtitle": "Vue d’overview des machines et de leur statut en évidence.",
     "loading": "Chargement des machines…",
     "legend": {
       "corretiva": "Corrective (Urgente)",
@@ -325,6 +342,19 @@
         "title": "Enregistrer la solution et clôturer",
         "solutionLabel": "Service effectué / Solution appliquée"
       }
+    },
+    "photos": {
+      "title": "Photos de la maintenance",
+      "add": "Ajouter une photo",
+      "hint": "Formats acceptés : JPG, PNG",
+      "choose": "Choisir un fichier",
+      "noFile": "Aucun fichier sélectionné",
+      "uploadButton": "Téléverser la photo",
+      "selectFile": "Sélectionnez d'abord une photo.",
+      "uploadSuccess": "Photo téléversée avec succès.",
+      "uploadError": "Échec du téléverserment de la photo.",
+      "permissionDenied": "Vous n'avez pas la permission de téléverser des photos.",
+      "empty": "Aucune photo ajoutée pour le moment."
     },
     "delete": {
       "title": "Supprimer définitivement cet ordre",
@@ -646,7 +676,10 @@
       "role": "Rôle",
       "saving": "Enregistrement…",
       "saveChanges": "Enregistrer les modifications",
-      "createUser": "Créer un utilisateur"
+      "createUser": "Créer un utilisateur",
+      "matricula": "Matricule",
+      "matriculaPlaceholder": "Ex : 1234",
+      "matriculaHint": "4 chiffres pour une connexion simplifiée"
     },
     "roles": {
       "all": "Tous",
@@ -748,7 +781,10 @@
     "toastFail": "Impossible d’envoyer la checklist.",
     "allDone": "Listes de contrôle terminées !",
     "sendAndNext": "Envoyer et suivant",
-    "finishAll": "Envoyer et terminer"
+    "finishAll": "Envoyer et terminer",
+    "itemLocked": "Ordre ouvert",
+    "itemLockedHint": "Cet élément a déjà un ordre ouvert",
+    "alreadySent": "✓ Checklist déjà envoyée aujourd'hui"
   },
   "checklistOverview": {
     "title": "Checklists quotidiennes par machine",

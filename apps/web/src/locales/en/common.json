@@ -343,6 +343,19 @@
         "solutionLabel": "Service Performed / Solution Applied"
       }
     },
+    "photos": {
+      "title": "Maintenance Photos",
+      "add": "Add Photo",
+      "hint": "Accepted formats: JPG, PNG",
+      "choose": "Choose File",
+      "noFile": "No file selected",
+      "uploadButton": "Upload Photo",
+      "selectFile": "Please select a photo first.",
+      "uploadSuccess": "Photo uploaded successfully.",
+      "uploadError": "Failed to upload photo.",
+      "permissionDenied": "You don't have permission to upload photos.",
+      "empty": "No photos added yet."
+    },
     "delete": {
       "title": "Permanently delete this work order",
       "button": "Delete Work Order",
@@ -768,7 +781,10 @@
     "toastFail": "Unable to submit checklist.",
     "allDone": "Checklists completed!",
     "sendAndNext": "Send and Next",
-    "finishAll": "Send and Finish"
+    "finishAll": "Send and Finish",
+    "itemLocked": "Open work order",
+    "itemLockedHint": "This item already has an open work order",
+    "alreadySent": "✓ Checklist already sent today"
   },
   "checklistOverview": {
     "title": "Daily checklists by machine",

@@ -35,7 +35,24 @@
     "invalid": "Nome utente o password non validi.",
     "next": "Avanti",
     "loading": "Accesso in corso...",
-    "forgotHint": "Hai dimenticato la password? Contatta il responsabile del Miglioramento Continuo."
+    "forgotHint": "Hai dimenticato la password? Contatta il responsabile del Miglioramento Continuo.",
+    "or": "o",
+    "operationBtn": "Operazione",
+    "operatorMode": {
+      "title": "Accesso Operatore",
+      "selectOperator": "Seleziona il tuo nome",
+      "selectPlaceholder": "Scegli...",
+      "matricula": "Matricola (4 cifre)",
+      "matriculaPlaceholder": "Inserisci la tua matricola",
+      "enter": "Entra",
+      "submitting": "Accesso in corso...",
+      "backToNormal": "Torna al login normale",
+      "loading": "Caricamento operatori...",
+      "loadError": "Errore nel caricamento degli operatori.",
+      "empty": "Nessun operatore registrato.",
+      "selectRequired": "Seleziona un operatore.",
+      "matriculaRequired": "Inserisci la tua matricola (4 cifre)."
+    }
   },
   "inicio": {
     "title": "Pagina iniziale",
@@ -325,6 +342,19 @@
         "title": "Registra soluzione e chiudi",
         "solutionLabel": "Servizio eseguito / Soluzione applicata"
       }
+    },
+    "photos": {
+      "title": "Foto della manutenzione",
+      "add": "Aggiungi foto",
+      "hint": "Formati accettati: JPG, PNG",
+      "choose": "Scegli file",
+      "noFile": "Nessun file selezionato",
+      "uploadButton": "Carica foto",
+      "selectFile": "Seleziona prima una foto.",
+      "uploadSuccess": "Foto caricata con successo.",
+      "uploadError": "Errore durante il caricamento della foto.",
+      "permissionDenied": "Non hai il permesso di caricare foto.",
+      "empty": "Nessuna foto aggiunta finora."
     },
     "delete": {
       "title": "Elimina definitivamente questo ordine",
@@ -646,7 +676,10 @@
       "role": "Ruolo",
       "saving": "Salvataggio...",
       "saveChanges": "Salva modifiche",
-      "createUser": "Crea utente"
+      "createUser": "Crea utente",
+      "matricula": "Matricola",
+      "matriculaPlaceholder": "Es: 1234",
+      "matriculaHint": "4 cifre numeriche per il login semplificato"
     },
     "roles": {
       "all": "Tutti",
@@ -748,7 +781,10 @@
     "toastFail": "Impossibile inviare la checklist.",
     "allDone": "Checklist completate!",
     "sendAndNext": "Invia e avanti",
-    "finishAll": "Invia e termina"
+    "finishAll": "Invia e termina",
+    "itemLocked": "Ordine aperto",
+    "itemLockedHint": "Questo elemento ha già un ordine aperto",
+    "alreadySent": "✓ Checklist già inviata oggi"
   },
   "checklistOverview": {
     "title": "Checklist giornaliere per macchina",

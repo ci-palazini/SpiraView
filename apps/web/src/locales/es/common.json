@@ -35,7 +35,24 @@
     "invalid": "Usuario o contraseña inválidos.",
     "next": "Siguiente",
     "loading": "Ingresando...",
-    "forgotHint": "¿Olvidaste tu contraseña? Comunícate con el responsable de Mejora Continua."
+    "forgotHint": "¿Olvidaste tu contraseña? Comunícate con el responsable de Mejora Continua.",
+    "or": "o",
+    "operationBtn": "Operación",
+    "operatorMode": {
+      "title": "Acceso Operador",
+      "selectOperator": "Seleccione su nombre",
+      "selectPlaceholder": "Elegir...",
+      "matricula": "Matrícula (4 dígitos)",
+      "matriculaPlaceholder": "Ingrese su matrícula",
+      "enter": "Entrar",
+      "submitting": "Ingresando...",
+      "backToNormal": "Volver al inicio de sesión normal",
+      "loading": "Cargando operadores...",
+      "loadError": "Error al cargar operadores.",
+      "empty": "Ningún operador registrado.",
+      "selectRequired": "Seleccione un operador.",
+      "matriculaRequired": "Ingrese su matrícula (4 dígitos)."
+    }
   },
   "inicio": {
     "title": "Página de inicio",
@@ -325,6 +342,19 @@
         "title": "Registrar solución y concluir",
         "solutionLabel": "Servicio realizado / Solución aplicada"
       }
+    },
+    "photos": {
+      "title": "Fotos del mantenimiento",
+      "add": "Agregar foto",
+      "hint": "Formatos aceptados: JPG, PNG",
+      "choose": "Elegir archivo",
+      "noFile": "Ningún archivo seleccionado",
+      "uploadButton": "Subir foto",
+      "selectFile": "Seleccione una foto primero.",
+      "uploadSuccess": "Foto subida con éxito.",
+      "uploadError": "Error al subir la foto.",
+      "permissionDenied": "No tienes permiso para subir fotos.",
+      "empty": "Ninguna foto agregada hasta el momento."
     },
     "delete": {
       "title": "Eliminar definitivamente esta orden",
@@ -646,7 +676,10 @@
       "role": "Función (Rol)",
       "saving": "Guardando...",
       "saveChanges": "Guardar cambios",
-      "createUser": "Crear usuario"
+      "createUser": "Crear usuario",
+      "matricula": "Matrícula",
+      "matriculaPlaceholder": "Ej: 1234",
+      "matriculaHint": "4 dígitos numéricos para inicio de sesión simplificado"
     },
     "roles": {
       "all": "Todas",
@@ -748,7 +781,10 @@
     "toastFail": "No fue posible enviar el checklist.",
     "allDone": "¡Listas de verificación completadas!",
     "sendAndNext": "Enviar y siguiente",
-    "finishAll": "Enviar y finalizar"
+    "finishAll": "Enviar y finalizar",
+    "itemLocked": "Orden abierta",
+    "itemLockedHint": "Este ítem ya tiene una orden abierta",
+    "alreadySent": "✓ Checklist ya enviado hoy"
   },
   "checklistOverview": {
     "title": "Checklists diarios por máquina",
