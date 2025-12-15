@@ -35,7 +35,24 @@
     "invalid": "Usuário ou senha inválidos.",
     "next": "Avançar",
     "loading": "Entrando...",
-    "forgotHint": "Esqueceu a senha? Procure o responsável de Melhoria Contínua."
+    "forgotHint": "Esqueceu a senha? Procure o responsável de Melhoria Contínua.",
+    "or": "ou",
+    "operationBtn": "Operação",
+    "operatorMode": {
+      "title": "Acesso Operador",
+      "selectOperator": "Selecione seu nome",
+      "selectPlaceholder": "Escolha...",
+      "matricula": "Matrícula (4 dígitos)",
+      "matriculaPlaceholder": "Digite sua matrícula",
+      "enter": "Entrar",
+      "submitting": "Entrando...",
+      "backToNormal": "Voltar para login normal",
+      "loading": "Carregando operadores...",
+      "loadError": "Erro ao carregar operadores.",
+      "empty": "Nenhum operador cadastrado.",
+      "selectRequired": "Selecione um operador.",
+      "matriculaRequired": "Digite sua matrícula (4 dígitos)."
+    }
   },
   "inicio": {
     "title": "Página Inicial",
@@ -659,7 +676,10 @@
       "role": "Função (Papel)",
       "saving": "Salvando...",
       "saveChanges": "Salvar Alterações",
-      "createUser": "Criar Usuário"
+      "createUser": "Criar Usuário",
+      "matricula": "Matrícula",
+      "matriculaPlaceholder": "Ex: 1234",
+      "matriculaHint": "4 dígitos numéricos para login simplificado"
     },
     "roles": {
       "all": "Todos",

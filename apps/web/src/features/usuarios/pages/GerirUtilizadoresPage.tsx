@@ -30,6 +30,7 @@ interface UserRow {
     email?: string;
     role?: string;
     funcao?: string;
+    matricula?: string;
 }
 
 type RoleFilter = 'all' | 'gestor' | 'manutentor' | 'operador';
@@ -59,6 +60,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [usuario, setUsuario] = useState('');
     const [senha, setSenha] = useState('');
     const [role, setRole] = useState('operador');
+    const [matricula, setMatricula] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -98,12 +100,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setIsSaving(true);
         try {
             if (modoEdicao && usuarioEditandoId) {
-                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string } = {
+                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
                     role,
                     funcao,
                 };
+                // Adiciona matrícula apenas para operadores
+                if (role === 'operador') {
+                    payload.matricula = matricula.trim() || undefined;
+                }
                 const updated: UserRow = await atualizarUsuario(usuarioEditandoId, payload, {
                     role: user?.role,
                     email: user?.email
@@ -122,6 +128,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     role: string;
                     funcao: string;
                     senha?: string;
+                    matricula?: string;
                 } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
@@ -129,6 +136,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     role,
                     funcao,
                 };
+                // Adiciona matrícula apenas para operadores
+                if (role === 'operador' && matricula.trim()) {
+                    payload.matricula = matricula.trim();
+                }
                 if (senha?.trim()?.length >= 6) {
                     payload.senha = senha.trim();
                 }
@@ -152,6 +163,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setUsuario('');
             setSenha('');
             setRole('operador');
+            setMatricula('');
             setModoEdicao(false);
             setUsuarioEditandoId(null);
             setIsModalOpen(false);
@@ -170,12 +182,14 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setUsuario('');
         setSenha('');
         setRole('operador');
+        setMatricula('');
     };
 
     const abrirModalEdicao = (userRow: UserRow) => {
         setNome(userRow.nome || '');
         setUsuario(userRow.usuario || '');
         setRole(userRow.role || 'operador');
+        setMatricula(userRow.matricula || '');
         setModoEdicao(true);
         setUsuarioEditandoId(userRow.id);
         setSenha('');
@@ -373,6 +387,32 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <option value="gestor">{t('users.roles.manager')}</option>
                         </select>
                     </div>
+
+                    {role === 'operador' && (
+                        <div className={styles.formGroup}>
+                            <label htmlFor="matricula">
+                                {t('users.form.matricula', 'Matrícula')}
+                            </label>
+                            <input
+                                id="matricula"
+                                type="text"
+                                className={styles.input}
+                                value={matricula}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                    // Apenas dígitos, máximo 4
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                    setMatricula(val);
+                                }}
+                                placeholder={t('users.form.matriculaPlaceholder', 'Ex: 1234')}
+                                maxLength={4}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                            />
+                            <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                                {t('users.form.matriculaHint', '4 dígitos numéricos para login simplificado')}
+                            </small>
+                        </div>
+                    )}
 
                     <button type="submit" className={styles.button} disabled={isSaving}>
                         {isSaving

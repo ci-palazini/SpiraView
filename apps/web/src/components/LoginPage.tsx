@@ -2,17 +2,19 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiUsers } from 'react-icons/fi';
 import { login } from '../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.css';
 import logo from '../assets/logo.png';
 import LanguageMenu from './LanguageMenu';
+import OperatorLoginForm from './OperatorLoginForm';
 
 interface StoredUser {
     id?: string;
     email: string;
     name?: string;
+    nome?: string;
     role: string;
 }
 
@@ -44,6 +46,7 @@ export default function LoginPage() {
     const [senha, setSenha] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showOperatorMode, setShowOperatorMode] = useState(false);
 
     const search = new URLSearchParams(location.search);
     const redirectTo = search.get('redirect') || '/';
@@ -94,6 +97,24 @@ export default function LoginPage() {
         }
     };
 
+    const handleOperatorSuccess = (user: { id: string; nome: string; email: string; role: string }) => {
+        const normalized: StoredUser = {
+            id: user.id,
+            email: String(user.email).trim().toLowerCase(),
+            name: user.nome,
+            nome: user.nome,
+            role: 'operador',
+        };
+
+        persistUser(normalized);
+
+        try {
+            window.dispatchEvent(new StorageEvent('storage', { key: 'usuario' }));
+        } catch { /* ignore */ }
+
+        navigate('/inicio-turno', { replace: true });
+    };
+
     const userPlaceholder = t('login.userPlaceholder', '');
 
     return (
@@ -117,71 +138,99 @@ export default function LoginPage() {
 
                     {/* LADO DIREITO: FORMULÁRIO */}
                     <div className={styles.formSection}>
-                        <h1 className={styles.title}>
-                            {t('login.title', 'Entrar no portal')}
-                        </h1>
-                        <p className={styles.subtitle}>
-                            {t('login.subtitle', 'Use seu usuário e senha.')}
-                        </p>
+                        {showOperatorMode ? (
+                            <OperatorLoginForm
+                                onSuccess={handleOperatorSuccess}
+                                onBack={() => setShowOperatorMode(false)}
+                            />
+                        ) : (
+                            <>
+                                <h1 className={styles.title}>
+                                    {t('login.title', 'Entrar no portal')}
+                                </h1>
+                                <p className={styles.subtitle}>
+                                    {t('login.subtitle', 'Use seu usuário e senha.')}
+                                </p>
 
-                        <form onSubmit={handleLogin} className={styles.loginForm}>
-                            <div className={styles.fieldGroup}>
-                                <label htmlFor="userInput" className={styles.fieldLabel}>
-                                    {t('login.userOrEmail')}
-                                    <span className={styles.requiredMark}>*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="userInput"
-                                    className={styles.fieldInput}
-                                    value={userInput}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setUserInput(e.target.value)}
-                                    required
-                                    autoComplete="username"
-                                    autoFocus
-                                    placeholder={userPlaceholder}
-                                />
-                            </div>
+                                <form onSubmit={handleLogin} className={styles.loginForm}>
+                                    <div className={styles.fieldGroup}>
+                                        <label htmlFor="userInput" className={styles.fieldLabel}>
+                                            {t('login.userOrEmail')}
+                                            <span className={styles.requiredMark}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="userInput"
+                                            className={styles.fieldInput}
+                                            value={userInput}
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setUserInput(e.target.value)}
+                                            required
+                                            autoComplete="username"
+                                            autoFocus
+                                            placeholder={userPlaceholder}
+                                        />
+                                    </div>
 
-                            <div className={styles.fieldGroup}>
-                                <label htmlFor="senha" className={styles.fieldLabel}>
-                                    {t('login.password')}
-                                    <span className={styles.requiredMark}>*</span>
-                                </label>
-                                <div className={styles.passwordWrapper}>
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        id="senha"
-                                        className={styles.fieldInput}
-                                        value={senha}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setSenha(e.target.value)}
-                                        required
-                                        autoComplete="current-password"
-                                        placeholder={t('login.passwordPlaceholder', '')}
-                                    />
+                                    <div className={styles.fieldGroup}>
+                                        <label htmlFor="senha" className={styles.fieldLabel}>
+                                            {t('login.password')}
+                                            <span className={styles.requiredMark}>*</span>
+                                        </label>
+                                        <div className={styles.passwordWrapper}>
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                id="senha"
+                                                className={styles.fieldInput}
+                                                value={senha}
+                                                onChange={(e: ChangeEvent<HTMLInputElement>) => setSenha(e.target.value)}
+                                                required
+                                                autoComplete="current-password"
+                                                placeholder={t('login.passwordPlaceholder', '')}
+                                            />
+                                            <button
+                                                type="button"
+                                                className={styles.passwordToggle}
+                                                onClick={() => setShowPassword((v) => !v)}
+                                                aria-label={showPassword ? t('login.hidePassword', 'Ocultar senha') : t('login.showPassword', 'Mostrar senha')}
+                                            >
+                                                {showPassword ? <FiEyeOff /> : <FiEye />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p className={styles.forgotHint}>
+                                        {t('login.forgotHint', 'Esqueceu a senha? Procure o responsável de Melhoria Contínua.')}
+                                    </p>
+
                                     <button
-                                        type="button"
-                                        className={styles.passwordToggle}
-                                        onClick={() => setShowPassword((v) => !v)}
-                                        aria-label={showPassword ? t('login.hidePassword', 'Ocultar senha') : t('login.showPassword', 'Mostrar senha')}
+                                        type="submit"
+                                        className={styles.submitButton}
+                                        disabled={loading}
                                     >
-                                        {showPassword ? <FiEyeOff /> : <FiEye />}
+                                        {loading ? t('login.loading', 'Entrando...') : t('login.next', 'Entrar')}
                                     </button>
+                                </form>
+
+                                {/* Divisor */}
+                                <div className={styles.divider}>
+                                    <span className={styles.dividerLine} />
+                                    <span className={styles.dividerText}>
+                                        {t('login.or', 'ou')}
+                                    </span>
+                                    <span className={styles.dividerLine} />
                                 </div>
-                            </div>
 
-                            <p className={styles.forgotHint}>
-                                {t('login.forgotHint', 'Esqueceu a senha? Procure o responsável de Melhoria Contínua.')}
-                            </p>
-
-                            <button
-                                type="submit"
-                                className={styles.submitButton}
-                                disabled={loading}
-                            >
-                                {loading ? t('login.loading', 'Entrando...') : t('login.next', 'Entrar')}
-                            </button>
-                        </form>
+                                {/* Botão Operação */}
+                                <button
+                                    type="button"
+                                    className={styles.operatorButton}
+                                    onClick={() => setShowOperatorMode(true)}
+                                >
+                                    <FiUsers className={styles.operatorIcon} />
+                                    {t('login.operationBtn', 'Operação')}
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

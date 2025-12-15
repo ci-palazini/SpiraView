@@ -873,6 +873,30 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<{ 
     return data as { ok: boolean };
 }
 
+// ===== OPERATOR AUTH =====
+export interface OperadorListItem {
+    id: string;
+    nome: string;
+}
+
+export async function listarOperadoresAtivos(): Promise<OperadorListItem[]> {
+    const r = await fetch(`${BASE}/operators/active`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || `Falha ao listar operadores (${r.status})`);
+    return Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+}
+
+export async function loginOperador(operadorId: string, matricula: string): Promise<LoginResponse> {
+    const r = await fetch(`${BASE}/auth/operator-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operadorId, matricula })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || `Falha no login de operador (${r.status})`);
+    return data as LoginResponse;
+}
+
 // ===== SSE =====
 export function connectSSE(handlers: SSEHandlers = {}): () => void {
     const es = new EventSource(`${BASE}/events`);

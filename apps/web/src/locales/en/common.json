@@ -35,7 +35,24 @@
     "invalid": "Invalid username or password.",
     "next": "Next",
     "loading": "Logging in...",
-    "forgotHint": "Forgot your password? Contact the Continuous Improvement manager."
+    "forgotHint": "Forgot your password? Contact the Continuous Improvement manager.",
+    "or": "or",
+    "operationBtn": "Operations",
+    "operatorMode": {
+      "title": "Operator Access",
+      "selectOperator": "Select your name",
+      "selectPlaceholder": "Choose...",
+      "matricula": "Badge Number (4 digits)",
+      "matriculaPlaceholder": "Enter your badge number",
+      "enter": "Enter",
+      "submitting": "Logging in...",
+      "backToNormal": "Back to normal login",
+      "loading": "Loading operators...",
+      "loadError": "Error loading operators.",
+      "empty": "No operators registered.",
+      "selectRequired": "Select an operator.",
+      "matriculaRequired": "Enter your badge number (4 digits)."
+    }
   },
   "inicio": {
     "title": "Home Page",
@@ -646,7 +663,10 @@
       "role": "Role",
       "saving": "Saving...",
       "saveChanges": "Save Changes",
-      "createUser": "Create User"
+      "createUser": "Create User",
+      "matricula": "Badge Number",
+      "matriculaPlaceholder": "E.g.: 1234",
+      "matriculaHint": "4-digit number for simplified login"
     },
     "roles": {
       "all": "All",

@@ -1,8 +1,10 @@
 /* Fundo geral da página com a MESMA imagem de antes */
 .pageWrapper {
-  box-sizing: border-box;                /* padding conta dentro dos 100% */
+  box-sizing: border-box;
+  /* padding conta dentro dos 100% */
   width: 100%;
-  height: 100vh;                         /* travado na viewport */
+  height: 100vh;
+  /* travado na viewport */
   padding: 24px 16px;
   display: flex;
   align-items: center;
@@ -215,6 +217,61 @@
   box-shadow: none;
 }
 
+/* === Divisor "ou" === */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 20px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.dividerText {
+  font-size: 13px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* === Botão Operação === */
+.operatorButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 2px solid #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #047857;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.operatorButton:hover {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #059669;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+  transform: translateY(-1px);
+}
+
+.operatorButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.operatorIcon {
+  font-size: 22px;
+}
+
 /* === Language switcher (mesmo padrão anterior) === */
 .loginLangMenu {
   position: fixed;
@@ -232,7 +289,8 @@
 @media (max-width: 768px) {
   .pageWrapper {
     padding: 24px 12px;
-    height: 100vh; /* continua travando na viewport */
+    height: 100vh;
+    /* continua travando na viewport */
   }
 
   .loginCard {

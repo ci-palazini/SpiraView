@@ -41,19 +41,20 @@ usuariosRouter.get('/usuarios', async (req, res) => {
            funcao,
            CASE
              WHEN LOWER(role) = 'gestor'     THEN 'Gestor'
-             WHEN LOWER(role) = 'manutentor' THEN 'TÃ©cnico EletromecÃ¢nico'
+             WHEN LOWER(role) = 'manutentor' THEN 'Técnico Eletromecânico'
              ELSE 'Operador de CNC'
            END
          ) AS funcao,
-         ativo
+         ativo,
+         matricula
        FROM usuarios
        ${whereSQL}
        ORDER BY nome ASC`,
-       params
+      params
     );
 
     res.json({ items: rows });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -66,12 +67,13 @@ usuariosRouter.post('/usuarios', async (req, res) => {
     const auth = (req as any).user || {};
     if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
 
-    let { nome, usuario, email, role, funcao, senha } = req.body || {};
-    nome    = String(nome || '').trim();
+    let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
+    nome = String(nome || '').trim();
     usuario = String(usuario || '').trim().toLowerCase();
-    email   = String(email || '').trim().toLowerCase();
-    role    = String(role || '').trim().toLowerCase();
-    funcao  = String(funcao || '').trim();
+    email = String(email || '').trim().toLowerCase();
+    role = String(role || '').trim().toLowerCase();
+    funcao = String(funcao || '').trim();
+    matricula = matricula !== undefined ? String(matricula).trim() : null;
 
     if (!nome || !usuario || !email || !role) {
       return res.status(400).json({ error: 'Campos obrigatÃ³rios: nome, usuario, email, role.' });
@@ -88,12 +90,12 @@ usuariosRouter.post('/usuarios', async (req, res) => {
       senha_hash = await bcrypt.hash(senha.trim(), 10);
     }
 
-    // InserÃ§Ã£o
+    // Inserção
     const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, usuario, email, role, funcao, senha_hash)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id, nome, usuario, email, role, funcao`,
-      [nome, usuario, email, role, funcao, senha_hash]
+      `INSERT INTO usuarios (nome, usuario, email, role, funcao, senha_hash, matricula)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id, nome, usuario, email, role, funcao, matricula`,
+      [nome, usuario, email, role, funcao, senha_hash, matricula]
     );
 
     res.status(201).json(rows[0]);
@@ -115,26 +117,28 @@ usuariosRouter.put('/usuarios/:id', async (req, res) => {
 
     const id = String(req.params.id);
 
-    let { nome, usuario, email, role, funcao, senha } = req.body || {};
-    nome    = nome    !== undefined ? String(nome).trim()    : undefined;
+    let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
+    nome = nome !== undefined ? String(nome).trim() : undefined;
     usuario = usuario !== undefined ? String(usuario).trim().toLowerCase() : undefined;
-    email   = email   !== undefined ? String(email).trim().toLowerCase()   : undefined;
-    role    = role    !== undefined ? String(role).trim().toLowerCase()    : undefined;
-    funcao  = funcao  !== undefined ? String(funcao).trim()  : undefined;
+    email = email !== undefined ? String(email).trim().toLowerCase() : undefined;
+    role = role !== undefined ? String(role).trim().toLowerCase() : undefined;
+    funcao = funcao !== undefined ? String(funcao).trim() : undefined;
+    matricula = matricula !== undefined ? String(matricula).trim() : undefined;
 
     // Monta SET dinÃ¢mico
     const sets: string[] = [];
     const params: any[] = [];
     const add = (sql: string, v: any) => { params.push(v); sets.push(`${sql}=$${params.length}`); };
 
-    if (nome    !== undefined) add('nome', nome);
+    if (nome !== undefined) add('nome', nome);
     if (usuario !== undefined) add('usuario', usuario);
-    if (email   !== undefined) add('email', email);
-    if (role    !== undefined) add('role', role);
+    if (email !== undefined) add('email', email);
+    if (role !== undefined) add('role', role);
     if (role !== undefined && funcao === undefined) {
       funcao = roleToFuncao(role);
     }
-    if (funcao  !== undefined) add('funcao', funcao);
+    if (funcao !== undefined) add('funcao', funcao);
+    if (matricula !== undefined) add('matricula', matricula);
 
     // Reset de senha se informado
     if (typeof senha === 'string') {
@@ -149,7 +153,7 @@ usuariosRouter.put('/usuarios/:id', async (req, res) => {
     const { rows } = await pool.query(
       `UPDATE usuarios SET ${sets.join(', ')}
         WHERE id=$${params.length}
-      RETURNING id, nome, usuario, email, role, funcao`,
+      RETURNING id, nome, usuario, email, role, funcao, matricula`,
       params
     );
 
@@ -189,7 +193,7 @@ usuariosRouter.delete('/usuarios/:id', async (req, res) => {
       return res.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado ou jÃ¡ inativo.' });
     }
     res.json({ ok: true, id });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
