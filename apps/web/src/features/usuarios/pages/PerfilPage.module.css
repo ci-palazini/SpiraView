@@ -8,6 +8,24 @@
   padding: var(--spacing-5);
 }
 
+/* ==================== PAGE HEADER ==================== */
+.pageHeader {
+  margin: var(--spacing-4);
+  margin-bottom: 0;
+  padding: var(--spacing-5);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+}
+
 /* ==================== CARD ==================== */
 .card {
   background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);

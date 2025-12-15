@@ -1,19 +1,20 @@
 // src/features/usuarios/pages/PerfilPage.tsx
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import styles from './PerfilPage.module.css';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { changePassword } from '../../../services/apiClient';
+import { Card, CardHeader, Input, Button } from '../../../shared/components';
 
 // ---------- Types ----------
-interface User {
+interface UserData {
     nome?: string;
     email?: string;
     funcao?: string;
 }
 
 export interface PerfilPageProps {
-    user: User;
+    user: UserData;
 }
 
 type RoleLabelMap = {
@@ -84,13 +85,13 @@ const PerfilPage = ({ user }: PerfilPageProps) => {
 
     return (
         <>
-            <header style={{ padding: '20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e0e0e0' }}>
+            <header className={styles.pageHeader}>
                 <h1>{t('perfil.title')}</h1>
             </header>
 
-            <div className={styles.container} style={{ padding: '20px' }}>
-                <div className={styles.card}>
-                    <h2 className={styles.cardTitle}>{t('perfil.info.title')}</h2>
+            <div className={styles.container}>
+                <Card>
+                    <CardHeader title={t('perfil.info.title')} />
                     <div className={styles.infoGrid}>
                         <div className={styles.infoItem}>
                             <strong>{t('perfil.info.name')}</strong>
@@ -107,50 +108,41 @@ const PerfilPage = ({ user }: PerfilPageProps) => {
                             </p>
                         </div>
                     </div>
-                </div>
+                </Card>
 
-                <div className={styles.card}>
-                    <h2 className={styles.cardTitle}>{t('perfil.changePassword.title')}</h2>
+                <Card>
+                    <CardHeader title={t('perfil.changePassword.title')} />
                     <form onSubmit={handleChangePassword}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="senha-atual">{t('perfil.changePassword.current')}</label>
-                            <input
-                                type="password"
-                                id="senha-atual"
-                                className={styles.input}
-                                value={senhaAtual}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setSenhaAtual(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="nova-senha">{t('perfil.changePassword.new')}</label>
-                            <input
-                                type="password"
-                                id="nova-senha"
-                                className={styles.input}
-                                value={novaSenha}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setNovaSenha(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="confirmar-senha">{t('perfil.changePassword.confirm')}</label>
-                            <input
-                                type="password"
-                                id="confirmar-senha"
-                                className={styles.input}
-                                value={confirmarSenha}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmarSenha(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <Input
+                            type="password"
+                            id="senha-atual"
+                            label={t('perfil.changePassword.current')}
+                            value={senhaAtual}
+                            onChange={(e) => setSenhaAtual(e.target.value)}
+                            required
+                        />
+                        <Input
+                            type="password"
+                            id="nova-senha"
+                            label={t('perfil.changePassword.new')}
+                            value={novaSenha}
+                            onChange={(e) => setNovaSenha(e.target.value)}
+                            required
+                        />
+                        <Input
+                            type="password"
+                            id="confirmar-senha"
+                            label={t('perfil.changePassword.confirm')}
+                            value={confirmarSenha}
+                            onChange={(e) => setConfirmarSenha(e.target.value)}
+                            required
+                        />
 
-                        <button type="submit" className={styles.button} disabled={loading}>
-                            {loading ? t('perfil.actions.saving') : t('perfil.actions.save')}
-                        </button>
+                        <Button type="submit" loading={loading}>
+                            {t('perfil.actions.save')}
+                        </Button>
                     </form>
-                </div>
+                </Card>
             </div>
         </>
     );
