@@ -1,106 +1,120 @@
-/* ChamadosAbertosPage - Chamados em aberto */
+/* ChamadosAbertosPage.module.css - Modernized */
 
+/* ==================== LIST CONTAINER ==================== */
 .listContainer {
     background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 0 24px 24px 24px;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-5);
+    margin: 0 var(--spacing-4) var(--spacing-4) var(--spacing-4);
+    box-shadow: var(--shadow-sm);
 }
 
 .loading {
-    color: #6b7280;
-    font-size: 14px;
-    padding: 16px 0;
+    color: var(--color-neutral-500);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-4) 0;
 }
 
 .empty {
-    color: #6b7280;
+    color: var(--color-neutral-500);
     font-style: italic;
-    padding: 24px 0;
+    padding: var(--spacing-6) 0;
     text-align: center;
 }
 
-/* Botões de exportação */
+/* ==================== EXPORT BUTTONS ==================== */
 .exportButtons {
     display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
 }
 
 .exportButtons button {
-    background-color: #16a085;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
     color: #ffffff;
     border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: background 0.2s, transform 0.05s ease;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-success);
 }
 
 .exportButtons button:hover {
-    background-color: #13846d;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
 }
 
-/* Filtros */
+.exportButtons button:active {
+    transform: translateY(0);
+}
+
+/* ==================== FILTER CONTAINER ==================== */
 .filterContainer {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: var(--spacing-4);
     align-items: flex-end;
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: var(--color-neutral-50);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-neutral-200);
 }
 
 .filterContainer>div {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-1);
     min-width: 140px;
 }
 
 .filterContainer label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .select {
-    padding: 8px 12px;
-    font-size: 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    border: 2px solid var(--color-neutral-200);
+    border-radius: var(--radius-lg);
     background: #fff;
-    color: #111827;
+    color: var(--color-neutral-800);
     min-width: 140px;
+    transition: all var(--transition-fast);
 }
 
 .select:focus {
     outline: none;
-    border-color: #4b70e2;
-    box-shadow: 0 0 0 2px rgba(75, 112, 226, 0.15);
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Contador */
+/* ==================== COUNTER ==================== */
 .contador {
-    font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 12px;
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-500);
+    margin-bottom: var(--spacing-3);
 }
 
-/* Lista de chamados */
+/* ==================== CHAMADO LIST ==================== */
 .chamadoList {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--spacing-3);
 }
 
 .chamadoLink {
@@ -110,88 +124,93 @@
 
 .chamadoItem {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-left-width: 4px;
-    border-radius: 8px;
-    padding: 14px 16px;
-    transition: box-shadow 0.2s, transform 0.15s;
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-4);
+    transition: all var(--transition-fast);
 }
 
 .chamadoItem:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+    border-color: var(--color-primary-200);
 }
 
-/* Status colors */
+/* ==================== STATUS COLORS ==================== */
 .statusAberto {
-    border-left-color: #dc3545;
+    border-left-color: var(--color-danger-500);
 }
 
 .statusEmAndamento {
-    border-left-color: #ffc107;
+    border-left-color: var(--color-warning-500);
 }
 
 .statusAguardando {
-    border-left-color: #6c757d;
+    border-left-color: var(--color-neutral-400);
 }
 
 .chamadoHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-2);
 }
 
 .chamadoHeader strong {
-    font-size: 16px;
-    color: #111827;
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-800);
+    font-weight: var(--font-weight-semibold);
 }
 
 .statusBadge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background: #f3f4f6;
-    color: #374151;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
 }
 
 .statusAberto .statusBadge {
-    background: #fee2e2;
-    color: #991b1b;
+    background: linear-gradient(135deg, var(--color-danger-50) 0%, var(--color-danger-100) 100%);
+    color: var(--color-danger-700);
+    border: 1px solid var(--color-danger-200);
 }
 
 .statusEmAndamento .statusBadge {
-    background: #fef3c7;
-    color: #92400e;
+    background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-100) 100%);
+    color: var(--color-warning-700);
+    border: 1px solid var(--color-warning-200);
 }
 
 .statusAguardando .statusBadge {
-    background: #e5e7eb;
-    color: #4b5563;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+    border: 1px solid var(--color-neutral-200);
 }
 
 .chamadoInfo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-1);
 }
 
 .chamadoInfo small {
-    font-size: 13px;
-    color: #6b7280;
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
 }
 
 .chamadoInfo small strong {
-    font-size: 13px;
-    color: #374151;
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-600);
 }
 
 .descricaoPreview {
-    margin: 8px 0 0;
-    font-size: 14px;
-    color: #4b5563;
-    line-height: 1.4;
+    margin: var(--spacing-2) 0 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -199,16 +218,17 @@
     overflow: hidden;
 }
 
-/* Responsivo */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
     .listContainer {
-        margin: 0 16px 16px 16px;
-        padding: 12px 14px;
+        margin: 0 var(--spacing-3) var(--spacing-3) var(--spacing-3);
+        padding: var(--spacing-4);
     }
 
     .filterContainer {
         flex-direction: column;
         align-items: stretch;
+        gap: var(--spacing-3);
     }
 
     .filterContainer>div {
@@ -218,6 +238,15 @@
     .chamadoHeader {
         flex-direction: column;
         align-items: flex-start;
-        gap: 6px;
+        gap: var(--spacing-2);
+    }
+
+    .exportButtons {
+        flex-direction: column;
+    }
+
+    .exportButtons button {
+        width: 100%;
+        justify-content: center;
     }
 }

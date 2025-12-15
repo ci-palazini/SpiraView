@@ -7,6 +7,7 @@ import { exportToExcel } from '../../../utils/exportExcel';
 import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './ChamadosAbertosPage.module.css';
 import PageHeader from '../../../shared/components/PageHeader';
+import { Select, Input } from '../../../shared/components';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -258,65 +259,45 @@ const ChamadosAbertosPage = () => {
                         </div>
 
                         <div className={styles.filterContainer}>
-                            <div>
-                                <label htmlFor="filtroTipo">
-                                    {t('chamadosAbertos.filters.byType', 'Tipo')}
-                                </label>
-                                <select
-                                    id="filtroTipo"
-                                    className={styles.select}
-                                    value={filtroTipo}
-                                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroTipo(e.target.value as FiltroTipo)}
-                                >
-                                    <option value="todos">{t('chamadosAbertos.filters.typeOptions.all', 'Todos')}</option>
-                                    <option value="corretiva">{t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva')}</option>
-                                    <option value="preventiva">{t('chamadosAbertos.filters.typeOptions.preventive', 'Preventiva')}</option>
-                                    <option value="preditiva">{t('chamadosAbertos.filters.typeOptions.predictive', 'Preditiva')}</option>
-                                </select>
-                            </div>
+                            <Select
+                                id="filtroTipo"
+                                label={t('chamadosAbertos.filters.byType', 'Tipo')}
+                                value={filtroTipo}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroTipo(e.target.value as FiltroTipo)}
+                            >
+                                <option value="todos">{t('chamadosAbertos.filters.typeOptions.all', 'Todos')}</option>
+                                <option value="corretiva">{t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva')}</option>
+                                <option value="preventiva">{t('chamadosAbertos.filters.typeOptions.preventive', 'Preventiva')}</option>
+                                <option value="preditiva">{t('chamadosAbertos.filters.typeOptions.predictive', 'Preditiva')}</option>
+                            </Select>
 
-                            <div>
-                                <label htmlFor="filtroStatus">
-                                    {t('chamadosAbertos.filters.byStatus', 'Status')}
-                                </label>
-                                <select
-                                    id="filtroStatus"
-                                    className={styles.select}
-                                    value={filtroStatus}
-                                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroStatus(e.target.value as FiltroStatus)}
-                                >
-                                    <option value="todos">{t('chamadosAbertos.filters.statusOptions.all', 'Todos')}</option>
-                                    <option value="aberto">{t('chamadosAbertos.filters.statusOptions.open', 'Aberto')}</option>
-                                    <option value="em andamento">{t('chamadosAbertos.filters.statusOptions.inProgress', 'Em Andamento')}</option>
-                                    <option value="aguardando">{t('chamadosAbertos.filters.statusOptions.waiting', 'Aguardando')}</option>
-                                </select>
-                            </div>
+                            <Select
+                                id="filtroStatus"
+                                label={t('chamadosAbertos.filters.byStatus', 'Status')}
+                                value={filtroStatus}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltroStatus(e.target.value as FiltroStatus)}
+                            >
+                                <option value="todos">{t('chamadosAbertos.filters.statusOptions.all', 'Todos')}</option>
+                                <option value="aberto">{t('chamadosAbertos.filters.statusOptions.open', 'Aberto')}</option>
+                                <option value="em andamento">{t('chamadosAbertos.filters.statusOptions.inProgress', 'Em Andamento')}</option>
+                                <option value="aguardando">{t('chamadosAbertos.filters.statusOptions.waiting', 'Aguardando')}</option>
+                            </Select>
 
-                            <div>
-                                <label htmlFor="filtroMaquina">
-                                    {t('chamadosAbertos.filters.byMachine', 'Máquina')}
-                                </label>
-                                <input
-                                    id="filtroMaquina"
-                                    className={styles.select}
-                                    value={filtroMaquina}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltroMaquina(e.target.value)}
-                                    placeholder={t('chamadosAbertos.filters.allMachines', 'Todas')}
-                                />
-                            </div>
+                            <Input
+                                id="filtroMaquina"
+                                label={t('chamadosAbertos.filters.byMachine', 'Máquina')}
+                                value={filtroMaquina}
+                                onChange={(e) => setFiltroMaquina(e.target.value)}
+                                placeholder={t('chamadosAbertos.filters.allMachines', 'Todas')}
+                            />
 
-                            <div>
-                                <label htmlFor="busca">
-                                    {t('chamadosAbertos.filters.search', 'Busca')}
-                                </label>
-                                <input
-                                    id="busca"
-                                    className={styles.select}
-                                    value={busca}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBusca(e.target.value)}
-                                    placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'Descrição ou responsável...')}
-                                />
-                            </div>
+                            <Input
+                                id="busca"
+                                label={t('chamadosAbertos.filters.search', 'Busca')}
+                                value={busca}
+                                onChange={(e) => setBusca(e.target.value)}
+                                placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'Descrição ou responsável...')}
+                            />
                         </div>
 
                         <p className={styles.contador}>
