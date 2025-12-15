@@ -1,80 +1,91 @@
-/* Header em card branco, padrão das outras telas */
+/* HistoricoPage.module.css - Modernized */
+
+/* ==================== PAGE HEADER ==================== */
 .pageHeader {
-  margin: 16px;
+  margin: var(--spacing-4);
   margin-bottom: 0;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-5);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .pageTitle {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
 }
 
 .subtitle {
-  margin: 4px 0 0;
-  color: #667085;
-  font-size: 0.95rem;
+  margin: var(--spacing-1) 0 0;
+  color: var(--color-neutral-500);
+  font-size: var(--font-size-sm);
 }
 
-/* Container branco principal */
+/* ==================== LIST CONTAINER ==================== */
 .listContainer {
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin: 16px;
-  margin-top: 12px;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-5);
+  margin: var(--spacing-4);
+  margin-top: var(--spacing-3);
+  box-shadow: var(--shadow-sm);
 }
 
-/* textos de loading/empty */
+/* Loading/Empty states */
 .loading,
 .empty {
-  color: #667085;
+  color: var(--color-neutral-500);
+  text-align: center;
+  padding: var(--spacing-8);
 }
 
-/* Lista de cards */
+/* ==================== CHAMADO LIST ==================== */
 .chamadoList {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
 }
 
 .chamadoItem {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.07);
-  border: 1px solid #eef0f3;
-  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  background: #ffffff;
+  padding: var(--spacing-5);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-neutral-200);
+  transition: all var(--transition-fast);
 }
 
 .chamadoItem:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-200);
 }
 
 .chamadoInfo strong {
   display: block;
-  margin-bottom: 4px;
-  color: #333;
+  margin-bottom: var(--spacing-1);
+  color: var(--color-neutral-800);
+  font-weight: var(--font-weight-semibold);
 }
 
 .chamadoInfo small {
   display: block;
-  margin-bottom: 8px;
-  color: #888;
-  font-size: 0.8rem;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-neutral-400);
+  font-size: var(--font-size-xs);
 }
 
 .chamadoInfo p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
 }
 
 .chamadoLink {
@@ -88,74 +99,105 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 600px;
+  color: var(--color-neutral-600);
 }
 
-/* Filtros em card interno */
+/* ==================== FILTER CONTAINER ==================== */
 .filterContainer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  background-color: #ffffff;
-  padding: 1rem;
-  border: 1px solid #e2e6eb;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
+  gap: var(--spacing-4);
+  background: var(--color-neutral-50);
+  padding: var(--spacing-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-5);
 }
 
-/* cada campo de filtro alinhado verticalmente */
-.filterContainer > div {
+.filterContainer>div {
   display: flex;
   flex-direction: column;
 }
 
-/* label com espaçamento e tipografia */
 .filterContainer label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-2);
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-sm);
 }
 
-/* inputs/selects usados nos filtros */
 .select {
   appearance: none;
-  background-color: #fff;
-  border: 1px solid #ccd0d5;
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-3) var(--spacing-4);
+  padding-right: var(--spacing-8);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
 }
 
-/* hover e focus */
 .select:hover {
-  border-color: #a3b1c2;
+  border-color: var(--color-neutral-300);
 }
+
 .select:focus {
   outline: none;
-  border-color: #627d98;
-  box-shadow: 0 0 0 2px rgba(98, 125, 152, 0.2);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Área de exportação */
+/* ==================== EXPORT BUTTONS ==================== */
 .exportButtons {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
   flex-wrap: wrap;
 }
 
 .exportButtons button {
-  background-color: #16a085;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
   color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background 0.2s;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-success);
 }
 
 .exportButtons button:hover {
-  background-color: #13846d;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+}
+
+.exportButtons button:active {
+  transform: translateY(0);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .pageHeader {
+    margin: var(--spacing-3);
+    padding: var(--spacing-4);
+  }
+
+  .listContainer {
+    margin: var(--spacing-3);
+    padding: var(--spacing-4);
+  }
+
+  .filterContainer {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .problemaPreview {
+    max-width: 100%;
+  }
 }
