@@ -189,12 +189,20 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
       [id]
     );
 
-    // 5) Resposta
+    // 5) Extrai as keys de itens com chamados abertos (preditivas)
+    const itensComChamadoAberto = ativos.rows
+      .filter((c: { tipo?: string; checklist_item_key?: string }) =>
+        c.tipo === 'preditiva' && c.checklist_item_key
+      )
+      .map((c: { checklist_item_key: string }) => c.checklist_item_key);
+
+    // 6) Resposta
     res.json({
       ...maq.rows[0],
       chamadosAtivos: ativos.rows,       // cards "Chamados Ativos"
       checklistHistorico: subms.rows,    // lista das últimas submissões (com totais)
-      historicoChecklist: historico.rows // agregado por dia/turno p/ a tabela do painel
+      historicoChecklist: historico.rows, // agregado por dia/turno p/ a tabela do painel
+      itensComChamadoAberto,             // keys de itens com chamado preditivo aberto
     });
   } catch (e) {
     console.error(e);

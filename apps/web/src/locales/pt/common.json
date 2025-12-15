@@ -781,7 +781,10 @@
     "toastFail": "Não foi possível enviar o checklist.",
     "allDone": "Checklists concluídas!",
     "sendAndNext": "Enviar e próxima",
-    "finishAll": "Enviar e finalizar"
+    "finishAll": "Enviar e finalizar",
+    "itemLocked": "Chamado aberto",
+    "itemLockedHint": "Este item já possui um chamado aberto",
+    "alreadySent": "✓ Checklist já enviado hoje"
   },
   "checklistOverview": {
     "title": "Checklists diários por máquina",

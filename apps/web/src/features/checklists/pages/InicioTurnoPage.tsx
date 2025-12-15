@@ -28,6 +28,7 @@ interface Maquina {
     nome?: string;
     checklist_diario?: unknown;
     checklistDiario?: unknown;
+    itensComChamadoAberto?: string[];
 }
 
 interface SubmissaoItem {
@@ -69,6 +70,16 @@ function normalizeChecklist(raw: unknown): string[] {
     return [];
 }
 
+function slugify(input: string): string {
+    return String(input ?? '')
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '');
+}
+
 // ---------- Component ----------
 export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     const { t } = useTranslation();
@@ -94,6 +105,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     const [perguntas, setPerguntas] = useState<string[]>([]);
     const [respostas, setRespostas] = useState<Respostas>({});
     const [salvando, setSalvando] = useState(false);
+    const [itensBloqueados, setItensBloqueados] = useState<Set<string>>(new Set());
+    const [jaEnviouEsta, setJaEnviouEsta] = useState(false);
 
     // Carrega máquinas e já marca "enviada hoje" (do backend)
     useEffect(() => {
@@ -160,23 +173,61 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 setMaquinaAtual(null);
                 setPerguntas([]);
                 setRespostas({});
+                setItensBloqueados(new Set());
+                setJaEnviouEsta(false);
                 const m: Maquina = await getMaquina(id);
                 if (!alive) return;
 
                 setMaquinaAtual(m);
                 const raw = m.checklist_diario ?? m.checklistDiario ?? [];
                 const lista = normalizeChecklist(raw);
+
+                // Itens com chamado aberto ficam bloqueados
+                const bloqueados = new Set<string>(m.itensComChamadoAberto || []);
+                setItensBloqueados(bloqueados);
+
+                // Verifica se já existe submissão deste operador para esta máquina hoje
+                let respostasAnteriores: Respostas | null = null;
+                try {
+                    const submissoes = await listarSubmissoesDiarias({
+                        operadorEmail,
+                        maquinaId: id,
+                        date: getDataReferenciaChecklist(),
+                    });
+                    if (submissoes.length > 0) {
+                        const ultimaSubmissao = submissoes[0];
+                        const respostasRaw = ultimaSubmissao.respostas;
+                        if (respostasRaw && typeof respostasRaw === 'object') {
+                            respostasAnteriores = respostasRaw as Respostas;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erro ao buscar submissões anteriores:', e);
+                }
+
                 const iniciais: Respostas = {};
-                lista.forEach(item => { iniciais[item] = 'sim'; });
+                lista.forEach(item => {
+                    // Se já tem resposta anterior, usa ela
+                    if (respostasAnteriores && item in respostasAnteriores) {
+                        iniciais[item] = respostasAnteriores[item];
+                    } else if (bloqueados.has(slugify(item))) {
+                        // Se item está bloqueado por chamado, força 'nao'
+                        iniciais[item] = 'nao';
+                    } else {
+                        iniciais[item] = 'sim';
+                    }
+                });
+
                 setPerguntas(lista);
                 setRespostas(iniciais);
+                setJaEnviouEsta(respostasAnteriores !== null);
             } catch (e) {
                 console.error(e);
                 toast.error(t('checklist.toastFail', 'Falha ao carregar checklist.'));
             }
         })();
         return () => { alive = false; };
-    }, [modo, idx, selecionadas, t]);
+    }, [modo, idx, selecionadas, t, operadorEmail]);
 
     const handleResp = (pergunta: string, valor: 'sim' | 'nao') => {
         setRespostas(prev => ({ ...prev, [pergunta]: valor }));
@@ -314,36 +365,66 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                     <p>{t('checklist.empty', 'Não há itens configurados para esta máquina.')}</p>
                 )}
 
-                {perguntas.map((pergunta, i) => (
-                    <div key={i} className={styles.checklistItem}>
-                        <span>{pergunta}</span>
-                        <div className={styles.optionGroup}>
-                            <input
-                                type="radio"
-                                id={`sim-${i}`}
-                                name={`item-${i}`}
-                                checked={respostas[pergunta] === 'sim'}
-                                onChange={() => handleResp(pergunta, 'sim')}
-                            />
-                            <label htmlFor={`sim-${i}`}>{t('checklist.yes', 'Sim')}</label>
-
-                            <input
-                                type="radio"
-                                id={`nao-${i}`}
-                                name={`item-${i}`}
-                                checked={respostas[pergunta] === 'nao'}
-                                onChange={() => handleResp(pergunta, 'nao')}
-                            />
-                            <label htmlFor={`nao-${i}`}>{t('checklist.no', 'Não')}</label>
-                        </div>
+                {jaEnviouEsta && (
+                    <div className={styles.badgeEnviada} style={{ marginBottom: 16, display: 'inline-block' }}>
+                        {t('checklist.alreadySent', '✓ Checklist já enviado hoje')}
                     </div>
-                ))}
+                )}
+
+                {perguntas.map((pergunta, i) => {
+                    const itemKey = slugify(pergunta);
+                    const isLocked = itensBloqueados.has(itemKey);
+
+                    return (
+                        <div
+                            key={i}
+                            className={isLocked ? styles.checklistItemLocked : styles.checklistItem}
+                            title={isLocked ? t('checklist.itemLockedHint', 'Este item já possui um chamado aberto') : undefined}
+                        >
+                            <span>
+                                {pergunta}
+                                {isLocked && (
+                                    <span className={styles.badgeChamadoAberto}>
+                                        {t('checklist.itemLocked', 'Chamado aberto')}
+                                    </span>
+                                )}
+                            </span>
+                            <div className={styles.optionGroup}>
+                                <input
+                                    type="radio"
+                                    id={`sim-${i}`}
+                                    name={`item-${i}`}
+                                    checked={respostas[pergunta] === 'sim'}
+                                    onChange={() => handleResp(pergunta, 'sim')}
+                                    disabled={isLocked || jaEnviouEsta}
+                                />
+                                <label htmlFor={`sim-${i}`}>{t('checklist.yes', 'Sim')}</label>
+
+                                <input
+                                    type="radio"
+                                    id={`nao-${i}`}
+                                    name={`item-${i}`}
+                                    checked={respostas[pergunta] === 'nao'}
+                                    onChange={() => handleResp(pergunta, 'nao')}
+                                    disabled={isLocked || jaEnviouEsta}
+                                />
+                                <label htmlFor={`nao-${i}`}>{t('checklist.no', 'Não')}</label>
+                            </div>
+                        </div>
+                    );
+                })}
 
                 <div className={styles.actionsRow}>
                     <button
                         className={styles.buttonSecondary}
-                        disabled={idx === 0 || salvando}
-                        onClick={() => setIdx(Math.max(0, idx - 1))}
+                        disabled={salvando}
+                        onClick={() => {
+                            if (idx === 0) {
+                                setModo('selecionar');
+                            } else {
+                                setIdx(idx - 1);
+                            }
+                        }}
                     >
                         {t('common.back', 'Voltar')}
                     </button>

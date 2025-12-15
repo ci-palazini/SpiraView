@@ -26,11 +26,13 @@
   gap: 16px;
   margin-bottom: 20px;
 }
+
 .headerTitle h1 {
   margin: 0 0 6px 0;
   font-size: 1.75rem;
   line-height: 1.2;
 }
+
 .headerTitle p {
   margin: 0;
   color: #475569;
@@ -47,17 +49,28 @@
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease;
 }
-.escapeButton:hover { background: #f8fafc; border-color: #d1d5db; }
-.escapeButton:active { background: #f3f4f6; }
+
+.escapeButton:hover {
+  background: #f8fafc;
+  border-color: #d1d5db;
+}
+
+.escapeButton:active {
+  background: #f3f4f6;
+}
 
 /* ---------- Form & list ---------- */
-.formGroup { margin-bottom: 22px; }
+.formGroup {
+  margin-bottom: 22px;
+}
+
 .formGroup label {
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
   color: #0f172a;
 }
+
 .select {
   width: 100%;
   padding: 10px 12px;
@@ -65,18 +78,27 @@
   border: 1px solid #e5e7eb;
   outline: none;
 }
-.select:focus { border-color: #94a3b8; }
+
+.select:focus {
+  border-color: #94a3b8;
+}
 
 .machineList {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
+
 @media (max-width: 900px) {
-  .machineList { grid-template-columns: repeat(2, 1fr); }
+  .machineList {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
+
 @media (max-width: 560px) {
-  .machineList { grid-template-columns: 1fr; }
+  .machineList {
+    grid-template-columns: 1fr;
+  }
 }
 
 .machineCheckbox {
@@ -88,6 +110,7 @@
   border-radius: 10px;
   background: #fafbff;
 }
+
 .machineCheckbox input {
   width: 18px;
   height: 18px;
@@ -116,12 +139,45 @@
   background: #fafbff;
   margin-bottom: 10px;
 }
+
 .optionGroup {
   display: flex;
   align-items: center;
   gap: 18px;
 }
-.optionGroup label { margin-left: 6px; }
+
+.optionGroup label {
+  margin-left: 6px;
+}
+
+/* Locked item (has open chamado) */
+.checklistItemLocked {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fbbf24;
+  border-radius: 10px;
+  background: #fffbeb;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.checklistItemLocked span {
+  color: #92400e;
+}
+
+.badgeChamadoAberto {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
 /* ---------- Buttons ---------- */
 .actionsRow {
@@ -132,7 +188,8 @@
 }
 
 .button {
-  flex: 1 1 auto;          /* CTA grande na tela de seleção */
+  flex: 1 1 auto;
+  /* CTA grande na tela de seleção */
   min-height: 44px;
   padding: 10px 16px;
   border: 1px solid transparent;
@@ -143,7 +200,10 @@
   font-size: 1rem;
   font-weight: 700;
 }
-.button:hover { background: #1d4ed8; }
+
+.button:hover {
+  background: #1d4ed8;
+}
 
 .buttonSecondary {
   min-width: 120px;
@@ -156,7 +216,10 @@
   font-weight: 600;
   cursor: pointer;
 }
-.buttonSecondary:hover { background: #f8fafc; }
+
+.buttonSecondary:hover {
+  background: #f8fafc;
+}
 
 .submitButton {
   min-width: 200px;
@@ -169,4 +232,7 @@
   font-weight: 700;
   cursor: pointer;
 }
-.submitButton:hover { background: #1d4ed8; }
+
+.submitButton:hover {
+  background: #1d4ed8;
+}
