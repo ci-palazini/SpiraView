@@ -656,13 +656,28 @@
     "actions": {
       "create": "Créer un nouvel utilisateur",
       "edit": "Modifier",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "stats": "Voir les statistiques"
     },
     "table": {
       "fullName": "Nom complet",
       "username": "Nom d’utilisateur",
       "function": "Rôle",
+      "matricula": "Matricule",
       "actions": "Actions"
+    },
+    "stats": {
+      "title": "Statistiques",
+      "noData": "Aucune statistique disponible",
+      "checklistsTotal": "Checklists soumises",
+      "checklistsMes": "30 derniers jours",
+      "chamadosAbertos": "Tickets ouverts",
+      "itensProblema": "Éléments en erreur",
+      "chamadosAtribuidos": "Tickets attribués",
+      "emAndamento": "En cours",
+      "concluidos": "Terminés",
+      "concluidosMes": "Terminés ce mois",
+      "tempoMedio": "Temps moyen de résolution"
     },
     "modal": {
       "createTitle": "Créer un nouvel utilisateur",
@@ -700,7 +715,10 @@
       "deleted": "Utilisateur supprimé avec succès !",
       "deleteError": "Erreur lors de la suppression de l’utilisateur.",
       "authClaimNotSet": "Droit Auth non attribué.",
-      "authClaimNotUpdated": "Droit Auth non mis à jour."
+      "authClaimNotUpdated": "Droit Auth non mis à jour.",
+      "statsError": "Erreur lors du chargement des statistiques",
+      "listError": "Erreur lors de la liste des utilisateurs",
+      "nameRequired": "Le nom est obligatoire"
     }
   },
   "layout": {

@@ -656,13 +656,28 @@
     "actions": {
       "create": "Neuen Benutzer erstellen",
       "edit": "Bearbeiten",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "stats": "Statistiken anzeigen"
     },
     "table": {
       "fullName": "Vollständiger Name",
       "username": "Benutzername",
+      "matricula": "Personalnummer",
       "function": "Rolle",
       "actions": "Aktionen"
+    },
+    "stats": {
+      "title": "Statistiken",
+      "noData": "Keine Statistiken verfügbar",
+      "checklistsTotal": "Eingereichte Checklisten",
+      "checklistsMes": "Letzte 30 Tage",
+      "chamadosAbertos": "Offene Tickets",
+      "itensProblema": "Problemposten",
+      "chamadosAtribuidos": "Zugewiesene Tickets",
+      "emAndamento": "In Bearbeitung",
+      "concluidos": "Abgeschlossen",
+      "concluidosMes": "Diesen Monat abgeschlossen",
+      "tempoMedio": "Durchschnittliche Lösungszeit"
     },
     "modal": {
       "createTitle": "Neuen Benutzer erstellen",
@@ -700,7 +715,10 @@
       "deleted": "Benutzer erfolgreich gelöscht!",
       "deleteError": "Fehler beim Löschen des Benutzers.",
       "authClaimNotSet": "Auth-Berechtigung nicht gesetzt.",
-      "authClaimNotUpdated": "Auth-Berechtigung nicht aktualisiert."
+      "authClaimNotUpdated": "Auth-Berechtigung nicht aktualisiert.",
+      "statsError": "Fehler beim Laden der Statistiken",
+      "listError": "Fehler beim Auflisten der Benutzer",
+      "nameRequired": "Name ist erforderlich"
     }
   },
   "layout": {

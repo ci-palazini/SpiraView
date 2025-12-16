@@ -656,13 +656,28 @@
     "actions": {
       "create": "Criar Novo Usuário",
       "edit": "Editar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "stats": "Ver estatísticas"
     },
     "table": {
       "fullName": "Nome Completo",
       "username": "Usuário",
+      "matricula": "Matrícula",
       "function": "Função",
       "actions": "Ações"
+    },
+    "stats": {
+      "title": "Estatísticas",
+      "noData": "Nenhuma estatística disponível",
+      "checklistsTotal": "Checklists enviados",
+      "checklistsMes": "Últimos 30 dias",
+      "chamadosAbertos": "Chamados abertos",
+      "itensProblema": "Itens com problema",
+      "chamadosAtribuidos": "Chamados atribuídos",
+      "emAndamento": "Em andamento",
+      "concluidos": "Concluídos",
+      "concluidosMes": "Concluídos no mês",
+      "tempoMedio": "Tempo médio de resolução"
     },
     "modal": {
       "createTitle": "Criar Novo Usuário",
@@ -700,7 +715,10 @@
       "deleted": "Usuário removido com sucesso.",
       "deleteError": "Erro ao excluir usuário.",
       "authClaimNotSet": "Permissão Auth não foi atribuída.",
-      "authClaimNotUpdated": "Permissão Auth não foi atualizada."
+      "authClaimNotUpdated": "Permissão Auth não foi atualizada.",
+      "statsError": "Erro ao carregar estatísticas",
+      "listError": "Erro ao listar usuários",
+      "nameRequired": "O nome é obrigatório"
     }
   },
   "layout": {

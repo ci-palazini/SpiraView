@@ -656,13 +656,28 @@
     "actions": {
       "create": "新規ユーザーを作成",
       "edit": "編集",
-      "delete": "削除"
+      "delete": "削除",
+      "stats": "統計を表示"
     },
     "table": {
       "fullName": "氏名",
       "username": "ユーザー名",
+      "matricula": "社員番号",
       "function": "役割",
       "actions": "操作"
+    },
+    "stats": {
+      "title": "統計",
+      "noData": "統計データがありません",
+      "checklistsTotal": "送信済みチェックリスト",
+      "checklistsMes": "過去30日間",
+      "chamadosAbertos": "オープンチケット",
+      "itensProblema": "問題ある項目",
+      "chamadosAtribuidos": "割り当て済みチケット",
+      "emAndamento": "進行中",
+      "concluidos": "完了",
+      "concluidosMes": "今月完了",
+      "tempoMedio": "平均解決時間"
     },
     "modal": {
       "createTitle": "新規ユーザーを作成",
@@ -700,7 +715,10 @@
       "deleted": "ユーザーを削除しました！",
       "deleteError": "ユーザーの削除に失敗しました。",
       "authClaimNotSet": "認可クレームが設定されていません。",
-      "authClaimNotUpdated": "認可クレームの更新に失敗しました。"
+      "authClaimNotUpdated": "認可クレームの更新に失敗しました。",
+      "statsError": "統計の読み込みでエラーが発生しました",
+      "listError": "ユーザーの一覧取得でエラーが発生しました",
+      "nameRequired": "名前は必須です"
     }
   },
   "layout": {

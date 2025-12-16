@@ -656,13 +656,28 @@
     "actions": {
       "create": "새 사용자 생성",
       "edit": "편집",
-      "delete": "삭제"
+      "delete": "삭제",
+      "stats": "통계 보기"
     },
     "table": {
       "fullName": "전체 이름",
       "username": "사용자 이름",
+      "matricula": "사원번호",
       "function": "역할",
       "actions": "작업"
+    },
+    "stats": {
+      "title": "통계",
+      "noData": "통계 데이터 없음",
+      "checklistsTotal": "제출된 체크리스트",
+      "checklistsMes": "최근 30일",
+      "chamadosAbertos": "열린 티켓",
+      "itensProblema": "문제 항목",
+      "chamadosAtribuidos": "할당된 티켓",
+      "emAndamento": "진행 중",
+      "concluidos": "완료됨",
+      "concluidosMes": "이번 달 완료",
+      "tempoMedio": "평균 해결 시간"
     },
     "modal": {
       "createTitle": "새 사용자 생성",
@@ -700,7 +715,10 @@
       "deleted": "사용자가 삭제되었습니다!",
       "deleteError": "사용자 삭제 중 오류가 발생했습니다.",
       "authClaimNotSet": "Auth 권한이 설정되지 않았습니다.",
-      "authClaimNotUpdated": "Auth 권한이 업데이트되지 않았습니다."
+      "authClaimNotUpdated": "Auth 권한이 업데이트되지 않았습니다.",
+      "statsError": "통계를 불러오는 중 오류가 발생했습니다",
+      "listError": "사용자 목록을 불러오는 중 오류가 발생했습니다",
+      "nameRequired": "이름은 필수입니다"
     }
   },
   "layout": {

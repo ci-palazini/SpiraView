@@ -656,13 +656,28 @@
     "actions": {
       "create": "创建新用户",
       "edit": "编辑",
-      "delete": "删除"
+      "delete": "删除",
+      "stats": "查看统计"
     },
     "table": {
       "fullName": "姓名",
       "username": "用户名",
+      "matricula": "工号",
       "function": "角色",
       "actions": "操作"
+    },
+    "stats": {
+      "title": "统计",
+      "noData": "暂无统计数据",
+      "checklistsTotal": "已提交检查表",
+      "checklistsMes": "最近30天",
+      "chamadosAbertos": "待处理工单",
+      "itensProblema": "问题项目",
+      "chamadosAtribuidos": "已分配工单",
+      "emAndamento": "进行中",
+      "concluidos": "已完成",
+      "concluidosMes": "本月完成",
+      "tempoMedio": "平均解决时间"
     },
     "modal": {
       "createTitle": "创建新用户",
@@ -700,7 +715,10 @@
       "deleted": "用户删除成功！",
       "deleteError": "删除用户时发生错误。",
       "authClaimNotSet": "未设置 Auth 权限。",
-      "authClaimNotUpdated": "Auth 权限未更新。"
+      "authClaimNotUpdated": "Auth 权限未更新。",
+      "statsError": "加载统计时出错",
+      "listError": "列出用户时出错",
+      "nameRequired": "名称为必填项"
     }
   },
   "layout": {

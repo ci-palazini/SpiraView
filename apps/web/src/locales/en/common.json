@@ -656,13 +656,28 @@
     "actions": {
       "create": "Create New User",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "stats": "View statistics"
     },
     "table": {
       "fullName": "Full Name",
       "username": "Username",
+      "matricula": "Badge Number",
       "function": "Role",
       "actions": "Actions"
+    },
+    "stats": {
+      "title": "Statistics",
+      "noData": "No statistics available",
+      "checklistsTotal": "Checklists submitted",
+      "checklistsMes": "Last 30 days",
+      "chamadosAbertos": "Open tickets",
+      "itensProblema": "Problem items",
+      "chamadosAtribuidos": "Assigned tickets",
+      "emAndamento": "In progress",
+      "concluidos": "Completed",
+      "concluidosMes": "Completed this month",
+      "tempoMedio": "Average resolution time"
     },
     "modal": {
       "createTitle": "Create New User",
@@ -700,7 +715,10 @@
       "deleted": "User successfully deleted!",
       "deleteError": "Error deleting user.",
       "authClaimNotSet": "Auth permission not set.",
-      "authClaimNotUpdated": "Auth permission not updated."
+      "authClaimNotUpdated": "Auth permission not updated.",
+      "statsError": "Error loading statistics",
+      "listError": "Error listing users",
+      "nameRequired": "Name is required"
     }
   },
   "layout": {
