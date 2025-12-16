@@ -667,6 +667,36 @@ export async function excluirUsuario(id: string, auth: AuthParams): Promise<unkn
     return j;
 }
 
+export interface EstatisticasUsuario {
+    role: string;
+    usuario: { id: string; nome: string; role: string; matricula?: string };
+    estatisticas: {
+        // Operador
+        checklistsTotal?: number;
+        checklistsMes?: number;
+        chamadosAbertos?: number;
+        itensProblema?: number;
+        // Manutentor
+        chamadosAtribuidos?: number;
+        emAndamento?: number;
+        concluidos?: number;
+        concluidosMes?: number;
+        tempoMedioHoras?: string;
+    };
+}
+
+export async function obterEstatisticasUsuario(id: string, auth: AuthParams = {}): Promise<EstatisticasUsuario> {
+    const r = await fetch(`${BASE}/usuarios/${id}/estatisticas`, {
+        headers: {
+            'x-user-role': auth.role || 'gestor',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json?.error || `Falha ao obter estatísticas (${r.status})`);
+    return json as EstatisticasUsuario;
+}
+
 // ===== PEÇAS / ESTOQUE =====
 export async function listarPecas(): Promise<Peca[]> {
     const r = await fetch(`${BASE}/pecas`);

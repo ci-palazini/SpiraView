@@ -199,5 +199,140 @@ usuariosRouter.delete('/usuarios/:id', async (req, res) => {
   }
 });
 
+// GET /usuarios/:id/estatisticas (gestor)
+usuariosRouter.get('/usuarios/:id/estatisticas', async (req, res) => {
+  try {
+    const auth = (req as any).user || {};
+    if (auth.role !== 'gestor') {
+      return res.status(403).json({ error: 'Somente gestor.' });
+    }
+
+    const id = String(req.params.id);
+
+    // Busca dados do usuário
+    const userResult = await pool.query(
+      `SELECT id, nome, role, matricula FROM usuarios WHERE id = $1`,
+      [id]
+    );
+    if (!userResult.rows.length) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const user = userResult.rows[0];
+    const role = (user.role || '').toLowerCase();
+
+    // Datas para filtros
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    if (role === 'operador') {
+      // Estatísticas para operadores
+      const [checklistsTotal, checklistsMes, chamadosAbertos, itensProblema] = await Promise.all([
+        // Total de checklists enviados pelo operador
+        pool.query(
+          `SELECT COUNT(*) as total FROM checklist_submissoes WHERE operador_id = $1`,
+          [id]
+        ),
+        // Checklists nos últimos 30 dias
+        pool.query(
+          `SELECT COUNT(*) as total FROM checklist_submissoes 
+           WHERE operador_id = $1 AND criado_em >= NOW() - INTERVAL '30 days'`,
+          [id]
+        ),
+        // Chamados abertos pelo operador (via criado_por_id)
+        pool.query(
+          `SELECT COUNT(*) as total FROM chamados 
+           WHERE criado_por_id = $1`,
+          [id]
+        ),
+        // Itens com problema reportados (NAO no checklist)
+        pool.query(
+          `SELECT COUNT(*) as total FROM checklist_submissoes cs
+           WHERE cs.operador_id = $1 
+           AND EXISTS (
+             SELECT 1 FROM jsonb_each_text(cs.respostas::jsonb) r 
+             WHERE LOWER(r.value) = 'nao'
+           )`,
+          [id]
+        ),
+      ]);
+
+      return res.json({
+        role: 'operador',
+        usuario: user,
+        estatisticas: {
+          checklistsTotal: parseInt(checklistsTotal.rows[0]?.total || '0'),
+          checklistsMes: parseInt(checklistsMes.rows[0]?.total || '0'),
+          chamadosAbertos: parseInt(chamadosAbertos.rows[0]?.total || '0'),
+          itensProblema: parseInt(itensProblema.rows[0]?.total || '0'),
+        }
+      });
+    }
+
+    if (role === 'manutentor') {
+      // Estatísticas para manutentores
+      const [chamadosAtribuidos, emAndamento, concluidos, concluidosMes, tempoMedio] = await Promise.all([
+        // Total de chamados atribuídos
+        pool.query(
+          `SELECT COUNT(*) as total FROM chamados WHERE manutentor_id = $1`,
+          [id]
+        ),
+        // Chamados em andamento
+        pool.query(
+          `SELECT COUNT(*) as total FROM chamados 
+           WHERE manutentor_id = $1 AND LOWER(status) = 'em andamento'`,
+          [id]
+        ),
+        // Chamados concluídos
+        pool.query(
+          `SELECT COUNT(*) as total FROM chamados 
+           WHERE manutentor_id = $1 AND LOWER(status) IN ('concluido', 'concluído')`,
+          [id]
+        ),
+        // Chamados concluídos no mês
+        pool.query(
+          `SELECT COUNT(*) as total FROM chamados 
+           WHERE manutentor_id = $1 
+           AND LOWER(status) IN ('concluido', 'concluído')
+           AND atualizado_em >= $2`,
+          [id, startOfMonth.toISOString()]
+        ),
+        // Tempo médio de resolução (em horas)
+        pool.query(
+          `SELECT AVG(EXTRACT(EPOCH FROM (atualizado_em - criado_em)) / 3600) as media_horas
+           FROM chamados 
+           WHERE manutentor_id = $1 
+           AND LOWER(status) IN ('concluido', 'concluído')
+           AND atualizado_em IS NOT NULL 
+           AND criado_em IS NOT NULL`,
+          [id]
+        ),
+      ]);
+
+      return res.json({
+        role: 'manutentor',
+        usuario: user,
+        estatisticas: {
+          chamadosAtribuidos: parseInt(chamadosAtribuidos.rows[0]?.total || '0'),
+          emAndamento: parseInt(emAndamento.rows[0]?.total || '0'),
+          concluidos: parseInt(concluidos.rows[0]?.total || '0'),
+          concluidosMes: parseInt(concluidosMes.rows[0]?.total || '0'),
+          tempoMedioHoras: parseFloat(tempoMedio.rows[0]?.media_horas || '0').toFixed(1),
+        }
+      });
+    }
+
+    // Gestor ou outro role: retorna básico
+    return res.json({
+      role: role,
+      usuario: user,
+      estatisticas: {}
+    });
+
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
 
 
