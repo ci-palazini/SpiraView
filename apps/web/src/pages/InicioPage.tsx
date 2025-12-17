@@ -14,13 +14,18 @@ import {
     FiPackage,
     FiClipboard,
     FiPlusCircle,
-    FiAlertCircle
+    FiAlertCircle,
+    FiMessageSquare,
+    FiUploadCloud,
+    FiSettings,
+    FiTrendingUp
 } from 'react-icons/fi';
 
 // ---------- Types ----------
 interface User {
     nome?: string;
     role?: string;
+    email?: string;
 }
 
 interface InicioPageProps {
@@ -29,7 +34,15 @@ interface InicioPageProps {
 
 // ---------- Component ----------
 const InicioPage = ({ user }: InicioPageProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+
+    const isPt = (i18n?.language || '').toLowerCase().startsWith('pt');
+    const isGestor = user.role === 'gestor';
+    const isManutentor = user.role === 'manutentor';
+    const isMaintLike = isManutentor || isGestor;
+
+    // TODO: Remover quando Produção estiver pronto para todos
+    const canAccessProducao = isGestor && user.email === 'gabriel.palazini@m.continua.tpm';
 
     return (
         <>
@@ -47,7 +60,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
 
                 <div className={styles.actionsGrid}>
 
-                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                    {isMaintLike && (
                         <Link to="/maquinas" className={styles.actionCard}>
                             <FiServer className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.machines.title')}</h3>
@@ -57,7 +70,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                    {isMaintLike && (
                         <Link to="/chamados-abertos" className={styles.actionCard}>
                             <FiAlertCircle className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.openCalls.title')}</h3>
@@ -67,7 +80,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {user.role === 'manutentor' && (
+                    {isManutentor && (
                         <Link to="/meus-chamados" className={styles.actionCard}>
                             <FiClipboard className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.myCalls.title')}</h3>
@@ -77,7 +90,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {user.role === 'manutentor' && (
+                    {isManutentor && (
                         <Link to="/abrir-chamado" className={styles.actionCard}>
                             <FiPlusCircle className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.openTicket.title')}</h3>
@@ -87,7 +100,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                    {isMaintLike && (
                         <Link to="/calendario-geral" className={styles.actionCard}>
                             <FiCalendar className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.calendar.title')}</h3>
@@ -97,7 +110,17 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                    {isGestor && (
+                        <Link to="/checklists-diarios" className={styles.actionCard}>
+                            <FiCheckSquare className={styles.cardIcon} />
+                            <h3 className={styles.cardTitle}>{t('inicio.cards.dailyChecklists.title', 'Checklists Diários')}</h3>
+                            <p className={styles.cardDescription}>
+                                {t('inicio.cards.dailyChecklists.desc', 'Visualize o status dos checklists de início de turno.')}
+                            </p>
+                        </Link>
+                    )}
+
+                    {isMaintLike && (
                         <Link to="/historico" className={styles.actionCard}>
                             <FiCheckSquare className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.history.title')}</h3>
@@ -107,7 +130,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {(user.role === 'manutentor' || user.role === 'gestor') && (
+                    {isMaintLike && (
                         <Link to="/estoque" className={styles.actionCard}>
                             <FiPackage className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.inventory.title')}</h3>
@@ -117,7 +140,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {user.role === 'gestor' && (
+                    {isGestor && (
                         <Link to="/analise-falhas" className={styles.actionCard}>
                             <FiBarChart2 className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.failureAnalysis.title')}</h3>
@@ -127,7 +150,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {user.role === 'gestor' && (
+                    {isGestor && (
                         <Link to="/causas-raiz" className={styles.actionCard}>
                             <FiPieChart className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.rootCauses.title')}</h3>
@@ -137,7 +160,54 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {user.role === 'gestor' && (
+                    {isGestor && isPt && (
+                        <Link to="/chatbot" className={styles.actionCard}>
+                            <FiMessageSquare className={styles.cardIcon} />
+                            <h3 className={styles.cardTitle}>{t('inicio.cards.pziniBot.title', 'Pzini Chatbot')}</h3>
+                            <p className={styles.cardDescription}>
+                                {t('inicio.cards.pziniBot.desc', 'Converse com o bot para analisar dados de manutenção.')}
+                            </p>
+                        </Link>
+                    )}
+
+                    {/* Produção - Restrito por email por enquanto */}
+                    {canAccessProducao && (
+                        <>
+                            <Link to="/producao/dashboard" className={styles.actionCard}>
+                                <FiTrendingUp className={styles.cardIcon} />
+                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionDashboard.title', 'Visão do Dia')}</h3>
+                                <p className={styles.cardDescription}>
+                                    {t('inicio.cards.productionDashboard.desc', 'Acompanhe a produção em tempo real.')}
+                                </p>
+                            </Link>
+
+                            <Link to="/producao/colaboradores" className={styles.actionCard}>
+                                <FiUsers className={styles.cardIcon} />
+                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionEmployees.title', 'Colaboradores')}</h3>
+                                <p className={styles.cardDescription}>
+                                    {t('inicio.cards.productionEmployees.desc', 'Acompanhe performance dos operadores.')}
+                                </p>
+                            </Link>
+
+                            <Link to="/producao/upload" className={styles.actionCard}>
+                                <FiUploadCloud className={styles.cardIcon} />
+                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionUpload.title', 'Upload Produção')}</h3>
+                                <p className={styles.cardDescription}>
+                                    {t('inicio.cards.productionUpload.desc', 'Importe planilhas de produção.')}
+                                </p>
+                            </Link>
+
+                            <Link to="/producao/config" className={styles.actionCard}>
+                                <FiSettings className={styles.cardIcon} />
+                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionConfig.title', 'Config. Máquinas')}</h3>
+                                <p className={styles.cardDescription}>
+                                    {t('inicio.cards.productionConfig.desc', 'Configure máquinas e metas de produção.')}
+                                </p>
+                            </Link>
+                        </>
+                    )}
+
+                    {isGestor && (
                         <Link to="/gerir-utilizadores" className={styles.actionCard}>
                             <FiUsers className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.manageUsers.title')}</h3>
@@ -162,3 +232,4 @@ const InicioPage = ({ user }: InicioPageProps) => {
 };
 
 export default InicioPage;
+

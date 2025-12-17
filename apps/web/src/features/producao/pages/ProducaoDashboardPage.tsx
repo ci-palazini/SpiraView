@@ -519,12 +519,12 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                             const pctMeta = r.meta > 0 ? (r.produzido / r.meta) * 100 : 0;
 
                             return (
-                                <div key={r.maquinaId} className={styles.machineCard}>
+                                <div key={r.maquinaId} className={styles.machineCard} data-status={color}>
                                     <div className={styles.cardHeader}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <span className={styles.machineName}>{r.maquinaNome}</span>
                                             {r.isMother && (
-                                                <span style={{ fontSize: '0.65em', padding: '2px 6px', borderRadius: 4, background: '#e0e7ff', color: '#4338ca', fontWeight: 'bold' }}>
+                                                <span className={styles.motherBadge}>
                                                     MÃE
                                                 </span>
                                             )}
