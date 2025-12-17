@@ -207,7 +207,7 @@ function ParetoChart() {
 
     // Carregar lista de máquinas
     useEffect(() => {
-        getMaquinas().then((list: Maquina[] | { items?: Maquina[] }) => {
+        getMaquinas('', 'manutencao').then((list: Maquina[] | { items?: Maquina[] }) => {
             const arr = Array.isArray((list as { items?: Maquina[] })?.items)
                 ? (list as { items: Maquina[] }).items
                 : (Array.isArray(list) ? list : []);

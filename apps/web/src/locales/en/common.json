@@ -16,7 +16,11 @@
     "startShift": "Start shift",
     "dailyChecklists": "Daily checklists",
     "pzinibot": "Pzini",
-    "openTickets": "Open Tickets"
+    "openTickets": "Open Tickets",
+    "productionUpload": "Production Upload",
+    "productionConfig": "Machine Config",
+    "productionDashboard": "Dashboard",
+    "productionEmployees": "Performance"
   },
   "status": {
     "open": "Open",
@@ -725,7 +729,8 @@
     "sections": {
       "manageMaintenance": "Manage Maintenance",
       "analytics": "Analytics and KPIs",
-      "managePeople": "Manage Team"
+      "managePeople": "Manage Team",
+      "production": "Production"
     }
   },
   "dashboard": {
@@ -879,6 +884,230 @@
     },
     "success": {
       "created": "Ticket created successfully!"
+    }
+  },
+  "producao": {
+    "nav": {
+      "upload": "Production Upload",
+      "config": "Machine Config",
+      "dashboard": "Dashboard",
+      "colaboradores": "Performance"
+    },
+    "sectionTitle": "Production",
+    "upload": {
+      "title": "Production Upload",
+      "subtitle": "Import production hour entries from an Excel file.",
+      "dropzone": "Drag an Excel file here or click to select",
+      "dropzoneHint": "Accepted formats: .xlsx, .xls",
+      "fileLoaded": "File loaded: {{count}} rows",
+      "readError": "Error reading Excel file",
+      "invalidFormat": "Upload a .xlsx or .xls file",
+      "preview": "Preview ({{total}} rows total, showing {{showing}})",
+      "send": "Send {{count}} rows",
+      "sending": "Sending...",
+      "cancel": "Cancel",
+      "removeFile": "Remove file",
+      "successFull": "Upload complete! {{count}} rows processed.",
+      "successPartial": "Partial upload: {{valid}} rows OK, {{errors}} with errors.",
+      "uploadError": "Upload error",
+      "result": {
+        "successTitle": "Upload completed successfully!",
+        "errorTitle": "Upload completed with errors",
+        "totalLines": "Total rows",
+        "validLines": "Valid rows",
+        "errorLines": "Rows with errors",
+        "datesProcessed": "Dates processed",
+        "line": "Row"
+      },
+      "history": {
+        "title": "Today's Uploads",
+        "files": "file(s)",
+        "total": "Total",
+        "loading": "Loading...",
+        "empty": "No uploads found for {{date}}.",
+        "columns": {
+          "file": "File",
+          "dateRef": "Ref. Date",
+          "lines": "Rows",
+          "hours": "Hours",
+          "sentAt": "Sent at",
+          "status": "Status"
+        },
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "config": {
+      "title": "Machine Configuration",
+      "subtitle": "Centralized management of scopes, sectors, and production parameters.",
+      "stats": {
+        "total": "Total Registered",
+        "maintenance": "Maintenance Scope",
+        "production": "Production Scope",
+        "withGoals": "With Active Goals"
+      },
+      "search": "Search by name, tag, or code...",
+      "onlyProduction": "Production Only",
+      "newMachine": "New Machine",
+      "loadError": "Error loading server data.",
+      "saveSuccess": "Settings saved successfully!",
+      "saveError": "Error saving changes",
+      "table": {
+        "identification": "Identification",
+        "maintenance": "Maintenance",
+        "production": "Production",
+        "sector": "Sector",
+        "goal": "Goal (h)",
+        "aliases": "Aliases (Excel)",
+        "active": "Active",
+        "inactive": "Inactive",
+        "mapped": "mapped",
+        "mother": "MOTHER"
+      },
+      "empty": {
+        "title": "No results found",
+        "text": "Try adjusting the filters or adding a new machine."
+      },
+      "modal": {
+        "addTitle": "Add New Machine",
+        "editTitle": "Edit: {{name}}",
+        "machineName": "Machine Name",
+        "machineNamePlaceholder": "E.g.: TCN-20",
+        "scopes": "Scopes",
+        "scopeMaintenance": "Maintenance",
+        "scopeProduction": "Production",
+        "hierarchyConfig": "Hierarchy Configuration",
+        "isMother": "Is Mother Machine?",
+        "showChildrenDashboard": "Show children on Dashboard?",
+        "parentMachine": "Mother Machine (Line/Grouper)",
+        "noParent": "None (Independent Machine)",
+        "parentHint": "Select the \"Mother\" machine for this machine.",
+        "sector": "Sector/Department",
+        "selectSector": "Select...",
+        "aliasesLabel": "Upload Aliases",
+        "aliasesPlaceholder": "Names used in Excel (comma-separated)",
+        "aliasesHint": "Different names that appear in Excel and should resolve to this machine.",
+        "goalLabel": "Daily goal (hours)",
+        "goalPlaceholder": "E.g.: 18.50",
+        "goalHint": "A new active goal will be created starting today.",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "createMachine": "Create Machine",
+        "saving": "Saving...",
+        "save": "Save Changes"
+      },
+      "createSuccess": "Machine \"{{name}}\" created!",
+      "createError": "Error creating machine",
+      "deleteSuccess": "Machine removed successfully.",
+      "deleteError": "Error deleting machine",
+      "deleteConfirm": {
+        "title": "Delete Machine",
+        "text": "Are you sure you want to delete the machine \"{{name}}\"? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "dashboard": {
+      "title": "Daily View",
+      "subtitle": "Production tracking by machine",
+      "loadError": "Error loading data",
+      "sectors": {
+        "machining": "Machining",
+        "assembly": "Assembly",
+        "all": "All"
+      },
+      "dateLabel": "WIP Date",
+      "timeLabel": "Reference time (05:30 → 00:44)",
+      "dayCompleted": "Day completed — using full window",
+      "dayFuture": "Future day — waiting to start",
+      "dayProgress": "{{percent}}% of day",
+      "summary": {
+        "title": "Factory Total",
+        "future": "FUTURE",
+        "produced": "Produced",
+        "expected": "Expected",
+        "dailyGoal": "Daily goal",
+        "progressLabel": "Progress vs expected",
+        "machines": "Machines",
+        "projection": "Projection",
+        "gap": "Gap"
+      },
+      "card": {
+        "produced": "Produced",
+        "expected": "Expected",
+        "dailyGoal": "Daily goal",
+        "deviation": "Deviation",
+        "noGoal": "No goal",
+        "vsExpected": "vs expected",
+        "vsGoal": "vs day goal",
+        "mother": "MOTHER"
+      },
+      "empty": {
+        "noMachines": "No machines with active production scope.",
+        "noFilter": "No machines found for this filter. Check if sectors are filled in the Configuration screen."
+      }
+    },
+    "uploadDetail": {
+      "title": "Upload Details",
+      "loading": "Loading...",
+      "notFound": "Upload not found.",
+      "info": {
+        "file": "File",
+        "dateRef": "Reference Date",
+        "lines": "Rows",
+        "hours": "Total Hours",
+        "sentAt": "Sent at",
+        "sentBy": "Sent by"
+      },
+      "entries": {
+        "title": "Entries",
+        "machine": "Machine",
+        "hours": "Hours"
+      }
+    },
+    "colaboradores": {
+      "title": "Performance by Employee",
+      "subtitle": "For each badge number, we compare actual production with the defined daily goal.",
+      "monthGoal": "Month goal",
+      "monthReal": "Month actual",
+      "filters": {
+        "refMonth": "Reference month",
+        "analysisDay": "Analysis day",
+        "daysElapsed": "Days elapsed",
+        "workDays": "Work days in month"
+      },
+      "actions": {
+        "reload": "Reload",
+        "new": "New"
+      },
+      "table": {
+        "matricula": "Badge #",
+        "name": "Name",
+        "goalDay": "Goal Day (h)",
+        "goalAccum": "Goal Accum (h)",
+        "goalMonth": "Goal Month (h)",
+        "realDay": "Actual Day (h)",
+        "realMonth": "Actual Month (h)",
+        "perfDay": "Perf. Day (%)",
+        "perfMonth": "Perf. Month (%)",
+        "status": "Status",
+        "totals": "Totals"
+      },
+      "empty": "No employees registered.",
+      "modal": {
+        "titleNew": "New Employee",
+        "titleEdit": "Edit Employee",
+        "matricula": "Badge Number",
+        "name": "Name",
+        "dailyGoal": "Daily Goal (h)",
+        "active": "Active",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
     }
   }
 }

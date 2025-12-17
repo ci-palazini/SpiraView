@@ -86,7 +86,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
         (async () => {
             try {
                 // 1) Máquinas
-                const lista: Maquina[] = await getMaquinas();
+                const lista: Maquina[] = await getMaquinas('', 'manutencao');
                 if (!alive) return;
                 setMaquinas(lista);
 

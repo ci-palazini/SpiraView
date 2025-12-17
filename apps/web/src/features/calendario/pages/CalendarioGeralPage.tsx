@@ -183,7 +183,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
 
     // Busca máquinas
     useEffect(() => {
-        getMaquinas().then((list: Maquina[]) => {
+        getMaquinas('', 'manutencao').then((list: Maquina[]) => {
             setMachines(list.sort((a, b) => toPlainText(a.nome).localeCompare(toPlainText(b.nome), 'pt')));
         }).catch(console.error);
     }, []);

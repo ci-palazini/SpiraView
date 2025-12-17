@@ -16,6 +16,7 @@ import { operatorAuthRouter } from './routes/operatorAuth';
 import { checklistsRouter } from './routes/checklists';
 import { analyticsRouter } from './routes/analytics';
 import { botRouter } from './routes/bot';
+import { producaoRouter } from './routes/producao';
 import { env } from './config/env';
 
 export const app: Express = express(); // 👈 evita o TS2742
@@ -28,7 +29,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(userFromHeader);
 
 app.use(eventsRouter);
@@ -44,3 +45,5 @@ app.use(operatorAuthRouter);
 app.use(checklistsRouter);
 app.use(analyticsRouter);
 app.use(botRouter);
+app.use(producaoRouter);
+

@@ -360,8 +360,12 @@ export async function uploadFotoChamado(id: string, file: File | Blob, auth: Aut
 }
 
 // ===== MÁQUINAS =====
-export async function getMaquinas(q = ""): Promise<Maquina[]> {
-    const url = q ? `${BASE}/maquinas?q=${encodeURIComponent(q)}` : `${BASE}/maquinas`;
+export async function getMaquinas(q = "", escopo?: 'manutencao' | 'producao'): Promise<Maquina[]> {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (escopo) params.set('escopo', escopo);
+    const qs = params.toString();
+    const url = qs ? `${BASE}/maquinas?${qs}` : `${BASE}/maquinas`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Erro ao buscar máquinas: ${res.status}`);
     return res.json();
@@ -402,7 +406,8 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
             nome: data.nome,
             tag: data.tag ?? data.nome,
             setor: data.setor ?? null,
-            critico: !!data.critico
+            critico: !!data.critico,
+            parentId: data.parentId || null
         },
         auth,
     });
@@ -463,6 +468,52 @@ export async function renomearMaquina(id: string, data: { nome: string; syncTag?
         throw err;
     }
     return result as Maquina;
+}
+
+// Atualizar máquina mãe
+export async function atualizarMaquinaPai(
+    id: string,
+    parentId: string | null,
+    auth: AuthParams = {}
+): Promise<{ id: string; nome: string; parent_maquina_id?: string }> {
+    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/parent`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || '',
+        },
+        body: JSON.stringify({ parentId }),
+    });
+
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(result?.error || 'Erro ao atualizar máquina mãe');
+    }
+    return result;
+}
+
+// Atualizar aliases de produção de uma máquina
+export async function atualizarAliasesProducao(
+    id: string,
+    aliases: string[],
+    auth: AuthParams = {}
+): Promise<{ id: string; nome: string; aliases_producao: string[] }> {
+    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/aliases-producao`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || '',
+        },
+        body: JSON.stringify({ aliases }),
+    });
+
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(result?.error || 'Erro ao atualizar aliases');
+    }
+    return result;
 }
 
 // ===== CHECKLIST DIÁRIO =====
@@ -985,4 +1036,327 @@ export function subscribeSSE(onEvent: (msg: SSEMessage) => void, opts: { email?:
     return () => {
         try { es.close(); } catch { }
     };
+}
+
+// ===== PRODUÇÃO =====
+export interface ProducaoMeta {
+    id: string;
+    maquinaId: string;
+    maquinaNome: string;
+    maquinaTag?: string;
+    dataInicio: string;
+    dataFim?: string;
+    horasMeta: number;
+    criadoEm: string;
+    atualizadoEm: string;
+}
+
+export interface ProducaoLancamento {
+    id: string;
+    maquinaId: string;
+    maquinaNome: string;
+    maquinaTag?: string;
+    dataRef: string;
+    turno?: '1º' | '2º';
+    horasRealizadas: number;
+    observacao?: string;
+    lancadoPorNome?: string;
+    uploadId?: string;
+    criadoEm: string;
+}
+
+export interface ProducaoRendimento {
+    maquinaId: string;
+    maquinaNome: string;
+    maquinaTag?: string;
+    maquinaSetor?: string;
+    dataRef: string;
+    turno?: string;
+    horasRealizadas: number;
+    horasMeta: number;
+    percentualAtingido?: number;
+    statusMeta: 'sem_meta' | 'atingido' | 'parcial' | 'abaixo';
+    lancadoPorNome?: string;
+    criadoEm: string;
+}
+
+export interface ProducaoResumoDiario {
+    maquinaId: string;
+    maquinaNome: string;
+    maquinaTag?: string;
+    dataRef: string;
+    horasDia: number;
+    metaDia: number;
+    percentualDia?: number;
+    qtdLancamentos: number;
+}
+
+export interface ProducaoUpload {
+    id: string;
+    nomeArquivo: string;
+    dataRef: string;
+    linhasTotal: number;
+    linhasSucesso: number;
+    linhasErro: number;
+    horasTotal: number;
+    ativo: boolean;
+    uploadPorNome?: string;
+    criadoEm: string;
+}
+
+// Metas
+export async function listarMetasProducao(params: { maquinaId?: string; vigente?: boolean } = {}): Promise<ProducaoMeta[]> {
+    const qs = new URLSearchParams();
+    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
+    if (params.vigente) qs.set('vigente', 'true');
+    const r = await fetch(`${BASE}/producao/metas?${qs}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar metas');
+    return data.items || [];
+}
+
+export async function criarMetaProducao(payload: { maquinaId: string; dataInicio: string; dataFim?: string; horasMeta: number }, auth: AuthParams): Promise<ProducaoMeta> {
+    const r = await fetch(`${BASE}/producao/metas`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao criar meta');
+    return data;
+}
+
+export async function atualizarMetaProducao(id: string, payload: { dataInicio: string; dataFim?: string; horasMeta: number }, auth: AuthParams): Promise<{ ok: boolean }> {
+    const r = await fetch(`${BASE}/producao/metas/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar meta');
+    return data;
+}
+
+export async function excluirMetaProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
+    const r = await fetch(`${BASE}/producao/metas/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir meta');
+    return data;
+}
+
+// Lançamentos
+export async function listarLancamentosProducao(params: { maquinaId?: string; dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoLancamento[]> {
+    const qs = new URLSearchParams();
+    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
+    if (params.dataRef) qs.set('dataRef', params.dataRef);
+    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
+    if (params.dataFim) qs.set('dataFim', params.dataFim);
+    const r = await fetch(`${BASE}/producao/lancamentos?${qs}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar lançamentos');
+    return data.items || [];
+}
+
+export async function criarLancamentoProducao(payload: { maquinaId: string; dataRef: string; turno?: string; horasRealizadas: number; observacao?: string }, auth: AuthParams): Promise<ProducaoLancamento> {
+    const r = await fetch(`${BASE}/producao/lancamentos`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao criar lançamento');
+    return data;
+}
+
+export async function excluirLancamentoProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
+    const r = await fetch(`${BASE}/producao/lancamentos/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir lançamento');
+    return data;
+}
+
+// Rendimento
+export async function listarRendimentoProducao(params: { maquinaId?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoRendimento[]> {
+    const qs = new URLSearchParams();
+    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
+    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
+    if (params.dataFim) qs.set('dataFim', params.dataFim);
+    const r = await fetch(`${BASE}/producao/rendimento?${qs}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar rendimento');
+    return data.items || [];
+}
+
+export async function listarResumoDiarioProducao(params: { dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoResumoDiario[]> {
+    const qs = new URLSearchParams();
+    if (params.dataRef) qs.set('dataRef', params.dataRef);
+    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
+    if (params.dataFim) qs.set('dataFim', params.dataFim);
+    const r = await fetch(`${BASE}/producao/resumo-diario?${qs}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar resumo');
+    return data.items || [];
+}
+
+// Uploads
+export async function listarUploadsProducao(params: { dataRef?: string } = {}): Promise<ProducaoUpload[]> {
+    const qs = new URLSearchParams();
+    if (params.dataRef) qs.set('dataRef', params.dataRef);
+    const r = await fetch(`${BASE}/producao/uploads?${qs}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar uploads');
+    return data.items || [];
+}
+
+export async function uploadLancamentosProducao(rows: Record<string, unknown>[], nomeArquivo: string, auth: AuthParams): Promise<{
+    ok: boolean;
+    resultados: Array<{ dataRef: string; uploadId: string; linhasProcessadas: number; horasTotal: number }>;
+    erros: Array<{ linha: number; erro: string }>;
+    resumo: { totalLinhas: number; linhasValidas: number; linhasComErro: number; datasProcessadas: number };
+}> {
+    const r = await fetch(`${BASE}/producao/lancamentos/upload`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify({ rows, nomeArquivo })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao fazer upload');
+    return data;
+}
+
+// Escopos de máquina
+export async function atualizarEscopoMaquina(
+    id: string,
+    payload: {
+        escopoManutencao?: boolean;
+        escopoProducao?: boolean;
+        setor?: string | null;
+        isMaquinaMae?: boolean;
+        exibirFilhosDashboard?: boolean;
+    },
+    auth: AuthParams
+): Promise<Maquina> {
+    const r = await fetch(`${BASE}/maquinas/${id}/escopo`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar escopo');
+    return data;
+}
+
+// ===== FUNCIONÁRIOS IMETAS =====
+export interface FuncionarioMeta {
+    id?: number;
+    matricula: string;
+    nome: string;
+    meta_diaria_horas: number;
+    ativo: boolean;
+}
+
+export async function fetchFuncionariosMeta(): Promise<FuncionarioMeta[]> {
+    const r = await fetch(`${BASE}/producao/metas/funcionarios`);
+    const data = await r.json().catch(() => []);
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar metas');
+    return data;
+}
+
+export async function fetchFuncionariosDia(dataISO: string): Promise<any[]> {
+    const r = await fetch(`${BASE}/producao/indicadores/funcionarios/dia?data=${dataISO}`);
+    const data = await r.json().catch(() => []);
+    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar produção dia');
+    return data;
+}
+
+export async function fetchFuncionariosMes(anoMesISO: string): Promise<any[]> {
+    const r = await fetch(`${BASE}/producao/indicadores/funcionarios/mes?anoMes=${anoMesISO}`);
+    const data = await r.json().catch(() => []);
+    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar produção mês');
+    return data;
+}
+
+export async function upsertFuncionarioMeta(payload: FuncionarioMeta, auth: AuthParams = {}): Promise<unknown> {
+    const r = await fetch(`${BASE}/producao/metas/funcionarios`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || 'gestor',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao salvar meta');
+    return data;
+}
+
+// Detalhe de um upload de produção
+export interface ProducaoLancamentoDetalhe {
+    id: string;
+    maquinaId: string;
+    maquinaNome: string;
+    maquinaTag: string | null;
+    dataRef: string;
+    turno: string | null;
+    horasRealizadas: number;
+    observacao: string | null;
+}
+
+export interface ProducaoUploadDetalhe {
+    upload: ProducaoUpload;
+    lancamentos: ProducaoLancamentoDetalhe[];
+    porMaquina: Array<{
+        maquinaId: string;
+        maquinaNome: string;
+        maquinaTag: string | null;
+        total: number;
+        lancamentos: ProducaoLancamentoDetalhe[];
+    }>;
+    resumo: {
+        totalMaquinas: number;
+        totalLancamentos: number;
+        totalHoras: number;
+    };
+}
+
+export async function buscarDetalheUploadProducao(uploadId: string): Promise<ProducaoUploadDetalhe> {
+    const r = await fetch(`${BASE}/producao/uploads/${uploadId}`, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar detalhes do upload');
+    return data;
 }

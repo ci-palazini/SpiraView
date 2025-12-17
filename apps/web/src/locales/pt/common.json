@@ -16,7 +16,11 @@
     "startShift": "Início de turno",
     "dailyChecklists": "Checklists diários",
     "pzinibot": "Pzini",
-    "openTickets": "Chamados Abertos"
+    "openTickets": "Chamados Abertos",
+    "productionUpload": "Upload Produção",
+    "productionConfig": "Config. Máquinas",
+    "productionDashboard": "Dashboard",
+    "productionEmployees": "Colaboradores"
   },
   "status": {
     "open": "Aberto",
@@ -725,7 +729,8 @@
     "sections": {
       "manageMaintenance": "Gerenciar Manutenção",
       "analytics": "Análises e KPIs",
-      "managePeople": "Gerenciar Colaboradores"
+      "managePeople": "Gerenciar Colaboradores",
+      "production": "Produção"
     }
   },
   "dashboard": {
@@ -879,6 +884,230 @@
     },
     "success": {
       "created": "Chamado criado com sucesso!"
+    }
+  },
+  "producao": {
+    "nav": {
+      "upload": "Upload Produção",
+      "config": "Config. Máquinas",
+      "dashboard": "Dashboard",
+      "colaboradores": "Colaboradores"
+    },
+    "sectionTitle": "Produção",
+    "upload": {
+      "title": "Upload de Produção",
+      "subtitle": "Importe lançamentos de horas de produção a partir de um arquivo Excel.",
+      "dropzone": "Arraste um arquivo Excel aqui ou clique para selecionar",
+      "dropzoneHint": "Formatos aceitos: .xlsx, .xls",
+      "fileLoaded": "Arquivo carregado: {{count}} linhas",
+      "readError": "Erro ao ler arquivo Excel",
+      "invalidFormat": "Envie um arquivo .xlsx ou .xls",
+      "preview": "Pré-visualização ({{total}} linhas total, mostrando {{showing}})",
+      "send": "Enviar {{count}} linhas",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "removeFile": "Remover arquivo",
+      "successFull": "Upload concluído! {{count}} linhas processadas.",
+      "successPartial": "Upload parcial: {{valid}} linhas OK, {{errors}} com erro.",
+      "uploadError": "Erro ao fazer upload",
+      "result": {
+        "successTitle": "Upload concluído com sucesso!",
+        "errorTitle": "Upload concluído com erros",
+        "totalLines": "Total de linhas",
+        "validLines": "Linhas válidas",
+        "errorLines": "Linhas com erro",
+        "datesProcessed": "Datas processadas",
+        "line": "Linha"
+      },
+      "history": {
+        "title": "Uploads do Dia",
+        "files": "arquivo(s)",
+        "total": "Total",
+        "loading": "Carregando...",
+        "empty": "Nenhum upload encontrado para {{date}}.",
+        "columns": {
+          "file": "Arquivo",
+          "dateRef": "Data Ref.",
+          "lines": "Linhas",
+          "hours": "Horas",
+          "sentAt": "Enviado em",
+          "status": "Status"
+        },
+        "active": "Ativo",
+        "inactive": "Inativo"
+      }
+    },
+    "config": {
+      "title": "Configuração de Máquinas",
+      "subtitle": "Gerenciamento centralizado de escopos, setores e parâmetros de produção.",
+      "stats": {
+        "total": "Total Cadastrado",
+        "maintenance": "Escopo Manutenção",
+        "production": "Escopo Produção",
+        "withGoals": "Com Metas Ativas"
+      },
+      "search": "Buscar por nome, tag ou código...",
+      "onlyProduction": "Apenas Produção",
+      "newMachine": "Nova Máquina",
+      "loadError": "Erro ao carregar dados do servidor.",
+      "saveSuccess": "Configurações salvas com sucesso!",
+      "saveError": "Erro ao salvar alterações",
+      "table": {
+        "identification": "Identificação",
+        "maintenance": "Manutenção",
+        "production": "Produção",
+        "sector": "Setor",
+        "goal": "Meta (h)",
+        "aliases": "Aliases (Excel)",
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "mapped": "mapeado(s)",
+        "mother": "MÃE"
+      },
+      "empty": {
+        "title": "Nenhum resultado encontrado",
+        "text": "Tente ajustar os filtros ou adicionar uma nova máquina."
+      },
+      "modal": {
+        "addTitle": "Adicionar Nova Máquina",
+        "editTitle": "Editar: {{name}}",
+        "machineName": "Nome da Máquina",
+        "machineNamePlaceholder": "Ex: TCN-20",
+        "scopes": "Escopos",
+        "scopeMaintenance": "Manutenção",
+        "scopeProduction": "Produção",
+        "hierarchyConfig": "Configuração de Hierarquia",
+        "isMother": "É Máquina Mãe?",
+        "showChildrenDashboard": "Exibir filhos no Dashboard?",
+        "parentMachine": "Máquina Mãe (Linha/Agrupadora)",
+        "noParent": "Nenhuma (Máquina Independente)",
+        "parentHint": "Selecione a máquina \"Mãe\" desta máquina.",
+        "sector": "Setor/Departamento",
+        "selectSector": "Selecione...",
+        "aliasesLabel": "Aliases para Upload",
+        "aliasesPlaceholder": "Nomes usados no Excel (separados por vírgula)",
+        "aliasesHint": "Nomes diferentes que aparecem no Excel e devem resolver para esta máquina.",
+        "goalLabel": "Meta diária (horas)",
+        "goalPlaceholder": "Ex: 18.50",
+        "goalHint": "Será criada uma nova meta vigente a partir de hoje.",
+        "cancel": "Cancelar",
+        "creating": "Criando...",
+        "createMachine": "Criar Máquina",
+        "saving": "Salvando...",
+        "save": "Salvar Alterações"
+      },
+      "createSuccess": "Máquina \"{{name}}\" criada!",
+      "createError": "Erro ao criar máquina",
+      "deleteSuccess": "Máquina removida com sucesso.",
+      "deleteError": "Erro ao excluir máquina",
+      "deleteConfirm": {
+        "title": "Excluir Máquina",
+        "text": "Tem certeza que deseja excluir a máquina \"{{name}}\"? Esta ação não pode ser desfeita.",
+        "confirm": "Excluir",
+        "cancel": "Cancelar"
+      }
+    },
+    "dashboard": {
+      "title": "Visão do Dia",
+      "subtitle": "Acompanhamento de produção por máquina",
+      "loadError": "Erro ao carregar dados",
+      "sectors": {
+        "machining": "Usinagem",
+        "assembly": "Montagem",
+        "all": "Todos"
+      },
+      "dateLabel": "Data do WIP",
+      "timeLabel": "Hora referência (05:30 → 00:44)",
+      "dayCompleted": "Dia concluído — usando janela completa",
+      "dayFuture": "Dia futuro — aguardando início",
+      "dayProgress": "{{percent}}% do dia",
+      "summary": {
+        "title": "Total Fábrica",
+        "future": "FUTURO",
+        "produced": "Produzido",
+        "expected": "Esperado",
+        "dailyGoal": "Meta diária",
+        "progressLabel": "Progresso vs esperado",
+        "machines": "Máquinas",
+        "projection": "Projeção",
+        "gap": "Gap"
+      },
+      "card": {
+        "produced": "Produzido",
+        "expected": "Esperado",
+        "dailyGoal": "Meta diária",
+        "deviation": "Desvio",
+        "noGoal": "Sem meta",
+        "vsExpected": "vs esperado",
+        "vsGoal": "vs meta do dia",
+        "mother": "MÃE"
+      },
+      "empty": {
+        "noMachines": "Nenhuma máquina com escopo de produção ativo.",
+        "noFilter": "Nenhuma máquina encontrada para este filtro. Verifique se os setores estão preenchidos na tela de Configuração."
+      }
+    },
+    "uploadDetail": {
+      "title": "Detalhes do Upload",
+      "loading": "Carregando...",
+      "notFound": "Upload não encontrado.",
+      "info": {
+        "file": "Arquivo",
+        "dateRef": "Data Referência",
+        "lines": "Linhas",
+        "hours": "Horas Total",
+        "sentAt": "Enviado em",
+        "sentBy": "Enviado por"
+      },
+      "entries": {
+        "title": "Lançamentos",
+        "machine": "Máquina",
+        "hours": "Horas"
+      }
+    },
+    "colaboradores": {
+      "title": "Performance por colaborador",
+      "subtitle": "Para cada matrícula, comparamos a produção real com a meta diária definida.",
+      "monthGoal": "Meta mês",
+      "monthReal": "Real mês",
+      "filters": {
+        "refMonth": "Mês de referência",
+        "analysisDay": "Dia para análise",
+        "daysElapsed": "Dias corridos",
+        "workDays": "Dias úteis mês"
+      },
+      "actions": {
+        "reload": "Recarregar",
+        "new": "Novo"
+      },
+      "table": {
+        "matricula": "Matrícula",
+        "name": "Nome",
+        "goalDay": "Meta Dia (h)",
+        "goalAccum": "Meta Acum (h)",
+        "goalMonth": "Meta Mês (h)",
+        "realDay": "Real Dia (h)",
+        "realMonth": "Real Mês (h)",
+        "perfDay": "Perf. Dia (%)",
+        "perfMonth": "Perf. Mês (%)",
+        "status": "Status",
+        "totals": "Totais"
+      },
+      "empty": "Nenhum colaborador cadastrado.",
+      "modal": {
+        "titleNew": "Novo Colaborador",
+        "titleEdit": "Editar Colaborador",
+        "matricula": "Matrícula",
+        "name": "Nome",
+        "dailyGoal": "Meta Diária (h)",
+        "active": "Ativo",
+        "cancel": "Cancelar",
+        "save": "Salvar"
+      },
+      "status": {
+        "active": "Ativo",
+        "inactive": "Inativo"
+      }
     }
   }
 }

@@ -19,6 +19,8 @@ import {
     FiMessageSquare,
     FiFileText,
     FiAlertCircle,
+    FiUploadCloud,
+    FiChevronDown,
 } from 'react-icons/fi';
 import styles from './MainLayout.module.css';
 
@@ -40,6 +42,11 @@ import LanguageMenu from './LanguageMenu';
 import PziniChatBot from '../features/analytics/pages/PziniChatBot';
 import ChecklistOverviewPage from '../features/checklists/pages/ChecklistOverviewPage';
 import ChamadosAbertosPage from '../features/chamados/pages/ChamadosAbertosPage';
+import ProducaoUploadPage from '../features/producao/pages/ProducaoUploadPage';
+import ProducaoConfigPage from '../features/producao/pages/ProducaoConfigPage';
+import ProducaoUploadDetalhePage from '../features/producao/pages/ProducaoUploadDetalhePage';
+import ProducaoDashboardPage from '../features/producao/pages/ProducaoDashboardPage';
+import ProducaoColaboradoresPage from '../features/producao/pages/ProducaoColaboradoresPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -76,6 +83,27 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+
+    // Sidebar Groups State - with localStorage persistence
+    const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
+
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+        try {
+            const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch { /* ignore */ }
+        return { maintenance: true, production: false };
+    });
+
+    const toggleGroup = (key: string) => {
+        setOpenGroups(prev => {
+            const next = { ...prev, [key]: !prev[key] };
+            try {
+                localStorage.setItem(SIDEBAR_GROUPS_KEY, JSON.stringify(next));
+            } catch { /* ignore */ }
+            return next;
+        });
+    };
 
     const isPt = (i18n?.language || '').toLowerCase().startsWith('pt');
 
@@ -218,6 +246,38 @@ const MainLayout = ({ user }: MainLayoutProps) => {
         };
     }, []);
 
+    const SidebarGroup = ({
+        id,
+        label,
+        icon: Icon,
+        children
+    }: {
+        id: string;
+        label: string;
+        icon?: React.ElementType; // Tornando ícone opcional
+        children: React.ReactNode
+    }) => {
+        const isOpen = openGroups[id];
+        return (
+            <div className={styles.sidebarGroup}>
+                <button
+                    className={styles.groupHeader}
+                    onClick={() => toggleGroup(id)}
+                    aria-expanded={isOpen}
+                >
+                    <div className={styles.groupHeaderLabel}>
+                        {Icon && <Icon style={{ fontSize: 20 }} />}
+                        <span>{label}</span>
+                    </div>
+                    <FiChevronDown className={`${styles.chevron} ${isOpen ? styles.open : ''}`} />
+                </button>
+                <div className={`${styles.groupContent} ${isOpen ? styles.open : ''}`}>
+                    {children}
+                </div>
+            </div>
+        );
+    };
+
     const NavContent = () => (
         <>
             <NavLink
@@ -244,11 +304,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             )}
 
             {isMaintLike && (
-                <>
-                    <h3 className={styles.navSectionTitle}>
-                        {t('layout.sections.manageMaintenance')}
-                    </h3>
-
+                <SidebarGroup id="maintenance" label="Manutenção" icon={FiServer}>
                     <NavLink
                         to="/maquinas"
                         className={({ isActive }) => {
@@ -264,148 +320,187 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </div>
                         <span>{t('nav.machines')}</span>
                     </NavLink>
-                </>
-            )}
-
-            {isMaintLike && (
-                <NavLink
-                    to="/chamados-abertos"
-                    className={({ isActive }) =>
-                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                    }
-                >
-                    <FiAlertCircle className={styles.navIcon} />
-                    <span>{t('nav.openTickets', 'Chamados Abertos')}</span>
-                </NavLink>
-            )}
-
-            {isMaintainer && (
-                <NavLink
-                    to="/meus-chamados"
-                    className={({ isActive }) => {
-                        const base = styles.navLink;
-                        const active = isActive ? ` ${styles.activeLink}` : '';
-                        const alert = hasMyActiveCalls ? ` ${styles.alertLink}` : '';
-                        return `${base}${active}${alert}`.trim();
-                    }}
-                >
-                    <div style={{ position: 'relative' }}>
-                        <FiClipboard className={styles.navIcon} />
-                        {hasMyActiveCalls && (
-                            <span
-                                className={styles.alertBadge}
-                                title={`${myActiveCount} ${t('nav.activeCalls')}`}
-                            />
-                        )}
-                    </div>
-                    <span>{t('nav.myCalls')}</span>
-                </NavLink>
-            )}
-
-            {isMaintainer && (
-                <NavLink
-                    to="/abrir-chamado"
-                    className={({ isActive }) =>
-                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                    }
-                >
-                    <FiPlusCircle className={styles.navIcon} />
-                    <span>{t('nav.openCorrective')}</span>
-                </NavLink>
-            )}
-
-            {isMaintLike && (
-                <NavLink
-                    to="/calendario-geral"
-                    className={({ isActive }) => {
-                        let cls = styles.navLink;
-                        if (isActive) return `${cls} ${styles.activeLink}`;
-                        if (hasSoonDue) return `${cls} ${styles.alertLink}`;
-                        return cls;
-                    }}
-                >
-                    <FiCalendar className={styles.navIcon} />
-                    <span>{t('nav.calendar')}</span>
-                </NavLink>
-            )}
-
-            {isManager && (
-                <NavLink
-                    to="/checklists-diarios"
-                    className={({ isActive }) =>
-                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                    }
-                >
-                    <FiCheckSquare className={styles.navIcon} />
-                    <span>{t('nav.dailyChecklists', 'Checklists diários')}</span>
-                </NavLink>
-            )}
-
-            {isMaintLike && (
-                <NavLink
-                    to="/historico"
-                    className={({ isActive }) =>
-                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                    }
-                >
-                    <FiFileText className={styles.navIcon} />
-                    <span>{t('nav.history')}</span>
-                </NavLink>
-            )}
-
-            {isMaintLike && (
-                <NavLink
-                    to="/estoque"
-                    className={({ isActive }) =>
-                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                    }
-                >
-                    <FiPackage className={styles.navIcon} />
-                    <span>{t('nav.inventory')}</span>
-                </NavLink>
-            )}
-
-            {isManager && (
-                <>
-                    <h3 className={styles.navSectionTitle}>
-                        {t('layout.sections.analytics')}
-                    </h3>
 
                     <NavLink
-                        to="/analise-falhas"
+                        to="/chamados-abertos"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiAlertCircle className={styles.navIcon} />
+                        <span>{t('nav.openTickets', 'Chamados Abertos')}</span>
+                    </NavLink>
+
+                    {isMaintainer && (
+                        <>
+                            <NavLink
+                                to="/meus-chamados"
+                                className={({ isActive }) => {
+                                    const base = styles.navLink;
+                                    const active = isActive ? ` ${styles.activeLink}` : '';
+                                    const alert = hasMyActiveCalls ? ` ${styles.alertLink}` : '';
+                                    return `${base}${active}${alert}`.trim();
+                                }}
+                            >
+                                <div style={{ position: 'relative' }}>
+                                    <FiClipboard className={styles.navIcon} />
+                                    {hasMyActiveCalls && (
+                                        <span
+                                            className={styles.alertBadge}
+                                            title={`${myActiveCount} ${t('nav.activeCalls')}`}
+                                        />
+                                    )}
+                                </div>
+                                <span>{t('nav.myCalls')}</span>
+                            </NavLink>
+
+                            <NavLink
+                                to="/abrir-chamado"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPlusCircle className={styles.navIcon} />
+                                <span>{t('nav.openCorrective')}</span>
+                            </NavLink>
+                        </>
+                    )}
+
+                    <NavLink
+                        to="/calendario-geral"
+                        className={({ isActive }) => {
+                            let cls = styles.navLink;
+                            if (isActive) return `${cls} ${styles.activeLink}`;
+                            if (hasSoonDue) return `${cls} ${styles.alertLink}`;
+                            return cls;
+                        }}
+                    >
+                        <FiCalendar className={styles.navIcon} />
+                        <span>{t('nav.calendar')}</span>
+                    </NavLink>
+
+                    {isManager && (
+                        <NavLink
+                            to="/checklists-diarios"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiCheckSquare className={styles.navIcon} />
+                            <span>{t('nav.dailyChecklists', 'Checklists diários')}</span>
+                        </NavLink>
+                    )}
+
+                    <NavLink
+                        to="/historico"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiFileText className={styles.navIcon} />
+                        <span>{t('nav.history')}</span>
+                    </NavLink>
+
+                    <NavLink
+                        to="/estoque"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiPackage className={styles.navIcon} />
+                        <span>{t('nav.inventory')}</span>
+                    </NavLink>
+
+                    {/* Analytics merged here */}
+                    {isManager && (
+                        <>
+                            <div style={{ margin: '8px 0', borderTop: '1px solid #e2e8f0' }} />
+                            <NavLink
+                                to="/analise-falhas"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiBarChart2 className={styles.navIcon} />
+                                <span>{t('nav.failures')}</span>
+                            </NavLink>
+
+                            <NavLink
+                                to="/causas-raiz"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPieChart className={styles.navIcon} />
+                                <span>{t('nav.rootCauses')}</span>
+                            </NavLink>
+
+                            {isPt && (
+                                <NavLink
+                                    to="/chatbot"
+                                    className={({ isActive }) =>
+                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                    }
+                                >
+                                    <FiMessageSquare className={styles.navIcon} />
+                                    <span>{t('nav.pzinibot', 'Pzini')}</span>
+                                    <BetaTag />
+                                </NavLink>
+                            )}
+                        </>
+                    )}
+                </SidebarGroup>
+            )}
+
+            {/* TODO: Remover filtro de email quando Produção estiver pronto para todos */}
+            {isManager && user?.email === 'gabriel.palazini@m.continua.tpm' && (
+                <SidebarGroup id="production" label={t('layout.sections.production', 'Produção')} icon={FiBarChart2}>
+                    <NavLink
+                        to="/producao/dashboard"
                         className={({ isActive }) =>
                             isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
                         }
                     >
                         <FiBarChart2 className={styles.navIcon} />
-                        <span>{t('nav.failures')}</span>
+                        <span>{t('nav.productionDashboard', 'Dashboard')}</span>
                     </NavLink>
 
                     <NavLink
-                        to="/causas-raiz"
+                        to="/producao/colaboradores"
                         className={({ isActive }) =>
                             isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
                         }
                     >
-                        <FiPieChart className={styles.navIcon} />
-                        <span>{t('nav.rootCauses')}</span>
+                        <FiUsers className={styles.navIcon} />
+                        <span>{t('nav.productionEmployees', 'Colaboradores')}</span>
                     </NavLink>
 
-                    {isPt && (
-                        <NavLink
-                            to="/chatbot"
-                            className={({ isActive }) =>
-                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                            }
-                        >
-                            <FiMessageSquare className={styles.navIcon} />
-                            <span>{t('nav.pzinibot', 'Pzini')}</span>
-                            <BetaTag />
-                        </NavLink>
-                    )}
+                    <NavLink
+                        to="/producao/upload"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiUploadCloud className={styles.navIcon} />
+                        <span>{t('nav.productionUpload', 'Upload Produção')}</span>
+                    </NavLink>
 
+                    <NavLink
+                        to="/producao/config"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiServer className={styles.navIcon} />
+                        <span>{t('nav.productionConfig', 'Config. Máquinas')}</span>
+                    </NavLink>
+                </SidebarGroup>
+            )}
+
+            {isManager && (
+                <>
                     <h3 className={styles.navSectionTitle}>
-                        {t('layout.sections.managePeople')}
+                        {t('layout.sections.managePeople', 'Administração')}
                     </h3>
                     <NavLink
                         to="/gerir-utilizadores"
@@ -607,6 +702,31 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/gerir-utilizadores"
                         element={canAccess(['gestor'], <GerirUtilizadoresPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/producao/upload"
+                        element={canAccess(['gestor'], <ProducaoUploadPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/producao/config"
+                        element={canAccess(['gestor'], <ProducaoConfigPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/producao/upload/:uploadId"
+                        element={canAccess(['gestor'], <ProducaoUploadDetalhePage />)}
+                    />
+
+                    <Route
+                        path="/producao/dashboard"
+                        element={canAccess(['gestor'], <ProducaoDashboardPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/producao/colaboradores"
+                        element={canAccess(['gestor'], <ProducaoColaboradoresPage user={user} />)}
                     />
 
                     <Route

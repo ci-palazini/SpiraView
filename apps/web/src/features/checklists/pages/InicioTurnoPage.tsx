@@ -124,7 +124,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
         (async () => {
             try {
                 setLoading(true);
-                const lista: Maquina[] = await listarMaquinas();
+                const lista: Maquina[] = await listarMaquinas({ escopo: 'manutencao' });
                 const ordenada = [...lista].sort((a, b) =>
                     String(a.nome || '').localeCompare(String(b.nome || ''), 'pt')
                 );
@@ -432,8 +432,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                 <button
                                     type="button"
                                     className={`${resp === 'sim'
-                                            ? styles.radioButtonSimActive
-                                            : styles.radioButtonSim
+                                        ? styles.radioButtonSimActive
+                                        : styles.radioButtonSim
                                         } ${isDisabled ? styles.radioButtonDisabled : ''}`}
                                     onClick={() => !isDisabled && handleResp(pergunta, 'sim')}
                                     disabled={isDisabled}
@@ -445,8 +445,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                 <button
                                     type="button"
                                     className={`${resp === 'nao'
-                                            ? styles.radioButtonNaoActive
-                                            : styles.radioButtonNao
+                                        ? styles.radioButtonNaoActive
+                                        : styles.radioButtonNao
                                         } ${isDisabled ? styles.radioButtonDisabled : ''}`}
                                     onClick={() => !isDisabled && handleResp(pergunta, 'nao')}
                                     disabled={isDisabled}

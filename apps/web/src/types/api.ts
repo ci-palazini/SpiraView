@@ -91,6 +91,12 @@ export interface Maquina {
     tag?: string;
     setor?: string;
     critico?: boolean;
+    escopo_manutencao?: boolean;
+    escopo_producao?: boolean;
+    aliases_producao?: string[];
+    parent_maquina_id?: string;
+    is_maquina_mae?: boolean;
+    exibir_filhos_dashboard?: boolean;
     checklist_diario?: string[];
     checklistDiario?: string[];
     chamadosAtivos?: Chamado[];
@@ -103,6 +109,9 @@ export interface MaquinaCreate {
     tag?: string;
     setor?: string;
     critico?: boolean;
+    parentId?: string;
+    isMaquinaMae?: boolean;
+    exibirFilhosDashboard?: boolean;
 }
 
 // ---------- Agendamentos ----------
@@ -151,6 +160,8 @@ export interface Usuario {
     email?: string;
     role?: string;
     funcao?: string;
+    matricula?: string;
+    ativo?: boolean;
 }
 
 export interface UsuarioCreate {

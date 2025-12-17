@@ -9,15 +9,24 @@ export const maquinasRouter: Router = Router();
 maquinasRouter.get("/maquinas", async (req, res) => {
   try {
     const q = (req.query.q as string | undefined)?.trim();
+    const escopo = req.query.escopo as string | undefined; // 'manutencao' | 'producao' | undefined
     const params: any[] = [];
     let where = "1=1";
+
     if (q) {
       params.push(`%${q}%`);
-      where = "(nome ILIKE $" + params.length + " OR tag ILIKE $" + params.length + ")";
+      where += ` AND (nome ILIKE $${params.length} OR tag ILIKE $${params.length})`;
+    }
+
+    // Filtro por escopo
+    if (escopo === 'manutencao') {
+      where += " AND escopo_manutencao = TRUE";
+    } else if (escopo === 'producao') {
+      where += " AND escopo_producao = TRUE";
     }
 
     const { rows } = await pool.query(
-      `SELECT id, nome, tag, setor, critico
+      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard
        FROM maquinas
        WHERE ${where}
        ORDER BY nome ASC`,
@@ -34,7 +43,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
 // Criar máquina
 maquinasRouter.post("/maquinas", async (req, res) => {
   try {
-    const { nome, tag, setor, critico } = req.body ?? {};
+    const { nome, tag, setor, critico, parentId, isMaquinaMae, exibirFilhosDashboard } = req.body ?? {};
     const nomeTrim = String(nome || "").trim();
     const tagTrim = String(tag || nomeTrim).trim();
 
@@ -54,10 +63,10 @@ maquinasRouter.post("/maquinas", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO maquinas (nome, tag, setor, critico)
-       VALUES ($1, $2, $3, COALESCE($4, false))
-       RETURNING id, nome, tag, setor, critico`,
-      [nomeTrim, tagTrim, setor ?? null, !!critico]
+      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard)
+       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true))
+       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard`,
+      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true]
     );
 
     // SSE broadcast
@@ -74,7 +83,146 @@ maquinasRouter.post("/maquinas", async (req, res) => {
   }
 });
 
+// PATCH /maquinas/:id/parent - Atualizar máquina mãe
+maquinasRouter.patch('/maquinas/:id/parent', requireRole(['gestor']), async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const { parentId } = req.body; // pode ser null
 
+    // Evitar auto-referência
+    if (parentId && parentId === id) {
+      return res.status(400).json({ error: 'Uma máquina não pode ser mãe de si mesma.' });
+    }
+
+    // (Opcional) Verificar ciclos mais profundos se necessário, mas 1 nível já ajuda.
+
+    const upd = await pool.query(
+      `UPDATE maquinas 
+             SET parent_maquina_id = $2, atualizado_em = NOW()
+             WHERE id = $1
+             RETURNING id, nome, parent_maquina_id`,
+      [id, parentId || null]
+    );
+
+    if (!upd.rowCount) {
+      return res.status(404).json({ error: 'Máquina não encontrada.' });
+    }
+
+    sseBroadcast({ topic: 'maquinas', action: 'updated', id });
+    res.json(upd.rows[0]);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// PATCH /maquinas/:id/escopo - Atualizar escopos e setor da máquina (somente gestor)
+maquinasRouter.patch('/maquinas/:id/escopo', async (req, res) => {
+  try {
+    const auth = (req as any).user || {};
+    if (auth.role !== 'gestor') {
+      return res.status(403).json({ error: 'Somente gestor pode alterar escopos.' });
+    }
+
+    const id = String(req.params.id);
+    const { escopoManutencao, escopoProducao, setor } = req.body || {};
+
+    // Validar que pelo menos um escopo está ativo (se estiver sendo alterado)
+    // Se não enviado, assume que mantém o atual (mas aqui não temos o atual na mão facilmente sem query)
+    // Simplificação: apenas validar se escopos forem false explicitamente.
+    const manut = escopoManutencao !== undefined ? !!escopoManutencao : null;
+    const prod = escopoProducao !== undefined ? !!escopoProducao : null;
+    const isMae = req.body.isMaquinaMae !== undefined ? !!req.body.isMaquinaMae : null;
+    const exibeFilhos = req.body.exibirFilhosDashboard !== undefined ? !!req.body.exibirFilhosDashboard : null;
+
+    if (manut === false && prod === false) {
+      return res.status(400).json({ error: 'A máquina deve ter pelo menos um escopo ativo.' });
+    }
+
+    const sets: string[] = [];
+    const params: any[] = [id];
+
+    if (manut !== null) {
+      params.push(manut);
+      sets.push(`escopo_manutencao = $${params.length}`);
+    }
+    if (prod !== null) {
+      params.push(prod);
+      sets.push(`escopo_producao = $${params.length}`);
+    }
+    // Setor pode ser string ou null
+    if (setor !== undefined) {
+      params.push(setor || null);
+      sets.push(`setor = $${params.length}`);
+    }
+    // Configs de Mãe
+    if (isMae !== null) {
+      params.push(isMae);
+      sets.push(`is_maquina_mae = $${params.length}`);
+    }
+    if (exibeFilhos !== null) {
+      params.push(exibeFilhos);
+      sets.push(`exibir_filhos_dashboard = $${params.length}`);
+    }
+
+    if (!sets.length) {
+      return res.status(400).json({ error: 'Informe escopoManutencao, escopoProducao, setor ou configuracoes de mae.' });
+    }
+
+    const upd = await pool.query(
+      `UPDATE maquinas SET ${sets.join(', ')}, atualizado_em = NOW()
+       WHERE id = $1
+       RETURNING id, nome, escopo_manutencao, escopo_producao, setor, is_maquina_mae, exibir_filhos_dashboard`,
+      params
+    );
+
+    if (!upd.rowCount) {
+      return res.status(404).json({ error: 'Máquina não encontrada.' });
+    }
+
+    sseBroadcast({ topic: 'maquinas', action: 'updated', id });
+    res.json(upd.rows[0]);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// PATCH /maquinas/:id/aliases-producao - Atualizar aliases para upload de produção
+maquinasRouter.patch('/maquinas/:id/aliases-producao', async (req, res) => {
+  try {
+    const auth = (req as any).user || {};
+    if (auth.role !== 'gestor') {
+      return res.status(403).json({ error: 'Somente gestor pode alterar aliases.' });
+    }
+
+    const id = String(req.params.id);
+    const { aliases } = req.body || {};
+
+    // Aceita array de strings ou null para limpar
+    const aliasesArray: string[] = Array.isArray(aliases)
+      ? aliases.map((a: unknown) => String(a).trim()).filter(Boolean)
+      : [];
+
+    const upd = await pool.query(
+      `UPDATE maquinas 
+       SET aliases_producao = $2, atualizado_em = NOW()
+       WHERE id = $1::uuid
+       RETURNING id, nome, aliases_producao`,
+      [id, aliasesArray]
+    );
+
+    if (!upd.rowCount) {
+      return res.status(404).json({ error: 'Máquina não encontrada.' });
+    }
+
+    sseBroadcast({ topic: 'maquinas', action: 'updated', id });
+    res.json(upd.rows[0]);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
 
 maquinasRouter.get('/maquinas/:id', async (req, res) => {
   try {
@@ -90,6 +238,8 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
         tag,
         setor,
         critico,
+        escopo_manutencao,
+        escopo_producao,
         COALESCE(checklist_diario, '[]'::jsonb) AS checklist_diario
       FROM maquinas
       WHERE id = $1

@@ -87,7 +87,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
             setLoading(true);
             setError('');
             try {
-                const maquinas = await listarMaquinas();
+                const maquinas = await listarMaquinas({ escopo: 'manutencao' });
                 const detalhes = await Promise.all(
                     (maquinas || []).map(async (m: { id: string; nome?: string }) => {
                         const det: MaquinaDetalhe = await getMaquina(m.id);
@@ -222,7 +222,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
             const start = new Date(end);
             start.setDate(1);
 
-            const maquinas = await listarMaquinas();
+            const maquinas = await listarMaquinas({ escopo: 'manutencao' });
             const detalhes = await Promise.all(
                 (maquinas || []).map(async (m: { id: string; nome?: string }) => {
                     const det: MaquinaDetalhe = await getMaquina(m.id);

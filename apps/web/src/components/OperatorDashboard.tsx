@@ -74,7 +74,7 @@ export default function OperatorDashboard({ user }: OperatorDashboardProps) {
         let alive = true;
         (async () => {
             try {
-                const itens = await listarMaquinas().catch(() => []);
+                const itens = await listarMaquinas({ escopo: 'manutencao' }).catch(() => []);
                 if (!alive) return;
                 const ordenadas = (itens || [])
                     .filter((m: Maquina) => m?.id && (m?.nome || m?.tag))

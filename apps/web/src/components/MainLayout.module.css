@@ -63,6 +63,58 @@
   margin-top: 0;
 }
 
+/* ==================== GRUPOS DA SIDEBAR ==================== */
+.groupHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  color: var(--color-neutral-700);
+  font-weight: var(--font-weight-semibold);
+  transition: background var(--transition-fast);
+  margin-top: var(--spacing-2);
+  text-align: left;
+}
+
+.groupHeader:hover {
+  background: var(--color-neutral-100);
+}
+
+.groupHeaderLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.chevron {
+  font-size: 16px;
+  color: var(--color-neutral-400);
+  transition: transform var(--transition-base);
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.groupContent {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height var(--transition-base) ease-in-out;
+  padding-left: var(--spacing-2);
+  /* Indentation for items */
+}
+
+.groupContent.open {
+  max-height: 500px;
+  /* Arbitrary large height for transition */
+}
+
 /* Links de navegação */
 .navLink {
   display: flex;

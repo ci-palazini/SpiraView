@@ -1,0 +1,348 @@
+/* src/features/producao/pages/ProducaoDashboardPage.module.css */
+
+.container {
+    padding: 16px;
+}
+
+/* Header Grid: Data + Hora + Summary */
+.headerGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .headerGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .headerGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tabs para Setor */
+.sectorTabs {
+    display: inline-flex;
+    background-color: var(--color-neutral-100);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    gap: 4px;
+}
+
+.sectorTab {
+    padding: 6px 12px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-600);
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.sectorTab:hover {
+    color: var(--color-neutral-900);
+    background-color: var(--color-neutral-200);
+}
+
+.sectorTabActive {
+    background-color: #ffffff;
+    color: var(--color-primary-600);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.sectorTabActive:hover {
+    background-color: #ffffff;
+}
+
+/* Date Card */
+.dateCard {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inputLabel {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+}
+
+.dateInput {
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+
+.dateInput:focus {
+    border-color: #006400;
+}
+
+/* Summary Card */
+.summaryCard {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.summaryHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.summaryTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.summaryBody {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.summaryRow strong {
+    color: #1e293b;
+}
+
+.summaryFooter {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badgeGreen {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badgeYellow {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badgeRed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badgeGray {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.badgeDot {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    padding: 4px 8px;
+    background: #f8fafc;
+    border-radius: 4px;
+}
+
+.badgeDot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.textGreen {
+    color: #16a34a !important;
+}
+
+.textRed {
+    color: #dc2626 !important;
+}
+
+/* Progress Bar */
+.progressContainer {
+    margin-top: 4px;
+}
+
+.progressLabel {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.progressBar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    background: repeating-linear-gradient(45deg,
+            transparent,
+        transparent 4px,
+        rgba(255, 255, 255, 0.2) 4px,
+        rgba(255, 255, 255, 0.2) 8px);
+}
+
+.progressGreen {
+    background-color: #22c55e;
+}
+
+.progressYellow {
+    background-color: #eab308;
+}
+
+.progressRed {
+    background-color: #ef4444;
+}
+
+.progressGray {
+    background-color: #94a3b8;
+}
+
+.progressBlue {
+    background-color: #3b82f6;
+}
+
+/* Helper Text */
+.helperText {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Grid de Cards */
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+@media (min-width: 1200px) {
+    .cardsGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Card de Máquina */
+.machineCard {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.machineCard:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.machineName {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.statLine {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.statLine strong {
+    color: #1e293b;
+}
+
+.cardProgress {
+    margin-top: 8px;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+}
+
+.emptyIcon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}   
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+    font-size: 0.9rem;
+}

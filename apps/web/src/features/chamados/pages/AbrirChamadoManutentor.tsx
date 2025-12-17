@@ -39,7 +39,7 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
         (async () => {
             setLoading(true);
             try {
-                const lista = await getMaquinas();
+                const lista = await getMaquinas('', 'manutencao');
                 setMaquinas(Array.isArray(lista) ? lista : []);
             } catch (e) {
                 console.error(e);
