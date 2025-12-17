@@ -634,3 +634,5 @@ uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
         res.status(500).json({ error: String(e) });
     }
 });
+/ /   t r i g g e r   d e p l o y  
+ 
