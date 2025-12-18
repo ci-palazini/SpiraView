@@ -7,6 +7,7 @@ import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal';
 import PecaModal from './PecaModal';
 import PageHeader from '../../../shared/components/PageHeader';
+import ExportButtons from '../../../shared/components/ExportButtons';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
@@ -122,18 +123,10 @@ export default function EstoquePage({ user }: EstoquePageProps) {
                             {t('estoque.toolbar.new')}
                         </button>
                     )}
-                    <button
-                        className={styles.exportButton}
-                        onClick={handleExportExcel}
-                    >
-                        {t('estoque.toolbar.exportExcel')}
-                    </button>
-                    <button
-                        className={styles.exportButton}
-                        onClick={handleExportPdf}
-                    >
-                        {t('estoque.toolbar.exportPdf')}
-                    </button>
+                    <ExportButtons
+                        onExportExcel={handleExportExcel}
+                        onExportPdf={handleExportPdf}
+                    />
                 </div>
 
                 {/* Grid de cards */}
@@ -219,6 +212,13 @@ export default function EstoquePage({ user }: EstoquePageProps) {
                         tipo={modalTipo}
                         user={user}
                         onClose={() => setSelectedPeca(null)}
+                        onSaved={(pecaAtualizada) => {
+                            setPecas((prev) =>
+                                prev.map((p) =>
+                                    p.id === pecaAtualizada.id ? pecaAtualizada : p
+                                )
+                            );
+                        }}
                     />
                 )}
 

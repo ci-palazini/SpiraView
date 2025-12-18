@@ -1,0 +1,380 @@
+/* src/features/estoque/pages/HistoricoMovimentacoesPage.module.css */
+
+/* ==================== CONTAINER PRINCIPAL ==================== */
+.container {
+    padding: 0;
+}
+
+.listContainer {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 16px 24px;
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.06),
+        0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* ==================== FILTROS ==================== */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.filterGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 160px;
+}
+
+.filterGroup label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.select,
+.input {
+    padding: 10px 14px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1e293b;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.select:focus,
+.input:focus {
+    outline: none;
+    border-color: #1e40af;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+}
+
+.select:hover,
+.input:hover {
+    border-color: rgba(30, 64, 175, 0.3);
+}
+
+.btnSecondary {
+    padding: 10px 18px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btnSecondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #1e293b;
+    transform: translateY(-1px);
+}
+
+/* ==================== AÇÕES ==================== */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.count {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.exportButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.btnExport {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btnExport:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btnExport:active {
+    transform: translateY(0);
+}
+
+/* ==================== TABELA ==================== */
+.tableWrapper {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 16px;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.06),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.table thead {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+
+.table th {
+    padding: 16px 18px;
+    text-align: left;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    color: #334155;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(30, 64, 175, 0.04);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table code {
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    color: #1e40af;
+    font-weight: 500;
+}
+
+/* ==================== BADGES ==================== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+.badge.entrada {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge.saida {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ==================== COLUNAS ESPECÍFICAS ==================== */
+.quantity {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.saldo {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #334155;
+}
+
+.description {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.usuario {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty {
+    padding: 80px 20px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.empty p {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* ==================== SKELETON ==================== */
+.skeletonContainer {
+    padding: 24px;
+}
+
+/* ==================== ANIMAÇÕES ==================== */
+@keyframes rowFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.table tbody tr {
+    animation: rowFadeIn 0.3s ease-out backwards;
+}
+
+.table tbody tr:nth-child(1) {
+    animation-delay: 0.02s;
+}
+
+.table tbody tr:nth-child(2) {
+    animation-delay: 0.04s;
+}
+
+.table tbody tr:nth-child(3) {
+    animation-delay: 0.06s;
+}
+
+.table tbody tr:nth-child(4) {
+    animation-delay: 0.08s;
+}
+
+.table tbody tr:nth-child(5) {
+    animation-delay: 0.1s;
+}
+
+.table tbody tr:nth-child(6) {
+    animation-delay: 0.12s;
+}
+
+.table tbody tr:nth-child(7) {
+    animation-delay: 0.14s;
+}
+
+.table tbody tr:nth-child(8) {
+    animation-delay: 0.16s;
+}
+
+.table tbody tr:nth-child(9) {
+    animation-delay: 0.18s;
+}
+
+.table tbody tr:nth-child(10) {
+    animation-delay: 0.2s;
+}
+
+/* ==================== RESPONSIVO ==================== */
+@media (max-width: 768px) {
+    .listContainer {
+        margin: 12px 16px;
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filterGroup {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .btnSecondary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .tableWrapper {
+        overflow-x: auto;
+        border-radius: 12px;
+    }
+
+    .table {
+        min-width: 750px;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px 14px;
+    }
+
+    .actions {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .count {
+        text-align: center;
+    }
+
+    .exportButtons {
+        justify-content: center;
+    }
+
+    .btnExport {
+        flex: 1;
+        justify-content: center;
+    }
+}

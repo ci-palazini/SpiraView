@@ -17,16 +17,19 @@ interface MovimentacaoModalProps {
     tipo: 'entrada' | 'saida';
     user: User;
     onClose: () => void;
+    onSaved?: (pecaAtualizada: Peca) => void;
 }
 
 // ---------- Component ----------
-export default function MovimentacaoModal({ peca, tipo, user, onClose }: MovimentacaoModalProps) {
+export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }: MovimentacaoModalProps) {
     const [quantidade, setQuantidade] = useState(1);
     const [descricao, setDescricao] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        // Proteção contra chamada dupla
+        if (isSaving) return;
         setIsSaving(true);
         try {
             // validação simples
@@ -36,7 +39,7 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose }: Movimen
             }
 
             // chama a API (back já registra a movimentação e atualiza o estoque em transação)
-            await registrarMovimentacao(
+            const result = await registrarMovimentacao(
                 peca.id,
                 {
                     tipo,                // 'entrada' | 'saida'
@@ -44,13 +47,22 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose }: Movimen
                     descricao: (descricao || '').trim(),
                 },
                 { role: user?.role, email: user?.email }
-            );
+            ) as { ok: boolean; peca: { estoque_atual: number } };
+
+            // Atualiza a peça com o novo estoque retornado pelo backend
+            if (result?.peca && onSaved) {
+                onSaved({
+                    ...peca,
+                    estoqueAtual: result.peca.estoque_atual,
+                });
+            }
 
             toast.success(`Movimentação de ${tipo} realizada com sucesso!`);
             onClose();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Erro ao registrar movimentação:', err);
-            toast.error('Falha ao registrar movimentação.');
+            const msg = err?.message || 'Falha ao registrar movimentação.';
+            toast.error(msg);
         } finally {
             setIsSaving(false);
         }

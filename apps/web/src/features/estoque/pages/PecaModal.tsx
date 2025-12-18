@@ -26,7 +26,6 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
     const [codigo, setCodigo] = useState('');
     const [nome, setNome] = useState('');
     const [categoria, setCategoria] = useState('');
-    const [unidade, setUnidade] = useState('');
     const [estoqueAtual, setEstoqueAtual] = useState(0);
     const [estoqueMinimo, setEstoqueMinimo] = useState(0);
     const [localizacao, setLocalizacao] = useState('');
@@ -38,7 +37,6 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
             setCodigo(peca.codigo || '');
             setNome(peca.nome || '');
             setCategoria(peca.categoria || '');
-            setUnidade(peca.unidade || '');
             setEstoqueAtual(peca.estoqueAtual ?? 0);
             setEstoqueMinimo(peca.estoqueMinimo ?? 0);
             setLocalizacao(peca.localizacao || '');
@@ -47,7 +45,6 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
             setCodigo('');
             setNome('');
             setCategoria('');
-            setUnidade('');
             setEstoqueAtual(0);
             setEstoqueMinimo(0);
             setLocalizacao('');
@@ -128,17 +125,7 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
                     />
                 </div>
 
-                <div className={styles.formGroup}>
-                    <label htmlFor="unidade">{t('pecaModal.fields.unit')}</label>
-                    <input
-                        id="unidade"
-                        type="text"
-                        className={styles.input}
-                        value={unidade}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setUnidade(e.target.value)}
-                        required
-                    />
-                </div>
+
 
                 <div className={styles.formGroup}>
                     <label htmlFor="estoqueAtual">{t('pecaModal.fields.stockCurrent')}</label>

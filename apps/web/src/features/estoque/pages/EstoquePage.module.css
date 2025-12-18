@@ -1,167 +1,309 @@
-/* Header em card branco, igual Histórico / Meus Chamados */
-.pageHeader {
-  margin: 16px;
-  margin-bottom: 0;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-}
+/* src/features/estoque/pages/EstoquePage.module.css */
 
-.pageTitle {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.subtitle {
-  margin: 4px 0 0;
-  color: #667085;
-  font-size: 0.95rem;
-}
-
-/* Container branco principal */
+/* ==================== CONTAINER PRINCIPAL ==================== */
 .listContainer {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin: 16px;
-  margin-top: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 16px 24px;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.06),
+        0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-/* Toolbar superior (novo + exportações) */
+/* ==================== TOOLBAR ==================== */
 .toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-/* Botão "Nova peça" */
+/* ==================== BOTÃO NOVA PEÇA ==================== */
 .newButton {
-  background-color: #006400;
-  color: #ffffff;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.15s ease, transform 0.05s ease;
+    background: linear-gradient(135deg, #1e40af, #1d4ed8);
+    color: #ffffff;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
 }
 
 .newButton:hover {
-  background-color: #004d00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .newButton:active {
-  transform: translateY(1px);
+    transform: translateY(0);
 }
 
-/* Botões de exportação */
+/* ==================== BOTÕES DE EXPORTAÇÃO ==================== */
 .exportButton {
-  background-color: #16a085;
-  color: #ffffff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background 0.2s, transform 0.05s ease;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .exportButton:hover {
-  background-color: #13846d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .exportButton:active {
-  transform: translateY(1px);
+    transform: translateY(0);
 }
 
-/* Grid de cards */
+/* ==================== GRID ==================== */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    width: 100%;
 }
 
-/* Card de peça em catálogo */
-.cardCatalog {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #eef0f3;
+@media (min-width: 1200px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
 
-  display: flex;
-  flex-direction: column;
+/* ==================== CARD DE PEÇA ==================== */
+.cardCatalog {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.06),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.cardCatalog::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #1e40af, #3b82f6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cardCatalog:hover {
+    transform: translateY(-6px);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(0, 0, 0, 0.06);
+    border-color: rgba(30, 64, 175, 0.2);
+}
+
+.cardCatalog:hover::before {
+    opacity: 1;
 }
 
 .cardCatalog h3 {
-  margin: 0 0 8px;
-  font-size: 1rem;
-  color: #111827;
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    transition: color 0.3s ease;
+}
+
+.cardCatalog:hover h3 {
+    color: #1e40af;
 }
 
 .cardCatalog p {
-  margin: 2px 0;
-  font-size: 0.9rem;
-  color: #4b5563;
+    margin: 4px 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
 }
 
 .cardCatalog p strong {
-  color: #111827;
+    color: #1e293b;
+    font-weight: 600;
 }
 
-/* Botões dentro do card */
+/* ==================== INDICADOR DE ESTOQUE ==================== */
+.stockLow {
+    border-left: 4px solid #ef4444;
+}
+
+.stockLow::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: stockPulse 2s infinite;
+}
+
+@keyframes stockPulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ==================== BOTÕES DO CARD ==================== */
 .cardButtons {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.3);
 }
 
 .buttonSmall {
-  background-color: #006400;
-  color: #ffffff;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.15s ease, transform 0.05s ease;
+    background: linear-gradient(135deg, #1e40af, #1d4ed8);
+    color: #ffffff;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25);
 }
 
 .buttonSmall:hover {
-  background-color: #004d00;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(30, 64, 175, 0.35);
 }
 
 .buttonSmall:active {
-  transform: translateY(1px);
+    transform: translateY(0);
 }
 
 .buttonSmallDelete {
-  background-color: #d32f2f;
-  color: #ffffff;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.15s ease, transform 0.05s ease;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
 }
 
 .buttonSmallDelete:hover {
-  background-color: #b71c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.35);
 }
 
 .buttonSmallDelete:active {
-  transform: translateY(1px);
+    transform: translateY(0);
+}
+
+/* ==================== ESTILOS LEGADO (não utilizados no novo design) ==================== */
+.pageHeader {
+    margin: 16px 24px;
+    margin-bottom: 0;
+    padding: 20px 24px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pageTitle {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.subtitle {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+/* ==================== ANIMAÇÕES ==================== */
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cardCatalog {
+    animation: cardFadeIn 0.4s ease-out backwards;
+}
+
+.grid .cardCatalog:nth-child(1) { animation-delay: 0.02s; }
+.grid .cardCatalog:nth-child(2) { animation-delay: 0.04s; }
+.grid .cardCatalog:nth-child(3) { animation-delay: 0.06s; }
+.grid .cardCatalog:nth-child(4) { animation-delay: 0.08s; }
+.grid .cardCatalog:nth-child(5) { animation-delay: 0.1s; }
+.grid .cardCatalog:nth-child(6) { animation-delay: 0.12s; }
+.grid .cardCatalog:nth-child(7) { animation-delay: 0.14s; }
+.grid .cardCatalog:nth-child(8) { animation-delay: 0.16s; }
+
+/* ==================== RESPONSIVO ==================== */
+@media (max-width: 768px) {
+    .listContainer {
+        margin: 12px 16px;
+        padding: 16px;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .newButton,
+    .exportButton {
+        width: 100%;
+        text-align: center;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .cardCatalog {
+        padding: 16px;
+    }
 }
