@@ -230,9 +230,9 @@ export async function atribuirChamado(id: string, auth: AuthParams & { manutento
     const res = await fetch(`${BASE}/chamados/${id}/atribuir`, {
         method: "POST",
         headers: {
+            ...buildAuthHeaders(auth),
             "Content-Type": "application/json",
-            "x-user-role": auth.role || "",
-            "x-user-email": auth.email || ""
+            // override if specific email passed in body is different (not for auth header though)
         },
         body: JSON.stringify({ manutentorEmail: auth.manutentorEmail })
     });
@@ -244,7 +244,10 @@ export async function atribuirChamado(id: string, auth: AuthParams & { manutento
 export async function removerAtribuicao(id: string, auth: AuthParams): Promise<unknown> {
     const r = await fetch(`${BASE}/chamados/${id}/atribuir`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'x-user-role': auth.role || '', 'x-user-email': auth.email || '' },
+        headers: {
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
+        },
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || `Erro ao remover atribuição (${r.status})`);
@@ -263,9 +266,8 @@ export async function atenderChamado(id: string, auth: AuthParams = {}): Promise
     const res = await fetch(`${BASE}/chamados/${id}/atender`, {
         method: "POST",
         headers: {
+            ...buildAuthHeaders({ ...auth, role: auth.role || "manutentor" }),
             "Content-Type": "application/json",
-            "x-user-role": auth.role || "manutentor",
-            "x-user-email": auth.email || ""
         }
     });
     const data = await res.json().catch(() => ({}));
@@ -276,7 +278,10 @@ export async function atenderChamado(id: string, auth: AuthParams = {}): Promise
 export async function adicionarObservacao(id: string, opts: { texto: string } & AuthParams): Promise<unknown> {
     const res = await fetch(`${BASE}/chamados/${id}/observacoes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-user-role": opts.role || "", "x-user-email": opts.email || "" },
+        headers: {
+            ...buildAuthHeaders({ role: opts.role, email: opts.email }),
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify({ texto: opts.texto })
     });
     const data = await res.json().catch(() => ({}));
@@ -287,7 +292,10 @@ export async function adicionarObservacao(id: string, opts: { texto: string } & 
 export async function concluirChamado(id: string, payload: ConcluirChamadoPayload, auth: AuthParams): Promise<unknown> {
     const res = await fetch(`${BASE}/chamados/${id}/concluir`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-user-role": auth.role || "", "x-user-email": auth.email || "" },
+        headers: {
+            ...buildAuthHeaders(auth),
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
@@ -298,7 +306,7 @@ export async function concluirChamado(id: string, payload: ConcluirChamadoPayloa
 export async function deletarChamado(id: string, auth: AuthParams): Promise<unknown> {
     const res = await fetch(`${BASE}/chamados/${id}`, {
         method: "DELETE",
-        headers: { "x-user-role": auth.role || "", "x-user-email": auth.email || "" }
+        headers: buildAuthHeaders(auth)
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || `Erro ao excluir (${res.status})`);
@@ -448,9 +456,8 @@ export async function renomearMaquina(id: string, data: { nome: string; syncTag?
     const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/nome`, {
         method: 'PATCH',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || '',
         },
         body: JSON.stringify({ nome: data.nome, syncTag: data.syncTag ?? true }),
     });
@@ -479,9 +486,8 @@ export async function atualizarMaquinaPai(
     const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/parent`, {
         method: 'PATCH',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || '',
         },
         body: JSON.stringify({ parentId }),
     });
@@ -502,9 +508,8 @@ export async function atualizarAliasesProducao(
     const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/aliases-producao`, {
         method: 'PATCH',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || '',
         },
         body: JSON.stringify({ aliases }),
     });
@@ -521,9 +526,8 @@ export async function addChecklistItem(maquinaId: string, item: string, auth: Au
     const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-add`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || ''
         },
         body: JSON.stringify({ item })
     });
@@ -536,9 +540,8 @@ export async function removeChecklistItem(maquinaId: string, item: string, auth:
     const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-remove`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || ''
         },
         body: JSON.stringify({ item })
     });
@@ -559,9 +562,8 @@ export async function reorderChecklistItems(maquinaId: string, items: string[], 
     const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-reorder`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || ''
         },
         body: JSON.stringify({ items })
     });
@@ -665,10 +667,7 @@ export async function listarUsuarios(opts: { role?: string } = {}, auth: AuthPar
 
 export async function listarManutentores(auth: AuthParams = {}): Promise<Usuario[]> {
     const res = await fetch(`${BASE}/usuarios?role=manutentor`, {
-        headers: {
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor' })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || `Erro ao listar manutentores (${res.status})`);
@@ -679,9 +678,8 @@ export async function criarUsuario(data: UsuarioCreate, auth: AuthParams = {}): 
     const r = await fetch(`${BASE}/usuarios`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(data)
     });
@@ -694,9 +692,8 @@ export async function atualizarUsuario(id: string, data: Partial<UsuarioCreate>,
     const r = await fetch(`${BASE}/usuarios/${id}`, {
         method: 'PUT',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(data)
     });
@@ -708,10 +705,7 @@ export async function atualizarUsuario(id: string, data: Partial<UsuarioCreate>,
 export async function excluirUsuario(id: string, auth: AuthParams): Promise<unknown> {
     const r = await fetch(`${BASE}/usuarios/${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: {
-            'x-user-role': (auth?.role || '').toString().toLowerCase(),
-            'x-user-email': auth?.email || ''
-        }
+        headers: buildAuthHeaders(auth)
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j?.error || 'Falha ao excluir usuário');
@@ -738,10 +732,7 @@ export interface EstatisticasUsuario {
 
 export async function obterEstatisticasUsuario(id: string, auth: AuthParams = {}): Promise<EstatisticasUsuario> {
     const r = await fetch(`${BASE}/usuarios/${id}/estatisticas`, {
-        headers: {
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor' })
     });
     const json = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(json?.error || `Falha ao obter estatísticas (${r.status})`);
@@ -761,9 +752,8 @@ export async function criarPeca(payload: PecaCreate, auth: AuthParams): Promise<
     const r = await fetch(`${BASE}/pecas`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || '',
         },
         body: JSON.stringify(payload),
     });
@@ -776,9 +766,8 @@ export async function atualizarPeca(id: string, payload: Partial<PecaCreate>, au
     const r = await fetch(`${BASE}/pecas/${encodeURIComponent(id)}`, {
         method: 'PUT',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || '',
         },
         body: JSON.stringify(payload),
     });
@@ -790,10 +779,7 @@ export async function atualizarPeca(id: string, payload: Partial<PecaCreate>, au
 export async function excluirPeca(id: string, auth: AuthParams): Promise<unknown> {
     const r = await fetch(`${BASE}/pecas/${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: {
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || '',
-        },
+        headers: buildAuthHeaders(auth),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j?.error || 'Falha ao excluir peça');
@@ -804,9 +790,8 @@ export async function registrarMovimentacao(pecaId: string, mov: Movimentacao, a
     const r = await fetch(`${BASE}/pecas/${encodeURIComponent(pecaId)}/movimentacoes`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(mov)
     });
@@ -1303,9 +1288,8 @@ export async function atualizarEscopoMaquina(
     const r = await fetch(`${BASE}/maquinas/${id}/escopo`, {
         method: 'PATCH',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -1348,9 +1332,8 @@ export async function upsertFuncionarioMeta(payload: FuncionarioMeta, auth: Auth
     const r = await fetch(`${BASE}/producao/metas/funcionarios`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -1433,9 +1416,7 @@ export interface RoleUpdate {
 // Listar todas as páginas disponíveis para permissões
 export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<PaginaPermissao[]> {
     const r = await fetch(`${BASE}/roles/pages`, {
-        headers: {
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders(auth)
     });
     const data = await r.json().catch(() => ({ items: [] }));
     if (!r.ok) throw new Error(data?.error || 'Erro ao listar páginas');
@@ -1445,9 +1426,7 @@ export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<Pag
 // Listar todos os roles
 export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
     const r = await fetch(`${BASE}/roles`, {
-        headers: {
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders(auth)
     });
     const data = await r.json().catch(() => ({ items: [] }));
     if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
@@ -1457,9 +1436,7 @@ export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
 // Obter role por ID
 export async function buscarRole(id: string, auth: AuthParams = {}): Promise<Role> {
     const r = await fetch(`${BASE}/roles/${id}`, {
-        headers: {
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders(auth)
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || 'Erro ao buscar nível de acesso');
@@ -1471,9 +1448,8 @@ export async function criarRole(payload: RoleCreate, auth: AuthParams = {}): Pro
     const r = await fetch(`${BASE}/roles`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -1487,9 +1463,8 @@ export async function atualizarRole(id: string, payload: RoleUpdate, auth: AuthP
     const r = await fetch(`${BASE}/roles/${id}`, {
         method: 'PUT',
         headers: {
+            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -1503,9 +1478,8 @@ export async function excluirRole(id: string, auth: AuthParams = {}): Promise<vo
     const r = await fetch(`${BASE}/roles/${id}`, {
         method: 'DELETE',
         headers: {
+            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || 'gestor',
-            'x-user-email': auth.email || ''
         }
     });
     const data = await r.json().catch(() => ({}));
