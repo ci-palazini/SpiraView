@@ -2,7 +2,7 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { pool } from "../db";
-import { requireRole } from "../middlewares/requireRole";
+import { requireAnyPermission } from "../middlewares/requirePermission";
 
 // ===================================================================
 // Pzini ChatBot (rule-based) — SQL seguro com guardrails
@@ -673,8 +673,8 @@ function coerceRow(r: any) {
 // Rotas
 // ===================================================================
 
-// QUALQUER usuário autenticado
-botRouter.post("/ai/chat/sql", requireRole([]), async (req: Request, res: Response) => {
+// Usuário com permissão de analytics
+botRouter.post("/ai/chat/sql", requireAnyPermission(['analise_falhas', 'causas_raiz'], 'ver'), async (req: Request, res: Response) => {
   try {
     const question = String(req.body?.question ?? "").trim();
     const noCache = Boolean(req.body?.noCache);
@@ -717,8 +717,8 @@ botRouter.post("/ai/chat/sql", requireRole([]), async (req: Request, res: Respon
   }
 });
 
-// FTS nas observações
-botRouter.post("/ai/chat/text", requireRole([]), async (req: Request, res: Response) => {
+// FTS nas observações (requer analytics)
+botRouter.post("/ai/chat/text", requireAnyPermission(['analise_falhas', 'causas_raiz'], 'ver'), async (req: Request, res: Response) => {
   try {
     const q = String((req.body?.q ?? "")).trim();
     const limit = Math.min(Number(req.body?.limit ?? 20) || 20, 100);

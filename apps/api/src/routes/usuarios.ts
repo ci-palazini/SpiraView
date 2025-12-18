@@ -2,10 +2,12 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { pool } from '../db';
 import { roleToFuncao } from '../utils/roles';
+import { requirePermission } from '../middlewares/requirePermission';
 
 export const usuariosRouter: Router = Router();
 
-usuariosRouter.get('/usuarios', async (req, res) => {
+// GET /usuarios - listar usuários (requer ver)
+usuariosRouter.get('/usuarios', requirePermission('usuarios', 'ver'), async (req, res) => {
   try {
     // normaliza role e tolera "all:" etc.
     const rawRole = (req.query.role as string | undefined) ?? '';
@@ -61,12 +63,9 @@ usuariosRouter.get('/usuarios', async (req, res) => {
 });
 
 
-// POST /usuarios (gestor)
-usuariosRouter.post('/usuarios', async (req, res) => {
+// POST /usuarios - criar usuário (requer editar)
+usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
-
     let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
     nome = String(nome || '').trim();
     usuario = String(usuario || '').trim().toLowerCase();
@@ -109,12 +108,9 @@ usuariosRouter.post('/usuarios', async (req, res) => {
   }
 });
 
-// PUT /usuarios/:id (gestor)
-usuariosRouter.put('/usuarios/:id', async (req, res) => {
+// PUT /usuarios/:id - atualizar usuário (requer editar)
+usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
-
     const id = String(req.params.id);
 
     let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
@@ -168,14 +164,9 @@ usuariosRouter.put('/usuarios/:id', async (req, res) => {
   }
 });
 
-// DELETE /usuarios/:id (gestor)
-usuariosRouter.delete('/usuarios/:id', async (req, res) => {
+// DELETE /usuarios/:id - desativar usuário (requer editar)
+usuariosRouter.delete('/usuarios/:id', requirePermission('usuarios', 'editar'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor.' });
-    }
-
     const id = String(req.params.id);
     const ts = Date.now(); // sufixo para evitar conflito de unique
 
@@ -199,14 +190,9 @@ usuariosRouter.delete('/usuarios/:id', async (req, res) => {
   }
 });
 
-// GET /usuarios/:id/estatisticas (gestor)
-usuariosRouter.get('/usuarios/:id/estatisticas', async (req, res) => {
+// GET /usuarios/:id/estatisticas - estatísticas de usuário (requer ver)
+usuariosRouter.get('/usuarios/:id/estatisticas', requirePermission('usuarios', 'ver'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor.' });
-    }
-
     const id = String(req.params.id);
 
     // Busca dados do usuário

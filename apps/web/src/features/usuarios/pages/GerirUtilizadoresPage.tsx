@@ -13,7 +13,9 @@ import {
     atualizarUsuario,
     excluirUsuario,
     obterEstatisticasUsuario,
-    EstatisticasUsuario
+    EstatisticasUsuario,
+    listarRoles,
+    Role
 } from '../../../services/apiClient';
 
 // ---------- Types ----------
@@ -71,16 +73,24 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [statsData, setStatsData] = useState<EstatisticasUsuario | null>(null);
     const [loadingStats, setLoadingStats] = useState(false);
 
+    // roles list
+    const [roles, setRoles] = useState<Role[]>([]);
+
     useEffect(() => {
         let alive = true;
         (async () => {
             try {
                 setLoading(true);
-                const lista: UserRow[] = await listarUsuarios({ role: roleFiltro !== 'all' ? roleFiltro : undefined });
+                const auth = { email: user?.email, role: user?.role };
+                const [lista, rolesList] = await Promise.all([
+                    listarUsuarios({ role: roleFiltro !== 'all' ? roleFiltro : undefined }),
+                    listarRoles(auth)
+                ]);
                 if (!alive) return;
                 setUtilizadores(
-                    lista.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'))
+                    (lista as UserRow[]).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'))
                 );
+                setRoles(rolesList);
             } catch (e) {
                 console.error('Erro ao listar utilizadores:', e);
                 toast.error(t('users.toasts.listError'));
@@ -89,7 +99,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             }
         })();
         return () => { alive = false; };
-    }, [roleFiltro, t]);
+    }, [roleFiltro, t, user?.email, user?.role]);
 
     const handleSalvarUtilizador = async (e: FormEvent) => {
         e.preventDefault();
@@ -417,9 +427,19 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
                     >
-                        <option value="operador">{t('users.roles.operator')}</option>
-                        <option value="manutentor">{t('users.roles.maintainer')}</option>
-                        <option value="gestor">{t('users.roles.manager')}</option>
+                        {roles.length > 0 ? (
+                            roles.map(r => (
+                                <option key={r.id} value={r.nome.toLowerCase()}>
+                                    {r.nome}
+                                </option>
+                            ))
+                        ) : (
+                            <>
+                                <option value="operador">{t('users.roles.operator')}</option>
+                                <option value="manutentor">{t('users.roles.maintainer')}</option>
+                                <option value="gestor">{t('users.roles.manager')}</option>
+                            </>
+                        )}
                     </Select>
 
                     {role === 'operador' && (

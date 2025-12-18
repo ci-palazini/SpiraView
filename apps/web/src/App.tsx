@@ -16,6 +16,9 @@ export interface User {
     email: string;
     name?: string;
     role: string;
+    roleId?: string;
+    roleNome?: string;
+    permissoes?: Record<string, 'nenhum' | 'ver' | 'editar'>;
 }
 
 function readStoredUser(): User | null {

@@ -14,6 +14,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 import { df } from '../../../i18n/format';
+import usePermissions from '../../../hooks/usePermissions';
 
 import {
     listarAgendamentos,
@@ -140,6 +141,7 @@ function getContrastColor(hexColor: string): string {
 // ---------- Component ----------
 export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) {
     const { t, i18n } = useTranslation();
+    const perm = usePermissions(user);
 
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -266,7 +268,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     }, [reloadTick, t]);
 
     const handleSelectSlot = (info: SlotInfo) => {
-        if (user.role !== 'gestor') return;
+        if (!perm.canEdit('calendario')) return;
         setSlotInfo(info);
         setSelMachine('');
         setDescAgendamento('');
@@ -434,9 +436,9 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                             onNavigate={(date) => setCurrentDate(date)}
                             onView={(newView) => setView(newView)}
                             onSelectEvent={(event) => setSelectedEvent(event)}
-                            onSelectSlot={user.role === 'gestor' ? handleSelectSlot : undefined}
-                            selectable={user.role === 'gestor'}
-                            onEventDrop={user.role === 'gestor' ? handleEventDrop : undefined}
+                            onSelectSlot={perm.canEdit('calendario') ? handleSelectSlot : undefined}
+                            selectable={perm.canEdit('calendario')}
+                            onEventDrop={perm.canEdit('calendario') ? handleEventDrop : undefined}
                             eventPropGetter={eventPropGetter}
                             components={{
                                 event: ({ event }: { event: CalendarEvent }) => (
@@ -505,7 +507,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
 
                         {selectedEvent.resource.status !== 'iniciado' &&
                             selectedEvent.resource.status !== 'concluido' &&
-                            (user.role === 'manutentor' || user.role === 'gestor') && (
+                            perm.canEdit('calendario') && (
                                 <button
                                     className={styles.modalButton}
                                     onClick={() => handleIniciarManutencao(selectedEvent)}
@@ -514,7 +516,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                                 </button>
                             )}
 
-                        {user.role === 'gestor' && (
+                        {perm.canEdit('calendario') && (
                             <button
                                 className={`${styles.modalButton} ${styles.dangerButton}`}
                                 onClick={handleDeleteAgendamento}

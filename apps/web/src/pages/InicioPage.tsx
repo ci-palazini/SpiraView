@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import styles from './InicioPage.module.css';
+import usePermissions from '../hooks/usePermissions';
 import {
     FiServer,
     FiCalendar,
@@ -35,14 +36,9 @@ interface InicioPageProps {
 // ---------- Component ----------
 const InicioPage = ({ user }: InicioPageProps) => {
     const { t, i18n } = useTranslation();
+    const perm = usePermissions(user);
 
     const isPt = (i18n?.language || '').toLowerCase().startsWith('pt');
-    const isGestor = user.role === 'gestor';
-    const isManutentor = user.role === 'manutentor';
-    const isMaintLike = isManutentor || isGestor;
-
-    // TODO: Remover quando Produção estiver pronto para todos
-    const canAccessProducao = isGestor && user.email === 'gabriel.palazini@m.continua.tpm';
 
     return (
         <>
@@ -60,7 +56,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
 
                 <div className={styles.actionsGrid}>
 
-                    {isMaintLike && (
+                    {perm.canView('maquinas') && (
                         <Link to="/maquinas" className={styles.actionCard}>
                             <FiServer className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.machines.title')}</h3>
@@ -70,7 +66,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isMaintLike && (
+                    {perm.canView('chamados_abertos') && (
                         <Link to="/chamados-abertos" className={styles.actionCard}>
                             <FiAlertCircle className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.openCalls.title')}</h3>
@@ -80,7 +76,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isManutentor && (
+                    {perm.canView('meus_chamados') && (
                         <Link to="/meus-chamados" className={styles.actionCard}>
                             <FiClipboard className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.myCalls.title')}</h3>
@@ -90,7 +86,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isManutentor && (
+                    {perm.canView('abrir_chamado') && (
                         <Link to="/abrir-chamado" className={styles.actionCard}>
                             <FiPlusCircle className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.openTicket.title')}</h3>
@@ -100,7 +96,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isMaintLike && (
+                    {perm.canView('calendario') && (
                         <Link to="/calendario-geral" className={styles.actionCard}>
                             <FiCalendar className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.calendar.title')}</h3>
@@ -110,7 +106,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isGestor && (
+                    {perm.canView('checklists_diarios') && (
                         <Link to="/checklists-diarios" className={styles.actionCard}>
                             <FiCheckSquare className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.dailyChecklists.title', 'Checklists Diários')}</h3>
@@ -120,7 +116,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isMaintLike && (
+                    {perm.canView('historico') && (
                         <Link to="/historico" className={styles.actionCard}>
                             <FiCheckSquare className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.history.title')}</h3>
@@ -130,7 +126,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isMaintLike && (
+                    {perm.canView('estoque') && (
                         <Link to="/estoque" className={styles.actionCard}>
                             <FiPackage className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.inventory.title')}</h3>
@@ -140,7 +136,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isGestor && (
+                    {perm.canView('analise_falhas') && (
                         <Link to="/analise-falhas" className={styles.actionCard}>
                             <FiBarChart2 className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.failureAnalysis.title')}</h3>
@@ -150,7 +146,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isGestor && (
+                    {perm.canView('causas_raiz') && (
                         <Link to="/causas-raiz" className={styles.actionCard}>
                             <FiPieChart className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.rootCauses.title')}</h3>
@@ -160,7 +156,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {isGestor && isPt && (
+                    {isPt && perm.canViewAny(['analise_falhas', 'causas_raiz']) && (
                         <Link to="/chatbot" className={styles.actionCard}>
                             <FiMessageSquare className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.pziniBot.title', 'Pzini Chatbot')}</h3>
@@ -170,44 +166,52 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         </Link>
                     )}
 
-                    {/* Produção - Restrito por email por enquanto */}
-                    {canAccessProducao && (
+                    {/* Produção - usa permissões granulares */}
+                    {perm.canViewAny(['producao_dashboard', 'producao_colaboradores', 'producao_upload', 'producao_config']) && (
                         <>
-                            <Link to="/producao/dashboard" className={styles.actionCard}>
-                                <FiTrendingUp className={styles.cardIcon} />
-                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionDashboard.title', 'Visão do Dia')}</h3>
-                                <p className={styles.cardDescription}>
-                                    {t('inicio.cards.productionDashboard.desc', 'Acompanhe a produção em tempo real.')}
-                                </p>
-                            </Link>
+                            {perm.canView('producao_dashboard') && (
+                                <Link to="/producao/dashboard" className={styles.actionCard}>
+                                    <FiTrendingUp className={styles.cardIcon} />
+                                    <h3 className={styles.cardTitle}>{t('inicio.cards.productionDashboard.title', 'Visão do Dia')}</h3>
+                                    <p className={styles.cardDescription}>
+                                        {t('inicio.cards.productionDashboard.desc', 'Acompanhe a produção em tempo real.')}
+                                    </p>
+                                </Link>
+                            )}
 
-                            <Link to="/producao/colaboradores" className={styles.actionCard}>
-                                <FiUsers className={styles.cardIcon} />
-                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionEmployees.title', 'Colaboradores')}</h3>
-                                <p className={styles.cardDescription}>
-                                    {t('inicio.cards.productionEmployees.desc', 'Acompanhe performance dos operadores.')}
-                                </p>
-                            </Link>
+                            {perm.canView('producao_colaboradores') && (
+                                <Link to="/producao/colaboradores" className={styles.actionCard}>
+                                    <FiUsers className={styles.cardIcon} />
+                                    <h3 className={styles.cardTitle}>{t('inicio.cards.productionEmployees.title', 'Colaboradores')}</h3>
+                                    <p className={styles.cardDescription}>
+                                        {t('inicio.cards.productionEmployees.desc', 'Acompanhe performance dos operadores.')}
+                                    </p>
+                                </Link>
+                            )}
 
-                            <Link to="/producao/upload" className={styles.actionCard}>
-                                <FiUploadCloud className={styles.cardIcon} />
-                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionUpload.title', 'Upload Produção')}</h3>
-                                <p className={styles.cardDescription}>
-                                    {t('inicio.cards.productionUpload.desc', 'Importe planilhas de produção.')}
-                                </p>
-                            </Link>
+                            {perm.canView('producao_upload') && (
+                                <Link to="/producao/upload" className={styles.actionCard}>
+                                    <FiUploadCloud className={styles.cardIcon} />
+                                    <h3 className={styles.cardTitle}>{t('inicio.cards.productionUpload.title', 'Upload Produção')}</h3>
+                                    <p className={styles.cardDescription}>
+                                        {t('inicio.cards.productionUpload.desc', 'Importe planilhas de produção.')}
+                                    </p>
+                                </Link>
+                            )}
 
-                            <Link to="/producao/config" className={styles.actionCard}>
-                                <FiSettings className={styles.cardIcon} />
-                                <h3 className={styles.cardTitle}>{t('inicio.cards.productionConfig.title', 'Config. Máquinas')}</h3>
-                                <p className={styles.cardDescription}>
-                                    {t('inicio.cards.productionConfig.desc', 'Configure máquinas e metas de produção.')}
-                                </p>
-                            </Link>
+                            {perm.canView('producao_config') && (
+                                <Link to="/producao/config" className={styles.actionCard}>
+                                    <FiSettings className={styles.cardIcon} />
+                                    <h3 className={styles.cardTitle}>{t('inicio.cards.productionConfig.title', 'Config. Máquinas')}</h3>
+                                    <p className={styles.cardDescription}>
+                                        {t('inicio.cards.productionConfig.desc', 'Configure máquinas e metas de produção.')}
+                                    </p>
+                                </Link>
+                            )}
                         </>
                     )}
 
-                    {isGestor && (
+                    {perm.canView('usuarios') && (
                         <Link to="/gerir-utilizadores" className={styles.actionCard}>
                             <FiUsers className={styles.cardIcon} />
                             <h3 className={styles.cardTitle}>{t('inicio.cards.manageUsers.title')}</h3>

@@ -21,6 +21,7 @@ import {
     FiAlertCircle,
     FiUploadCloud,
     FiChevronDown,
+    FiShield,
 } from 'react-icons/fi';
 import styles from './MainLayout.module.css';
 
@@ -48,12 +49,14 @@ import ProducaoConfigPage from '../features/producao/pages/ProducaoConfigPage';
 import ProducaoUploadDetalhePage from '../features/producao/pages/ProducaoUploadDetalhePage';
 import ProducaoDashboardPage from '../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../features/producao/pages/ProducaoColaboradoresPage';
+import RolesPage from '../features/configuracoes/pages/RolesPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
 import type { User } from '../App';
 
 import { listarChamados, listarAgendamentos, connectSSE } from '../services/apiClient';
+import { usePermissions } from '../hooks/usePermissions';
 
 type UserRole = 'operador' | 'manutentor' | 'gestor' | '';
 
@@ -71,10 +74,8 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const navigate = useNavigate();
     const role = useMemo<UserRole>(() => (user?.role || '').trim().toLowerCase() as UserRole, [user?.role]);
 
-    const isOperator = role === 'operador';
-    const isMaintainer = role === 'manutentor';
-    const isManager = role === 'gestor';
-    const isMaintLike = isMaintainer || isManager;
+    // Sistema granular de permissões
+    const perm = usePermissions(user);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [hasOpenCalls, setHasOpenCalls] = useState(false);
@@ -98,7 +99,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
     const toggleGroup = (key: string) => {
         setOpenGroups(prev => {
-            const next = { ...prev, [key]: !prev[key] };
+            const isOpening = !prev[key];
+            // Accordion: ao abrir um grupo, fecha os outros
+            const next = isOpening
+                ? Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: k === key }), {} as Record<string, boolean>)
+                : { ...prev, [key]: false };
             try {
                 localStorage.setItem(SIDEBAR_GROUPS_KEY, JSON.stringify(next));
             } catch { /* ignore */ }
@@ -167,7 +172,8 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     };
 
     const refreshMyActive = async () => {
-        if (!isMaintainer || !user?.email) {
+        // Apenas quem tem permissão de 'meus_chamados' busca chamados ativos
+        if (!perm.canView('meus_chamados') || !user?.email) {
             setMyActiveCount(0);
             return;
         }
@@ -220,14 +226,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     };
 
     const getDashboardTitle = (): string => {
-        if (isOperator) return t('dashboard.operator');
-        if (isMaintainer) return t('dashboard.maintainer');
-        if (isManager) return t('dashboard.manager');
-        return '—';
+        // Usa role para título do dashboard (mantém por ser exibição cosmética)
+        const roleNorm = (user?.role || '').toLowerCase();
+        if (roleNorm === 'operador') return t('dashboard.operator');
+        if (roleNorm === 'manutentor') return t('dashboard.maintainer');
+        if (roleNorm === 'gestor') return t('dashboard.manager');
+        return user?.role || '—';
     };
 
-    const canAccess = (allowedRoles: string[], element: ReactElement): ReactElement =>
-        allowedRoles.includes(role) ? element : <Navigate to="/" replace />;
+    // Função para verificar permissões granulares por página
+    const canAccessPage = (pageKey: string, element: ReactElement): ReactElement =>
+        perm.canView(pageKey) ? element : <Navigate to="/" replace />;
 
     useEffect(() => {
         const onClick = (e: MouseEvent) => {
@@ -255,7 +264,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     }: {
         id: string;
         label: string;
-        icon?: React.ElementType; // Tornando ícone opcional
+        icon?: React.ElementType;
         children: React.ReactNode
     }) => {
         const isOpen = openGroups[id];
@@ -292,7 +301,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 <span>{t('nav.home')}</span>
             </NavLink>
 
-            {isOperator && (
+            {role === 'operador' && (
                 <NavLink
                     to="/inicio-turno"
                     className={({ isActive }) =>
@@ -304,83 +313,90 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 </NavLink>
             )}
 
-            {isMaintLike && (
+            {/* Manutenção - usa permissões granulares */}
+            {perm.canViewAny(['maquinas', 'chamados_abertos', 'meus_chamados', 'abrir_chamado', 'calendario', 'checklists_diarios', 'historico_chamados', 'estoque', 'movimentacoes', 'analise_falhas', 'causas_raiz']) && (
                 <SidebarGroup id="maintenance" label="Manutenção" icon={FiServer}>
-                    <NavLink
-                        to="/maquinas"
-                        className={({ isActive }) => {
-                            const base = styles.navLink;
-                            const active = isActive ? ` ${styles.activeLink}` : '';
-                            const alert = hasOpenCalls ? ` ${styles.alertLink}` : '';
-                            return `${base}${active}${alert}`.trim();
-                        }}
-                    >
-                        <div style={{ position: 'relative' }}>
-                            <FiServer className={styles.navIcon} />
-                            {hasOpenCalls && <span className={styles.alertBadge} />}
-                        </div>
-                        <span>{t('nav.machines')}</span>
-                    </NavLink>
-
-                    <NavLink
-                        to="/chamados-abertos"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiAlertCircle className={styles.navIcon} />
-                        <span>{t('nav.openTickets', 'Chamados Abertos')}</span>
-                    </NavLink>
-
-                    {isMaintainer && (
-                        <>
-                            <NavLink
-                                to="/meus-chamados"
-                                className={({ isActive }) => {
-                                    const base = styles.navLink;
-                                    const active = isActive ? ` ${styles.activeLink}` : '';
-                                    const alert = hasMyActiveCalls ? ` ${styles.alertLink}` : '';
-                                    return `${base}${active}${alert}`.trim();
-                                }}
-                            >
-                                <div style={{ position: 'relative' }}>
-                                    <FiClipboard className={styles.navIcon} />
-                                    {hasMyActiveCalls && (
-                                        <span
-                                            className={styles.alertBadge}
-                                            title={`${myActiveCount} ${t('nav.activeCalls')}`}
-                                        />
-                                    )}
-                                </div>
-                                <span>{t('nav.myCalls')}</span>
-                            </NavLink>
-
-                            <NavLink
-                                to="/abrir-chamado"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiPlusCircle className={styles.navIcon} />
-                                <span>{t('nav.openCorrective')}</span>
-                            </NavLink>
-                        </>
+                    {perm.canView('maquinas') && (
+                        <NavLink
+                            to="/maquinas"
+                            className={({ isActive }) => {
+                                const base = styles.navLink;
+                                const active = isActive ? ` ${styles.activeLink}` : '';
+                                const alert = hasOpenCalls ? ` ${styles.alertLink}` : '';
+                                return `${base}${active}${alert}`.trim();
+                            }}
+                        >
+                            <div style={{ position: 'relative' }}>
+                                <FiServer className={styles.navIcon} />
+                                {hasOpenCalls && <span className={styles.alertBadge} />}
+                            </div>
+                            <span>{t('nav.machines')}</span>
+                        </NavLink>
                     )}
 
-                    <NavLink
-                        to="/calendario-geral"
-                        className={({ isActive }) => {
-                            let cls = styles.navLink;
-                            if (isActive) return `${cls} ${styles.activeLink}`;
-                            if (hasSoonDue) return `${cls} ${styles.alertLink}`;
-                            return cls;
-                        }}
-                    >
-                        <FiCalendar className={styles.navIcon} />
-                        <span>{t('nav.calendar')}</span>
-                    </NavLink>
+                    {perm.canView('chamados_abertos') && (
+                        <NavLink
+                            to="/chamados-abertos"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiAlertCircle className={styles.navIcon} />
+                            <span>{t('nav.openTickets', 'Chamados Abertos')}</span>
+                        </NavLink>
+                    )}
 
-                    {isManager && (
+                    {perm.canView('meus_chamados') && (
+                        <NavLink
+                            to="/meus-chamados"
+                            className={({ isActive }) => {
+                                const base = styles.navLink;
+                                const active = isActive ? ` ${styles.activeLink}` : '';
+                                const alert = hasMyActiveCalls ? ` ${styles.alertLink}` : '';
+                                return `${base}${active}${alert}`.trim();
+                            }}
+                        >
+                            <div style={{ position: 'relative' }}>
+                                <FiClipboard className={styles.navIcon} />
+                                {hasMyActiveCalls && (
+                                    <span
+                                        className={styles.alertBadge}
+                                        title={`${myActiveCount} ${t('nav.activeCalls')}`}
+                                    />
+                                )}
+                            </div>
+                            <span>{t('nav.myCalls')}</span>
+                        </NavLink>
+                    )}
+
+                    {perm.canView('abrir_chamado') && (
+                        <NavLink
+                            to="/abrir-chamado"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiPlusCircle className={styles.navIcon} />
+                            <span>{t('nav.openCorrective')}</span>
+                        </NavLink>
+                    )}
+
+                    {perm.canView('calendario') && (
+                        <NavLink
+                            to="/calendario-geral"
+                            className={({ isActive }) => {
+                                let cls = styles.navLink;
+                                if (isActive) return `${cls} ${styles.activeLink}`;
+                                if (hasSoonDue) return `${cls} ${styles.alertLink}`;
+                                return cls;
+                            }}
+                        >
+                            <FiCalendar className={styles.navIcon} />
+                            <span>{t('nav.calendar')}</span>
+                        </NavLink>
+                    )}
+
+                    {perm.canView('checklists_diarios') && (
                         <NavLink
                             to="/checklists-diarios"
                             className={({ isActive }) =>
@@ -392,61 +408,71 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
-                    <NavLink
-                        to="/historico"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiFileText className={styles.navIcon} />
-                        <span>{t('nav.history')}</span>
-                    </NavLink>
+                    {perm.canView('historico_chamados') && (
+                        <NavLink
+                            to="/historico"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiFileText className={styles.navIcon} />
+                            <span>{t('nav.history')}</span>
+                        </NavLink>
+                    )}
 
-                    <NavLink
-                        to="/estoque"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiPackage className={styles.navIcon} />
-                        <span>{t('nav.inventory')}</span>
-                    </NavLink>
+                    {perm.canView('estoque') && (
+                        <NavLink
+                            to="/estoque"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiPackage className={styles.navIcon} />
+                            <span>{t('nav.inventory')}</span>
+                        </NavLink>
+                    )}
 
-                    <NavLink
-                        to="/estoque/movimentacoes"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiClipboard className={styles.navIcon} />
-                        <span>{t('nav.stockMovements', 'Movimentações')}</span>
-                    </NavLink>
+                    {perm.canView('movimentacoes') && (
+                        <NavLink
+                            to="/estoque/movimentacoes"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiClipboard className={styles.navIcon} />
+                            <span>{t('nav.stockMovements', 'Movimentações')}</span>
+                        </NavLink>
+                    )}
 
-                    {/* Analytics merged here */}
-                    {isManager && (
+                    {/* Analytics dentro de Manutenção */}
+                    {perm.canViewAny(['analise_falhas', 'causas_raiz']) && (
                         <>
                             <div style={{ margin: '8px 0', borderTop: '1px solid #e2e8f0' }} />
-                            <NavLink
-                                to="/analise-falhas"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiBarChart2 className={styles.navIcon} />
-                                <span>{t('nav.failures')}</span>
-                            </NavLink>
+                            {perm.canView('analise_falhas') && (
+                                <NavLink
+                                    to="/analise-falhas"
+                                    className={({ isActive }) =>
+                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                    }
+                                >
+                                    <FiBarChart2 className={styles.navIcon} />
+                                    <span>{t('nav.failures')}</span>
+                                </NavLink>
+                            )}
 
-                            <NavLink
-                                to="/causas-raiz"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiPieChart className={styles.navIcon} />
-                                <span>{t('nav.rootCauses')}</span>
-                            </NavLink>
+                            {perm.canView('causas_raiz') && (
+                                <NavLink
+                                    to="/causas-raiz"
+                                    className={({ isActive }) =>
+                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                    }
+                                >
+                                    <FiPieChart className={styles.navIcon} />
+                                    <span>{t('nav.rootCauses')}</span>
+                                </NavLink>
+                            )}
 
-                            {isPt && (
+                            {isPt && perm.canViewAny(['analise_falhas', 'causas_raiz']) && (
                                 <NavLink
                                     to="/chatbot"
                                     className={({ isActive }) =>
@@ -463,65 +489,87 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 </SidebarGroup>
             )}
 
-            {/* TODO: Remover filtro de email quando Produção estiver pronto para todos */}
-            {isManager && user?.email === 'gabriel.palazini@m.continua.tpm' && (
+            {/* Produção - usa permissões granulares */}
+            {perm.canViewAny(['producao_upload', 'producao_dashboard', 'producao_colaboradores', 'producao_config']) && (
                 <SidebarGroup id="production" label={t('layout.sections.production', 'Produção')} icon={FiBarChart2}>
-                    <NavLink
-                        to="/producao/dashboard"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiBarChart2 className={styles.navIcon} />
-                        <span>{t('nav.productionDashboard', 'Dashboard')}</span>
-                    </NavLink>
+                    {perm.canView('producao_dashboard') && (
+                        <NavLink
+                            to="/producao/dashboard"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiBarChart2 className={styles.navIcon} />
+                            <span>{t('nav.productionDashboard', 'Dashboard')}</span>
+                        </NavLink>
+                    )}
 
-                    <NavLink
-                        to="/producao/colaboradores"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiUsers className={styles.navIcon} />
-                        <span>{t('nav.productionEmployees', 'Colaboradores')}</span>
-                    </NavLink>
+                    {perm.canView('producao_colaboradores') && (
+                        <NavLink
+                            to="/producao/colaboradores"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUsers className={styles.navIcon} />
+                            <span>{t('nav.productionEmployees', 'Colaboradores')}</span>
+                        </NavLink>
+                    )}
 
-                    <NavLink
-                        to="/producao/upload"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiUploadCloud className={styles.navIcon} />
-                        <span>{t('nav.productionUpload', 'Upload Produção')}</span>
-                    </NavLink>
+                    {perm.canView('producao_upload') && (
+                        <NavLink
+                            to="/producao/upload"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUploadCloud className={styles.navIcon} />
+                            <span>{t('nav.productionUpload', 'Upload Produção')}</span>
+                        </NavLink>
+                    )}
 
-                    <NavLink
-                        to="/producao/config"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiServer className={styles.navIcon} />
-                        <span>{t('nav.productionConfig', 'Config. Máquinas')}</span>
-                    </NavLink>
+                    {perm.canView('producao_config') && (
+                        <NavLink
+                            to="/producao/config"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiServer className={styles.navIcon} />
+                            <span>{t('nav.productionConfig', 'Config. Máquinas')}</span>
+                        </NavLink>
+                    )}
                 </SidebarGroup>
             )}
 
-            {isManager && (
+            {/* Administração - usa permissões granulares */}
+            {perm.canViewAny(['usuarios', 'roles']) && (
                 <>
                     <h3 className={styles.navSectionTitle}>
                         {t('layout.sections.managePeople', 'Administração')}
                     </h3>
-                    <NavLink
-                        to="/gerir-utilizadores"
-                        className={({ isActive }) =>
-                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                        }
-                    >
-                        <FiUsers className={styles.navIcon} />
-                        <span>{t('nav.manageUsers')}</span>
-                    </NavLink>
+                    {perm.canView('usuarios') && (
+                        <NavLink
+                            to="/gerir-utilizadores"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUsers className={styles.navIcon} />
+                            <span>{t('nav.manageUsers')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canView('roles') && (
+                        <NavLink
+                            to="/configuracoes/roles"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiShield className={styles.navIcon} />
+                            <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
+                        </NavLink>
+                    )}
                 </>
             )}
         </>
@@ -626,7 +674,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/"
                         element={
-                            isOperator ? (
+                            role === 'operador' ? (
                                 <OperatorDashboard user={user} />
                             ) : (
                                 <InicioPage user={user} />
@@ -636,122 +684,112 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
                     <Route
                         path="/maquinas"
-                        element={canAccess(['manutentor', 'gestor'], <MaquinasPage user={user} />)}
+                        element={canAccessPage('maquinas', <MaquinasPage user={user} />)}
                     />
                     <Route
                         path="/maquinas/chamado/:id"
-                        element={canAccess(['manutentor', 'gestor'], <ChamadoDetalhe user={user} />)}
+                        element={canAccessPage('maquinas', <ChamadoDetalhe user={user} />)}
                     />
                     <Route
                         path="/maquinas/:id"
-                        element={canAccess(['manutentor', 'gestor'], <MaquinaDetalhePage user={user} />)}
+                        element={canAccessPage('maquinas', <MaquinaDetalhePage user={user} />)}
                     />
 
                     <Route path="/perfil" element={<PerfilPage user={user} />} />
 
                     <Route
                         path="/meus-chamados"
-                        element={canAccess(['manutentor'], <MeusChamados user={user} />)}
+                        element={canAccessPage('meus_chamados', <MeusChamados user={user} />)}
                     />
 
                     <Route
                         path="/historico"
-                        element={canAccess(['manutentor', 'gestor'], <HistoricoPage />)}
+                        element={canAccessPage('historico_chamados', <HistoricoPage />)}
                     />
                     <Route
                         path="/historico/chamado/:id"
-                        element={canAccess(['manutentor', 'gestor'], <ChamadoDetalhe user={user} />)}
+                        element={canAccessPage('historico_chamados', <ChamadoDetalhe user={user} />)}
                     />
 
                     <Route
                         path="/chamados-abertos"
-                        element={canAccess(['manutentor', 'gestor'], <ChamadosAbertosPage />)}
+                        element={canAccessPage('chamados_abertos', <ChamadosAbertosPage />)}
                     />
 
                     <Route
                         path="/abrir-chamado"
-                        element={canAccess(
-                            ['manutentor'],
-                            <AbrirChamadoManutentor user={user} />
-                        )}
+                        element={canAccessPage('abrir_chamado', <AbrirChamadoManutentor user={user} />)}
                     />
 
                     <Route
                         path="/analise-falhas"
-                        element={canAccess(['gestor'], <AnaliseFalhasPage />)}
+                        element={canAccessPage('analise_falhas', <AnaliseFalhasPage />)}
                     />
 
                     <Route
                         path="/causas-raiz"
-                        element={canAccess(['gestor'], <CausasRaizPage user={user} />)}
+                        element={canAccessPage('causas_raiz', <CausasRaizPage user={user} />)}
                     />
 
                     <Route
                         path="/calendario-geral"
-                        element={canAccess(
-                            ['manutentor', 'gestor'],
-                            <CalendarioGeralPage user={user} />
-                        )}
+                        element={canAccessPage('calendario', <CalendarioGeralPage user={user} />)}
                     />
 
                     <Route
                         path="/estoque"
-                        element={canAccess(
-                            ['manutentor', 'gestor'],
-                            <EstoquePage user={user} />
-                        )}
+                        element={canAccessPage('estoque', <EstoquePage user={user} />)}
                     />
 
                     <Route
                         path="/estoque/movimentacoes"
-                        element={canAccess(
-                            ['manutentor', 'gestor'],
-                            <HistoricoMovimentacoesPage user={user} />
-                        )}
+                        element={canAccessPage('movimentacoes', <HistoricoMovimentacoesPage user={user} />)}
                     />
 
                     <Route
                         path="/checklists-diarios"
-                        element={canAccess(
-                            ['gestor'],
-                            <ChecklistOverviewPage user={user} />
-                        )}
+                        element={canAccessPage('checklists_diarios', <ChecklistOverviewPage user={user} />)}
                     />
 
                     <Route
                         path="/gerir-utilizadores"
-                        element={canAccess(['gestor'], <GerirUtilizadoresPage user={user} />)}
+                        element={canAccessPage('usuarios', <GerirUtilizadoresPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/configuracoes/roles"
+                        element={canAccessPage('roles', <RolesPage user={user} />)}
                     />
 
                     <Route
                         path="/producao/upload"
-                        element={canAccess(['gestor'], <ProducaoUploadPage user={user} />)}
+                        element={canAccessPage('producao_upload', <ProducaoUploadPage user={user} />)}
                     />
 
                     <Route
                         path="/producao/config"
-                        element={canAccess(['gestor'], <ProducaoConfigPage user={user} />)}
+                        element={canAccessPage('producao_config', <ProducaoConfigPage user={user} />)}
                     />
 
                     <Route
                         path="/producao/upload/:uploadId"
-                        element={canAccess(['gestor'], <ProducaoUploadDetalhePage />)}
+                        element={canAccessPage('producao_upload', <ProducaoUploadDetalhePage />)}
                     />
 
                     <Route
                         path="/producao/dashboard"
-                        element={canAccess(['gestor'], <ProducaoDashboardPage user={user} />)}
+                        element={canAccessPage('producao_dashboard', <ProducaoDashboardPage user={user} />)}
                     />
 
                     <Route
                         path="/producao/colaboradores"
-                        element={canAccess(['gestor'], <ProducaoColaboradoresPage user={user} />)}
+                        element={canAccessPage('producao_colaboradores', <ProducaoColaboradoresPage user={user} />)}
                     />
 
                     <Route
                         path="/chatbot"
                         element={
-                            isPt && isManager ? (
+                            isPt && perm.canViewAny(['analise_falhas', 'causas_raiz']) ? (
                                 <PziniChatBot user={user} />
                             ) : (
                                 <Navigate to="/" replace />

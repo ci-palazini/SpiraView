@@ -45,9 +45,10 @@ export default function RolesPage({ user }: RolesPageProps) {
     const loadData = useCallback(async () => {
         try {
             setLoading(true);
+            const auth = { email: user?.email, role: user?.role };
             const [rolesData, paginasData] = await Promise.all([
-                listarRoles(),
-                listarPaginasPermissao()
+                listarRoles(auth),
+                listarPaginasPermissao(auth)
             ]);
             setRoles(rolesData);
             setPaginas(paginasData);
@@ -57,7 +58,7 @@ export default function RolesPage({ user }: RolesPageProps) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [user?.email, user?.role]);
 
     useEffect(() => {
         loadData();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireRole } from '../middlewares/requireRole';
+import { requirePermission, requireAnyPermission } from '../middlewares/requirePermission';
 import { pool, withTx } from '../db';
 import { CHAMADO_STATUS, normalizeChamadoStatus, isStatusAtivo } from '../utils/status';
 import { sseBroadcast } from '../utils/sse';
@@ -261,10 +261,10 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
   }
 });
 
-// ---------- Chamados: excluir (gestor/admin) ----------
+// ---------- Chamados: excluir (requer editar maquinas) ----------
 chamadosRouter.delete(
   "/chamados/:id",
-  requireRole(["gestor", "admin"]),
+  requirePermission('maquinas', 'editar'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id || "").trim();
@@ -318,7 +318,7 @@ chamadosRouter.delete(
 // ---------- Chamados: listar fotos ----------
 chamadosRouter.get(
   "/chamados/:id/fotos",
-  requireRole(["operador", "manutentor", "gestor", "admin"]),
+  requireAnyPermission(['maquinas', 'chamados_abertos', 'meus_chamados'], 'ver'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id || "").trim();
@@ -376,7 +376,7 @@ chamadosRouter.get(
 // ---------- Chamados: observacoes ----------
 chamadosRouter.post(
   "/chamados/:id/observacoes",
-  requireRole(["operador", "manutentor", "gestor"]),
+  requireAnyPermission(['maquinas', 'chamados_abertos', 'meus_chamados'], 'ver'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id);
@@ -444,7 +444,7 @@ chamadosRouter.post(
 // ---------- Chamados: atender ----------
 chamadosRouter.post(
   "/chamados/:id/atender",
-  requireRole(["manutentor"]),
+  requirePermission('meus_chamados', 'editar'),
   async (req, res) => {
     try {
       const user = req.user;
@@ -529,7 +529,7 @@ chamadosRouter.post(
 // ---------- Chamados: concluir ----------
 chamadosRouter.post(
   "/chamados/:id/concluir",
-  requireRole(['manutentor']),
+  requirePermission('meus_chamados', 'editar'),
   async (req, res) => {
     try {
       const user = req.user;
@@ -691,7 +691,7 @@ chamadosRouter.post(
 // ---------- Chamados: upload de foto ----------
 chamadosRouter.post(
   "/chamados/:id/fotos",
-  requireRole(["manutentor", "gestor", "admin"]),
+  requireAnyPermission(['maquinas', 'meus_chamados'], 'editar'),
   upload.single("file"), // campo "file" no form-data
   async (req, res) => {
     try {
@@ -805,7 +805,7 @@ chamadosRouter.post(
 
 chamadosRouter.patch(
   "/chamados/:id/checklist",
-  requireRole(["manutentor", "gestor"]),
+  requireAnyPermission(['maquinas', 'meus_chamados'], 'editar'),
   async (req, res) => {
     try {
       const user = req.user;
@@ -1150,7 +1150,7 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
 // -------------------------------------------------------
 chamadosRouter.post(
   '/chamados/:id/atribuir',
-  requireRole(['gestor', 'admin']),
+  requirePermission('chamados_abertos', 'editar'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id || '').trim();
@@ -1224,7 +1224,7 @@ chamadosRouter.post(
 
 chamadosRouter.delete(
   '/chamados/:id/atribuir',
-  requireRole(['gestor', 'admin']),
+  requirePermission('chamados_abertos', 'editar'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id || '').trim();
@@ -1276,7 +1276,7 @@ chamadosRouter.delete(
 
 chamadosRouter.post(
   '/chamados/:id/atender',
-  requireRole(['manutentor', 'gestor', 'admin']),
+  requireAnyPermission(['maquinas', 'meus_chamados'], 'editar'),
   async (req, res) => {
     try {
       const chamadoId = String(req.params.id || '').trim();

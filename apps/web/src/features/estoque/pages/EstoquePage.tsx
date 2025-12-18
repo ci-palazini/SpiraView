@@ -11,6 +11,7 @@ import ExportButtons from '../../../shared/components/ExportButtons';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
+import usePermissions from '../../../hooks/usePermissions';
 
 // Reaproveitando as helpers do histórico
 import { exportToExcel } from '../../../utils/exportExcel';
@@ -29,6 +30,8 @@ export interface EstoquePageProps {
 // ---------- Component ----------
 export default function EstoquePage({ user }: EstoquePageProps) {
     const { t } = useTranslation();
+    const perm = usePermissions(user);
+    const canEditEstoque = perm.canEdit('estoque');
 
     const [pecas, setPecas] = useState<Peca[]>([]);
     const [loading, setLoading] = useState(true);
@@ -115,7 +118,7 @@ export default function EstoquePage({ user }: EstoquePageProps) {
             <div className={styles.listContainer}>
                 {/* Toolbar: criação e exportação */}
                 <div className={styles.toolbar}>
-                    {user?.role === 'gestor' && (
+                    {canEditEstoque && (
                         <button
                             className={styles.newButton}
                             onClick={() => setEditingPeca(null)}
@@ -172,7 +175,7 @@ export default function EstoquePage({ user }: EstoquePageProps) {
                                     <strong>{t('estoque.card.labels.location')}</strong> {p.localizacao}
                                 </p>
 
-                                {user?.role === 'gestor' && (
+                                {canEditEstoque && (
                                     <div className={styles.cardButtons}>
                                         <button
                                             className={styles.buttonSmall}

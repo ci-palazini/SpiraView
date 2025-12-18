@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../db';
 import { sseBroadcast } from '../utils/sse';
-import { requireRole } from '../middlewares/requireRole'; // ajuste o caminho se necessário
+import { requirePermission } from '../middlewares/requirePermission';
 import { userFromHeader } from '../middlewares/userFromHeader';
 
 export const maquinasRouter: Router = Router();
@@ -83,8 +83,8 @@ maquinasRouter.post("/maquinas", async (req, res) => {
   }
 });
 
-// PATCH /maquinas/:id/parent - Atualizar máquina mãe
-maquinasRouter.patch('/maquinas/:id/parent', requireRole(['gestor']), async (req, res) => {
+// PATCH /maquinas/:id/parent - Atualizar máquina mãe (requer editar maquinas)
+maquinasRouter.patch('/maquinas/:id/parent', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const id = String(req.params.id);
     const { parentId } = req.body; // pode ser null
@@ -116,14 +116,9 @@ maquinasRouter.patch('/maquinas/:id/parent', requireRole(['gestor']), async (req
   }
 });
 
-// PATCH /maquinas/:id/escopo - Atualizar escopos e setor da máquina (somente gestor)
-maquinasRouter.patch('/maquinas/:id/escopo', async (req, res) => {
+// PATCH /maquinas/:id/escopo - Atualizar escopos e setor da máquina (requer editar maquinas)
+maquinasRouter.patch('/maquinas/:id/escopo', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor pode alterar escopos.' });
-    }
-
     const id = String(req.params.id);
     const { escopoManutencao, escopoProducao, setor } = req.body || {};
 
@@ -188,14 +183,9 @@ maquinasRouter.patch('/maquinas/:id/escopo', async (req, res) => {
   }
 });
 
-// PATCH /maquinas/:id/aliases-producao - Atualizar aliases para upload de produção
-maquinasRouter.patch('/maquinas/:id/aliases-producao', async (req, res) => {
+// PATCH /maquinas/:id/aliases-producao - Atualizar aliases para upload de produção (requer editar producao_config)
+maquinasRouter.patch('/maquinas/:id/aliases-producao', requirePermission('producao_config', 'editar'), async (req, res) => {
   try {
-    const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor pode alterar aliases.' });
-    }
-
     const id = String(req.params.id);
     const { aliases } = req.body || {};
 
@@ -362,7 +352,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
 
 maquinasRouter.patch(
   '/maquinas/:id/nome',
-  requireRole(['gestor', 'admin']),
+  requirePermission('maquinas', 'editar'),
   async (req, res) => {
     const id = String(req.params.id || '').trim();
     const novoNome = String(req.body?.nome ?? '').trim();
@@ -521,8 +511,8 @@ maquinasRouter.post('/maquinas/:id/checklist-reorder', async (req, res) => {
   }
 });
 
-// DELETE /maquinas/:id  (somente gestor)
-maquinasRouter.delete('/maquinas/:id', requireRole(['gestor']), async (req: Request, res: Response) => {
+// DELETE /maquinas/:id (requer editar maquinas)
+maquinasRouter.delete('/maquinas/:id', requirePermission('maquinas', 'editar'), async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {

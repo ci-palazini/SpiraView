@@ -1,0 +1,365 @@
+/* src/features/configuracoes/pages/RolesPage.module.css */
+
+.container {
+    margin: 20px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+/* ==================== TOOLBAR ==================== */
+.toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+}
+
+.newButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.newButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* ==================== GRID ==================== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* ==================== CARD ==================== */
+.card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.systemCard {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-color: rgba(148, 163, 184, 0.5);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.cardIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.systemCard .cardIcon {
+    background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.cardTitle {
+    flex: 1;
+}
+
+.cardTitle h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.systemBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cardDescription {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.cardMeta {
+    margin-bottom: 16px;
+}
+
+.permCount {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.cardActions {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.editButton,
+.deleteButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.editButton {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.editButton:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.deleteButton {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 8px 10px;
+}
+
+.deleteButton:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ==================== MODAL ==================== */
+.modalBody {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.formGroup label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.input {
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.15s ease;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ==================== PERMISSIONS SECTION ==================== */
+.permissionsSection {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 16px;
+}
+
+.permissionsSection h4 {
+    margin: 0 0 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.permGroup {
+    margin-bottom: 20px;
+}
+
+.groupTitle {
+    margin: 0 0 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.permList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.permRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    gap: 12px;
+}
+
+.permName {
+    font-size: 0.85rem;
+    color: #334155;
+    flex: 1;
+}
+
+.permOptions {
+    display: flex;
+    gap: 4px;
+}
+
+.permOption {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #e2e8f0;
+    color: #64748b;
+    border: 2px solid transparent;
+}
+
+.permOption input {
+    display: none;
+}
+
+.permOption:hover {
+    background: #cbd5e1;
+}
+
+.permOption.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+}
+
+/* ==================== MODAL FOOTER ==================== */
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: auto;
+}
+
+.cancelButton,
+.saveButton {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+}
+
+.cancelButton {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.cancelButton:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+.saveButton {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.saveButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.saveButton:disabled,
+.cancelButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .container {
+        margin: 12px;
+        padding: 16px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .permRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .permOptions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .permOption {
+        flex: 1;
+        text-align: center;
+    }
+}

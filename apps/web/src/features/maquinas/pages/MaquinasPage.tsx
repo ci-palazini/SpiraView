@@ -15,6 +15,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
+import usePermissions from '../../../hooks/usePermissions';
 
 // ---------- Types ----------
 interface User {
@@ -57,8 +58,8 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
 
     // se vier pelo MainLayout, usa a prop; senão, cai no localStorage (compatibilidade)
     const user = userProp || getStoredUser();
-    const role = (user?.role || '').toLowerCase();
-    const isGestor = role === 'gestor' || role === 'admin';
+    const perm = usePermissions(user);
+    const canEditMaquinas = perm.canEdit('maquinas');
 
     const [maquinas, setMaquinas] = useState<Maquina[]>([]);
     const [chamadosAtivos, setChamadosAtivos] = useState<Chamado[]>([]);
@@ -304,7 +305,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                                     className={`${styles.card} ${getStatusClass(maquina.statusDestaque)}`}
                                 >
                                     {/* botão 3 pontinhos (apenas gestor/admin) */}
-                                    {isGestor && (
+                                    {canEditMaquinas && (
                                         <button
                                             className={styles.menuButton}
                                             aria-label={t('maquinas.actions')}
@@ -320,7 +321,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                                     )}
 
                                     {/* dropdown */}
-                                    {isGestor && openMenuId === maquina.id && (
+                                    {canEditMaquinas && openMenuId === maquina.id && (
                                         <div
                                             className={styles.menu}
                                             onClick={(e) => e.stopPropagation()}
@@ -352,7 +353,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                             ))}
 
                             {/* CARD DE ADICIONAR */}
-                            {isGestor && (
+                            {canEditMaquinas && (
                                 <div
                                     className={`${styles.card} ${styles.addCard}`}
                                     onClick={() => setIsModalOpen(true)}

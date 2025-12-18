@@ -2,6 +2,7 @@
 import { Router, Request, Response } from 'express';
 import type { Router as RouterType } from 'express';
 import { pool } from '../db';
+import { requirePermission } from '../middlewares/requirePermission';
 
 const rolesRouter: RouterType = Router();
 
@@ -35,8 +36,8 @@ rolesRouter.get('/pages', (_req: Request, res: Response) => {
     res.json({ items: PAGINAS_DISPONIVEIS });
 });
 
-// GET /roles - Listar todos os roles
-rolesRouter.get('/', async (_req: Request, res: Response) => {
+// GET /roles - Listar todos os roles (requer ver)
+rolesRouter.get('/', requirePermission('roles', 'ver'), async (_req: Request, res: Response) => {
     try {
         const { rows } = await pool.query(`
             SELECT 
@@ -57,8 +58,8 @@ rolesRouter.get('/', async (_req: Request, res: Response) => {
     }
 });
 
-// GET /roles/:id - Obter role específico
-rolesRouter.get('/:id', async (req: Request, res: Response) => {
+// GET /roles/:id - Obter role específico (requer ver)
+rolesRouter.get('/:id', requirePermission('roles', 'ver'), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { rows } = await pool.query(`
@@ -85,8 +86,8 @@ rolesRouter.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// POST /roles - Criar novo role
-rolesRouter.post('/', async (req: Request, res: Response) => {
+// POST /roles - Criar novo role (requer editar)
+rolesRouter.post('/', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
     try {
         const { nome, descricao, permissoes } = req.body;
 
@@ -122,8 +123,8 @@ rolesRouter.post('/', async (req: Request, res: Response) => {
     }
 });
 
-// PUT /roles/:id - Atualizar role
-rolesRouter.put('/:id', async (req: Request, res: Response) => {
+// PUT /roles/:id - Atualizar role (requer editar)
+rolesRouter.put('/:id', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { nome, descricao, permissoes } = req.body;
@@ -173,8 +174,8 @@ rolesRouter.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// DELETE /roles/:id - Excluir role (apenas não-sistema)
-rolesRouter.delete('/:id', async (req: Request, res: Response) => {
+// DELETE /roles/:id - Excluir role (requer editar, apenas não-sistema)
+rolesRouter.delete('/:id', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 

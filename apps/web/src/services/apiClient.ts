@@ -1431,24 +1431,36 @@ export interface RoleUpdate {
 }
 
 // Listar todas as páginas disponíveis para permissões
-export async function listarPaginasPermissao(): Promise<PaginaPermissao[]> {
-    const r = await fetch(`${BASE}/roles/pages`);
+export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<PaginaPermissao[]> {
+    const r = await fetch(`${BASE}/roles/pages`, {
+        headers: {
+            'x-user-email': auth.email || ''
+        }
+    });
     const data = await r.json().catch(() => ({ items: [] }));
     if (!r.ok) throw new Error(data?.error || 'Erro ao listar páginas');
     return data.items || [];
 }
 
 // Listar todos os roles
-export async function listarRoles(): Promise<Role[]> {
-    const r = await fetch(`${BASE}/roles`);
+export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
+    const r = await fetch(`${BASE}/roles`, {
+        headers: {
+            'x-user-email': auth.email || ''
+        }
+    });
     const data = await r.json().catch(() => ({ items: [] }));
     if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
     return data.items || [];
 }
 
 // Obter role por ID
-export async function buscarRole(id: string): Promise<Role> {
-    const r = await fetch(`${BASE}/roles/${id}`);
+export async function buscarRole(id: string, auth: AuthParams = {}): Promise<Role> {
+    const r = await fetch(`${BASE}/roles/${id}`, {
+        headers: {
+            'x-user-email': auth.email || ''
+        }
+    });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || 'Erro ao buscar nível de acesso');
     return data;
