@@ -1,5 +1,6 @@
 // src/shared/components/Modal.tsx
-import { ReactNode, MouseEvent } from 'react';
+import { ReactNode, MouseEvent, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Modal.module.css';
 import { FiX } from 'react-icons/fi';
 
@@ -11,6 +12,18 @@ interface ModalProps {
 }
 
 const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+    // Bloqueia scroll do body quando modal está aberto
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
     if (!isOpen) {
         return null;
     }
@@ -22,7 +35,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         }
     };
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={handleOverlayClick}>
             {/* O card do modal em si */}
             <div className={styles.modalContent}>
@@ -38,6 +51,9 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
             </div>
         </div>
     );
+
+    // Usa Portal para renderizar fora da hierarquia DOM atual
+    return createPortal(modalContent, document.body);
 };
 
 export default Modal;

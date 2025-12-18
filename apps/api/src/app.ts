@@ -17,6 +17,7 @@ import { checklistsRouter } from './routes/checklists';
 import { analyticsRouter } from './routes/analytics';
 import { botRouter } from './routes/bot';
 import { producaoRouter } from './routes/producao';
+import rolesRouter from './routes/roles';
 import { env } from './config/env';
 
 export const app: Express = express(); // 👈 evita o TS2742
@@ -46,4 +47,5 @@ app.use(checklistsRouter);
 app.use(analyticsRouter);
 app.use(botRouter);
 app.use(producaoRouter);
+app.use('/roles', rolesRouter);
 

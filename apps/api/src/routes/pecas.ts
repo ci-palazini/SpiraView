@@ -102,7 +102,7 @@ pecasRouter.get('/pecas', async (_req, res) => {
        ORDER BY codigo ASC`
     );
     res.json({ items: rows });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -124,7 +124,7 @@ pecasRouter.delete('/pecas/:id', async (req, res) => {
 
     sseBroadcast({ topic: 'pecas', action: 'deleted', id });
     res.json({ ok: true });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -135,41 +135,115 @@ pecasRouter.delete('/pecas/:id', async (req, res) => {
 pecasRouter.post('/pecas/:id/movimentacoes', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (!['gestor','manutentor'].includes(auth.role)) {
+    if (!['gestor', 'manutentor'].includes(auth.role)) {
       return res.status(403).json({ error: 'Somente gestor/manutentor.' });
     }
     const pecaId = String(req.params.id);
     const { tipo, quantidade, descricao } = req.body || {};
     const q = Number(quantidade);
-    if (!['entrada','saida'].includes(String(tipo)) || !Number.isFinite(q) || q <= 0) {
-      return res.status(400).json({ error: 'Dados invÃ¡lidos.' });
+    if (!['entrada', 'saida'].includes(String(tipo)) || !Number.isFinite(q) || q <= 0) {
+      return res.status(400).json({ error: 'Dados inválidos.' });
     }
-    const delta = tipo === 'entrada' ? q : -q;
+
+
+    // Verificar estoque disponível antes de saída
+    if (tipo === 'saida') {
+      const pecaCheck = await pool.query('SELECT estoque_atual FROM pecas WHERE id = $1', [pecaId]);
+      if (!pecaCheck.rowCount) {
+        return res.status(404).json({ error: 'Peça não encontrada.' });
+      }
+      const estoqueAtual = pecaCheck.rows[0].estoque_atual || 0;
+      if (estoqueAtual < q) {
+        return res.status(400).json({
+          error: `Estoque insuficiente. Disponível: ${estoqueAtual}, solicitado: ${q}`
+        });
+      }
+    }
 
     const { movimentacaoId, peca } = await withTx(async (client) => {
+      // Inserir a movimentação - o trigger 'tg_movimentacoes_apply' já atualiza o estoque automaticamente
       const mov = await client.query(
         `INSERT INTO movimentacoes (peca_id, tipo, quantidade, descricao, usuario_email)
          VALUES ($1,$2,$3,$4,$5) RETURNING id`,
         [pecaId, tipo, q, descricao || null, auth.email || null]
       );
-      if (!mov.rowCount) throw new Error('Falha ao registrar movimentaÃ§Ã£o.');
+      if (!mov.rowCount) throw new Error('Falha ao registrar movimentação.');
 
+      // Buscar peça com estoque atualizado (o trigger já aplicou a alteração)
       const upd = await client.query(
-        `UPDATE pecas SET estoque_atual = estoque_atual + $2, atualizado_em = NOW()
-         WHERE id = $1 RETURNING id, codigo, nome, estoque_atual`,
-        [pecaId, delta]
+        `SELECT id, codigo, nome, estoque_atual FROM pecas WHERE id = $1`,
+        [pecaId]
       );
-      if (!upd.rowCount) throw new Error('PeÃ§a nÃ£o encontrada.');
+      if (!upd.rowCount) throw new Error('Peça não encontrada.');
 
       return { movimentacaoId: mov.rows[0].id, peca: upd.rows[0] };
     });
 
     res.json({ ok: true, movimentacaoId, peca });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
 });
 
+// GET /movimentacoes - Listar histórico de movimentações
+pecasRouter.get('/movimentacoes', async (req, res) => {
+  try {
+    const { pecaId, tipo, dataInicio, dataFim, limit = '100' } = req.query;
+
+    const params: any[] = [];
+    const where: string[] = [];
+
+    if (pecaId) {
+      params.push(String(pecaId));
+      where.push(`m.peca_id = $${params.length}`);
+    }
+
+    if (tipo && ['entrada', 'saida'].includes(String(tipo))) {
+      params.push(String(tipo));
+      where.push(`m.tipo = $${params.length}`);
+    }
+
+    if (dataInicio) {
+      params.push(String(dataInicio));
+      where.push(`m.criado_em >= $${params.length}::date`);
+    }
+
+    if (dataFim) {
+      params.push(String(dataFim));
+      where.push(`m.criado_em < ($${params.length}::date + INTERVAL '1 day')`);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const limitNum = Math.min(Math.max(parseInt(String(limit), 10) || 100, 1), 500);
+
+    const { rows } = await pool.query(
+      `SELECT 
+        m.id,
+        m.peca_id AS "pecaId",
+        p.codigo AS "pecaCodigo",
+        p.nome AS "pecaNome",
+        m.tipo,
+        m.quantidade,
+        m.descricao,
+        m.usuario_email AS "usuarioEmail",
+        COALESCE(u.nome, m.usuario_email) AS "usuarioNome",
+        m.criado_em AS "criadoEm",
+        m.estoque_apos AS "estoqueApos"
+       FROM movimentacoes m
+       JOIN pecas p ON p.id = m.peca_id
+       LEFT JOIN usuarios u ON LOWER(u.email) = LOWER(m.usuario_email)
+       ${whereSql}
+       ORDER BY m.criado_em DESC
+       LIMIT ${limitNum}`,
+      params
+    );
+
+    res.json({ items: rows });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
 
 

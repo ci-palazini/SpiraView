@@ -7,7 +7,7 @@ import { exportToExcel } from '../../../utils/exportExcel';
 import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './ChamadosAbertosPage.module.css';
 import PageHeader from '../../../shared/components/PageHeader';
-import { Select, Input } from '../../../shared/components';
+import { Select, Input, ExportButtons } from '../../../shared/components';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -237,25 +237,19 @@ const ChamadosAbertosPage = () => {
                     </>
                 ) : (
                     <>
-                        <div className={styles.exportButtons}>
-                            <button
-                                onClick={() =>
+                        <div style={{ marginBottom: 20 }}>
+                            <ExportButtons
+                                onExportExcel={() =>
                                     exportToExcel(
                                         excelData,
                                         t('chamadosAbertos.export.sheetName', 'Chamados Abertos'),
                                         'chamados-abertos'
                                     )
                                 }
-                            >
-                                {t('chamadosAbertos.export.downloadExcel', 'Baixar Excel')}
-                            </button>
-                            <button
-                                onClick={() =>
+                                onExportPdf={() =>
                                     exportToPdf(pdfData, pdfColumns, 'chamados-abertos')
                                 }
-                            >
-                                {t('chamadosAbertos.export.downloadPdf', 'Baixar PDF')}
-                            </button>
+                            />
                         </div>
 
                         <div className={styles.filterContainer}>

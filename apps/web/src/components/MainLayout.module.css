@@ -4,7 +4,6 @@
 .layout {
   display: flex;
   height: 100vh;
-  overflow: hidden;
   background: linear-gradient(135deg, var(--color-neutral-100) 0%, var(--color-neutral-50) 100%);
 }
 

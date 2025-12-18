@@ -39,4 +39,3 @@ Thumbs.db
 # Web app (artefatos)
 apps/web/dev-dist/
 
-backup.sql

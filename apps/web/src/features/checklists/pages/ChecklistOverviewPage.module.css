@@ -125,22 +125,23 @@
 .exportButton {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  border-radius: var(--radius-lg);
+  gap: 8px;
+  border-radius: 10px;
   border: none;
-  padding: var(--spacing-2) var(--spacing-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #ffffff;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-success);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
 }
 
 .exportButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .exportButton:active:not(:disabled) {
@@ -153,7 +154,7 @@
 }
 
 .exportButton svg {
-  font-size: 14px;
+  flex-shrink: 0;
 }
 
 /* ==================== SUMMARY CARDS ==================== */

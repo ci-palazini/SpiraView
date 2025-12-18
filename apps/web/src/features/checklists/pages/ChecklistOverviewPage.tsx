@@ -7,7 +7,6 @@ import {
     FiAlertTriangle,
     FiInfo,
     FiRefreshCw,
-    FiDownload,
 } from 'react-icons/fi';
 
 import { exportEngajamentoTPMExcel } from '../../../utils/exportEngajamentoTPMExcel';
@@ -15,6 +14,7 @@ import { exportEngajamentoTPMExcel } from '../../../utils/exportEngajamentoTPMEx
 import { listarMaquinas, getMaquina } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
 import PageHeader from '../../../shared/components/PageHeader';
+import ExportButtons from '../../../shared/components/ExportButtons';
 import styles from './ChecklistOverviewPage.module.css';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -416,19 +416,10 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                         {t('checklistOverview.today', 'Hoje')}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={handleExportExcel}
-                        className={styles.exportButton}
-                        disabled={loading || exporting}
-                    >
-                        <FiDownload />
-                        <span>
-                            {exporting
-                                ? t('checklistOverview.exporting', 'Exportando...')
-                                : t('checklistOverview.exportExcel', 'Exportar Excel')}
-                        </span>
-                    </button>
+                    <ExportButtons
+                        onExportExcel={handleExportExcel}
+                        showPdf={false}
+                    />
                 </div>
 
                 {/* Cards de resumo */}

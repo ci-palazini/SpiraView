@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict dEXcA7uszIB3PWO26zhbuTWhDwVC9p76kvWzeOs8RvSUD6VcZVIQMsfqVQKncIu
+\restrict dCVcBHOMbH7qj75miAhXhM3PVGAsGyVtlBXvR2kpEEA6ZwNdFl45P5tA4Sahotg
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -3466,6 +3466,8 @@ CREATE TABLE public.movimentacoes (
     motivo text,
     realizado_por_id uuid,
     criado_em timestamp with time zone DEFAULT now() NOT NULL,
+    descricao text,
+    usuario_email text,
     CONSTRAINT movimentacoes_quantidade_check CHECK ((quantidade > 0)),
     CONSTRAINT movimentacoes_tipo_check CHECK ((tipo = ANY (ARRAY['entrada'::text, 'saida'::text])))
 );
@@ -8338,5 +8340,5 @@ ALTER EVENT TRIGGER pgrst_drop_watch OWNER TO supabase_admin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dEXcA7uszIB3PWO26zhbuTWhDwVC9p76kvWzeOs8RvSUD6VcZVIQMsfqVQKncIu
+\unrestrict dCVcBHOMbH7qj75miAhXhM3PVGAsGyVtlBXvR2kpEEA6ZwNdFl45P5tA4Sahotg
 

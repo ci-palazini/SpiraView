@@ -7,6 +7,7 @@ import { exportToExcel } from '../../../utils/exportExcel';
 import { exportToPdf } from '../../../utils/exportPdf';
 import styles from './HistoricoPage.module.css';
 import PageHeader from '../../../shared/components/PageHeader';
+import ExportButtons from '../../../shared/components/ExportButtons';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -214,25 +215,19 @@ const HistoricoPage = () => {
                     </>
                 ) : (
                     <>
-                        <div className={styles.exportButtons}>
-                            <button
-                                onClick={() =>
+                        <div style={{ marginBottom: 20 }}>
+                            <ExportButtons
+                                onExportExcel={() =>
                                     exportToExcel(
                                         excelData,
                                         t('historico.export.sheetName'),
                                         'historico-chamados'
                                     )
                                 }
-                            >
-                                {t('historico.export.downloadExcel')}
-                            </button>
-                            <button
-                                onClick={() =>
+                                onExportPdf={() =>
                                     exportToPdf(pdfData, pdfColumns, 'historico-chamados')
                                 }
-                            >
-                                {t('historico.export.downloadPdf')}
-                            </button>
+                            />
                         </div>
 
                         <div className={styles.filterContainer}>

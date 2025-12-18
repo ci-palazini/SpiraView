@@ -815,6 +815,42 @@ export async function registrarMovimentacao(pecaId: string, mov: Movimentacao, a
     return data;
 }
 
+// Tipo para movimentação no histórico
+export interface MovimentacaoHistorico {
+    id: string;
+    pecaId: string;
+    pecaCodigo: string;
+    pecaNome: string;
+    tipo: 'entrada' | 'saida';
+    quantidade: number;
+    descricao: string | null;
+    usuarioEmail: string | null;
+    usuarioNome: string | null;
+    criadoEm: string;
+    estoqueApos: number | null;
+}
+
+// Listar histórico de movimentações
+export async function listarMovimentacoes(params: {
+    pecaId?: string;
+    tipo?: 'entrada' | 'saida';
+    dataInicio?: string;
+    dataFim?: string;
+    limit?: number;
+} = {}): Promise<MovimentacaoHistorico[]> {
+    const qs = new URLSearchParams();
+    if (params.pecaId) qs.set('pecaId', params.pecaId);
+    if (params.tipo) qs.set('tipo', params.tipo);
+    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
+    if (params.dataFim) qs.set('dataFim', params.dataFim);
+    if (params.limit) qs.set('limit', String(params.limit));
+
+    const r = await fetch(`${BASE}/movimentacoes?${qs.toString()}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || `Falha ao listar movimentações (${r.status})`);
+    return data.items || [];
+}
+
 // ===== CAUSAS =====
 export async function listarCausas(): Promise<Causa[]> {
     const r = await fetch(`${BASE}/causas`);
@@ -1359,4 +1395,107 @@ export async function buscarDetalheUploadProducao(uploadId: string): Promise<Pro
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || 'Erro ao buscar detalhes do upload');
     return data;
+}
+
+
+// ===== ROLES (Níveis de Acesso) =====
+
+export type NivelPermissao = 'nenhum' | 'ver' | 'editar';
+
+export interface Role {
+    id: string;
+    nome: string;
+    descricao: string | null;
+    permissoes: Record<string, NivelPermissao>;
+    isSystem: boolean;
+    criadoEm: string;
+    atualizadoEm?: string;
+}
+
+export interface PaginaPermissao {
+    key: string;
+    nome: string;
+    grupo: string;
+}
+
+export interface RoleCreate {
+    nome: string;
+    descricao?: string;
+    permissoes: Record<string, NivelPermissao>;
+}
+
+export interface RoleUpdate {
+    nome: string;
+    descricao?: string;
+    permissoes: Record<string, NivelPermissao>;
+}
+
+// Listar todas as páginas disponíveis para permissões
+export async function listarPaginasPermissao(): Promise<PaginaPermissao[]> {
+    const r = await fetch(`${BASE}/roles/pages`);
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar páginas');
+    return data.items || [];
+}
+
+// Listar todos os roles
+export async function listarRoles(): Promise<Role[]> {
+    const r = await fetch(`${BASE}/roles`);
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
+    return data.items || [];
+}
+
+// Obter role por ID
+export async function buscarRole(id: string): Promise<Role> {
+    const r = await fetch(`${BASE}/roles/${id}`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar nível de acesso');
+    return data;
+}
+
+// Criar novo role
+export async function criarRole(payload: RoleCreate, auth: AuthParams = {}): Promise<Role> {
+    const r = await fetch(`${BASE}/roles`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || 'gestor',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao criar nível de acesso');
+    return data;
+}
+
+// Atualizar role
+export async function atualizarRole(id: string, payload: RoleUpdate, auth: AuthParams = {}): Promise<Role> {
+    const r = await fetch(`${BASE}/roles/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || 'gestor',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar nível de acesso');
+    return data;
+}
+
+// Excluir role
+export async function excluirRole(id: string, auth: AuthParams = {}): Promise<void> {
+    const r = await fetch(`${BASE}/roles/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || 'gestor',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir nível de acesso');
 }

@@ -36,6 +36,7 @@ import GerirUtilizadoresPage from '../features/usuarios/pages/GerirUtilizadoresP
 import CalendarioGeralPage from '../features/calendario/pages/CalendarioGeralPage';
 import CausasRaizPage from '../features/analytics/pages/CausasRaizPage';
 import EstoquePage from '../features/estoque/pages/EstoquePage';
+import HistoricoMovimentacoesPage from '../features/estoque/pages/HistoricoMovimentacoesPage';
 import MeusChamados from '../features/chamados/pages/MeusChamados';
 import AbrirChamadoManutentor from '../features/chamados/pages/AbrirChamadoManutentor';
 import LanguageMenu from './LanguageMenu';
@@ -411,6 +412,16 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         <span>{t('nav.inventory')}</span>
                     </NavLink>
 
+                    <NavLink
+                        to="/estoque/movimentacoes"
+                        className={({ isActive }) =>
+                            isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                        }
+                    >
+                        <FiClipboard className={styles.navIcon} />
+                        <span>{t('nav.stockMovements', 'Movimentações')}</span>
+                    </NavLink>
+
                     {/* Analytics merged here */}
                     {isManager && (
                         <>
@@ -688,6 +699,14 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         element={canAccess(
                             ['manutentor', 'gestor'],
                             <EstoquePage user={user} />
+                        )}
+                    />
+
+                    <Route
+                        path="/estoque/movimentacoes"
+                        element={canAccess(
+                            ['manutentor', 'gestor'],
+                            <HistoricoMovimentacoesPage user={user} />
                         )}
                     />
 
