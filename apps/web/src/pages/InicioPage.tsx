@@ -21,6 +21,7 @@ import {
     FiSettings,
     FiTrendingUp
 } from 'react-icons/fi';
+import { LuLayoutDashboard } from "react-icons/lu";
 
 // ---------- Types ----------
 interface User {
@@ -171,7 +172,7 @@ const InicioPage = ({ user }: InicioPageProps) => {
                         <>
                             {perm.canView('producao_dashboard') && (
                                 <Link to="/producao/dashboard" className={styles.actionCard}>
-                                    <FiTrendingUp className={styles.cardIcon} />
+                                    <LuLayoutDashboard className={styles.cardIcon} />
                                     <h3 className={styles.cardTitle}>{t('inicio.cards.productionDashboard.title', 'Visão do Dia')}</h3>
                                     <p className={styles.cardDescription}>
                                         {t('inicio.cards.productionDashboard.desc', 'Acompanhe a produção em tempo real.')}

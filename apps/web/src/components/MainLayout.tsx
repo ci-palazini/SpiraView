@@ -23,6 +23,8 @@ import {
     FiChevronDown,
     FiShield,
 } from 'react-icons/fi';
+import { PiFactoryBold } from "react-icons/pi";
+import { LuLayoutDashboard } from "react-icons/lu";
 import styles from './MainLayout.module.css';
 
 import OperatorDashboard from './OperatorDashboard';
@@ -491,7 +493,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Produção - usa permissões granulares */}
             {perm.canViewAny(['producao_upload', 'producao_dashboard', 'producao_colaboradores', 'producao_config']) && (
-                <SidebarGroup id="production" label={t('layout.sections.production', 'Produção')} icon={FiBarChart2}>
+                <SidebarGroup id="production" label={t('layout.sections.production', 'Produção')} icon={PiFactoryBold}>
                     {perm.canView('producao_dashboard') && (
                         <NavLink
                             to="/producao/dashboard"
@@ -499,7 +501,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
                             }
                         >
-                            <FiBarChart2 className={styles.navIcon} />
+                            <LuLayoutDashboard className={styles.navIcon} />
                             <span>{t('nav.productionDashboard', 'Dashboard')}</span>
                         </NavLink>
                     )}
