@@ -235,6 +235,8 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  background: var(--role-dot-color, #94a3b8);
+  /* Cor dinâmica ou fallback neutro */
 }
 
 .roleGestor::before {

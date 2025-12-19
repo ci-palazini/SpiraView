@@ -41,7 +41,7 @@ interface UserRow {
 type RoleFilter = 'all' | 'gestor' | 'manutentor' | 'operador';
 
 // ---------- Helpers ----------
-const FUNCAO_MAP: Record<string, string> = {
+const FUNCAO_MAP_FALLBACK: Record<string, string> = {
     gestor: 'Gestor',
     manutentor: 'Manutentor',
     operador: 'Operador',
@@ -53,7 +53,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
     const [utilizadores, setUtilizadores] = useState<UserRow[]>([]);
     const [loading, setLoading] = useState(true);
-    const [roleFiltro, setRoleFiltro] = useState<RoleFilter>('all');
+    const [roleFiltro, setRoleFiltro] = useState<string>('all');
 
     // modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,6 +101,23 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         return () => { alive = false; };
     }, [roleFiltro, t, user?.email, user?.role]);
 
+    // Helper para obter label do role dinâmico
+    const getRoleLabel = (roleSlug?: string) => {
+        if (!roleSlug) return '-';
+        const roleObj = roles.find(r => r.nome.toLowerCase() === roleSlug.toLowerCase());
+        return roleObj ? roleObj.nome : (FUNCAO_MAP_FALLBACK[roleSlug.toLowerCase()] || roleSlug);
+    };
+
+    // Helper para gerar cor consistente baseada no nome do role
+    const generateRoleColor = (str: string) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const h = Math.abs(hash) % 360;
+        return `hsl(${h}, 70%, 45%)`; // Cor sólida e legível para o DOT
+    };
+
     const handleSalvarUtilizador = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -113,7 +130,9 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         const nomeUsuario = (usuario || '').trim() || nomeCompleto.toLowerCase().replace(/\s+/g, '.');
         const emailGerado = `${nomeUsuario}@manutencao.local`;
 
-        const funcao = FUNCAO_MAP[role] ?? 'Operador';
+        // Busca o nome correto do role para usar como "funcao" e armazena na API
+        const roleObj = roles.find(r => r.nome.toLowerCase() === role.toLowerCase());
+        const funcao = roleObj ? roleObj.nome : (FUNCAO_MAP_FALLBACK[role] ?? 'Custom');
 
         setIsSaving(true);
         try {
@@ -125,7 +144,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     funcao,
                 };
                 // Adiciona matrícula apenas para operadores
-                if (role === 'operador') {
+                if (role.toLowerCase() === 'operador') {
                     payload.matricula = matricula.trim() || undefined;
                 }
                 const updated: UserRow = await atualizarUsuario(usuarioEditandoId, payload, {
@@ -155,7 +174,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     funcao,
                 };
                 // Adiciona matrícula apenas para operadores
-                if (role === 'operador' && matricula.trim()) {
+                if (role.toLowerCase() === 'operador' && matricula.trim()) {
                     payload.matricula = matricula.trim();
                 }
                 if (senha?.trim()?.length >= 6) {
@@ -199,7 +218,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setNome('');
         setUsuario('');
         setSenha('');
-        setRole('operador');
+        setRole('operador'); // Default seguro
         setMatricula('');
     };
 
@@ -227,7 +246,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     };
 
     const handleVerEstatisticas = async (userRow: UserRow) => {
-        if (userRow.role === 'gestor' || userRow.role === 'admin') return; // Gestor/Admin não tem estatísticas
+        // Gestor e Admin não costumam ter estatísticas individuais de produção (mas outros roles podem ter)
+        // Lógica: Se for gestor ou admin, ignora. Outros roles entram.
+        const roleLower = (userRow.role || '').toLowerCase();
+        if (roleLower === 'gestor' || roleLower === 'admin') return;
 
         setLoadingStats(true);
         setIsStatsModalOpen(true);
@@ -238,7 +260,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setStatsData(data);
         } catch (error) {
             console.error('Erro ao obter estatísticas:', error);
-            toast.error(t('users.toasts.statsError', 'Erro ao carregar estatísticas'));
+            // toast.error(t('users.toasts.statsError', 'Erro ao carregar estatísticas'));
         } finally {
             setLoadingStats(false);
         }
@@ -276,12 +298,15 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             id="roleFiltro"
                             className={`${styles.select} ${styles.filterSelect}`}
                             value={roleFiltro}
-                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setRoleFiltro(e.target.value as RoleFilter)}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setRoleFiltro(e.target.value)}
                         >
                             <option value="all">{t('users.roles.all')}</option>
-                            <option value="gestor">{t('users.roles.manager')}</option>
-                            <option value="manutentor">{t('users.roles.maintainer')}</option>
-                            <option value="operador">{t('users.roles.operator')}</option>
+                            {/* Roles Dinâmicos do banco de dados */}
+                            {roles.map((r) => (
+                                <option key={r.id} value={r.nome.toLowerCase()}>
+                                    {r.nome}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -327,11 +352,24 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
                         <ul className={styles.userList}>
                             {utilizadores.map((userRow) => {
-                                const roleClass = userRow.role === 'gestor'
+                                const r = (userRow.role || '').toLowerCase();
+                                const isStandard = ['gestor', 'manutentor', 'operador'].includes(r);
+
+                                // Se for standard, usa classe específica (tem dot via CSS fixo)
+                                // Se for custom, usa classe genérica e passa cor via style (dot via CSS dinâmico)
+                                const roleClass = r === 'gestor'
                                     ? styles.roleGestor
-                                    : userRow.role === 'manutentor'
+                                    : r === 'manutentor'
                                         ? styles.roleManutentor
-                                        : styles.roleOperador;
+                                        : r === 'operador'
+                                            ? styles.roleOperador
+                                            : styles.roleBadge; // usa base
+
+                                // Cor dinâmica para o 'dot' apenas se não for standard
+                                const customStyle = !isStandard ? {
+                                    '--role-dot-color': generateRoleColor(r)
+                                } as React.CSSProperties : undefined;
+
                                 return (
                                     <li key={userRow.id} className={styles.userItem}>
                                         <strong>{userRow.nome}</strong>
@@ -343,11 +381,15 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                                 <span className={styles.matriculaEmpty}>—</span>
                                             )}
                                         </span>
-                                        <span className={`${styles.roleBadge} ${roleClass}`}>
-                                            {userRow.funcao}
+                                        <span
+                                            className={`${styles.roleBadge} ${roleClass}`}
+                                            style={customStyle}
+                                        >
+                                            {/* O conteúdo é apenas o label, o DOT vem do CSS ::before */}
+                                            {getRoleLabel(userRow.role)}
                                         </span>
                                         <div className={styles.actions}>
-                                            {userRow.role !== 'gestor' && (
+                                            {userRow.role !== 'gestor' && userRow.role !== 'admin' && (
                                                 <button
                                                     className={styles.actionButton}
                                                     title={t('users.actions.stats', 'Ver estatísticas')}
@@ -434,15 +476,11 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                 </option>
                             ))
                         ) : (
-                            <>
-                                <option value="operador">{t('users.roles.operator')}</option>
-                                <option value="manutentor">{t('users.roles.maintainer')}</option>
-                                <option value="gestor">{t('users.roles.manager')}</option>
-                            </>
+                            <option value="operador">Carregando...</option>
                         )}
                     </Select>
 
-                    {role === 'operador' && (
+                    {role.toLowerCase() === 'operador' && (
                         <Input
                             id="matricula"
                             label={t('users.form.matricula', 'Matrícula')}
@@ -478,7 +516,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     </div>
                 ) : statsData ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                        {statsData.role === 'operador' && (
+                        {(statsData.role === 'operador' || role.toLowerCase() === 'operador') && (
                             <>
                                 <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: 12, padding: 16, border: '1px solid #bfdbfe' }}>
                                     <div style={{ fontSize: 24, fontWeight: 700, color: '#1e40af' }}>
@@ -514,7 +552,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                 </div>
                             </>
                         )}
-                        {statsData.role === 'manutentor' && (
+                        {(statsData.role === 'manutentor' || role.toLowerCase() === 'manutentor') && (
                             <>
                                 <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: 12, padding: 16, border: '1px solid #bfdbfe' }}>
                                     <div style={{ fontSize: 24, fontWeight: 700, color: '#1e40af' }}>
