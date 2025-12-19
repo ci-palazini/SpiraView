@@ -2,12 +2,12 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { pool } from '../db';
 import { roleToFuncao } from '../utils/roles';
-import { requirePermission } from '../middlewares/requirePermission';
+import { requirePermission, requireAnyPermission } from '../middlewares/requirePermission';
 
 export const usuariosRouter: Router = Router();
 
-// GET /usuarios - listar usuários (requer ver)
-usuariosRouter.get('/usuarios', requirePermission('usuarios', 'ver'), async (req, res) => {
+// GET /usuarios - listar usuários (requer 'usuarios:ver' OU 'chamados_gestao:ver' para atribuição)
+usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gestao'], 'ver'), async (req, res) => {
   try {
     // normaliza role e tolera "all:" etc.
     const rawRole = (req.query.role as string | undefined) ?? '';

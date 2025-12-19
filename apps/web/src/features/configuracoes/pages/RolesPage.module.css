@@ -66,6 +66,70 @@
     border-color: rgba(148, 163, 184, 0.5);
 }
 
+/* ==================== ADMIN CARD ==================== */
+.adminCard {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.adminCard:hover {
+    border-color: rgba(251, 191, 36, 0.8);
+}
+
+.adminCard .cardIcon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.fullAccessBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.adminUsersList {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.adminUsersLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 8px;
+}
+
+.adminUsersItems {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.adminUsersItems li {
+    background: rgba(245, 158, 11, 0.15);
+    color: #92400e;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
 .cardHeader {
     display: flex;
     align-items: flex-start;

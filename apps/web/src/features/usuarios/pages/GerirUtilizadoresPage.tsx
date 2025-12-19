@@ -227,7 +227,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     };
 
     const handleVerEstatisticas = async (userRow: UserRow) => {
-        if (userRow.role === 'gestor') return; // Gestor não tem estatísticas
+        if (userRow.role === 'gestor' || userRow.role === 'admin') return; // Gestor/Admin não tem estatísticas
 
         setLoadingStats(true);
         setIsStatsModalOpen(true);

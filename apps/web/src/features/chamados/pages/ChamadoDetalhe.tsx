@@ -14,6 +14,7 @@ import styles from './ChamadoDetalhe.module.css';
 import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
 import { Button, Select, Card, CardHeader, Badge } from '../../../shared/components';
+import usePermissions from '../../../hooks/usePermissions';
 
 // ---------- Types ----------
 interface User {
@@ -169,9 +170,13 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const [selectedManutentor, setSelectedManutentor] = useState('');
     const [assigning, setAssigning] = useState(false);
 
-    const isGestor = (user?.role || '').toLowerCase() === 'gestor';
-    const isManutentor = (user?.role || '').toLowerCase() === 'manutentor';
-    const isOperador = (user?.role || '').toLowerCase() === 'operador';
+    const role = (user?.role || '').toLowerCase();
+    const perm = usePermissions(user as any);
+
+    // Pode gerenciar chamados: admin/gestor OU quem tem permissão granular
+    const canGerirChamados = role === 'gestor' || role === 'admin' || perm.canEdit('chamados_gestao');
+    const isManutentor = role === 'manutentor';
+    const isOperador = role === 'operador';
 
     const fmtDate = useMemo(
         () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short' }),
@@ -293,7 +298,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     // --------- manutentores (somente gestor) ---------
     useEffect(() => {
-        if (!isGestor) return;
+        if (!canGerirChamados) return;
         (async () => {
             try {
                 const lista = await listarManutentores();
@@ -306,7 +311,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 toast.error(t('chamadoDetalhe.toasts.listMaintDenied'));
             }
         })();
-    }, [isGestor, t]);
+    }, [canGerirChamados, t]);
 
     // --------- permissões ---------
     const userId = user?.uid || user?.id || user?.userId || null;
@@ -342,7 +347,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         }
 
         // pode mandar foto se for dono, manutentor ou gestor
-        if (!isOwner && !isManutentor && !isGestor) {
+        if (!isOwner && !isManutentor && !canGerirChamados) {
             toast.error(
                 t('chamadoDetalhe.photos.permissionDenied') ||
                 'Você não tem permissão para enviar fotos.'
@@ -481,7 +486,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     }
 
     async function handleExcluirChamado() {
-        if (!isGestor) {
+        if (!canGerirChamados) {
             toast.error(t('chamadoDetalhe.toasts.onlyManagerDelete'));
             return;
         }
@@ -598,7 +603,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             </Card>
 
             {/* Atribuição (gestor) */}
-            {isGestor && chamado.status !== 'Concluido' && (
+            {canGerirChamados && chamado.status !== 'Concluido' && (
                 <div className={styles.card}>
                     <h2 className={styles.cardTitle}>{t('chamadoDetalhe.assign.title')}</h2>
                     <Select
@@ -668,7 +673,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
                 {(() => {
                     const podeEnviarFoto =
-                        (isOwner || isManutentor || isGestor) &&
+                        (isOwner || isManutentor || canGerirChamados) &&
                         chamado.status !== 'Concluido';
 
                     return (
@@ -833,7 +838,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             }
 
             {
-                (isGestor && ['Aberto', 'Em Andamento', 'Concluido'].includes(chamado.status)) && (
+                (canGerirChamados && ['Aberto', 'Em Andamento', 'Concluido'].includes(chamado.status)) && (
                     <div className={styles.card} style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <Button
                             variant="danger"

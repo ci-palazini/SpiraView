@@ -1,6 +1,6 @@
 {
-  "name": "Manutenção TPM",
-  "short_name": "TPM",
+  "name": "SpiraView",
+  "short_name": "SpiraView",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

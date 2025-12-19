@@ -14,6 +14,7 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'historico_chamados', nome: 'Histórico de Chamados', grupo: 'Manutenção' },
     { key: 'meus_chamados', nome: 'Meus Chamados', grupo: 'Manutenção' },
     { key: 'abrir_chamado', nome: 'Abrir Chamado', grupo: 'Manutenção' },
+    { key: 'chamados_gestao', nome: 'Atribuir / Gerenciar Chamados', grupo: 'Manutenção' },
     { key: 'maquinas', nome: 'Máquinas', grupo: 'Manutenção' },
     { key: 'calendario', nome: 'Calendário', grupo: 'Manutenção' },
     { key: 'estoque', nome: 'Estoque', grupo: 'Manutenção' },

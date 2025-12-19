@@ -6,6 +6,7 @@ import {
     criarRole,
     atualizarRole,
     excluirRole,
+    listarUsuarios,
     Role,
     PaginaPermissao,
     NivelPermissao
@@ -14,7 +15,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import Modal from '../../../shared/components/Modal';
 import styles from './RolesPage.module.css';
 import toast from 'react-hot-toast';
-import { FiShield, FiEdit2, FiTrash2, FiPlus, FiLock } from 'react-icons/fi';
+import { FiShield, FiEdit2, FiTrash2, FiPlus, FiLock, FiStar, FiUser } from 'react-icons/fi';
 import Skeleton from '@mui/material/Skeleton';
 
 // ---------- Types ----------
@@ -28,12 +29,19 @@ export interface RolesPageProps {
 }
 
 // ---------- Component ----------
+interface AdminUser {
+    id: string;
+    nome: string;
+    email: string;
+}
+
 export default function RolesPage({ user }: RolesPageProps) {
     const [roles, setRoles] = useState<Role[]>([]);
     const [paginas, setPaginas] = useState<PaginaPermissao[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
+    const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
 
     // Form state
     const [formNome, setFormNome] = useState('');
@@ -46,12 +54,18 @@ export default function RolesPage({ user }: RolesPageProps) {
         try {
             setLoading(true);
             const auth = { email: user?.email, role: user?.role };
-            const [rolesData, paginasData] = await Promise.all([
+            const [rolesData, paginasData, usersData] = await Promise.all([
                 listarRoles(auth),
-                listarPaginasPermissao(auth)
+                listarPaginasPermissao(auth),
+                listarUsuarios({ role: 'admin' })
             ]);
             setRoles(rolesData);
             setPaginas(paginasData);
+            // Filtrar apenas usuários admin
+            const admins = (usersData as any[]).filter(u =>
+                (u.role || '').toLowerCase() === 'admin'
+            ).map(u => ({ id: u.id, nome: u.nome || u.email, email: u.email }));
+            setAdminUsers(admins);
         } catch (e) {
             console.error(e);
             toast.error('Erro ao carregar dados');
@@ -183,54 +197,96 @@ export default function RolesPage({ user }: RolesPageProps) {
                     </div>
                 ) : (
                     <div className={styles.grid}>
-                        {roles.map(role => (
-                            <div key={role.id} className={`${styles.card} ${role.isSystem ? styles.systemCard : ''}`}>
-                                <div className={styles.cardHeader}>
-                                    <div className={styles.cardIcon}>
-                                        <FiShield />
+                        {roles.map(role => {
+                            const isAdmin = role.nome.toLowerCase() === 'admin';
+
+                            return (
+                                <div
+                                    key={role.id}
+                                    className={`${styles.card} ${role.isSystem ? styles.systemCard : ''} ${isAdmin ? styles.adminCard : ''}`}
+                                >
+                                    <div className={styles.cardHeader}>
+                                        <div className={styles.cardIcon}>
+                                            {isAdmin ? <FiStar /> : <FiShield />}
+                                        </div>
+                                        <div className={styles.cardTitle}>
+                                            <h3>{role.nome}</h3>
+                                            {role.isSystem && (
+                                                <span className={styles.systemBadge}>
+                                                    <FiLock size={12} />
+                                                    Sistema
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className={styles.cardTitle}>
-                                        <h3>{role.nome}</h3>
-                                        {role.isSystem && (
-                                            <span className={styles.systemBadge}>
-                                                <FiLock size={12} />
-                                                Sistema
+
+                                    {role.descricao && (
+                                        <p className={styles.cardDescription}>{role.descricao}</p>
+                                    )}
+
+                                    <div className={styles.cardMeta}>
+                                        {isAdmin ? (
+                                            <span className={styles.fullAccessBadge}>
+                                                <FiStar size={14} />
+                                                Acesso Total a Todas as Funcionalidades
+                                            </span>
+                                        ) : (
+                                            <span className={styles.permCount}>
+                                                {countPermissions(role.permissoes)} permissão(ões)
                                             </span>
                                         )}
                                     </div>
-                                </div>
 
-                                {role.descricao && (
-                                    <p className={styles.cardDescription}>{role.descricao}</p>
-                                )}
+                                    {/* Lista de admins apenas para role admin */}
+                                    {isAdmin && adminUsers.length > 0 && (
+                                        <div className={styles.adminUsersList}>
+                                            <span className={styles.adminUsersLabel}>
+                                                <FiUser size={14} />
+                                                Usuários com este acesso:
+                                            </span>
+                                            <ul className={styles.adminUsersItems}>
+                                                {adminUsers.map(u => (
+                                                    <li key={u.id} title={u.email}>
+                                                        {u.nome}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {isAdmin && adminUsers.length === 0 && (
+                                        <div className={styles.adminUsersList}>
+                                            <span className={styles.adminUsersLabel}>
+                                                <FiUser size={14} />
+                                                Nenhum usuário admin cadastrado
+                                            </span>
+                                        </div>
+                                    )}
 
-                                <div className={styles.cardMeta}>
-                                    <span className={styles.permCount}>
-                                        {countPermissions(role.permissoes)} permissão(ões)
-                                    </span>
-                                </div>
-
-                                <div className={styles.cardActions}>
-                                    <button
-                                        className={styles.editButton}
-                                        onClick={() => handleEdit(role)}
-                                        title="Editar"
-                                    >
-                                        <FiEdit2 />
-                                        Editar
-                                    </button>
-                                    {!role.isSystem && (
-                                        <button
-                                            className={styles.deleteButton}
-                                            onClick={() => handleDelete(role)}
-                                            title="Excluir"
-                                        >
-                                            <FiTrash2 />
-                                        </button>
+                                    {/* Só mostra ações se NÃO for admin */}
+                                    {!isAdmin && (
+                                        <div className={styles.cardActions}>
+                                            <button
+                                                className={styles.editButton}
+                                                onClick={() => handleEdit(role)}
+                                                title="Editar"
+                                            >
+                                                <FiEdit2 />
+                                                Editar
+                                            </button>
+                                            {!role.isSystem && (
+                                                <button
+                                                    className={styles.deleteButton}
+                                                    onClick={() => handleDelete(role)}
+                                                    title="Excluir"
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

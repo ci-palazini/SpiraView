@@ -30,7 +30,7 @@
 }
 
 .sidebarLogo {
-  height: 50px;
+  height: 32px;
   width: auto;
   transition: transform var(--transition-base);
 }

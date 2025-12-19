@@ -30,8 +30,8 @@ function tsToDate(ts: string | Date | { toDate: () => Date } | null | undefined)
     if (!ts) return null;
     if (typeof ts === 'string') return new Date(ts.replace(' ', 'T'));
     if (typeof (ts as { toDate: () => Date }).toDate === 'function') return (ts as { toDate: () => Date }).toDate();
-    const d = ts instanceof Date ? ts : new Date(ts as string);
-    return isNaN(d.getTime()) ? null : d;
+    if (ts instanceof Date) return isNaN(ts.getTime()) ? null : ts;
+    return null;
 }
 
 function byRecent(a: Chamado, b: Chamado): number {
@@ -74,7 +74,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
     };
 
     useEffect(() => {
-        if (!email || !(role === 'manutentor' || role === 'gestor')) {
+        if (!email || !(role === 'manutentor' || role === 'gestor' || role === 'admin')) {
             setDocsAssigned([]);
             setLoading(false);
             return;
@@ -83,12 +83,12 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         (async () => {
             try {
                 const res = await listarChamados({ manutentorEmail: email, page: 1, pageSize: 100 });
-                const rows: ApiChamado[] = res.items ?? res;
-                setDocsAssigned(rows.map((r: ApiChamado) => ({
+                const rows = (res.items ?? res) as ApiChamado[];
+                setDocsAssigned(rows.map((r) => ({
                     id: r.id,
                     maquina: r.maquina,
                     descricao: r.descricao,
-                    status: r.status,
+                    status: r.status || 'Aberto',
                     assignedAt: null,
                     dataAbertura: r.criado_em
                 })));
@@ -116,12 +116,12 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         (async () => {
             try {
                 const res = await listarChamadosPorCriador(email, 1, 100);
-                const rows: ApiChamado[] = res.items ?? res;
-                setDocsAtendidos(rows.map((r: ApiChamado) => ({
+                const rows = (res.items ?? res) as ApiChamado[];
+                setDocsAtendidos(rows.map((r) => ({
                     id: r.id,
                     maquina: r.maquina,
                     descricao: r.descricao,
-                    status: r.status,
+                    status: r.status || 'Aberto',
                     assignedAt: null,
                     dataAbertura: r.criado_em
                 })));
