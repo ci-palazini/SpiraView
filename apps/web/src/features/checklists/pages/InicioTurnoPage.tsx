@@ -304,7 +304,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                 {t('inicioTurno.title', 'Início de turno')}
                             </h1>
                             <p>
-                                <User size={16} />
+                                <User className={styles.userIcon} />
                                 {t('inicioTurno.greeting', { name: operadorNome })}
                             </p>
                         </div>
@@ -333,14 +333,13 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                             {todasMaquinas.map(m => {
                                 const jaEnviou = enviadasHoje.has(String(m.id));
                                 return (
-                                    <div key={m.id} className={styles.machineCheckbox}>
+                                    <label key={m.id} className={styles.machineCheckbox}>
                                         <input
                                             type="checkbox"
-                                            id={`m-${m.id}`}
                                             checked={selecionadas.includes(m.id)}
                                             onChange={() => toggleMaquina(m.id)}
                                         />
-                                        <label htmlFor={`m-${m.id}`}>
+                                        <span className={styles.machineInfo}>
                                             {m.nome}
                                             {jaEnviou && (
                                                 <span className={styles.badgeEnviada}>
@@ -348,8 +347,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                                     {t('inicioTurno.sentToday', 'enviado')}
                                                 </span>
                                             )}
-                                        </label>
-                                    </div>
+                                        </span>
+                                    </label>
                                 );
                             })}
                         </div>
@@ -384,8 +383,8 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                             <small> ({idx + 1}/{selecionadas.length})</small>
                         </h1>
                         <p>
-                            <User size={16} />
-                            {t('checklist.greeting', { name: operadorNome })}
+                            <User className={styles.userIcon} />
+                            {t('inicioTurno.greeting', { name: operadorNome })}
                         </p>
                     </div>
                     <button className={styles.escapeButton} onClick={handleLogout}>

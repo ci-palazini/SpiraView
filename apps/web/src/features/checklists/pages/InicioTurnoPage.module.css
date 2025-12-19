@@ -33,6 +33,20 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .escapeButton {
+    width: 100%;
+    justify-content: center;
+    background-color: #f8fafc;
+    /* Destaque sutil para area clicavel grande */
+  }
+}
+
 .headerTitle h1 {
   margin: 0 0 8px 0;
   font-size: 1.85rem;
@@ -47,13 +61,27 @@
   color: #64748b;
 }
 
+.userIcon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .userIcon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 .headerTitle p {
   margin: 0;
   color: #64748b;
   font-size: 0.95rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .escapeButton {
@@ -155,7 +183,7 @@
   cursor: pointer;
 }
 
-.machineCheckbox label {
+.machineInfo {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -234,6 +262,40 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Responsividade Mobile para Itens do Checklist */
+@media (max-width: 640px) {
+
+  .checklistItem,
+  .checklistItemLocked {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .optionGroup {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Botões lado a lado ocupando tudo */
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .radioButton,
+  .radioButtonSim,
+  .radioButtonSimActive,
+  .radioButtonNao,
+  .radioButtonNaoActive {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 8px;
+    /* Reduz padding lateral */
+    font-size: 0.9rem;
+  }
 }
 
 /* Radio button como botões visuais */
@@ -360,6 +422,23 @@
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid #f1f5f9;
+}
+
+@media (max-width: 640px) {
+  .actionsRow {
+    flex-direction: column-reverse;
+    /* Enviar em cima, voltar embaixo */
+    gap: 12px;
+  }
+
+  .button,
+  .submitButton,
+  .buttonSecondary {
+    width: 100%;
+    min-width: 0;
+    /* Permite encolher se necessário antes de quebrar */
+    justify-content: center;
+  }
 }
 
 .button {
