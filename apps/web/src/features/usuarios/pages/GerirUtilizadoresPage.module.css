@@ -239,7 +239,7 @@
   /* Cor dinâmica ou fallback neutro */
 }
 
-.roleGestor::before {
+.roleGestorIndustrial::before {
   background: var(--color-success-500);
 }
 

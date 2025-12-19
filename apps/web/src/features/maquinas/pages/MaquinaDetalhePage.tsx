@@ -337,7 +337,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 subtitle={t('maquinaDetalhe.subtitle')}
             />
 
-            {(user.role === 'gestor' || user.role === 'admin') ? (
+            {(user.role === 'gestor industrial' || user.role === 'admin') ? (
                 <div>
                     <nav className={styles.tabs}>
                         <button className={`${styles.tabButton} ${activeTab === 'ativos' ? styles.active : ''}`} onClick={() => setActiveTab('ativos')}>

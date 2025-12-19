@@ -577,7 +577,7 @@ chamadosRouter.post(
       const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
         .filter(Boolean)
         .map((v) => String(v));
-      if (user.role !== "gestor" && !associados.includes(String(user.id))) {
+      if (user.role !== "gestor industrial" && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
       }
 
@@ -734,7 +734,7 @@ chamadosRouter.post(
         .map((v: any) => String(v));
 
       const role = String(user.role || "").toLowerCase();
-      const isGestorLike = role === "gestor" || role === "admin";
+      const isGestorLike = role === "gestor industrial" || role === "admin";
 
       if (!isGestorLike && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
@@ -846,7 +846,7 @@ chamadosRouter.patch(
       const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
         .filter(Boolean)
         .map((v: any) => String(v));
-      if (user.role !== "gestor" && !associados.includes(String(user.id))) {
+      if (user.role !== "gestor industrial" && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
       }
 
@@ -1067,16 +1067,16 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
     const isConcluido = statusNorm === CHAMADO_STATUS.CONCLUIDO;
     const isAberto = statusNorm === CHAMADO_STATUS.ABERTO;
 
-    if (isEmAndamento && !(role === "manutentor" || role === "gestor")) {
+    if (isEmAndamento && !(role === "manutentor" || role === "gestor industrial")) {
       return res.status(403).json({ error: "Apenas manutentor/gestor podem mover para 'Em Andamento'." });
     }
     if (isEmAndamento && !manutentorEmail) {
       return res.status(400).json({ error: "manutentorEmail é obrigatório quando status = 'Em Andamento'." });
     }
-    if (isConcluido && !(role === "manutentor" || role === "gestor")) {
+    if (isConcluido && !(role === "manutentor" || role === "gestor industrial")) {
       return res.status(403).json({ error: "Apenas manutentor/gestor podem concluir." });
     }
-    if (isAberto && role !== "gestor") {
+    if (isAberto && role !== "gestor industrial") {
       return res.status(403).json({ error: "Apenas gestor pode reabrir para 'Aberto'." });
     }
 

@@ -37,6 +37,22 @@ rolesRouter.get('/pages', (_req: Request, res: Response) => {
     res.json({ items: PAGINAS_DISPONIVEIS });
 });
 
+// GET /roles/options - Listar roles para dropdowns (não exige permissão de gestão de roles)
+// Usado em páginas como Gerir Utilizadores onde o usuário precisa apenas listar os roles para atribuir
+rolesRouter.get('/options', async (_req: Request, res: Response) => {
+    try {
+        const { rows } = await pool.query(`
+            SELECT id, nome
+            FROM roles
+            ORDER BY nome ASC
+        `);
+        res.json({ items: rows });
+    } catch (e: any) {
+        console.error('Erro ao listar roles (options):', e);
+        res.status(500).json({ error: 'Erro ao listar níveis de acesso' });
+    }
+});
+
 // GET /roles - Listar todos os roles (requer ver)
 rolesRouter.get('/', requirePermission('roles', 'ver'), async (_req: Request, res: Response) => {
     try {

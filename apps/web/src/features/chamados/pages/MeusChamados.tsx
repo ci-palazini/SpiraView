@@ -74,7 +74,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
     };
 
     useEffect(() => {
-        if (!email || !(role === 'manutentor' || role === 'gestor' || role === 'admin')) {
+        if (!email || !(role === 'manutentor' || role === 'gestor industrial' || role === 'admin')) {
             setDocsAssigned([]);
             setLoading(false);
             return;

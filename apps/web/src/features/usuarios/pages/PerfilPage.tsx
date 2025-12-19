@@ -32,13 +32,14 @@ const PerfilPage = ({ user }: PerfilPageProps) => {
     // traduz a função armazenada (pt) para exibição no idioma atual
     const roleLabel = (funcao: string | undefined): string => {
         const map: RoleLabelMap = {
-            gestor: { pt: 'Gestor', es: 'Gestor' },
+            'gestor industrial': { pt: 'Gestor Industrial', es: 'Gestor Industrial' },
             manutentor: { pt: 'Manutentor', es: 'Mantenedor' },
             operador: { pt: 'Operador', es: 'Operador' }
         };
         const lng = (i18n.resolvedLanguage || 'pt') as 'pt' | 'es';
         if (!funcao) return '';
-        return map[funcao]?.[lng] || funcao;
+        const key = funcao.toLowerCase();
+        return map[key]?.[lng] || funcao;
     };
 
     const handleChangePassword = async (e: FormEvent) => {

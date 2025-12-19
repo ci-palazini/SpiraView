@@ -666,8 +666,10 @@ export async function listarUsuarios(opts: { role?: string } = {}, auth: AuthPar
 }
 
 export async function listarManutentores(auth: AuthParams = {}): Promise<Usuario[]> {
-    const res = await fetch(`${BASE}/usuarios?role=manutentor`, {
-        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor' })
+    // Inclui tanto manutentores quanto líderes de manutenção
+    const roles = encodeURIComponent('manutentor,Líder de Manutenção');
+    const res = await fetch(`${BASE}/usuarios?roles=${roles}`, {
+        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor industrial' })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || `Erro ao listar manutentores (${res.status})`);
@@ -1437,9 +1439,19 @@ export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<Pag
     return data.items || [];
 }
 
-// Listar todos os roles
+// Listar todos os roles (requer permissão roles: ver)
 export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
     const r = await fetch(`${BASE}/roles`, {
+        headers: buildAuthHeaders(auth)
+    });
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
+    return data.items || [];
+}
+
+// Listar roles para dropdowns (não requer permissão especial)
+export async function listarRolesOptions(auth: AuthParams = {}): Promise<{ id: string; nome: string }[]> {
+    const r = await fetch(`${BASE}/roles/options`, {
         headers: buildAuthHeaders(auth)
     });
     const data = await r.json().catch(() => ({ items: [] }));

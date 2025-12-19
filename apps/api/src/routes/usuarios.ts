@@ -9,9 +9,15 @@ export const usuariosRouter: Router = Router();
 // GET /usuarios - listar usuários (requer 'usuarios:ver' OU 'chamados_gestao:ver' para atribuição)
 usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gestao'], 'ver'), async (req, res) => {
   try {
-    // normaliza role e tolera "all:" etc.
+    // Suporta 'role' (único) ou 'roles' (múltiplos separados por vírgula)
     const rawRole = (req.query.role as string | undefined) ?? '';
+    const rawRoles = (req.query.roles as string | undefined) ?? '';
     const role = rawRole.trim().toLowerCase().replace(/[:;,.]+$/, '');
+
+    // Parse múltiplos roles se fornecido
+    const rolesArray = rawRoles
+      ? rawRoles.split(',').map(r => r.trim().toLowerCase()).filter(Boolean)
+      : [];
 
     const includeInactive =
       String(req.query.includeInactive || 'false').toLowerCase() === 'true';
@@ -19,8 +25,14 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
     const where: string[] = [];
     const params: any[] = [];
 
-    // role = 'all' | 'todos' => sem filtro por papel
-    if (role && role !== 'all' && role !== 'todos') {
+    // Filtro por role(s)
+    if (rolesArray.length > 0) {
+      // Múltiplos roles via parâmetro 'roles'
+      const placeholders = rolesArray.map((_, i) => `LOWER($${params.length + i + 1})`).join(', ');
+      params.push(...rolesArray);
+      where.push(`LOWER(role) IN (${placeholders})`);
+    } else if (role && role !== 'all' && role !== 'todos') {
+      // Role único via parâmetro 'role'
       params.push(role);
       where.push(`LOWER(role) = LOWER($${params.length})`);
     }

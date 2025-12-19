@@ -12,7 +12,7 @@ causasRouter.get('/causas', async (_req, res) => {
     );
     // 👇 devolve o array direto
     res.json(rows);
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -22,7 +22,8 @@ causasRouter.get('/causas', async (_req, res) => {
 causasRouter.post('/causas', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
+    const role = (auth.role || '').toLowerCase();
+    if (role !== 'gestor industrial') return res.status(403).json({ error: 'Somente gestor.' });
 
     const nome = String(req.body?.nome || '').trim();
     if (!nome) return res.status(400).json({ error: 'Nome é obrigatório.' });
@@ -35,7 +36,7 @@ causasRouter.post('/causas', async (req, res) => {
       [nome]
     );
     res.status(201).json(ins.rows[0]);
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -45,14 +46,15 @@ causasRouter.post('/causas', async (req, res) => {
 causasRouter.delete('/causas/:id', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
+    const role = (auth.role || '').toLowerCase();
+    if (role !== 'gestor industrial') return res.status(403).json({ error: 'Somente gestor.' });
 
     const id = String(req.params.id);
     const del = await pool.query(`DELETE FROM causas_raiz WHERE id = $1`, [id]);
     if (!del.rowCount) return res.status(404).json({ error: 'Causa não encontrada.' });
 
     res.json({ ok: true });
-  } catch (e:any) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }

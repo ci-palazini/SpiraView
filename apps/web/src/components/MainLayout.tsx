@@ -60,7 +60,7 @@ import type { User } from '../App';
 import { listarChamados, listarAgendamentos, connectSSE } from '../services/apiClient';
 import { usePermissions } from '../hooks/usePermissions';
 
-type UserRole = 'operador' | 'manutentor' | 'gestor' | '';
+type UserRole = 'operador' | 'manutentor' | 'gestor' | 'gestor industrial' | '';
 
 interface MainLayoutProps {
     user: User;
@@ -232,7 +232,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
         const roleNorm = (user?.role || '').toLowerCase();
         if (roleNorm === 'operador') return t('dashboard.operator');
         if (roleNorm === 'manutentor') return t('dashboard.maintainer');
-        if (roleNorm === 'gestor') return t('dashboard.manager');
+        if (roleNorm === 'gestor industrial') return t('dashboard.manager');
         return user?.role || '—';
     };
 

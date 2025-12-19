@@ -14,8 +14,7 @@ import {
     excluirUsuario,
     obterEstatisticasUsuario,
     EstatisticasUsuario,
-    listarRoles,
-    Role
+    listarRolesOptions
 } from '../../../services/apiClient';
 
 // ---------- Types ----------
@@ -42,7 +41,7 @@ type RoleFilter = 'all' | 'gestor' | 'manutentor' | 'operador';
 
 // ---------- Helpers ----------
 const FUNCAO_MAP_FALLBACK: Record<string, string> = {
-    gestor: 'Gestor',
+    'gestor industrial': 'Gestor Industrial',
     manutentor: 'Manutentor',
     operador: 'Operador',
 };
@@ -73,8 +72,9 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [statsData, setStatsData] = useState<EstatisticasUsuario | null>(null);
     const [loadingStats, setLoadingStats] = useState(false);
 
-    // roles list
-    const [roles, setRoles] = useState<Role[]>([]);
+    // roles list (tipo simplificado para dropdown)
+    type RoleOption = { id: string; nome: string };
+    const [roles, setRoles] = useState<RoleOption[]>([]);
 
     useEffect(() => {
         let alive = true;
@@ -84,7 +84,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 const auth = { email: user?.email, role: user?.role };
                 const [lista, rolesList] = await Promise.all([
                     listarUsuarios({ role: roleFiltro !== 'all' ? roleFiltro : undefined }),
-                    listarRoles(auth)
+                    listarRolesOptions(auth)
                 ]);
                 if (!alive) return;
                 setUtilizadores(
@@ -249,7 +249,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         // Gestor e Admin não costumam ter estatísticas individuais de produção (mas outros roles podem ter)
         // Lógica: Se for gestor ou admin, ignora. Outros roles entram.
         const roleLower = (userRow.role || '').toLowerCase();
-        if (roleLower === 'gestor' || roleLower === 'admin') return;
+        if (roleLower === 'gestor industrial' || roleLower === 'admin') return;
 
         setLoadingStats(true);
         setIsStatsModalOpen(true);
@@ -353,12 +353,12 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         <ul className={styles.userList}>
                             {utilizadores.map((userRow) => {
                                 const r = (userRow.role || '').toLowerCase();
-                                const isStandard = ['gestor', 'manutentor', 'operador'].includes(r);
+                                const isStandard = ['gestor industrial', 'manutentor', 'operador'].includes(r);
 
                                 // Se for standard, usa classe específica (tem dot via CSS fixo)
                                 // Se for custom, usa classe genérica e passa cor via style (dot via CSS dinâmico)
-                                const roleClass = r === 'gestor'
-                                    ? styles.roleGestor
+                                const roleClass = r === 'gestor industrial'
+                                    ? styles.roleGestorIndustrial
                                     : r === 'manutentor'
                                         ? styles.roleManutentor
                                         : r === 'operador'
@@ -389,7 +389,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                             {getRoleLabel(userRow.role)}
                                         </span>
                                         <div className={styles.actions}>
-                                            {userRow.role !== 'gestor' && userRow.role !== 'admin' && (
+                                            {userRow.role !== 'gestor industrial' && userRow.role !== 'admin' && (
                                                 <button
                                                     className={styles.actionButton}
                                                     title={t('users.actions.stats', 'Ver estatísticas')}
