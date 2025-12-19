@@ -2,7 +2,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiEyeOff, FiUsers } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiUsers, FiMonitor } from 'react-icons/fi';
 import { login } from '../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.css';
@@ -228,6 +228,16 @@ export default function LoginPage() {
                                 >
                                     <FiUsers className={styles.operatorIcon} />
                                     {t('login.operationBtn', 'Operação')}
+                                </button>
+
+                                {/* Link para TV/Kiosk */}
+                                <button
+                                    type="button"
+                                    className={styles.tvButton}
+                                    onClick={() => navigate('/tv')}
+                                >
+                                    <FiMonitor className={styles.operatorIcon} />
+                                    {t('login.tvBtn', 'Modo TV / Kiosk')}
                                 </button>
                             </>
                         )}

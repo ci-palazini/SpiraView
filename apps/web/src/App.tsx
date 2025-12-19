@@ -8,6 +8,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
 import InicioTurnoPage from './features/checklists/pages/InicioTurnoPage';
+import TvMenuPage from './features/producao/tv/TvMenuPage';
+import TvDashboardPage from './features/producao/tv/TvDashboardPage';
 
 const AUTH_EVENT = 'auth-user-changed';
 
@@ -60,6 +62,11 @@ export default function App() {
         <DndProvider backend={HTML5Backend}>
             <Toaster position="top-right" />
             <Routes>
+                {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
+                <Route path="/tv" element={<TvMenuPage />} />
+                <Route path="/tv/:scope" element={<TvDashboardPage />} />
+
+
                 {!user && <Route path="/*" element={<LoginPage />} />}
 
                 {user && role === 'operador' && (

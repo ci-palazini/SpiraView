@@ -176,7 +176,7 @@ interface RowError {
 uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor', 'manutentor'].includes(auth.role)) {
+        if (!['gestor', 'manutentor', 'admin'].includes(auth.role)) {
             return res.status(403).json({ error: 'Sem permissão para upload de produção.' });
         }
 
@@ -511,6 +511,32 @@ uploadRouter.get('/producao/uploads', async (req, res) => {
     }
 });
 
+// GET /producao/uploads/ultimo - Retorna o último upload ativo (para TV/kiosk)
+uploadRouter.get('/producao/uploads/ultimo', async (_req, res) => {
+    try {
+        const { rows } = await pool.query(
+            `SELECT
+                id,
+                data_ref AS "dataRef",
+                criado_em AS "criadoEm",
+                nome_arquivo AS "nomeArquivo"
+            FROM producao_uploads
+            WHERE ativo = TRUE
+            ORDER BY data_ref DESC, criado_em DESC
+            LIMIT 1`
+        );
+
+        if (!rows.length) {
+            return res.json({ upload: null });
+        }
+
+        res.json({ upload: rows[0] });
+    } catch (e: any) {
+        console.error(e);
+        res.status(500).json({ error: String(e) });
+    }
+});
+
 // GET /producao/uploads/:id - Detalhes de um upload específico
 uploadRouter.get('/producao/uploads/:id', async (req, res) => {
     try {
@@ -597,7 +623,7 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
 uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor', 'manutentor'].includes(auth.role)) {
+        if (!['gestor', 'manutentor', 'admin'].includes(auth.role)) {
             return res.status(403).json({ error: 'Sem permissão.' });
         }
 

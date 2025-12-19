@@ -1,0 +1,697 @@
+/* src/features/producao/tv/TvDashboardPage.module.css */
+/* Premium TV/Kiosk Dashboard - UI Otimizada para TVs */
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(165deg, #f0f4f8 0%, #e1e8ed 50%, #d8e2eb 100%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ==================== HEADER ==================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 32px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #475569;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.titleGroup h1 {
+    margin: 0;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.titleGroup svg {
+    color: #3b82f6;
+    filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* ==================== SUMMARY CARDS ==================== */
+.summaryCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.summaryLabel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.summaryBadges {
+    display: flex;
+    gap: 10px;
+}
+
+.badgeMeta {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #475569;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+}
+
+.badgeReal {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1d4ed8;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px solid #93c5fd;
+}
+
+.badgePct {
+    padding: 8px 14px;
+    color: #ffffff;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ==================== DATE CARD ==================== */
+.dateCard {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: 2px solid;
+    gap: 2px;
+}
+
+.dateToday {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #34d399;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.badgeMetaRelativa {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #475569;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+}
+
+.updateTimeCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    padding: 10px 18px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    min-width: 120px;
+}
+
+.updateTimeLabel {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.updateTimeValue {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.datePast {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.dateLabel {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.dateValue {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.dateTime {
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.fullscreenButton {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #475569;
+    cursor: pointer;
+}
+
+/* ==================== MAIN ==================== */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 32px;
+    overflow: hidden;
+}
+
+.loadingContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    color: #475569;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================== CAROUSEL NAV ==================== */
+.carouselNav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+.navButton {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    color: #475569;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+.dots {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    border: none;
+    cursor: pointer;
+}
+
+.dotActive {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    transform: scale(1.2);
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.4);
+}
+
+.pageInfo {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    min-width: 180px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+/* ==================== CARDS GRID ==================== */
+.cardsGrid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 22px;
+}
+
+/* ==================== CARD ==================== */
+.card {
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 4px 6px -1px rgba(15, 23, 42, 0.05),
+        0 10px 20px -5px rgba(15, 23, 42, 0.08);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.cardTitle {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.cardTitleGroup {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pinIcon {
+    color: #8b5cf6;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(139, 92, 246, 0.3));
+}
+
+.cardPinned {
+    border-color: #a78bfa;
+    background: linear-gradient(180deg, #faf5ff 0%, #f5f3ff 50%, #fafbfc 100%);
+    box-shadow:
+        0 4px 6px -1px rgba(139, 92, 246, 0.08),
+        0 10px 20px -5px rgba(139, 92, 246, 0.12);
+}
+
+.cardBadge {
+    padding: 10px 18px;
+    color: #ffffff;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.badgeFuture {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #64748b;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* ==================== CARD BODY ==================== */
+.cardBody {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex: 1;
+    min-height: 0;
+}
+
+.ringContainer {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    flex-shrink: 0;
+}
+
+.ring {
+    width: 100%;
+    height: 100%;
+}
+
+.ringBg {
+    opacity: 0.3;
+}
+
+.ringProgress {
+    transition: stroke-dasharray 0.5s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.ringText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.6rem;
+    font-weight: 900;
+}
+
+.cardData {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dataLabel {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.dataValue {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.dataDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+.dataDetails strong {
+    color: #1e293b;
+    font-weight: 700;
+}
+
+/* ==================== CONTRIBUINTES (DETALHE) ==================== */
+.cardDivider {
+    width: 2px;
+    height: 100px;
+    background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 100%);
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+.contribuintesSection {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 100px;
+    max-width: 140px;
+    height: 110px;
+    overflow: hidden;
+}
+
+.contribuintesLabel {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.contribuintesList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.contribuinteRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.contribuinteCodigo {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+
+.contribuinteHoras {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+}
+
+/* ==================== PROGRESS SECTION ==================== */
+.progressSection {
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 2px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.progressRow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.progressInfo {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 700;
+}
+
+.progressBar {
+    height: 14px;
+    background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.progressFill {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+/* Striped animation for incomplete progress */
+.progressStriped {
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 22px 22px;
+    animation: stripes 1s linear infinite;
+}
+
+@keyframes stripes {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 22px 0;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+.progressBlue {
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #3b82f6 100%);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* Shimmer effect for completed progress (100%) */
+.progressComplete {
+    position: relative;
+    overflow: hidden;
+}
+
+.progressComplete::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            transparent 100%);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ==================== SECTION TITLE ==================== */
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sectionTitle::before {
+    content: '';
+    width: 5px;
+    height: 28px;
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 3px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1400px) {
+    .cardsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .cardTitle {
+        font-size: 1.4rem;
+    }
+
+    .dataValue {
+        font-size: 2.5rem;
+    }
+
+    .ringContainer {
+        width: 110px;
+        height: 110px;
+    }
+}
+
+@media (max-width: 900px) {
+    .header {
+        flex-direction: column;
+        gap: 16px;
+        padding: 14px 20px;
+    }
+
+    .headerLeft,
+    .headerRight {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .main {
+        padding: 16px 20px;
+    }
+
+    .cardsGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .cardBody {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .cardData {
+        align-items: center;
+    }
+
+    .titleGroup h1 {
+        font-size: 1.3rem;
+    }
+}

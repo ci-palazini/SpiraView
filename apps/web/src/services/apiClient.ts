@@ -1253,6 +1253,20 @@ export async function listarUploadsProducao(params: { dataRef?: string } = {}): 
     return data.items || [];
 }
 
+export interface UltimoUpload {
+    id: string;
+    dataRef: string;
+    criadoEm: string;
+    nomeArquivo: string;
+}
+
+export async function buscarUltimoUploadProducao(): Promise<UltimoUpload | null> {
+    const r = await fetch(`${BASE}/producao/uploads/ultimo`);
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar último upload');
+    return data.upload || null;
+}
+
 export async function uploadLancamentosProducao(rows: Record<string, unknown>[], nomeArquivo: string, auth: AuthParams): Promise<{
     ok: boolean;
     resultados: Array<{ dataRef: string; uploadId: string; linhasProcessadas: number; horasTotal: number }>;
