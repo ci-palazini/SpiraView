@@ -3,9 +3,9 @@ primary_region = "gru"
 
 [build]
   # Use the Dockerfile from the monorepo root
-  dockerfile = "../Dockerfile"
+  dockerfile = "../../Dockerfile"
   # Set build context to the monorepo root
-  context = ".."
+  context = "../.."
 
 [http_service]
   internal_port = 3000
