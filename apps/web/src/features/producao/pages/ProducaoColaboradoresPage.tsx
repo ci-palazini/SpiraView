@@ -269,7 +269,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
         if (operadores.length === 0) {
             setLoadingOperadores(true);
             try {
-                const users = await listarUsuarios({ role: 'operador' }, { role: 'gestor' });
+                const users = await listarUsuarios({ role: 'operador' }, { role: user.role, email: user.email });
                 setOperadores(users.filter(u => u.matricula)); // Só operadores com matrícula
             } catch (e) {
                 console.error(e);

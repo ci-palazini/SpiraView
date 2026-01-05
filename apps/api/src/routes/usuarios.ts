@@ -6,8 +6,8 @@ import { requirePermission, requireAnyPermission } from '../middlewares/requireP
 
 export const usuariosRouter: Router = Router();
 
-// GET /usuarios - listar usuários (requer 'usuarios:ver' OU 'chamados_gestao:ver' para atribuição)
-usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gestao'], 'ver'), async (req, res) => {
+// GET /usuarios - listar usuários (requer 'usuarios:ver' OU 'chamados_gestao:ver' OU 'producao_colaboradores:ver')
+usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gestao', 'producao_colaboradores'], 'ver'), async (req, res) => {
   try {
     // Suporta 'role' (único) ou 'roles' (múltiplos separados por vírgula)
     const rawRole = (req.query.role as string | undefined) ?? '';
