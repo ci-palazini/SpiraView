@@ -413,32 +413,59 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                     [dataRef]
                 );
 
-                // Inserir lançamentos
+                // Inserir lançamentos em BATCH (muito mais rápido para grandes volumes)
+                // Prepara arrays para UNNEST
+                const maquinaIds: string[] = [];
+                const dataRefs: string[] = [];
+                const turnos: (string | null)[] = [];
+                const horasRealizadas: number[] = [];
+                const observacoes: (string | null)[] = [];
+                const uploadIds: string[] = [];
+                const lancadoPorIds: (string | null)[] = [];
+                const lancadoPorNomes: (string | null)[] = [];
+                const lancadoPorEmails: (string | null)[] = [];
+                const matriculasOperador: (string | null)[] = [];
+
                 for (const row of rowsForDate) {
-                    await client.query(
-                        `INSERT INTO producao_lancamentos 
-             (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-             ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''))
-             DO UPDATE SET 
-               horas_realizadas = EXCLUDED.horas_realizadas,
-               observacao = EXCLUDED.observacao,
-               upload_id = EXCLUDED.upload_id,
-               atualizado_em = NOW()`,
-                        [
-                            row.maquinaId,
-                            row.dataRef,
-                            row.turno,
-                            row.horasRealizadas,
-                            row.observacao,
-                            uploadId,
-                            auth.id || null,
-                            auth.nome || null,
-                            auth.email || null,
-                            row.matriculaOperador || null // Passando a matrícula
-                        ]
-                    );
+                    maquinaIds.push(row.maquinaId);
+                    dataRefs.push(row.dataRef);
+                    turnos.push(row.turno);
+                    horasRealizadas.push(row.horasRealizadas);
+                    observacoes.push(row.observacao);
+                    uploadIds.push(uploadId);
+                    lancadoPorIds.push(auth.id || null);
+                    lancadoPorNomes.push(auth.nome || null);
+                    lancadoPorEmails.push(auth.email || null);
+                    matriculasOperador.push(row.matriculaOperador || null);
                 }
+
+                // Batch INSERT usando UNNEST - uma única query para todas as linhas
+                await client.query(
+                    `INSERT INTO producao_lancamentos 
+                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador)
+                     SELECT * FROM UNNEST(
+                         $1::uuid[], $2::date[], $3::text[], $4::numeric[], $5::text[], 
+                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[]
+                     )
+                     ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''))
+                     DO UPDATE SET 
+                       horas_realizadas = EXCLUDED.horas_realizadas,
+                       observacao = EXCLUDED.observacao,
+                       upload_id = EXCLUDED.upload_id,
+                       atualizado_em = NOW()`,
+                    [
+                        maquinaIds,
+                        dataRefs,
+                        turnos,
+                        horasRealizadas,
+                        observacoes,
+                        uploadIds,
+                        lancadoPorIds,
+                        lancadoPorNomes,
+                        lancadoPorEmails,
+                        matriculasOperador
+                    ]
+                );
 
                 resultados.push({
                     dataRef,
