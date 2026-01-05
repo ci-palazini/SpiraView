@@ -1112,6 +1112,7 @@ export interface ProducaoResumoDiario {
     metaDia: number;
     percentualDia?: number;
     qtdLancamentos: number;
+    ultimaAtualizacaoEm?: string; // Timestamp da última atualização real das horas (lógica de justiça)
 }
 
 export interface ProducaoUpload {

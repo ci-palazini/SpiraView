@@ -116,6 +116,8 @@ interface LinhaMaquina {
     isChild?: boolean;
     exibirFilhos?: boolean; // Máquina mãe que exibe filhos (deve ser fixada)
     contribuintes?: Contribuinte[]; // Top 5 filhos que contribuíram para produção
+    isStale?: boolean;    // Se dados são mais antigos que o upload global (lógica de justiça)
+    lastRefTime?: string; // Hora da última atualização real (ex: "12:11")
 }
 
 // ==================== COMPONENT ====================
@@ -160,7 +162,16 @@ export default function TvDashboardPage() {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     }, []);
+
+    // Gerar ontem no fuso local
+    const yesterdayISO = useMemo(() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    }, []);
+
     const isToday = refDateOnly === todayISO;
+    const isYesterday = refDateOnly === yesterdayISO;
     const isPast = refDateOnly < todayISO;
     const isFuture = !isToday && !isPast;
 
@@ -344,6 +355,28 @@ export default function TvDashboardPage() {
             const metaVigente = metasByMaquina.get(m.id) || 0;
             let meta = metaVigente;
 
+            // Lógica de justiça: calcular frac individual se timestamp difere do global
+            let maqFrac = frac;
+            let isStale = false;
+            let lastRefTime: string | undefined;
+
+            if (resumo?.ultimaAtualizacaoEm && uploadHHMM !== '--:--' && isToday) {
+                const maqRefDate = new Date(resumo.ultimaAtualizacaoEm);
+                const maqHHMM = `${String(maqRefDate.getHours()).padStart(2, '0')}:${String(maqRefDate.getMinutes()).padStart(2, '0')}`;
+                lastRefTime = maqHHMM;
+
+                // Se diferença > 2 minutos do upload global, é stale
+                const globalDate = new Date();
+                const [gH, gM] = uploadHHMM.split(':').map(Number);
+                globalDate.setHours(gH, gM, 0, 0);
+
+                const diffMs = globalDate.getTime() - maqRefDate.getTime();
+                if (diffMs > 2 * 60 * 1000) {
+                    isStale = true;
+                    maqFrac = fracDiaLogico(maqHHMM);
+                }
+            }
+
             let contribuintes: Contribuinte[] | undefined;
             if (m.is_maquina_mae) {
                 const filhos = childrenByParent.get(m.id) || [];
@@ -361,7 +394,7 @@ export default function TvDashboardPage() {
                 contribuintes = filhosData.sort((a, b) => b.produzido - a.produzido).slice(0, 5);
             }
 
-            const esperado = +(meta * frac).toFixed(2);
+            const esperado = +(meta * maqFrac).toFixed(2);
             let aderencia: number | null = null;
             if (!isFuture) {
                 if (esperado > 0) {
@@ -385,13 +418,15 @@ export default function TvDashboardPage() {
                 isMother: !!m.is_maquina_mae,
                 isChild: !!m.parent_maquina_id,
                 exibirFilhos: !!m.is_maquina_mae && m.exibir_filhos_dashboard === true,
-                contribuintes
+                contribuintes,
+                isStale,
+                lastRefTime
             });
         }
 
         // Ordenar por aderência decrescente (melhor ao pior)
         return rows.sort((a, b) => (b.aderencia ?? -1) - (a.aderencia ?? -1));
-    }, [maquinas, maquinasMap, childrenByParent, resumosByMaquina, metasByMaquina, frac, isFuture, isPast, scope]);
+    }, [maquinas, maquinasMap, childrenByParent, resumosByMaquina, metasByMaquina, frac, isFuture, isPast, scope, uploadHHMM, isToday]);
 
     // Calcular totais
     const totais = useMemo(() => {
@@ -484,7 +519,7 @@ export default function TvDashboardPage() {
     const isResumoSlide = currentPage === 0;
     const machinePageIndex = currentPage - 1; // índice das páginas de máquinas (0-based)
     const currentCards = pages[machinePageIndex] || [];
-    const dateLabel = isToday ? `HOJE • ${formatDateBR(dataRef)}` : isPast ? `ONTEM • ${formatDateBR(dataRef)}` : formatDateBR(dataRef);
+    const dateLabel = isToday ? `HOJE • ${formatDateBR(dataRef)}` : isYesterday ? `ONTEM • ${formatDateBR(dataRef)}` : formatDateBR(dataRef);
 
     return (
         <div ref={rootRef} className={styles.container}>
@@ -610,6 +645,20 @@ function MaquinaCard({ data, isFuture, isPinned }: MaquinaCardProps) {
                 <div className={styles.cardTitleGroup}>
                     {isPinned && <FiMapPin size={18} className={styles.pinIcon} />}
                     <h3 className={styles.cardTitle}>{data.maquinaNome}</h3>
+                    {/* Badge de dados desatualizados */}
+                    {data.isStale && data.lastRefTime && (
+                        <span style={{
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#fef3c7',
+                            color: '#92400e',
+                            marginLeft: '8px',
+                            fontWeight: 600
+                        }}>
+                            Dados de {data.lastRefTime}
+                        </span>
+                    )}
                 </div>
                 {isFuture ? (
                     <span className={styles.badgeFuture}>FUTURO</span>

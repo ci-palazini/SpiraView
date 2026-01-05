@@ -414,7 +414,28 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                 );
 
                 // Inserir lançamentos em BATCH (muito mais rápido para grandes volumes)
-                // Prepara arrays para UNNEST
+
+                // 1. Buscar horas atuais para detectar mudanças (lógica de justiça)
+                // Se as horas não mudaram, preservamos o timestamp antigo
+                const horasAtuaisRes = await client.query(
+                    `SELECT maquina_id, turno, COALESCE(matricula_operador, '') as matricula_operador, 
+                            horas_realizadas, horas_referencia_em
+                     FROM producao_lancamentos 
+                     WHERE data_ref = $1`,
+                    [dataRef]
+                );
+
+                // Mapa: "maquinaId|turno|matricula" -> { horas, refEm }
+                const horasAntigas = new Map<string, { horas: number; refEm: string | null }>();
+                for (const row of horasAtuaisRes.rows) {
+                    const key = `${row.maquina_id}|${row.turno || ''}|${row.matricula_operador}`;
+                    horasAntigas.set(key, {
+                        horas: Number(row.horas_realizadas) || 0,
+                        refEm: row.horas_referencia_em,
+                    });
+                }
+
+                // 2. Prepara arrays para UNNEST
                 const maquinaIds: string[] = [];
                 const dataRefs: string[] = [];
                 const turnos: (string | null)[] = [];
@@ -425,6 +446,9 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                 const lancadoPorNomes: (string | null)[] = [];
                 const lancadoPorEmails: (string | null)[] = [];
                 const matriculasOperador: (string | null)[] = [];
+                const horasReferenciaEm: (string | null)[] = []; // NOVO: timestamp de referência
+
+                const agora = new Date().toISOString();
 
                 for (const row of rowsForDate) {
                     maquinaIds.push(row.maquinaId);
@@ -437,21 +461,34 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                     lancadoPorNomes.push(auth.nome || null);
                     lancadoPorEmails.push(auth.email || null);
                     matriculasOperador.push(row.matriculaOperador || null);
+
+                    // 3. Lógica de justiça: preservar timestamp se horas não mudaram
+                    const key = `${row.maquinaId}|${row.turno || ''}|${row.matriculaOperador || ''}`;
+                    const antiga = horasAntigas.get(key);
+
+                    if (antiga && antiga.horas === row.horasRealizadas && antiga.refEm) {
+                        // Horas não mudaram - preservar timestamp antigo
+                        horasReferenciaEm.push(antiga.refEm);
+                    } else {
+                        // Horas mudaram ou é novo registro - usar timestamp atual
+                        horasReferenciaEm.push(agora);
+                    }
                 }
 
-                // Batch INSERT usando UNNEST - uma única query para todas as linhas
+                // 4. Batch INSERT com horas_referencia_em
                 await client.query(
                     `INSERT INTO producao_lancamentos 
-                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador)
+                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador, horas_referencia_em)
                      SELECT * FROM UNNEST(
                          $1::uuid[], $2::date[], $3::text[], $4::numeric[], $5::text[], 
-                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[]
+                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[], $11::timestamptz[]
                      )
                      ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''))
                      DO UPDATE SET 
                        horas_realizadas = EXCLUDED.horas_realizadas,
                        observacao = EXCLUDED.observacao,
                        upload_id = EXCLUDED.upload_id,
+                       horas_referencia_em = EXCLUDED.horas_referencia_em,
                        atualizado_em = NOW()`,
                     [
                         maquinaIds,
@@ -463,7 +500,8 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                         lancadoPorIds,
                         lancadoPorNomes,
                         lancadoPorEmails,
-                        matriculasOperador
+                        matriculasOperador,
+                        horasReferenciaEm
                     ]
                 );
 

@@ -301,19 +301,28 @@ lancamentosRouter.get('/producao/resumo-diario', async (req, res) => {
             }
         }
 
+        // Query direta para incluir horas_referencia_em (lógica de justiça)
         const { rows } = await pool.query(
             `SELECT
-        maquina_id AS "maquinaId",
-        maquina_nome AS "maquinaNome",
-        maquina_tag AS "maquinaTag",
-        data_ref AS "dataRef",
-        horas_dia AS "horasDia",
-        meta_dia AS "metaDia",
-        percentual_dia AS "percentualDia",
-        qtd_lancamentos AS "qtdLancamentos"
-      FROM v_producao_resumo_diario
-      WHERE ${where}
-      ORDER BY data_ref DESC, maquina_nome ASC`,
+                pl.maquina_id AS "maquinaId",
+                m.nome AS "maquinaNome",
+                m.tag AS "maquinaTag",
+                pl.data_ref AS "dataRef",
+                SUM(pl.horas_realizadas) AS "horasDia",
+                COALESCE((
+                    SELECT pm.horas_meta FROM producao_metas pm 
+                    WHERE pm.maquina_id = pl.maquina_id 
+                    AND pm.data_inicio <= pl.data_ref 
+                    AND (pm.data_fim IS NULL OR pm.data_fim >= pl.data_ref)
+                    ORDER BY pm.data_inicio DESC LIMIT 1
+                ), 0) AS "metaDia",
+                COUNT(*) AS "qtdLancamentos",
+                MAX(pl.horas_referencia_em) AS "ultimaAtualizacaoEm"
+            FROM producao_lancamentos pl
+            JOIN maquinas m ON m.id = pl.maquina_id
+            WHERE ${where.replace(/data_ref/g, 'pl.data_ref')}
+            GROUP BY pl.maquina_id, m.nome, m.tag, pl.data_ref
+            ORDER BY pl.data_ref DESC, m.nome ASC`,
             params
         );
 
