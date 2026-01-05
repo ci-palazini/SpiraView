@@ -4,10 +4,31 @@ import { sseBroadcast } from '../utils/sse';
 
 export const pecasRouter: Router = Router();
 
+// Helper: verificar permissão granular inline
+async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
+  if (!userId) return false;
+  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
+    `SELECT r.permissoes FROM usuarios u
+         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         WHERE u.id = $1 LIMIT 1`,
+    [userId]
+  );
+  const permissions = rows[0]?.permissoes || {};
+  const userPerm = permissions[pageKey];
+  if (!userPerm || userPerm === 'nenhum') return false;
+  if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
+  return userPerm === 'editar';
+}
+
 pecasRouter.post('/pecas', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'estoque', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para criar peça.' });
+    }
 
     const {
       codigo,
@@ -44,11 +65,16 @@ pecasRouter.post('/pecas', async (req, res) => {
   }
 });
 
-// ATUALIZAR PEÃ‡A (somente gestor)
+// ATUALIZAR PEÇA
 pecasRouter.put('/pecas/:id', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') return res.status(403).json({ error: 'Somente gestor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'estoque', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para atualizar peça.' });
+    }
 
     const id = String(req.params.id);
     const {
@@ -108,12 +134,15 @@ pecasRouter.get('/pecas', async (_req, res) => {
   }
 });
 
-// DELETE /pecas/:id  (somente gestor)
+// DELETE /pecas/:id
 pecasRouter.delete('/pecas/:id', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (auth.role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'estoque', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para excluir peça.' });
     }
 
     const id = String(req.params.id);
@@ -135,8 +164,15 @@ pecasRouter.delete('/pecas/:id', async (req, res) => {
 pecasRouter.post('/pecas/:id/movimentacoes', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    if (!['gestor', 'manutentor'].includes(auth.role)) {
-      return res.status(403).json({ error: 'Somente gestor/manutentor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    // Movimentações podem ser feitas por quem tem permissão de estoque ou movimentações
+    const hasEstoque = await checkPermission(auth.id, 'estoque', 'editar');
+    const hasMovimentacoes = await checkPermission(auth.id, 'movimentacoes', 'editar');
+
+    if (!isAdmin && !hasEstoque && !hasMovimentacoes) {
+      return res.status(403).json({ error: 'Sem permissão para registrar movimentação.' });
     }
     const pecaId = String(req.params.id);
     const { tipo, quantidade, descricao } = req.body || {};

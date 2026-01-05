@@ -708,8 +708,26 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
 uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor', 'manutentor', 'admin'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Sem permissão.' });
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin) {
+            // Buscar permissões do role do usuário
+            const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
+                `SELECT r.permissoes 
+                 FROM usuarios u
+                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+                 WHERE u.id = $1
+                 LIMIT 1`,
+                [auth.id]
+            );
+
+            const permissions = permRows[0]?.permissoes || {};
+            const uploadPerm = permissions['producao_upload'];
+
+            if (uploadPerm !== 'editar') {
+                return res.status(403).json({ error: 'Sem permissão.' });
+            }
         }
 
         const id = String(req.params.id);

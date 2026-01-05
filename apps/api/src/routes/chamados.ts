@@ -526,6 +526,22 @@ chamadosRouter.post(
   }
 );
 
+// Helper: verificar permissão granular inline
+async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
+  if (!userId) return false;
+  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
+    `SELECT r.permissoes FROM usuarios u
+       JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+       WHERE u.id = $1 LIMIT 1`,
+    [userId]
+  );
+  const permissions = rows[0]?.permissoes || {};
+  const userPerm = permissions[pageKey];
+  if (!userPerm || userPerm === 'nenhum') return false;
+  if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
+  return userPerm === 'editar';
+}
+
 // ---------- Chamados: concluir ----------
 chamadosRouter.post(
   "/chamados/:id/concluir",
@@ -577,7 +593,11 @@ chamadosRouter.post(
       const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
         .filter(Boolean)
         .map((v) => String(v));
-      if (user.role !== "gestor industrial" && !associados.includes(String(user.id))) {
+
+      const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
+      const isGestorLike = (user.role || '').toLowerCase() === "gestor industrial" || user.role === "admin" || hasGestao;
+
+      if (!isGestorLike && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
       }
 
@@ -734,7 +754,8 @@ chamadosRouter.post(
         .map((v: any) => String(v));
 
       const role = String(user.role || "").toLowerCase();
-      const isGestorLike = role === "gestor industrial" || role === "admin";
+      const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
+      const isGestorLike = role === "gestor industrial" || role === "admin" || hasGestao;
 
       if (!isGestorLike && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
@@ -846,7 +867,11 @@ chamadosRouter.patch(
       const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
         .filter(Boolean)
         .map((v: any) => String(v));
-      if (user.role !== "gestor industrial" && !associados.includes(String(user.id))) {
+
+      const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
+      const isGestorLike = (user.role || '').toLowerCase() === "gestor industrial" || user.role === "admin" || hasGestao;
+
+      if (!isGestorLike && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
       }
 
@@ -886,7 +911,7 @@ chamadosRouter.patch(
  */
 chamadosRouter.post("/chamados", async (req, res) => {
   try {
-    const auth = (req as any).user as { role?: string; email?: string } | undefined;
+    const auth = (req as any).user as { id?: string, role?: string; email?: string } | undefined;
 
     // validação
     const parsed = CreateChamadoSchema.safeParse(req.body ?? {});
@@ -907,11 +932,17 @@ chamadosRouter.post("/chamados", async (req, res) => {
     const tipo = (data.tipo ?? "corretiva") === "preventiva" ? "preventiva" : "corretiva";
     const role = (auth?.role || "gestor").toLowerCase();
 
+    // Verifica permissão granular para decidir se pode criar chamados avançados (atribuir)
+    // Se for operador (role) e NÃO tiver permissão, só pode abrir
+    // Se tiver permissão 'chamados_gestao' (editar), pode tudo
+    const hasGestao = auth?.id ? await checkPermission(auth.id, 'chamados_gestao', 'editar') : false;
+    const canManage = role === 'manutentor' || role === 'gestor industrial' || role === 'admin' || hasGestao;
+
     // normaliza status informado, mas ele pode ser sobrescrito adiante
     let statusNorm = normalizeChamadoStatus(data.status) ?? CHAMADO_STATUS.ABERTO;
 
-    // RBAC mínimo: operador não pode criar atribuído nem com status != Aberto
-    if (role === "operador") {
+    // RBAC mínimo: quem não pode gerenciar (operador s/ permissão) só cria em Aberto
+    if (!canManage) {
       if (statusNorm !== CHAMADO_STATUS.ABERTO) {
         return res.status(403).json({ error: "Operador só pode criar chamados em 'Aberto'." });
       }
@@ -962,7 +993,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
 
     // manutentor (se vier email e o usuário tiver permissão para atribuir)
     let manutentorId: string | null = null;
-    if (data.manutentorEmail && role !== "operador") {
+    if (data.manutentorEmail && canManage) {
       const { rows: uMant } = await pool.query(
         `SELECT id FROM public.usuarios WHERE LOWER(email)=LOWER($1) LIMIT 1`,
         [data.manutentorEmail]

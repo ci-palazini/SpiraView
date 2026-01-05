@@ -3,6 +3,22 @@ import { pool } from '../../db';
 
 export const metasRouter: Router = Router();
 
+// Helper: verificar permissão granular inline
+async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
+    if (!userId) return false;
+    const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
+        `SELECT r.permissoes FROM usuarios u
+         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         WHERE u.id = $1 LIMIT 1`,
+        [userId]
+    );
+    const permissions = rows[0]?.permissoes || {};
+    const userPerm = permissions[pageKey];
+    if (!userPerm || userPerm === 'nenhum') return false;
+    if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
+    return userPerm === 'editar';
+}
+
 // ============================================================================
 // METAS DE MÁQUINAS (producao_metas) - Metas de produção por máquina
 // ============================================================================
@@ -55,8 +71,11 @@ metasRouter.get('/producao/metas', async (req, res) => {
 metasRouter.post('/producao/metas', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Somente gestor pode criar metas.' });
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
+            return res.status(403).json({ error: 'Sem permissão para criar metas.' });
         }
 
         const { maquinaId, dataInicio, dataFim, horasMeta } = req.body || {};
@@ -99,8 +118,11 @@ metasRouter.post('/producao/metas', async (req, res) => {
 metasRouter.put('/producao/metas/:id', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Somente gestor pode atualizar metas.' });
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
+            return res.status(403).json({ error: 'Sem permissão para atualizar metas.' });
         }
 
         const id = String(req.params.id);
@@ -136,8 +158,11 @@ metasRouter.put('/producao/metas/:id', async (req, res) => {
 metasRouter.delete('/producao/metas/:id', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Somente gestor pode excluir metas.' });
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
+            return res.status(403).json({ error: 'Sem permissão para excluir metas.' });
         }
 
         const id = String(req.params.id);
@@ -184,8 +209,11 @@ metasRouter.get('/producao/metas/funcionarios', async (req, res) => {
 metasRouter.post('/producao/metas/funcionarios', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Somente gestor pode definir metas.' });
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin && !await checkPermission(auth.id, 'producao_colaboradores', 'editar')) {
+            return res.status(403).json({ error: 'Sem permissão para definir metas de funcionários.' });
         }
 
         let { id, matricula, meta_diaria_horas, ativo } = req.body;

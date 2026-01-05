@@ -4,6 +4,22 @@ import { slugify } from '../utils/slug';
 import { sseBroadcast } from '../utils/sse';
 import { AGENDAMENTO_STATUS, normalizeAgendamentoStatus, CHAMADO_STATUS } from '../utils/status';
 
+// Helper: verificar permissão granular inline
+async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
+  if (!userId) return false;
+  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
+    `SELECT r.permissoes FROM usuarios u
+       JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+       WHERE u.id = $1 LIMIT 1`,
+    [userId]
+  );
+  const permissions = rows[0]?.permissoes || {};
+  const userPerm = permissions[pageKey];
+  if (!userPerm || userPerm === 'nenhum') return false;
+  if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
+  return userPerm === 'editar';
+}
+
 type ChecklistItem = { texto: string; key: string };
 
 const AGENDAMENTO_SELECT = `
@@ -151,7 +167,7 @@ agendamentosRouter.post('/agendamentos', async (req, res) => {
 
     try {
       sseBroadcast?.({ topic: 'agendamentos', action: 'created', id });
-    } catch {}
+    } catch { }
 
     res.status(201).json(selected[0]);
   } catch (error) {
@@ -163,9 +179,12 @@ agendamentosRouter.post('/agendamentos', async (req, res) => {
 // Atualizar (reagendar) - gestor
 agendamentosRouter.patch('/agendamentos/:id', async (req, res) => {
   try {
-    const role = req.user?.role ?? 'operador';
-    if (role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor pode reagendar.' });
+    const auth = (req as any).user || {};
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'calendario', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para reagendar.' });
     }
 
     const id = String(req.params.id);
@@ -216,7 +235,7 @@ agendamentosRouter.patch('/agendamentos/:id', async (req, res) => {
 
     try {
       sseBroadcast?.({ topic: 'agendamentos', action: 'updated', id });
-    } catch {}
+    } catch { }
 
     res.json({ ok: true });
   } catch (error) {
@@ -228,9 +247,12 @@ agendamentosRouter.patch('/agendamentos/:id', async (req, res) => {
 // Deletar - gestor
 agendamentosRouter.delete('/agendamentos/:id', async (req, res) => {
   try {
-    const role = req.user?.role ?? 'operador';
-    if (role !== 'gestor') {
-      return res.status(403).json({ error: 'Somente gestor pode deletar.' });
+    const auth = (req as any).user || {};
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'calendario', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para deletar agendamento.' });
     }
 
     const id = String(req.params.id);
@@ -245,7 +267,7 @@ agendamentosRouter.delete('/agendamentos/:id', async (req, res) => {
 
     try {
       sseBroadcast?.({ topic: 'agendamentos', action: 'deleted', id });
-    } catch {}
+    } catch { }
 
     res.json({ ok: true });
   } catch (error) {
@@ -258,9 +280,18 @@ agendamentosRouter.delete('/agendamentos/:id', async (req, res) => {
 agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
   try {
     const user = req.user;
-    const role = user?.role ?? 'operador';
-    if (!['manutentor', 'gestor'].includes(role)) {
-      return res.status(403).json({ error: 'Apenas manutentor/gestor podem iniciar manutencao.' });
+    const userRole = (user?.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    // Para iniciar: manutentor (role) OU permissão calendario OU permissão chamados_gestao
+    // Mantemos a lógica de "manutentor" poder iniciar, mas expandimos para permissões
+    // Se o usuário tem permissão de editar calendário ou chamados, ele pode iniciar.
+    const hasCalendario = await checkPermission(user?.id || '', 'calendario', 'editar');
+    const hasChamados = await checkPermission(user?.id || '', 'chamados_gestao', 'editar');
+    const isManutentor = userRole === 'manutentor';
+
+    if (!isAdmin && !isManutentor && !hasCalendario && !hasChamados) {
+      return res.status(403).json({ error: 'Sem permissão para iniciar manutenção.' });
     }
 
     const id = String(req.params.id);
@@ -366,7 +397,7 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
 
     try {
       sseBroadcast?.({ topic: 'agendamentos', action: 'started', id, payload: { chamadoId } });
-    } catch {}
+    } catch { }
 
     res.json({ ok: true, chamadoId });
   } catch (error: any) {

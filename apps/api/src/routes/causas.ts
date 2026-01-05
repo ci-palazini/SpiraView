@@ -3,6 +3,22 @@ import { pool } from '../db';
 
 export const causasRouter: Router = Router();
 
+// Helper: verificar permissão granular inline
+async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
+  if (!userId) return false;
+  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
+    `SELECT r.permissoes FROM usuarios u
+         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         WHERE u.id = $1 LIMIT 1`,
+    [userId]
+  );
+  const permissions = rows[0]?.permissoes || {};
+  const userPerm = permissions[pageKey];
+  if (!userPerm || userPerm === 'nenhum') return false;
+  if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
+  return userPerm === 'editar';
+}
+
 causasRouter.get('/causas', async (_req, res) => {
   try {
     const { rows } = await pool.query(
@@ -18,12 +34,16 @@ causasRouter.get('/causas', async (_req, res) => {
   }
 });
 
-// POST /causas  (somente gestor)
+// POST /causas
 causasRouter.post('/causas', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    const role = (auth.role || '').toLowerCase();
-    if (role !== 'gestor industrial') return res.status(403).json({ error: 'Somente gestor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'causas_raiz', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para gerenciar causas.' });
+    }
 
     const nome = String(req.body?.nome || '').trim();
     if (!nome) return res.status(400).json({ error: 'Nome é obrigatório.' });
@@ -42,12 +62,16 @@ causasRouter.post('/causas', async (req, res) => {
   }
 });
 
-// DELETE /causas/:id  (somente gestor)
+// DELETE /causas/:id
 causasRouter.delete('/causas/:id', async (req, res) => {
   try {
     const auth = (req as any).user || {};
-    const role = (auth.role || '').toLowerCase();
-    if (role !== 'gestor industrial') return res.status(403).json({ error: 'Somente gestor.' });
+    const userRole = (auth.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+
+    if (!isAdmin && !await checkPermission(auth.id, 'causas_raiz', 'editar')) {
+      return res.status(403).json({ error: 'Sem permissão para excluir causa.' });
+    }
 
     const id = String(req.params.id);
     const del = await pool.query(`DELETE FROM causas_raiz WHERE id = $1`, [id]);
