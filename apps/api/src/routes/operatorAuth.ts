@@ -5,11 +5,34 @@ export const operatorAuthRouter: Router = Router();
 
 /**
  * GET /api/operators/active
- * Lista operadores ativos para seleção no login simplificado
- * Retorna apenas id e nome (sem dados sensíveis)
+ * Lista operadores ativos para seleção no login simplificado ou upload de produção
+ * Requer permissão: producao_upload (ver) ou admin
  */
-operatorAuthRouter.get('/operators/active', async (_req, res) => {
+operatorAuthRouter.get('/operators/active', async (req, res) => {
     try {
+        const user = (req as any).user || {};
+        const userRole = (user.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        // Verificar permissão para listar operadores
+        if (!isAdmin && user.id) {
+            const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
+                `SELECT r.permissoes 
+                 FROM usuarios u
+                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+                 WHERE u.id = $1
+                 LIMIT 1`,
+                [user.id]
+            );
+
+            const permissions = permRows[0]?.permissoes || {};
+            const uploadPerm = permissions['producao_upload'] || permissions['producao_colaboradores'];
+
+            if (!uploadPerm || uploadPerm === 'nenhum') {
+                return res.status(403).json({ error: 'Sem permissão para listar operadores.' });
+            }
+        }
+
         const { rows } = await pool.query(
             `SELECT id, nome
        FROM usuarios

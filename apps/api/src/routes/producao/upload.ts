@@ -176,8 +176,28 @@ interface RowError {
 uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        if (!['gestor', 'manutentor', 'admin'].includes(auth.role)) {
-            return res.status(403).json({ error: 'Sem permissão para upload de produção.' });
+
+        // Verificação de permissão granular (producao_upload: editar)
+        const userRole = (auth.role || '').toLowerCase();
+        const isAdmin = userRole === 'admin';
+
+        if (!isAdmin) {
+            // Buscar permissões do role do usuário
+            const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
+                `SELECT r.permissoes 
+                 FROM usuarios u
+                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+                 WHERE u.id = $1
+                 LIMIT 1`,
+                [auth.id]
+            );
+
+            const permissions = permRows[0]?.permissoes || {};
+            const uploadPerm = permissions['producao_upload'];
+
+            if (uploadPerm !== 'editar') {
+                return res.status(403).json({ error: 'Sem permissão para upload de produção.' });
+            }
         }
 
         const { rows: inputRows, nomeArquivo } = req.body || {};
