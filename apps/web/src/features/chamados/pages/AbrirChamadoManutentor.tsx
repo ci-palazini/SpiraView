@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { getMaquinas, criarChamado } from "../../../services/apiClient";
 import styles from "./AbrirChamadoManutentor.module.css";
 import type { User } from "../../../App";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 interface Maquina {
     id: string;
@@ -24,9 +25,10 @@ export interface AbrirChamadoManutentorProps {
 
 export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorProps) {
     const { t } = useTranslation();
+    const perm = usePermissions(user);
 
-    const role = (user?.role || "").toLowerCase();
-    const podeAbrir = role === "manutentor";
+    // Permite abrir se tiver permissão granular 'abrir_chamado' (ver ou editar)
+    const podeAbrir = perm.canView('abrir_chamado');
 
     const [selectedMachineId, setSelectedMachineId] = useState("");
     const [descricao, setDescricao] = useState("");

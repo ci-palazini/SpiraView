@@ -39,3 +39,5 @@ Thumbs.db
 # Web app (artefatos)
 apps/web/dev-dist/
 
+# Buckups banco
+buckups banco.txt
