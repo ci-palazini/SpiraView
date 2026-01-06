@@ -614,6 +614,22 @@ export async function registrarSubmissaoDiaria(data: SubmissaoDiariaCreate): Pro
     return result;
 }
 
+export interface ChecklistOverviewRangeItem {
+    id: string; // machine id
+    nome: string;
+    hasChecklist: boolean;
+    days: Array<{
+        date: string; // YYYY-MM-DD
+        t1Ok: boolean;
+        t2Ok: boolean;
+    }>;
+}
+
+export async function getChecklistOverviewRange(start: string, end: string): Promise<ChecklistOverviewRangeItem[]> {
+    const r = await http.get<{ items: ChecklistOverviewRangeItem[] }>(`/checklists/overview/range`, { params: { start, end } });
+    return r.items || [];
+}
+
 export interface ChecklistOverviewItem {
     id: string; // machine id
     nome: string;

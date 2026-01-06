@@ -186,33 +186,38 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
     }
 
     // LISTAR TODAS AS MÁQUINAS DO ESCOPO DE MANUTENÇÃO
-    // E FAZER LEFT JOIN COM O HISTÓRICO DA DATA SELECIONADA
-    // USAMOS A MESMA LÓGICA DE DATA_REF DA SUBMISSÃO
+    // LEFT JOIN 1: status do dia selecionado
+    // LEFT JOIN 2: última submissão geral (independente da data)
 
     const sql = `
       WITH subs_dia AS (
         SELECT
           maquina_id,
-          /* normaliza turno 1 ou 2 */
           CASE
             WHEN lower(turno) IN ('1','1º','1o','1°','primeiro','turno1') THEN '1'
             WHEN lower(turno) IN ('2','2º','2o','2°','segundo','turno2')   THEN '2'
-            ELSE '1' -- fallback, mas ideal é validar
+            ELSE '1'
           END AS turno_norm,
           operador_nome,
           created_at
         FROM checklist_submissoes
         WHERE data_ref = $1::date
       ),
-      agregado AS (
+      agregado_dia AS (
          SELECT
            maquina_id,
            bool_or(turno_norm = '1') AS t1_ok,
            bool_or(turno_norm = '2') AS t2_ok,
            string_agg(DISTINCT operador_nome, ', ') FILTER (WHERE turno_norm = '1') as t1_nomes,
-           string_agg(DISTINCT operador_nome, ', ') FILTER (WHERE turno_norm = '2') as t2_nomes,
-           MAX(created_at) as last_sub_at
+           string_agg(DISTINCT operador_nome, ', ') FILTER (WHERE turno_norm = '2') as t2_nomes
          FROM subs_dia
+         GROUP BY 1
+      ),
+      ultima_sub AS (
+         SELECT 
+           maquina_id, 
+           MAX(created_at) as last_at
+         FROM checklist_submissoes
          GROUP BY 1
       )
       SELECT
@@ -223,9 +228,10 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
         COALESCE(a.t2_ok, false) as t2_ok,
         COALESCE(a.t1_nomes, '') as t1_nomes,
         COALESCE(a.t2_nomes, '') as t2_nomes,
-        to_char(a.last_sub_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as last_sub_at
+        to_char(u.last_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as last_sub_at
       FROM maquinas m
-      LEFT JOIN agregado a ON a.maquina_id = m.id
+      LEFT JOIN agregado_dia a ON a.maquina_id = m.id
+      LEFT JOIN ultima_sub u ON u.maquina_id = m.id
       WHERE m.escopo_manutencao = true
       ORDER BY m.nome ASC
     `;
@@ -241,6 +247,73 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
       turno1Nomes: r.t1_nomes ? r.t1_nomes.split(',').map((s: string) => s.trim()) : [],
       turno2Nomes: r.t2_nomes ? r.t2_nomes.split(',').map((s: string) => s.trim()) : [],
       lastSubmissionAt: r.last_sub_at || null
+    }));
+
+    res.json({ items });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// GET /checklists/overview/range - Retorna status consolidado para um intervalo de datas
+// Usado na exportação Excel
+checklistsRouter.get('/checklists/overview/range', async (req, res) => {
+  try {
+    const start = String(req.query.start || '').trim();
+    const end = String(req.query.end || '').trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
+      return res.status(400).json({ error: 'Datas inválidas usage: ?start=YYYY-MM-DD&end=YYYY-MM-DD' });
+    }
+
+    const sql = `
+      WITH raw_subs AS (
+        SELECT
+          maquina_id,
+          data_ref,
+          CASE
+            WHEN lower(turno) IN ('1','1º','1o','1°','primeiro','turno1') THEN '1'
+            WHEN lower(turno) IN ('2','2º','2o','2°','segundo','turno2')   THEN '2'
+            ELSE '1'
+          END AS turno_norm
+        FROM checklist_submissoes
+        WHERE data_ref >= $1::date AND data_ref <= $2::date
+      ),
+      agregado AS (
+        SELECT
+          maquina_id,
+          data_ref,
+          bool_or(turno_norm = '1') AS t1_ok,
+          bool_or(turno_norm = '2') AS t2_ok
+        FROM raw_subs
+        GROUP BY 1, 2
+      )
+      SELECT
+        m.id,
+        m.nome,
+        (CASE WHEN jsonb_array_length(COALESCE(m.checklist_diario,'[]'::jsonb)) > 0 THEN true ELSE false END) as has_checklist,
+        jsonb_agg(
+          jsonb_build_object(
+            'date', to_char(a.data_ref, 'YYYY-MM-DD'),
+            't1Ok', a.t1_ok,
+            't2Ok', a.t2_ok
+          )
+        ) FILTER (WHERE a.data_ref IS NOT NULL) as days
+      FROM maquinas m
+      LEFT JOIN agregado a ON a.maquina_id = m.id
+      WHERE m.escopo_manutencao = true
+      GROUP BY m.id, m.nome, m.checklist_diario
+      ORDER BY m.nome ASC
+    `;
+
+    const { rows } = await pool.query(sql, [start, end]);
+
+    const items = rows.map(r => ({
+      id: r.id,
+      nome: r.nome,
+      hasChecklist: r.has_checklist,
+      days: r.days || []
     }));
 
     res.json({ items });

@@ -11,7 +11,7 @@ import {
 
 import { exportEngajamentoTPMExcel } from '../../../utils/exportEngajamentoTPMExcel';
 
-import { listarMaquinas, getMaquina, getChecklistOverview } from '../../../services/apiClient';
+import { listarMaquinas, getMaquina, getChecklistOverview, getChecklistOverviewRange } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
 import PageHeader from '../../../shared/components/PageHeader';
 import ExportButtons from '../../../shared/components/ExportButtons';
@@ -179,27 +179,15 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
             const start = new Date(end);
             start.setDate(1);
 
-            const maquinas = await listarMaquinas({ escopo: 'manutencao' });
-            const detalhes = await Promise.all(
-                (maquinas || []).map(async (m: { id: string; nome?: string }) => {
-                    const det: MaquinaDetalhe = await getMaquina(m.id);
+            const startIso = toIsoLocal(start);
+            const endIso = toIsoLocal(end);
 
-                    const historicoDias = Array.isArray(det.historicoChecklist ?? det.historicoDiario)
-                        ? (det.historicoChecklist ?? det.historicoDiario ?? [])
-                        : [];
-
-                    const checklistItems = det.checklist_diario ?? det.checklistDiario ?? [];
-                    const hasChecklist = Array.isArray(checklistItems) && checklistItems.length > 0;
-
-                    const nome = m.nome || '';
-
-                    return { id: m.id, nome, historicoDias, hasChecklist };
-                })
-            );
+            // Fetch otimizado do intervalo (substitui N+1)
+            const rangeItems = await getChecklistOverviewRange(startIso, endIso);
 
             // Separar máquinas com e sem checklist
-            const comChecklist = detalhes.filter((m) => m.hasChecklist);
-            const semChecklist = detalhes.filter((m) => !m.hasChecklist);
+            const comChecklist = rangeItems.filter((m) => m.hasChecklist);
+            const semChecklist = rangeItems.filter((m) => !m.hasChecklist);
             const maquinasSemChecklist = semChecklist.map((m) => m.nome);
             const total = comChecklist.length;
 
@@ -212,9 +200,10 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 isWeekend?: boolean;
             }> = [];
 
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const iso = toIsoLocal(d);
-                const weekendLabel = weekDayNamePt(d);
+            const dtLoop = new Date(start);
+            while (dtLoop <= end) {
+                const iso = toIsoLocal(dtLoop);
+                const weekendLabel = weekDayNamePt(dtLoop);
 
                 if (weekendLabel) {
                     linhas.push({
@@ -225,6 +214,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                         semEnvioT2: weekendLabel,
                         isWeekend: true,
                     });
+                    dtLoop.setDate(dtLoop.getDate() + 1);
                     continue;
                 }
 
@@ -235,10 +225,10 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
 
                 // Contabilizar apenas máquinas COM checklist
                 for (const maq of comChecklist) {
-                    const rowDia = maq.historicoDias.find((r: HistoricoDia) => r.dia === iso) || null;
+                    const rowDia = maq.days ? maq.days.find(d => d.date === iso) : null;
 
-                    const t1 = rowDia ? !!rowDia.turno1_ok : false;
-                    const t2 = rowDia ? !!rowDia.turno2_ok : false;
+                    const t1 = rowDia ? !!rowDia.t1Ok : false;
+                    const t2 = rowDia ? !!rowDia.t2Ok : false;
 
                     if (t1) ok1++;
                     else pend1.push(maq.nome);
@@ -266,6 +256,8 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                     semEnvioT1: sem1,
                     semEnvioT2: sem2,
                 });
+
+                dtLoop.setDate(dtLoop.getDate() + 1);
             }
 
             // Aba opcional de detalhes do dia (usa o que já renderiza)
