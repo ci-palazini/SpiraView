@@ -11,7 +11,7 @@ import {
 
 import { exportEngajamentoTPMExcel } from '../../../utils/exportEngajamentoTPMExcel';
 
-import { listarMaquinas, getMaquina } from '../../../services/apiClient';
+import { listarMaquinas, getMaquina, getChecklistOverview } from '../../../services/apiClient';
 import { df } from '../../../i18n/format';
 import PageHeader from '../../../shared/components/PageHeader';
 import ExportButtons from '../../../shared/components/ExportButtons';
@@ -87,70 +87,27 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
             setLoading(true);
             setError('');
             try {
-                const maquinas = await listarMaquinas({ escopo: 'manutencao' });
-                const detalhes = await Promise.all(
-                    (maquinas || []).map(async (m: { id: string; nome?: string }) => {
-                        const det: MaquinaDetalhe = await getMaquina(m.id);
-
-                        const historicoDias = Array.isArray(
-                            det.historicoChecklist ?? det.historicoDiario
-                        )
-                            ? det.historicoChecklist ?? det.historicoDiario ?? []
-                            : [];
-
-                        const submissoes = Array.isArray(det.checklistHistorico)
-                            ? det.checklistHistorico
-                            : [];
-
-                        const rowDia =
-                            historicoDias.find((r) => r.dia === dateFilter) || null;
-
-                        const turno1Ok = rowDia ? !!rowDia.turno1_ok : false;
-                        const turno2Ok = rowDia ? !!rowDia.turno2_ok : false;
-
-                        const turno1Nomes = String(rowDia?.turno1_operadores || '')
-                            .split(',')
-                            .map((s) => s.trim())
-                            .filter(Boolean);
-
-                        const turno2Nomes = String(rowDia?.turno2_operadores || '')
-                            .split(',')
-                            .map((s) => s.trim())
-                            .filter(Boolean);
-
-                        let ultimaSub: Submissao | null = null;
-                        for (const s of submissoes) {
-                            if (!s.criado_em) continue;
-                            if (
-                                !ultimaSub ||
-                                String(s.criado_em) > String(ultimaSub.criado_em)
-                            ) {
-                                ultimaSub = s;
-                            }
-                        }
-
-                        // Verifica se a máquina tem checklist configurado
-                        const checklistItems = det.checklist_diario ?? det.checklistDiario ?? [];
-                        const hasChecklist = Array.isArray(checklistItems) && checklistItems.length > 0;
-
-                        return {
-                            id: m.id,
-                            nome: m.nome || '',
-                            rowDia,
-                            turno1Ok,
-                            turno2Ok,
-                            turno1Nomes,
-                            turno2Nomes,
-                            ultimaSub,
-                            hasChecklist,
-                        };
-                    })
-                );
+                // Fetch OTIMIZADO: pega tudo de uma vez do backend
+                // usando o novo endpoint /checklists/overview
+                const overviewItems = await getChecklistOverview(dateFilter);
 
                 if (!alive) return;
 
+                // Mapeia para o formato interno do componente
+                const mappedItems: ItemMaquina[] = overviewItems.map(item => ({
+                    id: item.id,
+                    nome: item.nome,
+                    rowDia: null, // não usado mais diretamente na renderização simplificada, ou podemos adaptar se precisar
+                    turno1Ok: item.turno1Ok,
+                    turno2Ok: item.turno2Ok,
+                    turno1Nomes: item.turno1Nomes,
+                    turno2Nomes: item.turno2Nomes,
+                    ultimaSub: item.lastSubmissionAt ? { criado_em: item.lastSubmissionAt } : null,
+                    hasChecklist: item.hasChecklist
+                }));
+
                 setItems(
-                    detalhes.sort((a, b) =>
+                    mappedItems.sort((a, b) =>
                         String(a.nome || '').localeCompare(
                             String(b.nome || ''),
                             'pt-BR'

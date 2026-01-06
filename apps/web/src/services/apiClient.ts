@@ -614,6 +614,22 @@ export async function registrarSubmissaoDiaria(data: SubmissaoDiariaCreate): Pro
     return result;
 }
 
+export interface ChecklistOverviewItem {
+    id: string; // machine id
+    nome: string;
+    hasChecklist: boolean;
+    turno1Ok: boolean;
+    turno2Ok: boolean;
+    turno1Nomes: string[];
+    turno2Nomes: string[];
+    lastSubmissionAt: string | null;
+}
+
+export async function getChecklistOverview(date: string): Promise<ChecklistOverviewItem[]> {
+    const r = await http.get<{ items: ChecklistOverviewItem[] }>(`/checklists/overview`, { params: { date } });
+    return r.items || [];
+}
+
 // ===== AGENDAMENTOS =====
 export async function listarAgendamentos(params: Record<string, unknown> = {}): Promise<Agendamento[]> {
     const qs = new URLSearchParams(
