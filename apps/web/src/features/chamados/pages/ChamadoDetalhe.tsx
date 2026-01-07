@@ -164,6 +164,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const [fotos, setFotos] = useState<Foto[]>([]);
     const [fotoFile, setFotoFile] = useState<File | null>(null);
     const [uploadingFoto, setUploadingFoto] = useState(false);
+    const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
     // atribuição (gestor)
     const [manutentores, setManutentores] = useState<Manutentor[]>([]);
@@ -284,7 +285,29 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         return () => { alive = false; };
     }, [id, t, reloadTick]);
 
-    // --------- causas raiz ---------
+
+    // --------- lightbox keyboard support ---------
+    useEffect(() => {
+        if (selectedPhotoIndex === null) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedPhotoIndex(null);
+            if (e.key === 'ArrowLeft') navigatePhoto(-1);
+            if (e.key === 'ArrowRight') navigatePhoto(1);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedPhotoIndex, fotos.length]);
+
+    function navigatePhoto(delta: number) {
+        if (selectedPhotoIndex === null) return;
+        setSelectedPhotoIndex(prev => {
+            if (prev === null) return null;
+            const next = prev + delta;
+            if (next < 0) return 0;
+            if (next >= fotos.length) return fotos.length - 1;
+            return next;
+        });
+    }
     useEffect(() => {
         (async () => {
             try {
@@ -737,13 +760,16 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                     {fotos.map((f) => (
                                         <div key={f.id} className={styles.photoItem}>
                                             {f.url ? (
-                                                <a href={f.url} target="_blank" rel="noreferrer">
+                                                <div
+                                                    onClick={() => setSelectedPhotoIndex(fotos.indexOf(f))}
+                                                    style={{ cursor: 'pointer' }}
+                                                >
                                                     <img
                                                         src={f.url}
                                                         alt="Foto da manutenção"
                                                         className={styles.photoThumb}
                                                     />
-                                                </a>
+                                                </div>
                                             ) : (
                                                 <div className={styles.photoThumbFallback}>
                                                     <span>URL indisponível</span>
@@ -851,6 +877,35 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     </div>
                 )
             }
+
+            {/* Lightbox Overlay */}
+            {selectedPhotoIndex !== null && fotos[selectedPhotoIndex] && (
+                <div className={styles.lightboxOverlay} onClick={() => setSelectedPhotoIndex(null)}>
+                    <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
+                        <button className={styles.lightboxClose} onClick={() => setSelectedPhotoIndex(null)}>
+                            ×
+                        </button>
+
+                        {selectedPhotoIndex > 0 && (
+                            <button className={`${styles.lightboxNav} ${styles.lightboxPrev}`} onClick={() => navigatePhoto(-1)}>
+                                ‹
+                            </button>
+                        )}
+
+                        <img
+                            src={fotos[selectedPhotoIndex].url}
+                            alt={`Foto da manutenção ${selectedPhotoIndex + 1}`}
+                            className={styles.lightboxImage}
+                        />
+
+                        {selectedPhotoIndex < fotos.length - 1 && (
+                            <button className={`${styles.lightboxNav} ${styles.lightboxNext}`} onClick={() => navigatePhoto(1)}>
+                                ›
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
