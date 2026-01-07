@@ -42,4 +42,4 @@ apps/web/dev-dist/
 # Buckups banco
 buckups banco.txt
 
-schema.sql
+*.sql

@@ -84,6 +84,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
         (
           LOWER(um.email) = LOWER($${idx})
           OR LOWER(COALESCE(c.atribuido_para_email, '')) = LOWER($${idx})
+          OR LOWER(ura.email) = LOWER($${idx})
         )
       `);
     }
@@ -108,6 +109,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
          JOIN public.maquinas  m  ON m.id  = c.maquina_id
          JOIN public.usuarios  u  ON u.id  = c.criado_por_id
          LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
+         LEFT JOIN public.usuarios ura ON ura.id = c.responsavel_atual_id
         WHERE ${whereSql}`,
       params
     );
@@ -134,6 +136,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
        JOIN public.maquinas  m  ON m.id  = c.maquina_id
        JOIN public.usuarios  u  ON u.id  = c.criado_por_id
        LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
+       LEFT JOIN public.usuarios ura ON ura.id = c.responsavel_atual_id
        WHERE ${whereSql}
        ORDER BY ${orderCol} DESC NULLS LAST
        LIMIT $${params2.length - 1} OFFSET $${params2.length}`,
