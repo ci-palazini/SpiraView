@@ -8,6 +8,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
 import type { User } from '../../../App';
+import usePermissions from '../../../hooks/usePermissions';
 
 interface Chamado {
     id: string;
@@ -63,6 +64,9 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
 
     const email = user?.email;
     const role = user?.role;
+    const perm = usePermissions(user as any);
+
+    const isManutentorLike = role === 'manutentor' || role === 'gestor industrial' || role === 'admin' || perm.canEdit('meus_chamados');
 
     const dtFmt = useMemo(
         () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }),
@@ -74,7 +78,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
     };
 
     useEffect(() => {
-        if (!email || !(role === 'manutentor' || role === 'gestor industrial' || role === 'admin')) {
+        if (!email || !isManutentorLike) {
             setDocsAssigned([]);
             setLoading(false);
             return;

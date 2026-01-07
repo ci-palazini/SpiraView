@@ -175,7 +175,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     // Pode gerenciar chamados: admin/gestor OU quem tem permissão granular
     const canGerirChamados = role === 'gestor industrial' || role === 'admin' || perm.canEdit('chamados_gestao');
-    const isManutentor = role === 'manutentor';
+    const isManutentor = role === 'manutentor' || perm.canEdit('meus_chamados');
     const isOperador = role === 'operador';
 
     const fmtDate = useMemo(
