@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../i18n/format';
 import { Button, Select, Card, CardHeader, Badge } from '../../../shared/components';
 import usePermissions from '../../../hooks/usePermissions';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 // ---------- Types ----------
 interface User {
@@ -883,12 +884,12 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 <div className={styles.lightboxOverlay} onClick={() => setSelectedPhotoIndex(null)}>
                     <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
                         <button className={styles.lightboxClose} onClick={() => setSelectedPhotoIndex(null)}>
-                            ×
+                            <X size={32} />
                         </button>
 
                         {selectedPhotoIndex > 0 && (
                             <button className={`${styles.lightboxNav} ${styles.lightboxPrev}`} onClick={() => navigatePhoto(-1)}>
-                                ‹
+                                <ChevronLeft size={48} />
                             </button>
                         )}
 
@@ -900,7 +901,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
                         {selectedPhotoIndex < fotos.length - 1 && (
                             <button className={`${styles.lightboxNav} ${styles.lightboxNext}`} onClick={() => navigatePhoto(1)}>
-                                ›
+                                <ChevronRight size={48} />
                             </button>
                         )}
                     </div>

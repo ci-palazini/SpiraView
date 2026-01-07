@@ -506,13 +506,13 @@
 
 .lightboxClose {
   position: absolute;
-  top: -40px;
+  top: -50px;
   right: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   color: white;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -523,7 +523,7 @@
 }
 
 .lightboxClose:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
@@ -531,11 +531,11 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -543,12 +543,13 @@
   cursor: pointer;
   transition: all 0.2s;
   z-index: 10;
-  font-size: 24px;
+  backdrop-filter: blur(4px);
 }
 
 .lightboxNav:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-50%) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .lightboxPrev {
