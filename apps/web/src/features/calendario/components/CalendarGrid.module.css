@@ -1,0 +1,229 @@
+/* CalendarGrid.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.06),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* ==================== HEADER ==================== */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: rgba(248, 250, 252, 0.6);
+}
+
+.navButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.navButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #475569;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.navButton:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.navButton svg {
+    width: 18px;
+    height: 18px;
+}
+
+.monthTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    text-transform: capitalize;
+    margin: 0;
+}
+
+.spacer {
+    width: 120px;
+}
+
+/* ==================== CALENDAR GRID ==================== */
+.calendarGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    flex: 1;
+    min-height: 0;
+}
+
+/* ==================== WEEKDAY HEADER ==================== */
+.weekdayHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #475569;
+    background: rgba(248, 250, 252, 0.8);
+    border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ==================== DAY CELL ==================== */
+.dayCell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    padding: 8px;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.dayCell:hover {
+    background: rgba(59, 130, 246, 0.04);
+}
+
+.dayCell:nth-child(7n) {
+    border-right: none;
+}
+
+.dayCell.otherMonth {
+    background: #f8fafc;
+}
+
+.dayCell.otherMonth .dayNumber {
+    color: #94a3b8;
+}
+
+.dayCell.today {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.dayCell.today .dayNumber {
+    background: linear-gradient(135deg, #1e40af, #0891b2);
+    color: #ffffff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== DAY NUMBER ==================== */
+.dayNumber {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+/* ==================== EVENTS ==================== */
+.eventsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.event {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #ffffff;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.event:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.event:active {
+    cursor: grabbing;
+}
+
+.moreEvents {
+    font-size: 0.7rem;
+    color: #64748b;
+    padding: 2px 4px;
+    font-weight: 500;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .spacer {
+        display: none;
+    }
+
+    .dayCell {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .dayNumber {
+        font-size: 0.8rem;
+    }
+
+    .event {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+
+    .weekdayHeader {
+        font-size: 0.75rem;
+        padding: 8px 4px;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendarGrid {
+    animation: fadeIn 0.3s ease;
+}

@@ -1,20 +1,14 @@
 // src/features/calendario/pages/CalendarioGeralPage.tsx
 import React, { useState, useEffect, useMemo, FormEvent, ChangeEvent } from 'react';
-import { Calendar, momentLocalizer, View } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-import moment from 'moment';
-import 'moment/locale/pt-br';
-import 'moment/locale/es';
 import toast from 'react-hot-toast';
 import Modal from '../../../shared/components/Modal';
-import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './CalendarioGeralPage.module.css';
 import PageHeader from '../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 import { df } from '../../../i18n/format';
 import usePermissions from '../../../hooks/usePermissions';
+import CalendarGrid, { CalendarEvent as GridCalendarEvent } from '../components/CalendarGrid';
 
 import {
     listarAgendamentos,
@@ -50,12 +44,15 @@ interface AgendamentoApi {
     data_agendada?: string;
     start?: string;
     end?: string;
+    start_ts?: string;
+    end_ts?: string;
     status?: string;
     itens_checklist?: unknown[];
     itensChecklist?: unknown[];
     concluido_em?: string;
     concluidoEm?: string;
     data_original?: string;
+    original_start?: string;
     originalStart?: string;
 }
 
@@ -95,8 +92,6 @@ interface DragArgs {
 }
 
 // ---------- Setup ----------
-const localizer = momentLocalizer(moment);
-const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
 
 // Helper para garantir que tudo que vai para o JSX é string legível
 function toPlainText(v: unknown): string {
@@ -146,7 +141,6 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [view, setView] = useState<View>('month');
     const [reloadTick, setReloadTick] = useState(0);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [showNew, setShowNew] = useState(false);
@@ -161,12 +155,12 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     const [templates, setTemplates] = useState<Template[]>([]);
     const [selTemplate, setSelTemplate] = useState('');
 
+    // Modal de confirmação de exclusão
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const intervalDays = 90;
 
-    // aplica locale do moment conforme idioma atual
-    useEffect(() => {
-        moment.locale(i18n.language?.startsWith('es') ? 'es' : 'pt-br');
-    }, [i18n.language]);
+
 
     const fmtDate = useMemo(
         () => df({ dateStyle: 'short' }),
@@ -209,12 +203,13 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                 if (!alive) return;
 
                 const mapped: CalendarEvent[] = raw.map((ag) => {
-                    const startStr = ag.date || ag.data_agendada || ag.start || '';
-                    const endStr = ag.end || startStr;
+                    // API retorna start_ts/end_ts - priorizar
+                    const startStr = ag.start_ts || ag.start || ag.date || ag.data_agendada || '';
+                    const endStr = ag.end_ts || ag.end || startStr;
                     const start = new Date(startStr);
                     const end = new Date(endStr);
 
-                    const originalStr = ag.data_original || ag.originalStart;
+                    const originalStr = ag.original_start || ag.data_original || ag.originalStart;
                     const originalStart = originalStr ? new Date(originalStr) : undefined;
 
                     const concluidoStr = ag.concluido_em || ag.concluidoEm;
@@ -286,11 +281,14 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
         const itens = checklistTxt.split('\n').map((l) => l.trim()).filter(Boolean);
 
         try {
+            const startDate = slotInfo?.start || new Date();
+            const endDate = slotInfo?.end || slotInfo?.start || new Date();
             await criarAgendamento(
                 {
                     maquinaId: selMachine,
                     descricao: descAgendamento,
-                    date: (slotInfo?.start || new Date()).toISOString(),
+                    start: startDate.toISOString(),
+                    end: endDate.toISOString(),
                     itensChecklist: itens,
                 },
                 { email: user?.email, role: user?.role }
@@ -318,7 +316,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
 
     const handleDeleteAgendamento = async () => {
         if (!selectedEvent) return;
-        if (!window.confirm(t('calendarioGeral.confirm.delete'))) return;
+        setShowDeleteConfirm(false);
 
         try {
             await excluirAgendamento(selectedEvent.id, { email: user?.email, role: user?.role });
@@ -369,29 +367,37 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
         hoje.setHours(0, 0, 0, 0);
         const inicio = event.start;
         const s = event.resource.status;
-        let bg = '#FFFFFF';
+        let bg = '#e2e8f0'; // default cinza claro
+        let borderColor = 'transparent';
+
         if (s === 'iniciado') {
-            bg = '#006400';
+            bg = '#059669'; // verde esmeralda
+            borderColor = '#047857';
         } else if (s === 'agendado' && inicio < hoje) {
-            bg = '#8B0000';
+            bg = '#ef4444'; // vermelho - atrasado
+            borderColor = '#dc2626';
         } else if (
             s === 'agendado' &&
             inicio.toDateString() === hoje.toDateString()
         ) {
-            bg = '#FFA500';
+            bg = '#f59e0b'; // laranja - hoje
+            borderColor = '#d97706';
         } else if (s === 'agendado') {
-            bg = '#90EE90';
-        } else if (event.resource.atrasado) {
-            bg = '#8B008B';
+            bg = '#22c55e'; // verde claro - futuro
+            borderColor = '#16a34a';
         } else if (s === 'concluido') {
-            bg = '#00008B';
+            bg = '#3b82f6'; // azul
+            borderColor = '#2563eb';
         }
+
         return {
             style: {
                 backgroundColor: bg,
                 color: getContrastColor(bg),
-                borderRadius: 4,
-                border: '1px solid #aaa'
+                borderRadius: 6,
+                border: `2px solid ${borderColor}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                fontWeight: 500
             }
         };
     };
@@ -404,6 +410,30 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
             />
 
             <div className={styles.calendarContainer}>
+                {/* Legenda de cores */}
+                <div className={styles.legendContainer}>
+                    <div className={styles.legendItem}>
+                        <div className={`${styles.legendColorBox} ${styles.legendAgendado}`} />
+                        <span>{t('calendarioGeral.legend.scheduled')}</span>
+                    </div>
+                    <div className={styles.legendItem}>
+                        <div className={`${styles.legendColorBox} ${styles.legendHoje}`} />
+                        <span>{t('calendarioGeral.legend.today')}</span>
+                    </div>
+                    <div className={styles.legendItem}>
+                        <div className={`${styles.legendColorBox} ${styles.legendAtrasado}`} />
+                        <span>{t('calendarioGeral.legend.overdue')}</span>
+                    </div>
+                    <div className={styles.legendItem}>
+                        <div className={`${styles.legendColorBox} ${styles.legendIniciado}`} />
+                        <span>{t('calendarioGeral.legend.inProgress')}</span>
+                    </div>
+                    <div className={styles.legendItem}>
+                        <div className={`${styles.legendColorBox} ${styles.legendConcluido}`} />
+                        <span>{t('calendarioGeral.legend.completed')}</span>
+                    </div>
+                </div>
+
                 <div className={styles.calendarWrapper}>
                     {loading ? (
                         <>
@@ -425,30 +455,40 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                             <Skeleton variant="rectangular" width="100%" height={500} sx={{ borderRadius: 2 }} />
                         </>
                     ) : (
-                        <DnDCalendar
-                            localizer={localizer}
-                            events={events}
-                            startAccessor="start"
-                            endAccessor="end"
-                            style={{ height: '100%' }}
-                            date={currentDate}
-                            view={view}
-                            onNavigate={(date) => setCurrentDate(date)}
-                            onView={(newView) => setView(newView)}
-                            onSelectEvent={(event) => setSelectedEvent(event)}
-                            onSelectSlot={perm.canEdit('calendario') ? handleSelectSlot : undefined}
-                            selectable={perm.canEdit('calendario')}
-                            onEventDrop={perm.canEdit('calendario') ? handleEventDrop : undefined}
-                            eventPropGetter={eventPropGetter}
-                            components={{
-                                event: ({ event }: { event: CalendarEvent }) => (
-                                    <div className={styles.eventoNoCalendario}>
-                                        {toPlainText(event.title)}
-                                    </div>
-                                ),
-                                agenda: { time: () => null }
+                        <CalendarGrid
+                            events={events.map(ev => {
+                                const hoje = new Date();
+                                hoje.setHours(0, 0, 0, 0);
+                                return {
+                                    id: ev.id,
+                                    title: toPlainText(ev.title),
+                                    start: ev.start,
+                                    end: ev.end,
+                                    status: ev.resource.status as 'agendado' | 'iniciado' | 'concluido',
+                                    isOverdue: ev.resource.status === 'agendado' && ev.start < hoje,
+                                    isToday: ev.start.toDateString() === hoje.toDateString(),
+                                };
+                            })}
+                            onDayClick={(date: Date) => {
+                                if (perm.canEdit('calendario')) {
+                                    handleSelectSlot({ start: date, end: date });
+                                }
                             }}
-                            className={styles.calendarRoot}
+                            onEventClick={(event: GridCalendarEvent) => {
+                                const found = events.find(e => e.id === event.id);
+                                if (found) setSelectedEvent(found);
+                            }}
+                            onEventDrop={(eventId: string, newDate: Date) => {
+                                const found = events.find(e => e.id === eventId);
+                                if (found && perm.canEdit('calendario')) {
+                                    handleEventDrop({
+                                        event: found,
+                                        start: newDate,
+                                        end: newDate,
+                                    });
+                                }
+                            }}
+                            canEdit={perm.canEdit('calendario')}
                         />
                     )}
                 </div>
@@ -519,7 +559,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                         {perm.canEdit('calendario') && (
                             <button
                                 className={`${styles.modalButton} ${styles.dangerButton}`}
-                                onClick={handleDeleteAgendamento}
+                                onClick={() => setShowDeleteConfirm(true)}
                             >
                                 {t('calendarioGeral.actions.delete')}
                             </button>
@@ -599,6 +639,36 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                         {t('calendarioGeral.new.save')}
                     </button>
                 </form>
+            </Modal>
+
+            {/* Modal de confirmação de exclusão */}
+            <Modal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                title={t('calendarioGeral.confirm.title')}
+            >
+                <div className={styles.confirmModal}>
+                    <p className={styles.confirmText}>
+                        {t('calendarioGeral.confirm.message')}
+                    </p>
+                    <p className={styles.confirmEventName}>
+                        {toPlainText(selectedEvent?.title)}
+                    </p>
+                    <div className={styles.confirmButtons}>
+                        <button
+                            className={styles.cancelButton}
+                            onClick={() => setShowDeleteConfirm(false)}
+                        >
+                            {t('calendarioGeral.confirm.cancel')}
+                        </button>
+                        <button
+                            className={`${styles.modalButton} ${styles.dangerButton}`}
+                            onClick={handleDeleteAgendamento}
+                        >
+                            {t('calendarioGeral.confirm.confirm')}
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </>
     );

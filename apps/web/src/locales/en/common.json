@@ -404,12 +404,11 @@
     "subtitle": "View and manage scheduled preventive and predictive maintenance.",
     "loading": "Loading schedules...",
     "legend": {
-      "overdue": "Overdue",
+      "scheduled": "Scheduled",
       "today": "Today",
-      "future": "Future",
-      "started": "Started",
-      "finished": "Finished",
-      "finishedLate": "Finished Late"
+      "overdue": "Overdue",
+      "inProgress": "In Progress",
+      "completed": "Completed"
     },
     "details": {
       "machine": "Machine:",

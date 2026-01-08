@@ -404,12 +404,11 @@
     "subtitle": "Visualize e gerencie as manutenções preventivas e preditivas agendadas.",
     "loading": "Carregando agendamentos...",
     "legend": {
-      "overdue": "Vencido",
+      "scheduled": "Agendado",
       "today": "Hoje",
-      "future": "Futuro",
-      "started": "Iniciado",
-      "finished": "Concluido",
-      "finishedLate": "Concluido com Atraso"
+      "overdue": "Atrasado",
+      "inProgress": "Em Andamento",
+      "completed": "Concluído"
     },
     "details": {
       "machine": "Máquina:",
@@ -425,6 +424,10 @@
       "delete": "Excluir Agendamento"
     },
     "confirm": {
+      "title": "Confirmar Exclusão",
+      "message": "Tem certeza que deseja excluir este agendamento?",
+      "cancel": "Cancelar",
+      "confirm": "Excluir",
       "startNow": "Iniciar manutenção \"{{title}}\" agora?",
       "delete": "Tem certeza que deseja excluir o agendamento \"{{title}}\"?"
     },

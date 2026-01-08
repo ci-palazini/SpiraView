@@ -368,11 +368,11 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
         `INSERT INTO chamados
            (maquina_id, tipo, status, descricao,
             criado_por_id, manutentor_id, responsavel_atual_id,
-            checklist, tipo_checklist)
+            checklist, tipo_checklist, agendamento_id)
          VALUES
            ($1, 'preventiva', $2, $3,
             $4, $5, $6,
-            $7::jsonb, ARRAY['preventiva']::text[])
+            $7::jsonb, ARRAY['preventiva']::text[], $8)
          RETURNING id`,
         [
           agendamento.maquina_id,
@@ -382,6 +382,7 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
           manutentorId,
           manutentorId,
           JSON.stringify(checklist),
+          id, // agendamento_id
         ],
       );
 
