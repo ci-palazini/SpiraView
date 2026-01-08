@@ -199,7 +199,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     };
 
-    const previewRows = rows.slice(0, 10);
+    const previewRows = rows.slice(0, 3);
     const columns = previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
 
     return (
