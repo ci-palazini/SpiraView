@@ -6,12 +6,87 @@ import { sseBroadcast } from '../../utils/sse';
 export const uploadRouter: Router = Router();
 
 /**
+ * Garante que a tabela de histórico de uploads existe
+ * Tabela leve para auditoria - mantém apenas metadados, não os lançamentos
+ */
+async function ensureHistoricoTable(): Promise<void> {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS producao_upload_historico (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            upload_id UUID,
+            nome_arquivo TEXT,
+            data_ref DATE,
+            linhas_total INTEGER,
+            horas_total NUMERIC(10,2),
+            upload_por_id UUID,
+            upload_por_nome TEXT,
+            criado_em TIMESTAMPTZ,
+            arquivado_em TIMESTAMPTZ DEFAULT NOW(),
+            motivo TEXT DEFAULT 'cleanup_48h'
+        )
+    `);
+}
+
+// Flag para evitar criar tabela múltiplas vezes
+let historicoTableChecked = false;
+
+/**
  * Limpa uploads inativos com mais de 48h e seus lançamentos associados
+ * ANTES de deletar, salva os metadados na tabela de histórico
  * Executa silenciosamente após cada novo upload
  */
 async function cleanupOldInactiveUploads(): Promise<number> {
     try {
-        // Primeiro, deletar lançamentos de uploads inativos antigos
+        // Garantir que tabela de histórico existe
+        if (!historicoTableChecked) {
+            await ensureHistoricoTable();
+            historicoTableChecked = true;
+        }
+
+        // 1. Buscar uploads inativos antigos para arquivar
+        const { rows: uploadsParaArquivar } = await pool.query(
+            `SELECT id, nome_arquivo, data_ref, linhas_total, horas_total, 
+                    upload_por_id, upload_por_nome, criado_em
+             FROM producao_uploads 
+             WHERE ativo = FALSE 
+             AND criado_em < NOW() - INTERVAL '48 hours'`
+        );
+
+        // 2. Arquivar metadados na tabela de histórico
+        if (uploadsParaArquivar.length > 0) {
+            const ids: string[] = [];
+            const nomes: string[] = [];
+            const datas: string[] = [];
+            const linhas: number[] = [];
+            const horas: number[] = [];
+            const porIds: (string | null)[] = [];
+            const porNomes: (string | null)[] = [];
+            const criadosEm: string[] = [];
+
+            for (const u of uploadsParaArquivar) {
+                ids.push(u.id);
+                nomes.push(u.nome_arquivo || 'upload.xlsx');
+                datas.push(u.data_ref);
+                linhas.push(u.linhas_total || 0);
+                horas.push(Number(u.horas_total) || 0);
+                porIds.push(u.upload_por_id);
+                porNomes.push(u.upload_por_nome);
+                criadosEm.push(u.criado_em);
+            }
+
+            await pool.query(
+                `INSERT INTO producao_upload_historico 
+                 (upload_id, nome_arquivo, data_ref, linhas_total, horas_total, 
+                  upload_por_id, upload_por_nome, criado_em)
+                 SELECT * FROM UNNEST(
+                     $1::uuid[], $2::text[], $3::date[], $4::integer[], $5::numeric[], 
+                     $6::uuid[], $7::text[], $8::timestamptz[]
+                 )`,
+                [ids, nomes, datas, linhas, horas, porIds, porNomes, criadosEm]
+            );
+        }
+
+        // 3. Deletar lançamentos de uploads inativos antigos
         await pool.query(
             `DELETE FROM producao_lancamentos 
              WHERE upload_id IN (
@@ -21,7 +96,7 @@ async function cleanupOldInactiveUploads(): Promise<number> {
              )`
         );
 
-        // Depois, deletar os uploads inativos antigos
+        // 4. Deletar os uploads inativos antigos
         const result = await pool.query(
             `DELETE FROM producao_uploads 
              WHERE ativo = FALSE 
@@ -31,7 +106,7 @@ async function cleanupOldInactiveUploads(): Promise<number> {
 
         const count = result.rowCount || 0;
         if (count > 0) {
-            console.log(`[Cleanup] Removidos ${count} uploads inativos antigos.`);
+            console.log(`[Cleanup] Arquivados e removidos ${count} uploads inativos antigos.`);
         }
         return count;
     } catch (e) {
@@ -759,6 +834,56 @@ uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
         sseBroadcast({ topic: 'producao_uploads', action: 'activated', id });
         res.json({ ok: true });
     } catch (e: any) {
+        console.error(e);
+        res.status(500).json({ error: String(e) });
+    }
+});
+
+// GET /producao/uploads/historico - Histórico de uploads arquivados (audit trail)
+uploadRouter.get('/producao/uploads/historico', async (req, res) => {
+    try {
+        const dataRef = req.query.dataRef as string | undefined;
+        const limite = Math.min(parseInt(req.query.limite as string) || 100, 500);
+
+        const params: any[] = [];
+        let where = '1=1';
+
+        if (dataRef) {
+            params.push(dataRef);
+            where += ` AND data_ref = $${params.length}`;
+        }
+
+        params.push(limite);
+
+        const { rows } = await pool.query(
+            `SELECT
+                id,
+                upload_id AS "uploadId",
+                nome_arquivo AS "nomeArquivo",
+                data_ref AS "dataRef",
+                linhas_total AS "linhasTotal",
+                horas_total AS "horasTotal",
+                upload_por_nome AS "uploadPorNome",
+                criado_em AS "criadoEm",
+                arquivado_em AS "arquivadoEm",
+                motivo
+            FROM producao_upload_historico
+            WHERE ${where}
+            ORDER BY arquivado_em DESC
+            LIMIT $${params.length}`,
+            params
+        );
+
+        res.json({
+            items: rows,
+            total: rows.length,
+            nota: 'Histórico de uploads arquivados após 48h de inatividade'
+        });
+    } catch (e: any) {
+        // Tabela pode não existir ainda
+        if (e.code === '42P01') {
+            return res.json({ items: [], total: 0, nota: 'Tabela de histórico ainda não criada' });
+        }
         console.error(e);
         res.status(500).json({ error: String(e) });
     }
