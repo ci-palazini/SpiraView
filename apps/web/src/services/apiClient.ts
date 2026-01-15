@@ -1288,6 +1288,34 @@ export async function listarUploadsProducao(params: { dataRef?: string } = {}): 
     return data.items || [];
 }
 
+// Histórico de uploads arquivados (auditoria)
+export interface ProducaoUploadHistorico {
+    id: string;
+    uploadId: string;
+    nomeArquivo: string;
+    dataRef: string;
+    linhasTotal: number;
+    horasTotal: number;
+    uploadPorNome: string | null;
+    criadoEm: string;
+    arquivadoEm: string;
+    motivo: string;
+}
+
+export async function listarHistoricoUploadsProducao(params: { dataRef?: string; limite?: number } = {}): Promise<{
+    items: ProducaoUploadHistorico[];
+    total: number;
+    nota: string;
+}> {
+    const qs = new URLSearchParams();
+    if (params.dataRef) qs.set('dataRef', params.dataRef);
+    if (params.limite) qs.set('limite', String(params.limite));
+    const r = await fetch(`${BASE}/producao/uploads/historico?${qs}`);
+    const data = await r.json().catch(() => ({ items: [], total: 0, nota: '' }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar histórico');
+    return data;
+}
+
 export interface UltimoUpload {
     id: string;
     dataRef: string;

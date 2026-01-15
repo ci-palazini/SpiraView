@@ -3,10 +3,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
-import { FiUploadCloud, FiFileText, FiX, FiCheck, FiAlertTriangle, FiClock } from 'react-icons/fi';
+import { FiUploadCloud, FiFileText, FiX, FiCheck, FiAlertTriangle, FiClock, FiArchive, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 import PageHeader from '../../../shared/components/PageHeader';
-import { uploadLancamentosProducao, listarUploadsProducao, type ProducaoUpload } from '../../../services/apiClient';
+import { uploadLancamentosProducao, listarUploadsProducao, listarHistoricoUploadsProducao, type ProducaoUpload, type ProducaoUploadHistorico } from '../../../services/apiClient';
 import styles from './ProducaoUploadPage.module.css';
 
 // Helpers
@@ -56,6 +56,11 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
     const [loadingUploads, setLoadingUploads] = useState(true);
     const [dataFiltro, setDataFiltro] = useState<string>(() => toISO(new Date()));
 
+    // Auditoria - histórico arquivado
+    const [historicoAuditoria, setHistoricoAuditoria] = useState<ProducaoUploadHistorico[]>([]);
+    const [loadingAuditoria, setLoadingAuditoria] = useState(false);
+    const [showAuditoria, setShowAuditoria] = useState(false);
+
     const fetchUploads = useCallback(async (dataRef?: string) => {
         try {
             setLoadingUploads(true);
@@ -68,9 +73,27 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
         }
     }, []);
 
+    const fetchAuditoria = useCallback(async () => {
+        try {
+            setLoadingAuditoria(true);
+            const data = await listarHistoricoUploadsProducao({ limite: 100 });
+            setHistoricoAuditoria(data.items || []);
+        } catch (err) {
+            console.error('Erro ao buscar auditoria:', err);
+        } finally {
+            setLoadingAuditoria(false);
+        }
+    }, []);
+
     useEffect(() => {
         fetchUploads(dataFiltro);
     }, [fetchUploads, dataFiltro]);
+
+    useEffect(() => {
+        if (showAuditoria && historicoAuditoria.length === 0) {
+            fetchAuditoria();
+        }
+    }, [showAuditoria, historicoAuditoria.length, fetchAuditoria]);
 
     const processFile = useCallback((f: File) => {
         setFile(f);
@@ -385,6 +408,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                     <th>Data Ref.</th>
                                     <th>Linhas</th>
                                     <th>Horas</th>
+                                    <th>Enviado por</th>
                                     <th>Enviado em</th>
                                     <th>Status</th>
                                 </tr>
@@ -402,6 +426,9 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                         <td>{u.dataRef}</td>
                                         <td>{u.linhasSucesso}/{u.linhasTotal}</td>
                                         <td>{Number(u.horasTotal).toFixed(1)}h</td>
+                                        <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {u.uploadPorNome || '—'}
+                                        </td>
                                         <td>{new Date(u.criadoEm).toLocaleString('pt-BR')}</td>
                                         <td>
                                             {u.ativo ? (
@@ -415,6 +442,75 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                             </tbody>
                         </table>
                     </div>
+                )}
+            </div>
+
+            {/* Auditoria - Histórico de Uploads Arquivados */}
+            <div className={styles.container} style={{ marginTop: 0 }}>
+                <div
+                    className={styles.historyHeader}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setShowAuditoria(!showAuditoria)}
+                >
+                    <div className={styles.historyTitle}>
+                        <FiArchive />
+                        <span>Auditoria de Envios</span>
+                        <span className={styles.badgeOutline}>
+                            Histórico arquivado (após 48h inativo)
+                        </span>
+                    </div>
+                    {showAuditoria ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
+                </div>
+
+                {showAuditoria && (
+                    <>
+                        {loadingAuditoria ? (
+                            <p style={{ color: '#64748b', padding: '1rem 0' }}>Carregando histórico...</p>
+                        ) : historicoAuditoria.length === 0 ? (
+                            <p style={{ color: '#64748b', padding: '1rem 0' }}>
+                                Nenhum registro de auditoria encontrado. Uploads são arquivados após 48h de inatividade.
+                            </p>
+                        ) : (
+                            <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
+                                <table className={styles.previewTable}>
+                                    <thead>
+                                        <tr>
+                                            <th>Arquivo</th>
+                                            <th>Data Ref.</th>
+                                            <th>Linhas</th>
+                                            <th>Horas</th>
+                                            <th>Enviado por</th>
+                                            <th>Enviado em</th>
+                                            <th>Arquivado em</th>
+                                            <th>Motivo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {historicoAuditoria.map((h) => (
+                                            <tr key={h.id}>
+                                                <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {h.nomeArquivo}
+                                                </td>
+                                                <td>{h.dataRef}</td>
+                                                <td>{h.linhasTotal}</td>
+                                                <td>{Number(h.horasTotal).toFixed(1)}h</td>
+                                                <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {h.uploadPorNome || '—'}
+                                                </td>
+                                                <td>{new Date(h.criadoEm).toLocaleString('pt-BR')}</td>
+                                                <td>{new Date(h.arquivadoEm).toLocaleString('pt-BR')}</td>
+                                                <td>
+                                                    <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>
+                                                        {h.motivo === 'cleanup_48h' ? 'Inativo 48h+' : h.motivo}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </>
