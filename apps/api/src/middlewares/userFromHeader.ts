@@ -12,6 +12,23 @@ type DbUserRow = {
 
 export async function userFromHeader(req: Request, res: Response, next: NextFunction) {
   try {
+    // Bearer token authentication (for automation scripts)
+    const authHeader = req.header("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.slice(7);
+      if (env.automation.apiToken && token === env.automation.apiToken) {
+        req.user = {
+          id: "automation",
+          email: "automation@system.local",
+          nome: "Automação",
+          name: "Automação",
+          role: "gestor",
+        };
+        return next();
+      }
+      // Invalid token - continue to check other auth methods
+    }
+
     const emailHdr = req.header("x-user-email");
     const nomeHdr =
       req.header("x-user-nome") ??

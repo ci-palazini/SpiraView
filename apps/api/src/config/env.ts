@@ -27,6 +27,7 @@ const rawEnvSchema = z
     PGPOOL_MAX: z.coerce.number().int().positive().optional(),
     PGPOOL_IDLE_TIMEOUT: z.coerce.number().int().nonnegative().optional(),
     AUTH_STRICT: z.string().optional(),
+    AUTOMATION_API_TOKEN: z.string().optional(),
   })
   .transform(v => ({ ...v, PGPOOL_IDLE_TIMEOUT: v.PGPOOL_IDLE_TIMEOUT ?? 30_000 }));
 
@@ -43,6 +44,7 @@ export type Env = {
     idleTimeoutMillis: number;
   };
   auth: { strict: boolean };
+  automation: { apiToken: string | undefined };
 };
 
 function ensureDotenvLoaded(): void {
@@ -133,6 +135,7 @@ function toEnv(raw: RawEnv): Env {
       idleTimeoutMillis: raw.PGPOOL_IDLE_TIMEOUT,
     },
     auth: { strict: parseBoolean(raw.AUTH_STRICT, true) },
+    automation: { apiToken: raw.AUTOMATION_API_TOKEN },
   };
 
   return env;
