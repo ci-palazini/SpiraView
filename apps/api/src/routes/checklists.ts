@@ -150,7 +150,7 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
         maquina_nome,
         respostas,
         turno,
-        created_at
+        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as created_at
       FROM checklist_submissoes
       WHERE operador_email = $1
         AND created_at >= ($2::date AT TIME ZONE 'America/Sao_Paulo')
@@ -228,7 +228,7 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
         COALESCE(a.t2_ok, false) as t2_ok,
         COALESCE(a.t1_nomes, '') as t1_nomes,
         COALESCE(a.t2_nomes, '') as t2_nomes,
-        to_char(u.last_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as last_sub_at
+        to_char(u.last_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as last_sub_at
       FROM maquinas m
       LEFT JOIN agregado_dia a ON a.maquina_id = m.id
       LEFT JOIN ultima_sub u ON u.maquina_id = m.id
