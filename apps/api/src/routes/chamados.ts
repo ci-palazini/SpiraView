@@ -11,7 +11,7 @@ import {
 } from "@manutencao/shared";
 
 import multer from "multer";
-import { uploadChamadoFotoToStorage, getSignedUrlFromStorage } from "../utils/supabaseStorage";
+import { storageProvider } from "../utils/storage";
 
 export const chamadosRouter: Router = Router();
 
@@ -290,6 +290,12 @@ chamadosRouter.delete(
         return res.status(404).json({ error: "CHAMADO_NAO_ENCONTRADO" });
       }
 
+      // Busca fotos para exclusão física no storage (fire-and-forget)
+      const { rows: fotosParaDeletar } = await pool.query(
+        `SELECT storage_path FROM public.chamado_fotos WHERE chamado_id = $1`,
+        [chamadoId]
+      );
+
       // Exclui registros relacionados primeiro (fotos, observações)
       await pool.query(
         `DELETE FROM public.chamado_fotos WHERE chamado_id = $1`,
@@ -309,6 +315,23 @@ chamadosRouter.delete(
       try {
         sseBroadcast?.({ topic: "chamados", action: "deleted", id: chamadoId });
       } catch { }
+
+
+      // Limpeza assíncrona de arquivos
+      if (fotosParaDeletar.length > 0) {
+        Promise.allSettled(
+          fotosParaDeletar.map((f) => storageProvider.deleteFile(f.storage_path))
+        ).then((results) => {
+          results.forEach((res, idx) => {
+            if (res.status === "rejected") {
+              console.error(
+                `[Storage] Failed to delete file: ${fotosParaDeletar[idx].storage_path}`,
+                res.reason
+              );
+            }
+          });
+        });
+      }
 
       return res.json({ ok: true, message: "Chamado excluído com sucesso." });
     } catch (e: any) {
@@ -351,7 +374,7 @@ chamadosRouter.get(
         rows.map(async (row) => {
           let url: string | null = null;
           try {
-            url = await getSignedUrlFromStorage(row.storage_path);
+            url = await storageProvider.getSignedUrl(row.storage_path);
           } catch (e) {
             console.error("[chamados/:id/fotos] erro ao gerar signed URL", e);
           }
@@ -764,10 +787,17 @@ chamadosRouter.post(
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });
       }
 
-      // upload no Supabase Storage
+      // upload no Storage via Provider
       let storagePath: string;
       try {
-        storagePath = await uploadChamadoFotoToStorage(chamadoId, file);
+        // Gera o nome do arquivo aqui (controller) para não acoplar regra de negócio no provider
+        const extMatch = /\.([a-zA-Z0-9]+)$/.exec(file.originalname || "");
+        const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
+        const fileName = `${chamadoId}/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 10)}${ext}`;
+
+        storagePath = await storageProvider.uploadFile(fileName, file.buffer, file.mimetype);
       } catch (e) {
         console.error("[chamados/:id/fotos] erro upload storage", e);
         return res.status(500).json({ error: "UPLOAD_FAILED" });
@@ -793,7 +823,7 @@ chamadosRouter.post(
 
       let signedUrl: string | null = null;
       try {
-        signedUrl = await getSignedUrlFromStorage(foto.storage_path);
+        signedUrl = await storageProvider.getSignedUrl(foto.storage_path);
       } catch (e) {
         console.error("[chamados/:id/fotos] erro signed URL após insert", e);
       }
