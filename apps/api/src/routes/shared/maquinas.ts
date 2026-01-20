@@ -296,7 +296,8 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
         SELECT
           data_ref AS dia,
           COALESCE(NULLIF(turno,''),'') AS turno_raw,
-          COALESCE(operador_nome,'') AS operador_nome
+          COALESCE(operador_nome,'') AS operador_nome,
+          operador_email
         FROM checklist_submissoes
         WHERE maquina_id = $1
       ),
@@ -309,7 +310,8 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
             WHEN lower(turno_raw) IN ('2','2º','2o','2°','segundo','turno2')   THEN '2º'
             ELSE turno_raw
           END AS turno_norm,
-          operador_nome
+          operador_nome,
+          operador_email
         FROM base
         WHERE dia IS NOT NULL
       )
@@ -317,10 +319,16 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
         to_char(dia, 'YYYY-MM-DD') AS dia,
         (COUNT(*) FILTER (WHERE turno_norm = '1º') > 0)::bool AS turno1_ok,
         (COUNT(*) FILTER (WHERE turno_norm = '2º') > 0)::bool AS turno2_ok,
-        COALESCE(string_agg(DISTINCT operador_nome, ', ')
-                 FILTER (WHERE turno_norm = '1º'), '') AS turno1_operadores,
-        COALESCE(string_agg(DISTINCT operador_nome, ', ')
-                 FILTER (WHERE turno_norm = '2º'), '') AS turno2_operadores
+        COALESCE(
+          jsonb_agg(DISTINCT jsonb_build_object('nome', operador_nome, 'email', operador_email))
+          FILTER (WHERE turno_norm = '1º'),
+          '[]'::jsonb
+        ) AS turno1_detalhes,
+        COALESCE(
+          jsonb_agg(DISTINCT jsonb_build_object('nome', operador_nome, 'email', operador_email))
+          FILTER (WHERE turno_norm = '2º'),
+          '[]'::jsonb
+        ) AS turno2_detalhes
       FROM norm
       GROUP BY 1
       ORDER BY 1 DESC

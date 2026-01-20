@@ -39,12 +39,17 @@ interface Maquina {
     checklistHistorico?: Submissao[];
 }
 
+interface OperatorDetail {
+    nome: string;
+    email?: string;
+}
+
 interface HistoricoDia {
     dia: string;
     turno1_ok?: boolean;
     turno2_ok?: boolean;
-    turno1_operadores?: string;
-    turno2_operadores?: string;
+    turno1_detalhes?: OperatorDetail[];
+    turno2_detalhes?: OperatorDetail[];
 }
 
 interface Submissao {
@@ -244,15 +249,19 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
 
     // ========= Detalhe por operador (modal) =========
     const deriveTurno = (turno: string | undefined, criadoEmStr: string | undefined): string => {
-        const turnoStr = String(turno || '').toLowerCase();
-        if (turnoStr === 'turno1' || turnoStr === '1' || turnoStr === '1Âº') return 'turno1';
-        if (turnoStr === 'turno2' || turnoStr === '2' || turnoStr === '2Âº') return 'turno2';
-        // sem turno explÃ­cito: deduz pelo horÃ¡rio
+        const t = String(turno || '').toLowerCase().trim();
+        // Remove caracteres não alfanuméricos exceto º e °
+        const clean = t.replace(/[^a-z0-9º°]/g, '');
+
+        if (['1', '1º', '1°', '1o', 'turno1', 'primeiro'].some(x => clean.includes(x))) return 'turno1';
+        if (['2', '2º', '2°', '2o', 'turno2', 'segundo'].some(x => clean.includes(x))) return 'turno2';
+
+        // sem turno explícito: deduz pelo horário
         const hh = parseInt((criadoEmStr || '').slice(11, 13), 10);
         return !isNaN(hh) && hh >= 14 ? 'turno2' : 'turno1';
     };
 
-    const abrirDetalheOperador = async (diaISO: string, turno: string, operadorNome: string) => {
+    const abrirDetalheOperador = async (diaISO: string, turno: string, operadorNome: string, operadorEmail?: string) => {
         try {
             // 1) Fallback local: procurar nas submissÃµes recentes que jÃ¡ vieram do back
             const locais = (submissoesRecentes || []).filter((s) => {
@@ -269,32 +278,35 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
 
             if (locais.length > 0) {
                 setModalTitulo(
-                    `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} â€¢ ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} â€¢ ${operadorNome}`
+                    `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} • ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} • ${operadorNome}`
                 );
                 setModalSubmissoes(locais);
                 setModalOpen(true);
                 return;
             }
 
-            // 2) Se nÃ£o encontrou localmente, tenta via e-mail
-            const email = (submissoesRecentes || []).find((s) => {
-                const sDia = String(s.criado_em || '').slice(0, 10);
-                const sTurno = deriveTurno(s.turno, s.criado_em);
-                return (
-                    sDia === diaISO &&
-                    sTurno === turno &&
-                    String(s.operador_nome || '').trim() === String(operadorNome || '').trim() &&
-                    s.operador_email
-                );
-            })?.operador_email;
+            // 2) Se não encontrou localmente, tenta via e-mail passado ou busca na lista recente
+            let email = operadorEmail;
 
-            // 3) Buscar via API - usa email se disponível, senão usa nome
-            const subms = await listarSubmissoesDiarias({
-                operadorEmail: email,
-                operadorNome: email ? undefined : operadorNome.trim(),
-                date: diaISO,
-                maquinaId: id
-            });
+            if (!email) {
+                email = (submissoesRecentes || []).find((s) => {
+                    const sDia = String(s.criado_em || '').slice(0, 10);
+                    const sTurno = deriveTurno(s.turno, s.criado_em);
+                    return (
+                        sDia === diaISO &&
+                        sTurno === turno &&
+                        String(s.operador_nome || '').trim() === String(operadorNome || '').trim() &&
+                        s.operador_email
+                    );
+                })?.operador_email;
+            }
+
+            if (!email) {
+                toast.error(t('maquinaDetalhe.checklist.detailNoEmail', 'Não foi possível localizar o e-mail deste operador para esse dia.'));
+                return;
+            }
+
+            const subms = await listarSubmissoesDiarias({ operadorEmail: email, date: diaISO });
             const items: Submissao[] = Array.isArray(subms) ? subms : (Array.isArray((subms as { items?: Submissao[] })?.items) ? (subms as { items: Submissao[] }).items : []);
             const filtradas = items.filter((s) => {
                 if (String(s.maquina_id) !== String(id)) return false;
@@ -447,8 +459,9 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
 
                                     {historicoDiario.map((row) => {
                                         const diaISO = row.dia;
-                                        const nomesT1 = splitNomes(row.turno1_operadores);
-                                        const nomesT2 = splitNomes(row.turno2_operadores);
+                                        // Agora usamos os arrays de detalhes (nome/email) vindos do JSONB
+                                        const t1Ops = row.turno1_detalhes || [];
+                                        const t2Ops = row.turno2_detalhes || [];
                                         const t1ok = !!row.turno1_ok;
                                         const t2ok = !!row.turno2_ok;
 
@@ -459,18 +472,18 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                                 <div className={`${styles.turnStatus} ${t1ok ? styles.completed : styles.pending}`}>
                                                     {t1ok ? <FiCheckCircle /> : <FiXCircle />}
                                                     <span style={{ marginLeft: 8 }}>
-                                                        {nomesT1.length ? nomesT1.map((nome) => (
+                                                        {t1Ops.length ? t1Ops.map((op, idx) => (
                                                             <button
-                                                                key={`t1-${diaISO}-${nome}`}
-                                                                onClick={() => abrirDetalheOperador(diaISO, 'turno1', nome)}
+                                                                key={`t1-${diaISO}-${idx}`}
+                                                                onClick={() => abrirDetalheOperador(diaISO, 'turno1', op.nome, op.email)}
                                                                 style={{
                                                                     marginRight: 6, marginTop: 4,
                                                                     padding: '2px 8px', borderRadius: 999,
                                                                     border: '1px solid #d0d7de', background: '#f6f8fa', cursor: 'pointer'
                                                                 }}
-                                                                title={t('maquinaDetalhe.checklist.viewSubmission', 'Ver submissÃ£o')}
+                                                                title={t('maquinaDetalhe.checklist.viewSubmission', 'Ver submissão')}
                                                             >
-                                                                {nome}
+                                                                {op.nome}
                                                             </button>
                                                         )) : t('maquinaDetalhe.checklist.pending')}
                                                     </span>
@@ -479,18 +492,18 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                                                 <div className={`${styles.turnStatus} ${t2ok ? styles.completed : styles.pending}`}>
                                                     {t2ok ? <FiCheckCircle /> : <FiXCircle />}
                                                     <span style={{ marginLeft: 8 }}>
-                                                        {nomesT2.length ? nomesT2.map((nome) => (
+                                                        {t2Ops.length ? t2Ops.map((op, idx) => (
                                                             <button
-                                                                key={`t2-${diaISO}-${nome}`}
-                                                                onClick={() => abrirDetalheOperador(diaISO, 'turno2', nome)}
+                                                                key={`t2-${diaISO}-${idx}`}
+                                                                onClick={() => abrirDetalheOperador(diaISO, 'turno2', op.nome, op.email)}
                                                                 style={{
                                                                     marginRight: 6, marginTop: 4,
                                                                     padding: '2px 8px', borderRadius: 999,
                                                                     border: '1px solid #d0d7de', background: '#f6f8fa', cursor: 'pointer'
                                                                 }}
-                                                                title={t('maquinaDetalhe.checklist.viewSubmission', 'Ver submissÃ£o')}
+                                                                title={t('maquinaDetalhe.checklist.viewSubmission', 'Ver submissão')}
                                                             >
-                                                                {nome}
+                                                                {op.nome}
                                                             </button>
                                                         )) : t('maquinaDetalhe.checklist.pending')}
                                                     </span>

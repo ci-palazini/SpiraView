@@ -101,9 +101,27 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     );
     const operadorNome = user?.nome || '';
 
-    // PASSO 1 - seleÃ§Ã£o
+    const getTurnoPadrao = (): string => {
+        const h = new Date().getHours();
+        const m = new Date().getMinutes();
+        // 2º Turno: começa às 15:18 e vai até 00:44 do dia seguinte
+        // Mas aqui simplificamos a sugestão inicial
+        const agora = h * 60 + m;
+        const inicioTurno2 = 15 * 60 + 18; // 15:18
+        const fimTurno2 = 24 * 60 + 44;    // 00:44 (considerando extensão do dia)
+
+        // Se for de madrugada (antes das 05:00), provavelmente ainda é 2º turno estendido
+        if (h < 5) return 'turno2';
+
+        // Se passou das 15:18, sugere 2º turno
+        if (agora >= inicioTurno2) return 'turno2';
+
+        return 'turno1';
+    };
+
+    // PASSO 1 - seleção
     const [todasMaquinas, setTodasMaquinas] = useState<Maquina[]>([]);
-    const [turno, setTurno] = useState('turno1');
+    const [turno, setTurno] = useState(() => getTurnoPadrao());
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
     const [enviadasHoje, setEnviadasHoje] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);

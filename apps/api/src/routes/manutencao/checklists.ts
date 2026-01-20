@@ -133,16 +133,11 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
     const operadorEmail = String(req.query.operadorEmail || '')
       .trim()
       .toLowerCase();           // normalize no parâmetro
-    const operadorNome = String(req.query.operadorNome || '').trim();
     const dateISO = String(req.query.date || '').slice(0, 10); // 'YYYY-MM-DD'
     const maquinaId = req.query.maquinaId ? String(req.query.maquinaId).trim() : null;
 
-    if (!dateISO) {
-      return res.status(400).json({ error: 'Informe date (YYYY-MM-DD).' });
-    }
-
-    if (!operadorEmail && !operadorNome) {
-      return res.status(400).json({ error: 'Informe operadorEmail ou operadorNome.' });
+    if (!operadorEmail || !dateISO) {
+      return res.status(400).json({ error: 'Informe operadorEmail e date (YYYY-MM-DD).' });
     }
 
     // Monta a query base
@@ -157,27 +152,16 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
         turno,
         to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as criado_em
       FROM checklist_submissoes
-      WHERE data_ref = $1::date`;
+      WHERE operador_email = $1
+        AND created_at >= ($2::date AT TIME ZONE 'America/Sao_Paulo')
+        AND created_at <  (($2::date + interval '1 day') AT TIME ZONE 'America/Sao_Paulo')`;
 
-    const params: (string | null)[] = [dateISO];
-    let paramIdx = 2;
-
-    // Filtro por email OU nome
-    if (operadorEmail) {
-      sql += ` AND operador_email = $${paramIdx}`;
-      params.push(operadorEmail);
-      paramIdx++;
-    } else if (operadorNome) {
-      sql += ` AND LOWER(TRIM(operador_nome)) = LOWER($${paramIdx})`;
-      params.push(operadorNome);
-      paramIdx++;
-    }
+    const params: (string | null)[] = [operadorEmail, dateISO];
 
     // Se maquinaId foi informado, filtra também
     if (maquinaId) {
-      sql += ` AND maquina_id = $${paramIdx}`;
+      sql += ` AND maquina_id = $3`;
       params.push(maquinaId);
-      paramIdx++;
     }
 
     sql += ` ORDER BY created_at DESC`;
