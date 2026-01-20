@@ -320,7 +320,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
             }
 
             setModalTitulo(
-                `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} â€¢ ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} â€¢ ${operadorNome}`
+                `${fmtDate.format(new Date(`${diaISO}T00:00:00`))} • ${turno === 'turno1' ? t('maquinaDetalhe.checklist.columns.turn1') : t('maquinaDetalhe.checklist.columns.turn2')} • ${operadorNome}`
             );
             setModalSubmissoes(filtradas);
             setModalOpen(true);
