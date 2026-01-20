@@ -1,6 +1,6 @@
 // src/components/MainLayout.tsx
 import { useState, useEffect, useMemo, useRef, ReactElement } from 'react';
-import { Routes, Route, NavLink, Link, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import {
     FiHome,
     FiLogOut,
@@ -78,6 +78,7 @@ interface Agendamento {
 const MainLayout = ({ user }: MainLayoutProps) => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const role = useMemo<UserRole>(() => (user?.role || '').trim().toLowerCase() as UserRole, [user?.role]);
 
     // Sistema granular de permissões
@@ -197,6 +198,29 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             setMyActiveCount((a?.total || 0) + (e?.total || 0));
         } catch { /* ignore */ }
     };
+
+    // Auto-expand sidebar group based on current path
+    useEffect(() => {
+        const path = location.pathname;
+        if (path.startsWith('/producao')) {
+            setOpenGroups(prev => ({ ...prev, production: true }));
+        } else if (path.startsWith('/planejamento')) {
+            setOpenGroups(prev => ({ ...prev, planejamento: true }));
+        } else if (
+            path.startsWith('/maquinas') ||
+            path.startsWith('/historico') ||
+            path.startsWith('/checklists') ||
+            path.startsWith('/estoque') ||
+            path.startsWith('/calendario') ||
+            path.startsWith('/chamados') ||
+            path.startsWith('/abrir-chamado') ||
+            path.startsWith('/meus-chamados') ||
+            path.startsWith('/analise-falhas') ||
+            path.startsWith('/causas-raiz')
+        ) {
+            setOpenGroups(prev => ({ ...prev, maintenance: true }));
+        }
+    }, [location.pathname]);
 
     useEffect(() => {
         let stopped = false;
