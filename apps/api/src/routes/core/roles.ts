@@ -27,6 +27,10 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'producao_dashboard', nome: 'Dashboard de Produção', grupo: 'Produção' },
     { key: 'producao_colaboradores', nome: 'Colaboradores', grupo: 'Produção' },
     { key: 'producao_config', nome: 'Configurações de Produção', grupo: 'Produção' },
+    // Planejamento
+    { key: 'planejamento_dashboard', nome: 'Dashboard de Planejamento', grupo: 'Planejamento' },
+    { key: 'planejamento_upload', nome: 'Upload de Capacidade', grupo: 'Planejamento' },
+    { key: 'planejamento_config', nome: 'Configuração de Centros', grupo: 'Planejamento' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },

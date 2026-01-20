@@ -93,6 +93,7 @@ export interface Maquina {
     critico?: boolean;
     escopo_manutencao?: boolean;
     escopo_producao?: boolean;
+    escopo_planejamento?: boolean;
     aliases_producao?: string[];
     parent_maquina_id?: string;
     is_maquina_mae?: boolean;
@@ -112,6 +113,9 @@ export interface MaquinaCreate {
     parentId?: string;
     isMaquinaMae?: boolean;
     exibirFilhosDashboard?: boolean;
+    escopoManutencao?: boolean;
+    escopoProducao?: boolean;
+    escopoPlanejamento?: boolean;
 }
 
 // ---------- Agendamentos ----------

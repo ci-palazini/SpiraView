@@ -20,7 +20,10 @@
     "productionUpload": "Upload Produção",
     "productionConfig": "Config. Máquinas",
     "productionDashboard": "Dashboard",
-    "productionEmployees": "Colaboradores"
+    "productionEmployees": "Colaboradores",
+    "planejamentoDashboard": "Dashboard",
+    "planejamentoUpload": "Upload Capacidade",
+    "planejamentoConfig": "Configuração"
   },
   "status": {
     "open": "Aberto",
@@ -733,7 +736,8 @@
       "manageMaintenance": "Gerenciar Manutenção",
       "analytics": "Análises e KPIs",
       "managePeople": "Gerenciar Colaboradores",
-      "production": "Produção"
+      "production": "Produção",
+      "planejamento": "Planejamento"
     }
   },
   "dashboard": {
@@ -1112,5 +1116,11 @@
         "inactive": "Inativo"
       }
     }
+  },
+  "planejamento": {
+    "title": "Planejamento",
+    "subtitle": "Gerencie o planejamento da planta",
+    "emConstrucao": "Módulo em Construção",
+    "emConstrucaoDesc": "O departamento de Planejamento está sendo configurado. Em breve novas funcionalidades estarão disponíveis."
   }
 }

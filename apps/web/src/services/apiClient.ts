@@ -415,7 +415,12 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
             tag: data.tag ?? data.nome,
             setor: data.setor ?? null,
             critico: !!data.critico,
-            parentId: data.parentId || null
+            parentId: data.parentId || null,
+            isMaquinaMae: !!data.isMaquinaMae,
+            exibirFilhosDashboard: !!data.exibirFilhosDashboard,
+            escopoManutencao: data.escopoManutencao,
+            escopoProducao: data.escopoProducao,
+            escopoPlanejamento: data.escopoPlanejamento
         },
         auth,
     });
@@ -1356,6 +1361,7 @@ export async function atualizarEscopoMaquina(
     payload: {
         escopoManutencao?: boolean;
         escopoProducao?: boolean;
+        escopoPlanejamento?: boolean;
         setor?: string | null;
         isMaquinaMae?: boolean;
         exibirFilhosDashboard?: boolean;
@@ -1572,3 +1578,133 @@ export async function excluirRole(id: string, auth: AuthParams = {}): Promise<vo
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || 'Erro ao excluir nível de acesso');
 }
+
+// ===== PLANEJAMENTO - CAPACIDADE =====
+
+export interface CapacidadeUploadResult {
+    ok: boolean;
+    uploadId: string;
+    resumo: {
+        totalLinhas: number;
+        linhasValidas: number;
+        linhasComErro: number;
+    };
+    erros: Array<{ linha: number; erro: string }>;
+}
+
+export interface ResumoCapacidade {
+    centroTrabalho: string;
+    cargaHoras: number;
+    cargaOP: number;
+    capacidade: number;
+    sobrecarga: boolean;
+    percentualOcupacao: number;
+}
+
+export interface CapacidadeUpload {
+    id: string;
+    nomeArquivo: string;
+    linhasTotal: number;
+    linhasSucesso: number;
+    linhasErro: number;
+    ativo: boolean;
+    uploadPorEmail: string | null;
+    criadoEm: string;
+}
+
+export interface CentroTrabalho {
+    id: string;
+    centroTrabalho: string;
+    capacidadeHoras: number;
+    criadoEm?: string;
+    atualizadoEm?: string;
+}
+
+// Upload de reserva de capacidade
+export async function uploadCapacidade(rows: Record<string, unknown>[], nomeArquivo: string, auth: AuthParams): Promise<CapacidadeUploadResult> {
+    const r = await fetch(`${BASE}/planejamento/capacidade/upload`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify({ rows, nomeArquivo })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao fazer upload');
+    return data;
+}
+
+// Listar resumo de capacidade por centro de trabalho
+export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string): Promise<{ items: ResumoCapacidade[]; uploadId?: string }> {
+    const qs = new URLSearchParams();
+    if (uploadId) qs.set('uploadId', uploadId);
+    const r = await fetch(`${BASE}/planejamento/capacidade/resumo?${qs}`, {
+        headers: {
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar resumo');
+    return data;
+}
+
+// Listar uploads de capacidade
+export async function listarUploadsCapacidade(auth: AuthParams): Promise<CapacidadeUpload[]> {
+    const r = await fetch(`${BASE}/planejamento/capacidade/uploads`, {
+        headers: {
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar uploads');
+    return data.items || [];
+}
+
+// Tipo para máquina com configurações de planejamento
+export interface MaquinaPlanejamento {
+    id: string;
+    nome: string;
+    tag: string;
+    capacidadeHoras: number;
+    aliasesPlanejamento: string[];
+    escopoPlanejamento: boolean;
+}
+
+// Listar máquinas com escopo planejamento
+export async function listarMaquinasPlanejamento(auth: AuthParams): Promise<MaquinaPlanejamento[]> {
+    const r = await fetch(`${BASE}/planejamento/capacidade/maquinas`, {
+        headers: {
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        }
+    });
+    const data = await r.json().catch(() => ({ items: [] }));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao listar máquinas');
+    return data.items || [];
+}
+
+// Atualizar capacidade/aliases de uma máquina
+export async function atualizarMaquinaPlanejamento(
+    id: string,
+    payload: { capacidadeHoras?: number; aliasesPlanejamento?: string[]; escopoPlanejamento?: boolean },
+    auth: AuthParams
+): Promise<MaquinaPlanejamento> {
+    const r = await fetch(`${BASE}/planejamento/capacidade/maquinas/${id}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-user-role': auth.role || '',
+            'x-user-email': auth.email || ''
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar máquina');
+    return data;
+}
+
+

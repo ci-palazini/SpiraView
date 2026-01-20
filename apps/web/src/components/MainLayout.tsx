@@ -22,6 +22,7 @@ import {
     FiUploadCloud,
     FiChevronDown,
     FiShield,
+    FiSettings,
 } from 'react-icons/fi';
 import { PiFactoryBold } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -52,6 +53,9 @@ import ProducaoUploadDetalhePage from '../features/producao/pages/ProducaoUpload
 import ProducaoDashboardPage from '../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../features/producao/pages/ProducaoColaboradoresPage';
 import RolesPage from '../features/configuracoes/pages/RolesPage';
+import PlanejamentoDashboardPage from '../features/planejamento/pages/PlanejamentoDashboardPage';
+import CapacidadeUploadPage from '../features/planejamento/pages/CapacidadeUploadPage';
+import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfigPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +100,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
             if (saved) return JSON.parse(saved);
         } catch { /* ignore */ }
-        return { maintenance: true, production: false };
+        return { maintenance: false, production: false, planejamento: false };
     });
 
     const toggleGroup = (key: string) => {
@@ -544,6 +548,45 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 </SidebarGroup>
             )}
 
+            {/* Planejamento - novo departamento */}
+            {perm.canViewAny(['planejamento_dashboard', 'planejamento_upload', 'planejamento_config']) && (
+                <SidebarGroup id="planejamento" label={t('layout.sections.planejamento', 'Planejamento')} icon={FiCalendar}>
+                    {perm.canView('planejamento_dashboard') && (
+                        <NavLink
+                            to="/planejamento/dashboard"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <LuLayoutDashboard className={styles.navIcon} />
+                            <span>{t('nav.planejamentoDashboard', 'Dashboard')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canView('planejamento_upload') && (
+                        <NavLink
+                            to="/planejamento/upload"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUploadCloud className={styles.navIcon} />
+                            <span>{t('nav.planejamentoUpload', 'Upload Capacidade')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canView('planejamento_config') && (
+                        <NavLink
+                            to="/planejamento/config"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiSettings className={styles.navIcon} />
+                            <span>{t('nav.planejamentoConfig', 'Configuração')}</span>
+                        </NavLink>
+                    )}
+                </SidebarGroup>
+            )}
+
             {/* Administração - usa permissões granulares */}
             {perm.canViewAny(['usuarios', 'roles']) && (
                 <>
@@ -786,6 +829,20 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/producao/colaboradores"
                         element={canAccessPage('producao_colaboradores', <ProducaoColaboradoresPage user={user} />)}
+                    />
+
+                    {/* Planejamento */}
+                    <Route
+                        path="/planejamento/dashboard"
+                        element={canAccessPage('planejamento_dashboard', <PlanejamentoDashboardPage user={user} />)}
+                    />
+                    <Route
+                        path="/planejamento/upload"
+                        element={canAccessPage('planejamento_upload', <CapacidadeUploadPage user={user} />)}
+                    />
+                    <Route
+                        path="/planejamento/config"
+                        element={canAccessPage('planejamento_config', <CapacidadeConfigPage user={user} />)}
                     />
 
                     <Route

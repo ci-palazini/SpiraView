@@ -26,7 +26,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard
+      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, escopo_planejamento, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard
        FROM maquinas
        WHERE ${where}
        ORDER BY nome ASC`,
@@ -43,7 +43,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
 // Criar máquina
 maquinasRouter.post("/maquinas", async (req, res) => {
   try {
-    const { nome, tag, setor, critico, parentId, isMaquinaMae, exibirFilhosDashboard } = req.body ?? {};
+    const { nome, tag, setor, critico, parentId, isMaquinaMae, exibirFilhosDashboard, escopoManutencao, escopoProducao, escopoPlanejamento } = req.body ?? {};
     const nomeTrim = String(nome || "").trim();
     const tagTrim = String(tag || nomeTrim).trim();
 
@@ -63,10 +63,10 @@ maquinasRouter.post("/maquinas", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard)
-       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true))
-       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard`,
-      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true]
+      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento)
+       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true), COALESCE($8, true), COALESCE($9, false), COALESCE($10, false))
+       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento`,
+      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true, escopoManutencao !== undefined ? !!escopoManutencao : true, escopoProducao !== undefined ? !!escopoProducao : false, escopoPlanejamento !== undefined ? !!escopoPlanejamento : false]
     );
 
     // SSE broadcast
@@ -120,17 +120,17 @@ maquinasRouter.patch('/maquinas/:id/parent', requirePermission('maquinas', 'edit
 maquinasRouter.patch('/maquinas/:id/escopo', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const id = String(req.params.id);
-    const { escopoManutencao, escopoProducao, setor } = req.body || {};
+    const { escopoManutencao, escopoProducao, escopoPlanejamento, setor } = req.body || {};
 
     // Validar que pelo menos um escopo está ativo (se estiver sendo alterado)
-    // Se não enviado, assume que mantém o atual (mas aqui não temos o atual na mão facilmente sem query)
     // Simplificação: apenas validar se escopos forem false explicitamente.
     const manut = escopoManutencao !== undefined ? !!escopoManutencao : null;
     const prod = escopoProducao !== undefined ? !!escopoProducao : null;
+    const plan = escopoPlanejamento !== undefined ? !!escopoPlanejamento : null;
     const isMae = req.body.isMaquinaMae !== undefined ? !!req.body.isMaquinaMae : null;
     const exibeFilhos = req.body.exibirFilhosDashboard !== undefined ? !!req.body.exibirFilhosDashboard : null;
 
-    if (manut === false && prod === false) {
+    if (manut === false && prod === false && plan === false) {
       return res.status(400).json({ error: 'A máquina deve ter pelo menos um escopo ativo.' });
     }
 
@@ -144,6 +144,10 @@ maquinasRouter.patch('/maquinas/:id/escopo', requirePermission('maquinas', 'edit
     if (prod !== null) {
       params.push(prod);
       sets.push(`escopo_producao = $${params.length}`);
+    }
+    if (plan !== null) {
+      params.push(plan);
+      sets.push(`escopo_planejamento = $${params.length}`);
     }
     // Setor pode ser string ou null
     if (setor !== undefined) {
@@ -167,7 +171,7 @@ maquinasRouter.patch('/maquinas/:id/escopo', requirePermission('maquinas', 'edit
     const upd = await pool.query(
       `UPDATE maquinas SET ${sets.join(', ')}, atualizado_em = NOW()
        WHERE id = $1
-       RETURNING id, nome, escopo_manutencao, escopo_producao, setor, is_maquina_mae, exibir_filhos_dashboard`,
+       RETURNING id, nome, escopo_manutencao, escopo_producao, escopo_planejamento, setor, is_maquina_mae, exibir_filhos_dashboard`,
       params
     );
 
@@ -230,6 +234,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
         critico,
         escopo_manutencao,
         escopo_producao,
+        escopo_planejamento,
         COALESCE(checklist_diario, '[]'::jsonb) AS checklist_diario
       FROM maquinas
       WHERE id = $1

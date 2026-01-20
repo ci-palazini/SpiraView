@@ -20,7 +20,10 @@
     "productionUpload": "Production Upload",
     "productionConfig": "Machine Config",
     "productionDashboard": "Dashboard",
-    "productionEmployees": "Performance"
+    "productionEmployees": "Performance",
+    "planejamentoDashboard": "Dashboard",
+    "planejamentoUpload": "Capacity Upload",
+    "planejamentoConfig": "Configuration"
   },
   "status": {
     "open": "Open",
@@ -729,7 +732,8 @@
       "manageMaintenance": "Manage Maintenance",
       "analytics": "Analytics and KPIs",
       "managePeople": "Manage Team",
-      "production": "Production"
+      "production": "Production",
+      "planejamento": "Planning"
     }
   },
   "dashboard": {
@@ -1108,5 +1112,11 @@
         "inactive": "Inactive"
       }
     }
+  },
+  "planejamento": {
+    "title": "Planning",
+    "subtitle": "Manage plant planning",
+    "emConstrucao": "Module Under Construction",
+    "emConstrucaoDesc": "The Planning department is being configured. New features will be available soon."
   }
 }

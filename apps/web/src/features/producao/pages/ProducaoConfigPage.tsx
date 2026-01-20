@@ -48,6 +48,7 @@ interface EditState {
     maquina: Maquina;
     escopoManutencao: boolean;
     escopoProducao: boolean;
+    escopoPlanejamento: boolean;
     setor: string;
     meta: string;
     aliases: string;
@@ -82,6 +83,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
         nome: '',
         escopoManutencao: true,
         escopoProducao: true,
+        escopoPlanejamento: false,
         setor: '',
         aliases: '',
         parentId: '',
@@ -141,6 +143,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             maquina,
             escopoManutencao: maquina.escopo_manutencao ?? true,
             escopoProducao: maquina.escopo_producao ?? false,
+            escopoPlanejamento: maquina.escopo_planejamento ?? false,
             setor: maquina.setor || '',
             meta: metaVigente?.horasMeta ? Number(metaVigente.horasMeta).toFixed(2) : '',
             aliases: maquina.aliases_producao?.join(', ') || '',
@@ -158,7 +161,8 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             const { maquina } = editState;
             const escoposChanged =
                 editState.escopoManutencao !== maquina.escopo_manutencao ||
-                editState.escopoProducao !== maquina.escopo_producao;
+                editState.escopoProducao !== maquina.escopo_producao ||
+                editState.escopoPlanejamento !== (maquina.escopo_planejamento ?? false);
             const setorChanged = editState.setor !== (maquina.setor || '');
             const parentChanged = (editState.parentId || null) !== (maquina.parent_maquina_id || null);
             const motherConfigChanged =
@@ -170,6 +174,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                 await atualizarEscopoMaquina(maquina.id, {
                     escopoManutencao: editState.escopoManutencao,
                     escopoProducao: editState.escopoProducao,
+                    escopoPlanejamento: editState.escopoPlanejamento,
                     setor: editState.escopoProducao ? editState.setor || null : null,
                     isMaquinaMae: editState.isMaquinaMae,
                     exibirFilhosDashboard: editState.exibirFilhosDashboard
@@ -253,6 +258,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                 await atualizarEscopoMaquina(created.id, {
                     escopoManutencao: newMaquina.escopoManutencao,
                     escopoProducao: newMaquina.escopoProducao,
+                    escopoPlanejamento: newMaquina.escopoPlanejamento,
                 }, {
                     role: user.role,
                     email: user.email,
@@ -281,6 +287,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                 nome: '',
                 escopoManutencao: true,
                 escopoProducao: true,
+                escopoPlanejamento: false,
                 setor: '',
                 aliases: '',
                 parentId: '',
@@ -374,6 +381,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
         { label: 'Total Cadastrado', value: maquinas.length, icon: <FiGrid />, color: 'blue' },
         { label: 'Escopo Manutenção', value: maquinas.filter(m => m.escopo_manutencao).length, icon: <FiSettings />, color: 'orange' },
         { label: 'Escopo Produção', value: maquinas.filter(m => m.escopo_producao).length, icon: <FiBox />, color: 'green' },
+        { label: 'Escopo Planejamento', value: maquinas.filter(m => m.escopo_planejamento).length, icon: <FiSettings />, color: 'blue' },
         { label: 'Com Metas Ativas', value: metas.length, icon: <FiTarget />, color: 'purple' },
     ], [maquinas, metas]);
 
@@ -470,6 +478,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 <th>Identificação</th>
                                 <th className={styles.centerAlign}>Manutenção</th>
                                 <th className={styles.centerAlign}>Produção</th>
+                                <th className={styles.centerAlign}>Planejamento</th>
                                 <th>Setor</th>
                                 <th className={styles.rightAlign}>Meta (h)</th>
                                 <th>Aliases (Excel)</th>
@@ -479,7 +488,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                         <tbody>
                             {!loading && filteredMaquinas.length === 0 && (
                                 <tr>
-                                    <td colSpan={7}>
+                                    <td colSpan={8}>
                                         <div className={styles.emptyState}>
                                             <FiSearch size={48} />
                                             <h3>Nenhum resultado encontrado</h3>
@@ -523,6 +532,11 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                         <td className={styles.centerAlign}>
                                             <span className={`${styles.statusBadge} ${m.escopo_producao ? styles.active : styles.inactive}`}>
                                                 {m.escopo_producao ? 'Ativo' : 'Inativo'}
+                                            </span>
+                                        </td>
+                                        <td className={styles.centerAlign}>
+                                            <span className={`${styles.statusBadge} ${m.escopo_planejamento ? styles.active : styles.inactive}`}>
+                                                {m.escopo_planejamento ? 'Ativo' : 'Inativo'}
                                             </span>
                                         </td>
                                         <td>
@@ -605,6 +619,17 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     type="button"
                                     className={`${styles.toggle} ${newMaquina.escopoProducao ? styles.toggleActive : ''}`}
                                     onClick={() => setNewMaquina(prev => ({ ...prev, escopoProducao: !prev.escopoProducao }))}
+                                    disabled={creatingMaquina}
+                                >
+                                    <span className={styles.toggleThumb} />
+                                </button>
+                            </label>
+                            <label className={styles.toggleItem}>
+                                <span>Planejamento</span>
+                                <button
+                                    type="button"
+                                    className={`${styles.toggle} ${newMaquina.escopoPlanejamento ? styles.toggleActive : ''}`}
+                                    onClick={() => setNewMaquina(prev => ({ ...prev, escopoPlanejamento: !prev.escopoPlanejamento }))}
                                     disabled={creatingMaquina}
                                 >
                                     <span className={styles.toggleThumb} />
@@ -746,6 +771,17 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                         type="button"
                                         className={`${styles.toggle} ${editState.escopoProducao ? styles.toggleActive : ''}`}
                                         onClick={() => setEditState(prev => prev ? ({ ...prev, escopoProducao: !prev.escopoProducao }) : null)}
+                                        disabled={saving}
+                                    >
+                                        <span className={styles.toggleThumb} />
+                                    </button>
+                                </label>
+                                <label className={styles.toggleItem}>
+                                    <span>Planejamento</span>
+                                    <button
+                                        type="button"
+                                        className={`${styles.toggle} ${editState.escopoPlanejamento ? styles.toggleActive : ''}`}
+                                        onClick={() => setEditState(prev => prev ? ({ ...prev, escopoPlanejamento: !prev.escopoPlanejamento }) : null)}
                                         disabled={saving}
                                     >
                                         <span className={styles.toggleThumb} />

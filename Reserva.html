@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESERVA DE CAPACIDADE - 09-01</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin: 0;
+            color: #2c3e50;
+            text-align: center;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        p.desc {
+            margin: 10px 0 30px 0;
+            color: #7f8c8d;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        #chart-div {
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chart-wrapper">
+        <h2>Painel de Carga e Capacidade</h2>
+        <p class="desc">Visualização Sobreposta: Carga OP (frente) vs Carga Horas (fundo) | Comparativo com Capacidade</p>
+        <div id="chart-div"></div>
+    </div>
+
+    <script type="text/javascript">
+        // Dados Originais
+        const categories = ['TCN-13', 'TCN-14', 'CV', 'CH-01', 'CH-02', 'CH-03', 'TCN-20', 'TCN-16', 'TCN-15', 'CT-01', 'TCN-12', 'TCN-17', 'TCN-18', 'TCN-19', 'TP'];
+        const dataHoras = [98, 94, 251, 1029, 513, 220, 144, 73, 426, 587, 448, 382, 840, 204, 190];
+        const dataOP = [65.69, 85.58, 136, 250, 165, 23, 50, 15, 89, 103, 155, 72, 110, 90, 59];
+        const dataCap = [242, 242, 264, 242, 264, 242, 242, 308, 264, 264, 198, 176, 220, 286, 66];
+
+        // Cálculo do "Resto" para criar o efeito visual de sobreposição sem somar
+        // Se Horas = 100 e OP = 60, o resto é 40.
+        // A pilha visual será: 60 (OP) + 40 (Resto) = 100 (Visual final igual a Horas)
+        const dataResto = dataHoras.map((h, i) => h - dataOP[i]);
+
+        var myChart = echarts.init(document.getElementById('chart-div'));
+
+        var option = {
+            color: ['#3498db', '#95a5a6', '#2ecc71'], // Azul (OP), Cinza (Horas), Verde (Capacidade)
+            
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                textStyle: { color: '#333' },
+                formatter: function (params) {
+                    // Customização para mostrar os valores reais, não os calculados
+                    let tooltipText = `<strong>${params[0].name}</strong><br/>`;
+                    // Pegando dados dos arrays originais baseado no índice
+                    let idx = params[0].dataIndex;
+                    tooltipText += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#3498db;"></span>Carga OP: <strong>${dataOP[idx].toLocaleString('pt-BR')}</strong><br/>`;
+                    tooltipText += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#7f8c8d;"></span>Carga Horas: <strong>${dataHoras[idx].toLocaleString('pt-BR')}</strong><br/>`;
+                    tooltipText += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#2ecc71;"></span>Capacidade: <strong>${dataCap[idx].toLocaleString('pt-BR')}</strong>`;
+                    return tooltipText;
+                }
+            },
+            legend: {
+                data: ['Carga Máquina - OP', 'Carga Máquina - Horas', 'Capacidade'],
+                top: 0,
+                textStyle: { fontSize: 13, fontWeight: '600', color: '#555' }
+            },
+            grid: {
+                left: '2%',
+                right: '2%',
+                bottom: '5%',
+                top: '12%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: categories,
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: { 
+                    fontWeight: 'bold', 
+                    color: '#444',
+                    interval: 0 
+                }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { type: 'dashed', color: '#e0e0e0' } },
+                axisLabel: { show: false } // Limpa eixo Y para focar nos labels das barras
+            },
+            dataZoom: [{ type: 'inside' }], // Zoom apenas com scroll/touch
+            series: [
+                // Coluna 1: Composta (Fake Stack para efeito de sobreposição)
+                {
+                    name: 'Carga Máquina - OP',
+                    type: 'bar',
+                    stack: 'Carga', // Empilha com o resto
+                    data: dataOP,
+                    barWidth: '40%',
+                    itemStyle: { 
+                        color: '#3498db', // Azul Vivo
+                        borderRadius: [0, 0, 4, 4] 
+                    }, 
+                    label: {
+                        show: true,
+                        position: 'inside',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        formatter: function(p) { return Math.round(p.value); }
+                    },
+                    z: 2 // Garante ordem de desenho
+                },
+                {
+                    name: 'Carga Máquina - Horas', // Este é o "topo" que completa a altura
+                    type: 'bar',
+                    stack: 'Carga', // Empilha
+                    data: dataResto, // Usa o resto para não somar errado visualmente
+                    barWidth: '40%',
+                    itemStyle: { 
+                        color: '#95a5a6', // Cinza
+                        borderRadius: [4, 4, 0, 0] 
+                    },
+                    label: {
+                        show: true,
+                        position: 'top', // Mostra no topo da coluna inteira
+                        color: '#555',
+                        fontWeight: 'bold',
+                        formatter: function(params) {
+                            // Mostra o valor TOTAL DE HORAS, e não o "resto"
+                            return dataHoras[params.dataIndex];
+                        }
+                    },
+                    z: 1
+                },
+                
+                // Coluna 2: Capacidade (Separada)
+                {
+                    name: 'Capacidade',
+                    type: 'bar',
+                    data: dataCap,
+                    barWidth: '40%',
+                    barGap: '10%', // Espacinho pequeno entre Carga e Capacidade
+                    itemStyle: {
+                        color: '#2ecc71', // Verde Suave
+                        borderRadius: 4,
+                        opacity: 0.9
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: '#27ae60',
+                        fontWeight: 'bold',
+                        formatter: '{c}'
+                    }
+                }
+            ]
+        };
+
+        myChart.setOption(option);
+        
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    </script>
+</body>
+</html>
