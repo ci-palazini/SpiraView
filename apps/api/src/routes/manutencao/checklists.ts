@@ -155,7 +155,7 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
         maquina_nome,
         respostas,
         turno,
-        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as created_at
+        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as criado_em
       FROM checklist_submissoes
       WHERE data_ref = $1::date`;
 
