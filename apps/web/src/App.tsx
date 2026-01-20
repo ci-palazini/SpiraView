@@ -7,7 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
-import InicioTurnoPage from './features/checklists/pages/InicioTurnoPage';
+import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoPage';
 import TvMenuPage from './features/producao/tv/TvMenuPage';
 import TvDashboardPage from './features/producao/tv/TvDashboardPage';
 
