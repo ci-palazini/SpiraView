@@ -19,7 +19,9 @@ function toISO(d: Date): string {
 
 function formatDateBR(iso: string): string {
     try {
-        const [y, m, d] = iso.split('-');
+        // Remove parte do tempo se existir (T00:00:00.000Z)
+        const dateOnly = iso.includes('T') ? iso.split('T')[0] : iso;
+        const [y, m, d] = dateOnly.split('-');
         return `${d}/${m}/${y}`;
     } catch {
         return iso;
@@ -73,10 +75,10 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
         }
     }, []);
 
-    const fetchAuditoria = useCallback(async () => {
+    const fetchAuditoria = useCallback(async (dataRef?: string) => {
         try {
             setLoadingAuditoria(true);
-            const data = await listarHistoricoUploadsProducao({ limite: 100 });
+            const data = await listarHistoricoUploadsProducao({ limite: 100, dataRef });
             setHistoricoAuditoria(data.items || []);
         } catch (err) {
             console.error('Erro ao buscar auditoria:', err);
@@ -90,10 +92,10 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
     }, [fetchUploads, dataFiltro]);
 
     useEffect(() => {
-        if (showAuditoria && historicoAuditoria.length === 0) {
-            fetchAuditoria();
+        if (showAuditoria) {
+            fetchAuditoria(dataFiltro);
         }
-    }, [showAuditoria, historicoAuditoria.length, fetchAuditoria]);
+    }, [showAuditoria, dataFiltro, fetchAuditoria]);
 
     const processFile = useCallback((f: File) => {
         setFile(f);
@@ -354,7 +356,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                             <ul className={styles.resultList} style={{ marginTop: 12 }}>
                                 {result.resultados.map((r, i) => (
                                     <li key={i}>
-                                        <strong>{r.dataRef}:</strong> {r.linhasProcessadas} linhas, {r.horasTotal.toFixed(1)}h
+                                        <strong>{formatDateBR(r.dataRef)}:</strong> {r.linhasProcessadas} linhas, {r.horasTotal.toFixed(1)}h
                                     </li>
                                 ))}
                             </ul>
@@ -423,7 +425,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                         <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {u.nomeArquivo}
                                         </td>
-                                        <td>{u.dataRef}</td>
+                                        <td>{formatDateBR(u.dataRef)}</td>
                                         <td>{u.linhasSucesso}/{u.linhasTotal}</td>
                                         <td>{Number(u.horasTotal).toFixed(1)}h</td>
                                         <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -491,7 +493,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                                 <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {h.nomeArquivo}
                                                 </td>
-                                                <td>{h.dataRef}</td>
+                                                <td>{formatDateBR(h.dataRef)}</td>
                                                 <td>{h.linhasTotal}</td>
                                                 <td>{Number(h.horasTotal).toFixed(1)}h</td>
                                                 <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
