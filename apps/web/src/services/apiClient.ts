@@ -587,9 +587,10 @@ export async function enviarChecklistDiaria(data: SubmissaoDiariaCreate): Promis
     return result;
 }
 
-export async function listarSubmissoesDiarias(params: { operadorEmail?: string; date?: string; maquinaId?: string; turno?: string }): Promise<Submissao[]> {
+export async function listarSubmissoesDiarias(params: { operadorEmail?: string; operadorNome?: string; date?: string; maquinaId?: string; turno?: string }): Promise<Submissao[]> {
     const qs = new URLSearchParams();
     if (params.operadorEmail) qs.set('operadorEmail', params.operadorEmail);
+    if (params.operadorNome) qs.set('operadorNome', params.operadorNome);
     if (params.date) qs.set('date', params.date);
     if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
     if (params.turno) qs.set('turno', params.turno);

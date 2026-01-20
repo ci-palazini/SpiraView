@@ -288,12 +288,13 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 );
             })?.operador_email;
 
-            if (!email) {
-                toast.error(t('maquinaDetalhe.checklist.detailNoEmail', 'NÃ£o foi possÃ­vel localizar o e-mail deste operador para esse dia.'));
-                return;
-            }
-
-            const subms = await listarSubmissoesDiarias({ operadorEmail: email, date: diaISO });
+            // 3) Buscar via API - usa email se disponível, senão usa nome
+            const subms = await listarSubmissoesDiarias({
+                operadorEmail: email,
+                operadorNome: email ? undefined : operadorNome.trim(),
+                date: diaISO,
+                maquinaId: id
+            });
             const items: Submissao[] = Array.isArray(subms) ? subms : (Array.isArray((subms as { items?: Submissao[] })?.items) ? (subms as { items: Submissao[] }).items : []);
             const filtradas = items.filter((s) => {
                 if (String(s.maquina_id) !== String(id)) return false;
