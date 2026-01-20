@@ -697,6 +697,57 @@ uploadRouter.get('/producao/uploads/ultimo', async (_req, res) => {
     }
 });
 
+// GET /producao/uploads/historico - Histórico de uploads arquivados (audit trail)
+// IMPORTANTE: Esta rota DEVE vir antes de /producao/uploads/:id para não ser capturada como parâmetro
+uploadRouter.get('/producao/uploads/historico', async (req, res) => {
+    try {
+        const dataRef = req.query.dataRef as string | undefined;
+        const limite = Math.min(parseInt(req.query.limite as string) || 100, 500);
+
+        const params: any[] = [];
+        let where = '1=1';
+
+        if (dataRef) {
+            params.push(dataRef);
+            where += ` AND data_ref = $${params.length}`;
+        }
+
+        params.push(limite);
+
+        const { rows } = await pool.query(
+            `SELECT
+                id,
+                upload_id AS "uploadId",
+                nome_arquivo AS "nomeArquivo",
+                data_ref AS "dataRef",
+                linhas_total AS "linhasTotal",
+                horas_total AS "horasTotal",
+                upload_por_nome AS "uploadPorNome",
+                criado_em AS "criadoEm",
+                arquivado_em AS "arquivadoEm",
+                motivo
+            FROM producao_upload_historico
+            WHERE ${where}
+            ORDER BY arquivado_em DESC
+            LIMIT $${params.length}`,
+            params
+        );
+
+        res.json({
+            items: rows,
+            total: rows.length,
+            nota: 'Histórico de uploads arquivados após 48h de inatividade'
+        });
+    } catch (e: any) {
+        // Tabela pode não existir ainda
+        if (e.code === '42P01') {
+            return res.json({ items: [], total: 0, nota: 'Tabela de histórico ainda não criada' });
+        }
+        console.error(e);
+        res.status(500).json({ error: String(e) });
+    }
+});
+
 // GET /producao/uploads/:id - Detalhes de um upload específico
 uploadRouter.get('/producao/uploads/:id', async (req, res) => {
     try {
@@ -834,56 +885,6 @@ uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
         sseBroadcast({ topic: 'producao_uploads', action: 'activated', id });
         res.json({ ok: true });
     } catch (e: any) {
-        console.error(e);
-        res.status(500).json({ error: String(e) });
-    }
-});
-
-// GET /producao/uploads/historico - Histórico de uploads arquivados (audit trail)
-uploadRouter.get('/producao/uploads/historico', async (req, res) => {
-    try {
-        const dataRef = req.query.dataRef as string | undefined;
-        const limite = Math.min(parseInt(req.query.limite as string) || 100, 500);
-
-        const params: any[] = [];
-        let where = '1=1';
-
-        if (dataRef) {
-            params.push(dataRef);
-            where += ` AND data_ref = $${params.length}`;
-        }
-
-        params.push(limite);
-
-        const { rows } = await pool.query(
-            `SELECT
-                id,
-                upload_id AS "uploadId",
-                nome_arquivo AS "nomeArquivo",
-                data_ref AS "dataRef",
-                linhas_total AS "linhasTotal",
-                horas_total AS "horasTotal",
-                upload_por_nome AS "uploadPorNome",
-                criado_em AS "criadoEm",
-                arquivado_em AS "arquivadoEm",
-                motivo
-            FROM producao_upload_historico
-            WHERE ${where}
-            ORDER BY arquivado_em DESC
-            LIMIT $${params.length}`,
-            params
-        );
-
-        res.json({
-            items: rows,
-            total: rows.length,
-            nota: 'Histórico de uploads arquivados após 48h de inatividade'
-        });
-    } catch (e: any) {
-        // Tabela pode não existir ainda
-        if (e.code === '42P01') {
-            return res.json({ items: [], total: 0, nota: 'Tabela de histórico ainda não criada' });
-        }
         console.error(e);
         res.status(500).json({ error: String(e) });
     }
