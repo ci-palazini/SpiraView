@@ -9,6 +9,7 @@ import {
     listarMaquinas,
     listarMetasProducao,
     listarResumoDiarioProducao,
+    buscarUltimoUploadProducao, // [NEW]
     type ProducaoMeta,
     type ProducaoResumoDiario,
 } from '../../../services/apiClient';
@@ -145,6 +146,26 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // [NEW] Buscar último upload para definir data/hora inicial
+    useEffect(() => {
+        buscarUltimoUploadProducao()
+            .then((last) => {
+                if (last) {
+                    // Define dataRef para a data do upload
+                    // last.dataRef vem como YYYY-MM-DD (string) ou ISO
+                    const dr = last.dataRef.split('T')[0];
+                    setDataRef(dr);
+
+                    // Define hora para a hora de criação do upload (quando foi processado)
+                    const d = new Date(last.criadoEm);
+                    const hh = String(d.getHours()).padStart(2, '0');
+                    const mm = String(d.getMinutes()).padStart(2, '0');
+                    setHora(`${hh}:${mm}`);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     // Mapear metas por maquinaId
     const metasByMaquina = useMemo(() => {
