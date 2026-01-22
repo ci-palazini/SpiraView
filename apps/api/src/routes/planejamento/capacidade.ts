@@ -336,6 +336,37 @@ capacidadeRouter.post(
 );
 
 // =============================================
+// GET /capacidade/uploads/tv/ultimo - PUBLIC (for TV mode, no auth)
+// =============================================
+
+capacidadeRouter.get(
+    '/capacidade/uploads/tv/ultimo',
+    async (_req: Request, res: Response) => {
+        try {
+            const { rows } = await pool.query(`
+                SELECT 
+                    id, 
+                    nome_arquivo AS "nomeArquivo",
+                    criado_em AS "criadoEm"
+                FROM planejamento_uploads
+                WHERE ativo = true
+                ORDER BY criado_em DESC
+                LIMIT 1
+            `);
+
+            if (rows.length === 0) {
+                return res.json({ upload: null });
+            }
+
+            res.json({ upload: rows[0] });
+        } catch (err: any) {
+            console.error('Erro ao buscar último upload TV:', err);
+            res.status(500).json({ error: err.message || 'Erro interno' });
+        }
+    }
+);
+
+// =============================================
 // GET /capacidade/resumo/tv - PUBLIC (for TV mode, no auth)
 // =============================================
 

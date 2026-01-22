@@ -7,6 +7,7 @@ import {
     listarMetasProducao,
     listarResumoDiarioProducao,
     buscarUltimoUploadProducao,
+    BASE,
     type ProducaoMeta,
     type ProducaoResumoDiario,
 } from '../../services/apiClient';
@@ -192,20 +193,41 @@ export default function TvDashboardPage() {
         try {
             setLoading(true);
 
-            // Primeiro buscar último upload para definir data de referência
-            const ultimoUpload = await buscarUltimoUploadProducao();
-            // Normalizar dataRef para YYYY-MM-DD (pode vir como timestamp ISO)
-            let refDate = ultimoUpload?.dataRef || toISO(new Date());
-            if (refDate.includes('T')) {
-                refDate = refDate.slice(0, 10);
-            }
-            const refTime = ultimoUpload?.criadoEm ? formatDateTime(ultimoUpload.criadoEm) : '--:--';
+            // Buscar último upload baseado no scope
+            let refDate: string;
+            let refTime: string;
+            let uploadTime: string;
 
-            // Extrair hora do upload (HH:MM) para cálculo de esperado
-            let uploadTime = '--:--';
-            if (ultimoUpload?.criadoEm) {
-                const uploadDate = new Date(ultimoUpload.criadoEm);
-                uploadTime = `${String(uploadDate.getHours()).padStart(2, '0')}:${String(uploadDate.getMinutes()).padStart(2, '0')}`;
+            if (scope === 'planejamento') {
+                // Para planejamento, buscar último upload de planejamento
+                const response = await fetch(`${BASE}/planejamento/capacidade/uploads/tv/ultimo`);
+                const data = await response.json();
+                const ultimoUpload = data.upload;
+
+                if (ultimoUpload?.criadoEm) {
+                    const uploadDate = new Date(ultimoUpload.criadoEm);
+                    refDate = toISO(uploadDate);
+                    refTime = formatDateTime(ultimoUpload.criadoEm);
+                    uploadTime = `${String(uploadDate.getHours()).padStart(2, '0')}:${String(uploadDate.getMinutes()).padStart(2, '0')}`;
+                } else {
+                    refDate = toISO(new Date());
+                    refTime = '--:--';
+                    uploadTime = '--:--';
+                }
+            } else {
+                // Para outros scopes, buscar último upload de produção
+                const ultimoUpload = await buscarUltimoUploadProducao();
+                refDate = ultimoUpload?.dataRef || toISO(new Date());
+                if (refDate.includes('T')) {
+                    refDate = refDate.slice(0, 10);
+                }
+                refTime = ultimoUpload?.criadoEm ? formatDateTime(ultimoUpload.criadoEm) : '--:--';
+
+                uploadTime = '--:--';
+                if (ultimoUpload?.criadoEm) {
+                    const uploadDate = new Date(ultimoUpload.criadoEm);
+                    uploadTime = `${String(uploadDate.getHours()).padStart(2, '0')}:${String(uploadDate.getMinutes()).padStart(2, '0')}`;
+                }
             }
 
             setDataRef(refDate);
@@ -236,7 +258,7 @@ export default function TvDashboardPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [scope]);
 
     useEffect(() => {
         fetchData();
