@@ -15,7 +15,6 @@
     "openCorrective": "Open ticket",
     "startShift": "Start shift",
     "dailyChecklists": "Daily checklists",
-    "pzinibot": "Pzini",
     "openTickets": "Open Tickets",
     "productionUpload": "Production Upload",
     "productionConfig": "Machine Config",
@@ -123,10 +122,6 @@
       "dailyChecklists": {
         "title": "Daily Checklists",
         "desc": "Track daily status and completion."
-      },
-      "pziniBot": {
-        "title": "Pzini Chatbot",
-        "desc": "Chat with the bot to analyze data."
       },
       "productionDashboard": {
         "title": "Production: Daily View",

@@ -98,7 +98,6 @@ flowchart LR
         pecas["/pecas"]
         agendamentos["/agendamentos"]
         analytics["/analytics"]
-        bot["/bot"]
     end
     
     subgraph Producao["📊 Produção"]

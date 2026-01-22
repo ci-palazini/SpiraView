@@ -15,7 +15,6 @@
     "openCorrective": "Abrir Chamado",
     "startShift": "Início de turno",
     "dailyChecklists": "Checklists diários",
-    "pzinibot": "Pzini",
     "openTickets": "Chamados Abertos",
     "productionUpload": "Upload Produção",
     "productionConfig": "Config. Máquinas",
@@ -123,10 +122,6 @@
       "dailyChecklists": {
         "title": "Checklists Diários",
         "desc": "Acompanhe o status e preenchimento diário."
-      },
-      "pziniBot": {
-        "title": "Pzini Chatbot",
-        "desc": "Converse com o bot para analisar dados."
       },
       "productionDashboard": {
         "title": "Produção: Visão do Dia",

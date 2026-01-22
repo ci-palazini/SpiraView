@@ -13,7 +13,7 @@ import {
     FiClipboard,
     FiPlusCircle,
     FiAlertCircle,
-    FiMessageSquare,
+
     FiUploadCloud,
     FiSettings,
     FiTrendingUp,
@@ -112,15 +112,7 @@ export const ALL_SHORTCUTS: ShortcutDefinition[] = [
         descKey: 'inicio.cards.rootCauses.desc',
         icon: FiPieChart,
     },
-    {
-        id: 'chatbot',
-        pageKey: ['analise_falhas', 'causas_raiz'],
-        path: '/chatbot',
-        titleKey: 'inicio.cards.pziniBot.title',
-        descKey: 'inicio.cards.pziniBot.desc',
-        icon: FiMessageSquare,
-        ptOnly: true,
-    },
+
     {
         id: 'producao_dashboard',
         pageKey: 'producao_dashboard',

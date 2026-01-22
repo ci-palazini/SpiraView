@@ -44,7 +44,7 @@ import HistoricoMovimentacoesPage from '../features/manutencao/utilidades/estoqu
 import MeusChamados from '../features/manutencao/chamados/pages/MeusChamados';
 import AbrirChamadoManutentor from '../features/manutencao/chamados/pages/AbrirChamadoManutentor';
 import LanguageMenu from './LanguageMenu';
-import PziniChatBot from '../features/manutencao/analytics/pages/PziniChatBot';
+// import PziniChatBot removido
 import ChecklistOverviewPage from '../features/manutencao/checklists/pages/ChecklistOverviewPage';
 import ChamadosAbertosPage from '../features/manutencao/chamados/pages/ChamadosAbertosPage';
 import ProducaoUploadPage from '../features/producao/pages/ProducaoUploadPage';
@@ -515,18 +515,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 </NavLink>
                             )}
 
-                            {isPt && perm.canViewAny(['analise_falhas', 'causas_raiz']) && (
-                                <NavLink
-                                    to="/chatbot"
-                                    className={({ isActive }) =>
-                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                    }
-                                >
-                                    <FiMessageSquare className={styles.navIcon} />
-                                    <span>{t('nav.pzinibot', 'Pzini')}</span>
-                                    <BetaTag />
-                                </NavLink>
-                            )}
+
                         </>
                     )}
                 </SidebarGroup>
@@ -882,16 +871,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         element={canAccessPage('planejamento_config', <CapacidadeConfigPage user={user} />)}
                     />
 
-                    <Route
-                        path="/chatbot"
-                        element={
-                            isPt && perm.canViewAny(['analise_falhas', 'causas_raiz']) ? (
-                                <PziniChatBot user={user} />
-                            ) : (
-                                <Navigate to="/" replace />
-                            )
-                        }
-                    />
+
                 </Routes>
             </main>
         </div>
