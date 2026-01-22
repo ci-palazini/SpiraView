@@ -1,4 +1,4 @@
-// src/features/producao/tv/components/SlideResumo.tsx
+// src/features/tv/components/SlideResumo.tsx
 import { useMemo } from 'react';
 import {
     ResponsiveContainer,

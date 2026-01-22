@@ -1,4 +1,4 @@
-// src/features/producao/tv/TvDashboardPage.tsx
+// src/features/tv/TvDashboardPage.tsx
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiMaximize, FiMinimize, FiMonitor, FiArrowLeft, FiMapPin } from 'react-icons/fi';
@@ -9,9 +9,10 @@ import {
     buscarUltimoUploadProducao,
     type ProducaoMeta,
     type ProducaoResumoDiario,
-} from '../../../services/apiClient';
-import type { Maquina } from '../../../types/api';
+} from '../../services/apiClient';
+import type { Maquina } from '../../types/api';
 import SlideResumo from './components/SlideResumo';
+import SlidePlanejamento from './components/SlidePlanejamento';
 import styles from './TvDashboardPage.module.css';
 
 // ==================== HELPERS ====================
@@ -145,10 +146,13 @@ export default function TvDashboardPage() {
 
     // Título dinâmico baseado no escopo
     const tituloPainel = useMemo(() => {
+        if (scope === 'planejamento') return 'Painel de Planejamento';
         if (scope === 'montagem') return 'Painel de Montagem';
         if (scope === 'usinagem') return 'Painel de Usinagem';
         return 'Painel Geral de Produção';
     }, [scope]);
+
+    const isPlanejamento = scope === 'planejamento';
 
     // Comparar apenas a data (sem hora) para isToday/isPast
     // Usar slice para evitar problemas de timezone
@@ -274,8 +278,9 @@ export default function TvDashboardPage() {
     // Processar histórico filtrado por scope
     const historicoDias = useMemo(() => {
         // Filtrar máquinas por scope para calcular meta
+        // Planejamento usa todos os dados (geral) para o slide de produção
         const maquinasFiltradas = maquinas.filter(m => {
-            if (scope === 'geral') return true;
+            if (scope === 'geral' || scope === 'planejamento') return true;
             const setor = (m.setor || '').toLowerCase();
             return setor === scope.toLowerCase();
         });
@@ -479,8 +484,8 @@ export default function TvDashboardPage() {
         return result.length ? result : [[]];
     }, [pinnedMaquinas, regularMaquinas]);
 
-    // Total de slides: 1 (resumo) + páginas de máquinas
-    const totalSlides = pages.length + 1; // +1 para slide de resumo
+    // Total de slides: planejamento = 3, outros = 1 (resumo) + páginas de máquinas
+    const totalSlides = isPlanejamento ? 3 : pages.length + 1;
 
     // Reset page when scope changes
     useEffect(() => {
@@ -597,15 +602,19 @@ export default function TvDashboardPage() {
                                 ))}
                             </div>
                             <span className={styles.pageInfo}>
-                                {isResumoSlide ? 'Resumo do Período' : `Máquinas • Página ${machinePageIndex + 1} de ${pages.length}`}
+                                {isPlanejamento
+                                    ? ['Produção • Últimos 12 dias', 'Capacidade Mensal', 'Capacidade 30 dias'][currentPage]
+                                    : isResumoSlide ? 'Resumo do Período' : `Máquinas • Página ${machinePageIndex + 1} de ${pages.length}`}
                             </span>
                             <button className={styles.navButton} onClick={goNext}>
                                 <FiChevronRight size={24} />
                             </button>
                         </div>
 
-                        {/* Conteúdo: SlideResumo ou Cards Grid */}
-                        {isResumoSlide ? (
+                        {/* Conteúdo: Planejamento, SlideResumo ou Cards Grid */}
+                        {isPlanejamento ? (
+                            <SlidePlanejamento currentSlide={currentPage} diasProducao={historicoDias} />
+                        ) : isResumoSlide ? (
                             <SlideResumo dias={historicoDias} />
                         ) : (
                             <div className={styles.cardsGrid}>

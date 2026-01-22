@@ -1,6 +1,6 @@
-// src/features/producao/tv/TvMenuPage.tsx
+// src/features/tv/TvMenuPage.tsx
 import { useNavigate } from 'react-router-dom';
-import { FiBarChart2, FiTool, FiPackage, FiArrowLeft } from 'react-icons/fi';
+import { FiBarChart2, FiTool, FiPackage, FiArrowLeft, FiCalendar } from 'react-icons/fi';
 import styles from './TvMenuPage.module.css';
 
 interface ScopeOption {
@@ -39,6 +39,14 @@ export default function TvMenuPage() {
             icon: <FiPackage size={50} />,
             color: '#8b5cf6',
             path: '/tv/montagem',
+        },
+        {
+            id: 'planejamento',
+            label: 'Planejamento',
+            desc: 'Análise de Capacidade e Carga por Centro de Trabalho',
+            icon: <FiCalendar size={50} />,
+            color: '#10b981',
+            path: '/tv/planejamento',
         },
     ];
 

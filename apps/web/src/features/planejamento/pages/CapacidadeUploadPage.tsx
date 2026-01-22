@@ -302,22 +302,26 @@ export default function CapacidadeUploadPage({ user }: CapacidadeUploadPageProps
                                     <th>{t('planejamento.upload.fileName', 'Arquivo')}</th>
                                     <th>{t('planejamento.upload.linesCount', 'Linhas')}</th>
                                     <th>{t('planejamento.upload.uploadedAt', 'Enviado em')}</th>
+                                    <th>{t('planejamento.upload.uploadedBy', 'Enviado por')}</th>
                                     <th>{t('planejamento.upload.status', 'Status')}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {uploads.map((u) => (
+                                {uploads.map((u, index) => (
                                     <tr key={u.id}>
                                         <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {u.nomeArquivo}
                                         </td>
                                         <td>{u.linhasSucesso}/{u.linhasTotal}</td>
                                         <td>{new Date(u.criadoEm).toLocaleString('pt-BR')}</td>
+                                        <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {(u as any).uploadPorNome || '—'}
+                                        </td>
                                         <td>
-                                            {u.ativo ? (
+                                            {index === 0 ? (
                                                 <span style={{ color: '#16a34a', fontWeight: 500 }}>{t('common.active', 'Ativo')}</span>
                                             ) : (
-                                                <span style={{ color: '#94a3b8' }}>{t('common.inactive', 'Inativo')}</span>
+                                                <span style={{ color: '#94a3b8' }}>{t('planejamento.upload.historyOnly', 'Histórico')}</span>
                                             )}
                                         </td>
                                     </tr>

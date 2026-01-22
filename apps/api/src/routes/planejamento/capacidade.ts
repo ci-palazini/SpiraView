@@ -16,6 +16,7 @@ interface ResumoCapacidade {
     cargaHoras: number;
     cargaOP: number;
     capacidade: number;
+    capacidadeRestante: number;
     sobrecarga: boolean;
     percentualOcupacao: number;
 }
@@ -40,6 +41,45 @@ function normalizeColumnName(col: string): string {
         .replace(/[^a-z0-9]/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_|_$/g, '');
+}
+
+// =============================================
+// Helper: Cálculo de Dias Úteis (seg-sex)
+// =============================================
+
+function isBusinessDay(date: Date): boolean {
+    const day = date.getDay();
+    return day !== 0 && day !== 6; // 0 = domingo, 6 = sábado
+}
+
+function countBusinessDaysInMonth(year: number, month: number): number {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    let count = 0;
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+        if (isBusinessDay(d)) count++;
+    }
+    return count;
+}
+
+function countRemainingBusinessDays(today: Date): number {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const lastDay = new Date(year, month + 1, 0);
+    let count = 0;
+    // Inclui o dia atual se for dia útil
+    for (let d = new Date(today); d <= lastDay; d.setDate(d.getDate() + 1)) {
+        if (isBusinessDay(d)) count++;
+    }
+    return count;
+}
+
+function getRemainingCapacityRatio(): number {
+    const today = new Date();
+    const totalDays = countBusinessDaysInMonth(today.getFullYear(), today.getMonth());
+    const remainingDays = countRemainingBusinessDays(today);
+    if (totalDays === 0) return 0;
+    return remainingDays / totalDays;
 }
 
 function findColumn(row: Record<string, unknown>, ...possibleNames: string[]): unknown {
@@ -187,6 +227,11 @@ capacidadeRouter.post(
             try {
                 await client.query('BEGIN');
 
+                // Delete ALL previous reservation data to avoid database bloat
+                // Keep upload metadata in planejamento_uploads for auditing
+                const deleteResult = await client.query('DELETE FROM planejamento_reservas');
+                console.log(`[Upload Capacidade] Deletadas ${deleteResult.rowCount} reservas anteriores`);
+
                 // Create upload record
                 const uploadResult = await client.query(`
                     INSERT INTO planejamento_uploads (nome_arquivo, linhas_total, linhas_sucesso, linhas_erro, upload_por_email)
@@ -291,6 +336,65 @@ capacidadeRouter.post(
 );
 
 // =============================================
+// GET /capacidade/resumo/tv - PUBLIC (for TV mode, no auth)
+// =============================================
+
+capacidadeRouter.get(
+    '/capacidade/resumo/tv',
+    async (req: Request, res: Response) => {
+        try {
+            const lastUpload = await pool.query(`
+                SELECT id FROM planejamento_uploads 
+                WHERE ativo = true 
+                ORDER BY criado_em DESC LIMIT 1
+            `);
+            if (lastUpload.rows.length === 0) {
+                return res.json({ items: [], message: 'Nenhum upload encontrado' });
+            }
+            const targetUploadId = lastUpload.rows[0].id;
+
+            const { rows: dados } = await pool.query(`
+                SELECT 
+                    m.id as maquina_id,
+                    m.nome as centro_trabalho,
+                    COALESCE(SUM(pr.horas), 0) as carga_horas,
+                    COALESCE(SUM(CASE WHEN pr.status IN ('Liberado', 'Iniciado') THEN pr.horas ELSE 0 END), 0) as carga_op,
+                    COALESCE(m.capacidade_horas, 0) as capacidade
+                FROM maquinas m
+                LEFT JOIN planejamento_reservas pr ON pr.maquina_id = m.id AND pr.upload_id = $1
+                WHERE m.escopo_planejamento = TRUE
+                GROUP BY m.id, m.nome, m.capacidade_horas
+                ORDER BY m.nome
+            `, [targetUploadId]);
+
+            const capacityRatio = getRemainingCapacityRatio();
+
+            const items: ResumoCapacidade[] = dados.map((d: any) => {
+                const cargaHoras = parseFloat(d.carga_horas) || 0;
+                const cargaOP = parseFloat(d.carga_op) || 0;
+                const capacidade = parseFloat(d.capacidade) || 0;
+                const capacidadeRestante = Math.round(capacidade * capacityRatio * 10) / 10;
+                return {
+                    maquinaId: d.maquina_id,
+                    centroTrabalho: d.centro_trabalho,
+                    cargaHoras,
+                    cargaOP,
+                    capacidade,
+                    capacidadeRestante,
+                    sobrecarga: cargaHoras > capacidade && capacidade > 0,
+                    percentualOcupacao: capacidade > 0 ? Math.round((cargaHoras / capacidade) * 100) : 0,
+                };
+            });
+
+            res.json({ items, uploadId: targetUploadId });
+        } catch (err: any) {
+            console.error('Erro ao buscar resumo TV:', err);
+            res.status(500).json({ error: err.message || 'Erro interno' });
+        }
+    }
+);
+
+// =============================================
 // GET /capacidade/resumo
 // =============================================
 
@@ -328,16 +432,20 @@ capacidadeRouter.get(
                 ORDER BY m.nome
             `, [targetUploadId]);
 
+            const capacityRatio = getRemainingCapacityRatio();
+
             const items: ResumoCapacidade[] = dados.map((d: any) => {
                 const cargaHoras = parseFloat(d.carga_horas) || 0;
                 const cargaOP = parseFloat(d.carga_op) || 0;
                 const capacidade = parseFloat(d.capacidade) || 0;
+                const capacidadeRestante = Math.round(capacidade * capacityRatio * 10) / 10;
                 return {
                     maquinaId: d.maquina_id,
                     centroTrabalho: d.centro_trabalho,
                     cargaHoras,
                     cargaOP,
                     capacidade,
+                    capacidadeRestante,
                     sobrecarga: cargaHoras > capacidade && capacidade > 0,
                     percentualOcupacao: capacidade > 0 ? Math.round((cargaHoras / capacidade) * 100) : 0,
                 };
@@ -362,15 +470,16 @@ capacidadeRouter.get(
         try {
             const { rows } = await pool.query(`
                 SELECT 
-                    id, nome_arquivo AS "nomeArquivo", 
-                    linhas_total AS "linhasTotal", 
-                    linhas_sucesso AS "linhasSucesso",
-                    linhas_erro AS "linhasErro",
-                    ativo,
-                    upload_por_email AS "uploadPorEmail",
-                    criado_em AS "criadoEm"
-                FROM planejamento_uploads
-                ORDER BY criado_em DESC
+                    pu.id, pu.nome_arquivo AS "nomeArquivo", 
+                    pu.linhas_total AS "linhasTotal", 
+                    pu.linhas_sucesso AS "linhasSucesso",
+                    pu.linhas_erro AS "linhasErro",
+                    pu.ativo,
+                    COALESCE(u.nome, pu.upload_por_email) AS "uploadPorNome",
+                    pu.criado_em AS "criadoEm"
+                FROM planejamento_uploads pu
+                LEFT JOIN usuarios u ON u.email = pu.upload_por_email
+                ORDER BY pu.criado_em DESC
                 LIMIT 20
             `);
             res.json({ items: rows });

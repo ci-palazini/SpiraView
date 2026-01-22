@@ -8,8 +8,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
 import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoPage';
-import TvMenuPage from './features/producao/tv/TvMenuPage';
-import TvDashboardPage from './features/producao/tv/TvDashboardPage';
+import TvMenuPage from './features/tv/TvMenuPage';
+import TvDashboardPage from './features/tv/TvDashboardPage';
 
 const AUTH_EVENT = 'auth-user-changed';
 

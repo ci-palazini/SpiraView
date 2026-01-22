@@ -66,6 +66,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
             cargaHoras: Math.round(d.cargaHoras * 10) / 10,
             cargaResto: Math.max(0, Math.round((d.cargaHoras - d.cargaOP) * 10) / 10),
             capacidade: Math.round(d.capacidade * 10) / 10,
+            capacidadeRestante: Math.round(d.capacidadeRestante * 10) / 10,
             sobrecarga: d.sobrecarga,
         }));
     }, [data]);
@@ -102,6 +103,39 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                     {item?.sobrecarga && (
                         <p style={{ color: '#dc2626', fontWeight: 500, marginTop: 8, fontSize: '0.85rem' }}>
                             ⚠️ Centro em sobrecarga!
+                        </p>
+                    )}
+                </div>
+            );
+        }
+        return null;
+    };
+
+    // Tooltip for Chart 1 (Monthly)
+    const MonthlyTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            const item = data.find(d => d.centroTrabalho === label);
+            const overloaded = item && item.cargaOP > item.capacidadeRestante && item.capacidadeRestante > 0;
+            return (
+                <div style={{
+                    background: 'white',
+                    padding: '12px 16px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                }}>
+                    <p style={{ fontWeight: 600, marginBottom: 8, color: '#1e293b' }}>{label}</p>
+                    <p style={{ color: '#3b82f6', margin: '4px 0' }}>
+                        <span style={{ display: 'inline-block', width: 10, height: 10, background: '#3b82f6', borderRadius: 2, marginRight: 8 }}></span>
+                        Carga OP: <strong>{item?.cargaOP.toFixed(1)}h</strong>
+                    </p>
+                    <p style={{ color: '#22c55e', margin: '4px 0' }}>
+                        <span style={{ display: 'inline-block', width: 10, height: 10, background: '#22c55e', borderRadius: 2, marginRight: 8 }}></span>
+                        Cap. Restante: <strong>{item?.capacidadeRestante.toFixed(1)}h</strong>
+                    </p>
+                    {overloaded && (
+                        <p style={{ color: '#dc2626', fontWeight: 500, marginTop: 8, fontSize: '0.85rem' }}>
+                            ⚠️ Carga OP excede capacidade restante!
                         </p>
                     )}
                 </div>
@@ -189,15 +223,70 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                             </div>
                         </div>
 
-                        {/* Chart */}
+                        {/* Chart 1: Análise da Capacidade Mensal vs Plano do Mês */}
                         <div className={styles.chartCard}>
                             <div className={styles.chartHeader}>
                                 <div>
                                     <h2 className={styles.chartTitle}>
-                                        {t('planejamento.chart.title', 'Carga vs Capacidade por Centro de Trabalho')}
+                                        {t('planejamento.chart.monthlyTitle', 'Análise da Capacidade Mensal vs Plano do Mês')}
                                     </h2>
                                     <p className={styles.chartSubtitle}>
-                                        {t('planejamento.chart.subtitle', 'Comparativo com base no último upload')}
+                                        {t('planejamento.chart.monthlySubtitle', 'Carga OP vs Capacidade Restante (proporcional aos dias úteis)')}
+                                    </p>
+                                </div>
+                                <div className={styles.legendContainer}>
+                                    <div className={styles.legendItem}>
+                                        <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
+                                        Carga OP
+                                    </div>
+                                    <div className={styles.legendItem}>
+                                        <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
+                                        Cap. Restante
+                                    </div>
+                                </div>
+                            </div>
+
+                            <ResponsiveContainer width="100%" height={400}>
+                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                    <XAxis
+                                        dataKey="name"
+                                        tick={{ fill: '#64748b', fontSize: 12 }}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={80}
+                                    />
+                                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
+                                    <Tooltip content={<MonthlyTooltip />} />
+                                    <Bar dataKey="cargaOP" name="Carga OP" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                                        <LabelList
+                                            dataKey="cargaOP"
+                                            position="top"
+                                            style={{ fill: '#1e3a8a', fontSize: 11, fontWeight: 600 }}
+                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                        />
+                                    </Bar>
+                                    <Bar dataKey="capacidadeRestante" name="Cap. Restante" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                                        <LabelList
+                                            dataKey="capacidadeRestante"
+                                            position="top"
+                                            style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }}
+                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                        />
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Chart 2: Análise da Capacidade (30 dias) vs Necessidade Total */}
+                        <div className={styles.chartCard}>
+                            <div className={styles.chartHeader}>
+                                <div>
+                                    <h2 className={styles.chartTitle}>
+                                        {t('planejamento.chart.thirtyDayTitle', 'Análise da Capacidade (30 dias) vs Necessidade Total')}
+                                    </h2>
+                                    <p className={styles.chartSubtitle}>
+                                        {t('planejamento.chart.thirtyDaySubtitle', 'Ordem de Venda + IQM')}
                                     </p>
                                 </div>
                                 <div className={styles.legendContainer}>
@@ -216,7 +305,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 </div>
                             </div>
 
-                            <ResponsiveContainer width="100%" height={600}>
+                            <ResponsiveContainer width="100%" height={500}>
                                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                     <XAxis

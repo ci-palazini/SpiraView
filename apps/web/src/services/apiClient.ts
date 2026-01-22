@@ -1597,6 +1597,7 @@ export interface ResumoCapacidade {
     cargaHoras: number;
     cargaOP: number;
     capacidade: number;
+    capacidadeRestante: number;
     sobrecarga: boolean;
     percentualOcupacao: number;
 }
