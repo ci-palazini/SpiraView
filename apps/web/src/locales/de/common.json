@@ -723,9 +723,12 @@
   },
   "layout": {
     "sections": {
+      "maintenance": "Wartung",
       "manageMaintenance": "Wartung verwalten",
       "analytics": "Analysen und KPIs",
-      "managePeople": "Team verwalten"
+      "managePeople": "Team verwalten",
+      "production": "Produktion",
+      "planejamento": "Planung"
     }
   },
   "dashboard": {

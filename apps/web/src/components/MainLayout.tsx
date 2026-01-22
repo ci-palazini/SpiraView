@@ -202,10 +202,12 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     // Auto-expand sidebar group based on current path
     useEffect(() => {
         const path = location.pathname;
+        let targetGroup: string | null = null;
+
         if (path.startsWith('/producao')) {
-            setOpenGroups(prev => ({ ...prev, production: true }));
+            targetGroup = 'production';
         } else if (path.startsWith('/planejamento')) {
-            setOpenGroups(prev => ({ ...prev, planejamento: true }));
+            targetGroup = 'planejamento';
         } else if (
             path.startsWith('/maquinas') ||
             path.startsWith('/historico') ||
@@ -218,7 +220,18 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             path.startsWith('/analise-falhas') ||
             path.startsWith('/causas-raiz')
         ) {
-            setOpenGroups(prev => ({ ...prev, maintenance: true }));
+            targetGroup = 'maintenance';
+        }
+
+        // Accordion: fecha todos e abre apenas o grupo da rota atual
+        if (targetGroup) {
+            setOpenGroups(prev => {
+                const next = Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: k === targetGroup }), {} as Record<string, boolean>);
+                try {
+                    localStorage.setItem(SIDEBAR_GROUPS_KEY, JSON.stringify(next));
+                } catch { /* ignore */ }
+                return next;
+            });
         }
     }, [location.pathname]);
 
@@ -345,7 +358,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Manutenção - usa permissões granulares */}
             {perm.canViewAny(['maquinas', 'chamados_abertos', 'meus_chamados', 'abrir_chamado', 'calendario', 'checklists_diarios', 'historico_chamados', 'estoque', 'movimentacoes', 'analise_falhas', 'causas_raiz']) && (
-                <SidebarGroup id="maintenance" label="Manutenção" icon={FiServer}>
+                <SidebarGroup id="maintenance" label={t('layout.sections.maintenance', 'Manutenção')} icon={FiServer}>
                     {perm.canView('maquinas') && (
                         <NavLink
                             to="/maquinas"

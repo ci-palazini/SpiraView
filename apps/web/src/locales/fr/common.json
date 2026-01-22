@@ -723,6 +723,7 @@
   },
   "layout": {
     "sections": {
+      "maintenance": "Maintenance",
       "manageMaintenance": "Gérer la maintenance",
       "analytics": "Analyses et KPI",
       "managePeople": "Gérer l’équipe"

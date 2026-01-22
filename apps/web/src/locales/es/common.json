@@ -723,9 +723,12 @@
   },
   "layout": {
     "sections": {
+      "maintenance": "Mantenimiento",
       "manageMaintenance": "Gestionar mantenimiento",
       "analytics": "Análisis y KPIs",
-      "managePeople": "Gestionar personal"
+      "managePeople": "Gestionar personal",
+      "production": "Producción",
+      "planejamento": "Planificación"
     }
   },
   "dashboard": {
