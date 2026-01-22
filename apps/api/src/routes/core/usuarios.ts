@@ -6,6 +6,36 @@ import { requirePermission, requireAnyPermission } from '../../middlewares/requi
 
 export const usuariosRouter: Router = Router();
 
+/**
+ * @swagger
+ * /usuarios:
+ *   get:
+ *     summary: List users
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: Filter by single role
+ *       - in: query
+ *         name: roles
+ *         schema:
+ *           type: string
+ *         description: Filter by multiple roles (comma separated)
+ *       - in: query
+ *         name: includeInactive
+ *         schema:
+ *           type: boolean
+ *         description: Include inactive users
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       403:
+ *         $ref: '#/components/schemas/Error'
+ */
 // GET /usuarios - listar usuários (requer 'usuarios:ver' OU 'chamados_gestao:ver' OU 'producao_colaboradores:ver')
 usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gestao', 'producao_colaboradores'], 'ver'), async (req, res) => {
   try {
@@ -75,6 +105,42 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
 });
 
 
+/**
+ * @swagger
+ * /usuarios:
+ *   post:
+ *     summary: Create a new user
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nome, usuario, email, role]
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               usuario:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               funcao:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *               matricula:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created
+ *       400:
+ *         $ref: '#/components/schemas/Error'
+ */
 // POST /usuarios - criar usuário (requer editar)
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async (req, res) => {
   try {

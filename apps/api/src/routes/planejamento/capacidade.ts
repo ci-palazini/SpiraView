@@ -138,6 +138,30 @@ async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
 // Upload de arquivo Excel com reservas - OPTIMIZED FOR 10k+ ROWS
 // =============================================
 
+/**
+ * @swagger
+ * /capacidade/upload:
+ *   post:
+ *     summary: Upload capacity planning data
+ *     tags: [Planejamento]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [rows, nomeArquivo]
+ *             properties:
+ *               nomeArquivo:
+ *                 type: string
+ *               rows:
+ *                 type: array
+ *     responses:
+ *       201:
+ *         description: Upload created
+ */
 capacidadeRouter.post(
     '/capacidade/upload',
     requirePermission('planejamento_upload', 'editar'),

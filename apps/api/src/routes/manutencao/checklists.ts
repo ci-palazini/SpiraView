@@ -5,6 +5,32 @@ import { sseBroadcast } from '../../utils/sse';
 
 export const checklistsRouter: Router = Router();
 
+/**
+ * @swagger
+ * /checklists/daily/submit:
+ *   post:
+ *     summary: Submit a daily checklist
+ *     tags: [Manutencao]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [operadorEmail, maquinaId, respostas]
+ *             properties:
+ *               operadorEmail:
+ *                 type: string
+ *               maquinaId:
+ *                 type: string
+ *               respostas:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Checklist submitted
+ */
 checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
   try {
     const auth = (req as any).user || {};

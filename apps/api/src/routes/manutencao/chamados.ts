@@ -23,6 +23,35 @@ const upload = multer({
   },
 });
 
+/**
+ * @swagger
+ * /chamados:
+ *   get:
+ *     summary: List tickets (Chamados) with filters
+ *     tags: [Manutencao]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: maquinaId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of tickets
+ */
 // ---------- Chamados: lista com filtros + paginação ----------
 chamadosRouter.get("/chamados", async (req, res) => {
   try {

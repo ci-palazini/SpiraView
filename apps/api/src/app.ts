@@ -4,6 +4,7 @@ import cors, { type CorsOptions } from 'cors';
 
 import { userFromHeader } from './middlewares/userFromHeader';
 import { env } from './config/env';
+import { setupSwagger } from './swagger';
 
 // Rotas organizadas por módulo
 import { coreRouter } from './routes/core';
@@ -13,6 +14,8 @@ import { producaoRouter } from './routes/producao';
 import { planejamentoRouter } from './routes/planejamento';
 
 export const app: Express = express(); // 👈 evita o TS2742
+
+setupSwagger(app);
 
 const ALLOW = [...env.cors.allowedOrigins]; // 👈 clona para array mutável
 

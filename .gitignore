@@ -36,6 +36,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# AI Agent context (local only)
+.agent/
+.gemini/
+
 # Web app (artefatos)
 apps/web/dev-dist/
 

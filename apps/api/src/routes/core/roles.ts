@@ -57,6 +57,34 @@ rolesRouter.get('/options', async (_req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /roles:
+ *   get:
+ *     summary: List all roles
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of roles including permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                      type: object
+ *                      properties:
+ *                        id:
+ *                          type: string
+ *                        nome:
+ *                          type: string
+ *       403:
+ *         $ref: '#/components/schemas/Error'
+ */
 // GET /roles - Listar todos os roles (requer ver)
 rolesRouter.get('/', requirePermission('roles', 'ver'), async (_req: Request, res: Response) => {
     try {
@@ -107,6 +135,34 @@ rolesRouter.get('/:id', requirePermission('roles', 'ver'), async (req: Request, 
     }
 });
 
+/**
+ * @swagger
+ * /roles:
+ *   post:
+ *     summary: Create a new role
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nome]
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               descricao:
+ *                 type: string
+ *               permissoes:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Role created successfully
+ *       400:
+ *         $ref: '#/components/schemas/Error'
+ */
 // POST /roles - Criar novo role (requer editar)
 rolesRouter.post('/', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
     try {

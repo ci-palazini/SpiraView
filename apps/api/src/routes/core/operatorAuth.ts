@@ -8,6 +8,18 @@ export const operatorAuthRouter: Router = Router();
  * Lista operadores ativos para seleção no login simplificado ou upload de produção
  * Requer permissão: producao_upload (ver) ou admin
  */
+/**
+ * @swagger
+ * /operators/active:
+ *   get:
+ *     summary: List active operators
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of active operators
+ */
 operatorAuthRouter.get('/operators/active', async (req, res) => {
     try {
         const user = (req as any).user || {};

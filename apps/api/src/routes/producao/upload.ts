@@ -248,6 +248,33 @@ interface RowError {
  * Recebe o Excel já parseado como JSON (array de objetos)
  * Frontend deve usar xlsx para converter o arquivo antes de enviar
  */
+/**
+ * @swagger
+ * /producao/lancamentos/upload:
+ *   post:
+ *     summary: Upload production data (Excel rows)
+ *     tags: [Producao]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [inputRows]
+ *             properties:
+ *               nomeArquivo:
+ *                 type: string
+ *               inputRows:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   description: Row from Excel file
+ *     responses:
+ *       200:
+ *         description: Upload processed
+ */
 uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
     try {
         const auth = (req as any).user || {};
@@ -633,6 +660,24 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
 });
 
 // GET /producao/uploads - Listar histórico de uploads
+/**
+ * @swagger
+ * /producao/uploads:
+ *   get:
+ *     summary: List production uploads history
+ *     tags: [Producao]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dataRef
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: List of uploads
+ */
 uploadRouter.get('/producao/uploads', async (req, res) => {
     try {
         const dataRef = req.query.dataRef as string | undefined;

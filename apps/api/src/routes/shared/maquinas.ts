@@ -6,6 +6,30 @@ import { userFromHeader } from '../../middlewares/userFromHeader';
 
 export const maquinasRouter: Router = Router();
 
+/**
+ * @swagger
+ * /maquinas:
+ *   get:
+ *     summary: List machines
+ *     tags: [Shared]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *       - in: query
+ *         name: escopo
+ *         schema:
+ *           type: string
+ *           enum: [manutencao, producao]
+ *         description: Filter by scope
+ *     responses:
+ *       200:
+ *         description: List of machines
+ */
 maquinasRouter.get("/maquinas", async (req, res) => {
   try {
     const q = (req.query.q as string | undefined)?.trim();

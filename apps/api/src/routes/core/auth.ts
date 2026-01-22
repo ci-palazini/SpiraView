@@ -4,6 +4,41 @@ import { pool } from '../../db';
 
 export const authRouter: Router = Router();
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: User login
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identifier:
+ *                 type: string
+ *                 description: Username or email
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 nome:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials
+ */
 authRouter.post('/auth/login', async (req, res) => {
   try {
     const raw = String(req.body?.identifier || '').trim().toLowerCase();
