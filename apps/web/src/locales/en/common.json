@@ -65,6 +65,16 @@
     "title": "Home Page",
     "welcome": "Welcome back, <1>{{name}}</1>!",
     "quickAccess": "Quick Access",
+    "customize": "Customize",
+    "noShortcuts": "No shortcuts selected.",
+    "addShortcuts": "Add shortcuts",
+    "customizeModal": {
+      "title": "Customize Shortcuts",
+      "subtitle": "Select up to {{max}} shortcuts to display on the home page",
+      "selected": "selected",
+      "save": "Done",
+      "reset": "Reset to defaults"
+    },
     "cards": {
       "machines": {
         "title": "Machines Panel",
@@ -109,6 +119,42 @@
       "openCalls": {
         "title": "Open Tickets",
         "desc": "View all pending work orders."
+      },
+      "dailyChecklists": {
+        "title": "Daily Checklists",
+        "desc": "Track daily status and completion."
+      },
+      "pziniBot": {
+        "title": "Pzini Chatbot",
+        "desc": "Chat with the bot to analyze data."
+      },
+      "productionDashboard": {
+        "title": "Production: Daily View",
+        "desc": "Track targets and production in real-time."
+      },
+      "productionEmployees": {
+        "title": "Production: Employees",
+        "desc": "Individual performance analysis."
+      },
+      "productionUpload": {
+        "title": "Production: Upload",
+        "desc": "Upload production spreadsheets."
+      },
+      "productionConfig": {
+        "title": "Production: Settings",
+        "desc": "Configure targets and machine parameters."
+      },
+      "planningDashboard": {
+        "title": "Planning: Capacity",
+        "desc": "Visualize occupation vs available capacity."
+      },
+      "planningUpload": {
+        "title": "Planning: Upload",
+        "desc": "Upload capacity reservation spreadsheets."
+      },
+      "planningConfig": {
+        "title": "Planning: Config",
+        "desc": "Manage machine hourly capacity."
       }
     }
   },

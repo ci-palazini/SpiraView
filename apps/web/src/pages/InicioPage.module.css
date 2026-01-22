@@ -26,15 +26,21 @@
   font-weight: 600;
 }
 
-/* ==================== CONTENT ==================== */
-.content {
-  padding: 28px;
-  min-height: calc(100vh - 180px);
-  background: linear-gradient(180deg, #f0fdfa 0%, #f1f5f9 100%);
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
-.content h2 {
-  margin: 0 0 24px 0;
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
   font-size: 1.3rem;
   font-weight: 700;
   color: #1e293b;
@@ -43,12 +49,73 @@
   gap: 10px;
 }
 
-.content h2::before {
+.sectionHeader h2::before {
   content: '';
   width: 4px;
   height: 24px;
   background: linear-gradient(180deg, #1e40af, #0891b2);
   border-radius: 2px;
+}
+
+.customizeButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.customizeButton:hover {
+  background: #ffffff;
+  border-color: #1e40af;
+  color: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+}
+
+.customizeButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  border: 2px dashed #cbd5e1;
+}
+
+.emptyState p {
+  color: #64748b;
+  margin: 0 0 16px;
+}
+
+.emptyState button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #1e40af, #0891b2);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ==================== CONTENT ==================== */
+.content {
+  padding: 28px;
+  min-height: calc(100vh - 180px);
+  background: linear-gradient(180deg, #f0fdfa 0%, #f1f5f9 100%);
 }
 
 /* ==================== GRID ==================== */

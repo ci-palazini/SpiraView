@@ -65,6 +65,16 @@
     "title": "Página Inicial",
     "welcome": "Bem-vindo de volta, <1>{{name}}</1>!",
     "quickAccess": "Acesso Rápido",
+    "customize": "Personalizar",
+    "noShortcuts": "Nenhum atalho selecionado.",
+    "addShortcuts": "Adicionar atalhos",
+    "customizeModal": {
+      "title": "Personalizar Atalhos",
+      "subtitle": "Selecione até {{max}} atalhos para exibir na página inicial",
+      "selected": "selecionados",
+      "save": "Concluído",
+      "reset": "Restaurar padrão"
+    },
     "cards": {
       "machines": {
         "title": "Painel de Máquinas",
@@ -109,6 +119,42 @@
       "openCalls": {
         "title": "Chamados Abertos",
         "desc": "Visualize todos os chamados pendentes de conclusão."
+      },
+      "dailyChecklists": {
+        "title": "Checklists Diários",
+        "desc": "Acompanhe o status e preenchimento diário."
+      },
+      "pziniBot": {
+        "title": "Pzini Chatbot",
+        "desc": "Converse com o bot para analisar dados."
+      },
+      "productionDashboard": {
+        "title": "Produção: Visão do Dia",
+        "desc": "Acompanhe as metas e produção em tempo real."
+      },
+      "productionEmployees": {
+        "title": "Produção: Colaboradores",
+        "desc": "Análise de performance individual."
+      },
+      "productionUpload": {
+        "title": "Produção: Upload",
+        "desc": "Faça upload de planilhas de apontamento."
+      },
+      "productionConfig": {
+        "title": "Produção: Configurações",
+        "desc": "Configure metas e parâmetros de máquinas."
+      },
+      "planningDashboard": {
+        "title": "Planejamento: Capacidade",
+        "desc": "Visualiza ocupação vs capacidade disponível."
+      },
+      "planningUpload": {
+        "title": "Planejamento: Upload",
+        "desc": "Importe planilhas de reservas de capacidade."
+      },
+      "planningConfig": {
+        "title": "Planejamento: Config",
+        "desc": "Gerencie capacidade hora/máquina."
       }
     }
   },
