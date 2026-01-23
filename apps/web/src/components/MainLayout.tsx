@@ -23,6 +23,7 @@ import {
     FiChevronDown,
     FiShield,
     FiSettings,
+    FiTv,
 } from 'react-icons/fi';
 import { PiFactoryBold } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -355,6 +356,16 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <span>{t('nav.startShift', 'Início de turno')}</span>
                 </NavLink>
             )}
+
+            <NavLink
+                to="/tv"
+                className={({ isActive }) =>
+                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                }
+            >
+                <FiTv className={styles.navIcon} />
+                <span>{t('nav.tvMode')}</span>
+            </NavLink>
 
             {/* Manutenção - usa permissões granulares */}
             {perm.canViewAny(['maquinas', 'chamados_abertos', 'meus_chamados', 'abrir_chamado', 'calendario', 'checklists_diarios', 'historico_chamados', 'estoque', 'movimentacoes', 'analise_falhas', 'causas_raiz']) && (

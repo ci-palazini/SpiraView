@@ -22,7 +22,8 @@
     "productionEmployees": "Performance",
     "planejamentoDashboard": "Dashboard",
     "planejamentoUpload": "Capacity Upload",
-    "planejamentoConfig": "Configuration"
+    "planejamentoConfig": "Configuration",
+    "tvMode": "TV Mode"
   },
   "status": {
     "open": "Open",

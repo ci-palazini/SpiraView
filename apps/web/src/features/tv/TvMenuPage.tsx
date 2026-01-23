@@ -52,7 +52,7 @@ export default function TvMenuPage() {
 
     return (
         <div className={styles.container}>
-            <button className={styles.backButton} onClick={() => navigate('/login')}>
+            <button className={styles.backButton} onClick={() => navigate('/')}>
                 <FiArrowLeft size={20} />
                 <span>Voltar</span>
             </button>
