@@ -53,10 +53,17 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
     }, [fetchData]);
 
     // Estatísticas
+    // Estatísticas (Segundo Gráfico - Geral)
     const totalCentros = data.length;
     const totalCargaHoras = data.reduce((sum, d) => sum + d.cargaHoras, 0);
     const totalCapacidade = data.reduce((sum, d) => sum + d.capacidade, 0);
     const centrosSobrecarga = data.filter(d => d.sobrecarga).length;
+
+    // Estatísticas (Primeiro Gráfico - Mensal)
+    const totalCargaOP = data.reduce((sum, d) => sum + d.cargaOP, 0);
+    const totalCapacidadeRestante = data.reduce((sum, d) => sum + d.capacidadeRestante, 0);
+    const totalSobrecarga = data.reduce((sum, d) => sum + Math.max(0, d.cargaOP - d.capacidadeRestante), 0);
+    const centrosDeficitMensal = data.filter(d => d.cargaOP > d.capacidadeRestante).length;
 
     // Formatar dados para o gráfico
     const chartData = useMemo(() => {
@@ -184,23 +191,15 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                 ) : (
                     <>
                         {/* Stats */}
+                        {/* New Stats for First Chart */}
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
                                     <FiLayers />
                                 </div>
                                 <div className={styles.statContent}>
-                                    <h3>{totalCentros}</h3>
-                                    <p>{t('planejamento.stats.workCenters', 'Centros de Trabalho')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
-                                    <FiActivity />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCargaHoras.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalLoad', 'Carga Total')}</p>
+                                    <h3>{totalCargaOP.toFixed(0)}h</h3>
+                                    <p>{t('planejamento.stats.totalOpLoad', 'Carga OP Total')}</p>
                                 </div>
                             </div>
                             <div className={styles.statCard}>
@@ -208,8 +207,8 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     <FiCheckCircle />
                                 </div>
                                 <div className={styles.statContent}>
-                                    <h3>{totalCapacidade.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalCapacity', 'Capacidade Total')}</p>
+                                    <h3>{totalCapacidadeRestante.toFixed(0)}h</h3>
+                                    <p>{t('planejamento.stats.totalRemainingCapacity', 'Capacidade Restante')}</p>
                                 </div>
                             </div>
                             <div className={styles.statCard}>
@@ -217,11 +216,21 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     <FiAlertTriangle />
                                 </div>
                                 <div className={styles.statContent}>
-                                    <h3>{centrosSobrecarga}</h3>
-                                    <p>{t('planejamento.stats.overloaded', 'Em Sobrecarga')}</p>
+                                    <h3>{totalSobrecarga.toFixed(0)}h</h3>
+                                    <p>{t('planejamento.stats.totalOverload', 'Sobrecarga Total')}</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
+                                    <FiActivity />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>{centrosDeficitMensal}</h3>
+                                    <p>{t('planejamento.stats.deficitCenters', 'Centros com Déficit')}</p>
                                 </div>
                             </div>
                         </div>
+
 
                         {/* Chart 1: Análise da Capacidade Mensal vs Plano do Mês */}
                         <div className={styles.chartCard}>
@@ -276,6 +285,46 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
+                        </div>
+
+                        {/* Existing Stats (Moved Below First Chart) */}
+                        <div className={styles.statsGrid}>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                    <FiLayers />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>{totalCentros}</h3>
+                                    <p>{t('planejamento.stats.workCenters', 'Centros de Trabalho')}</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
+                                    <FiActivity />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>{totalCargaHoras.toFixed(0)}h</h3>
+                                    <p>{t('planejamento.stats.totalLoad', 'Carga Total')}</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+                                    <FiCheckCircle />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>{totalCapacidade.toFixed(0)}h</h3>
+                                    <p>{t('planejamento.stats.totalCapacity', 'Capacidade Total')}</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconRed}`}>
+                                    <FiAlertTriangle />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>{centrosSobrecarga}</h3>
+                                    <p>{t('planejamento.stats.overloaded', 'Em Sobrecarga')}</p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Chart 2: Análise da Capacidade (30 dias) vs Necessidade Total */}
