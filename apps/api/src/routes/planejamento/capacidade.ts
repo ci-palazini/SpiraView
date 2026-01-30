@@ -74,6 +74,18 @@ function countRemainingBusinessDays(today: Date): number {
     return count;
 }
 
+function countPassedBusinessDays(today: Date): number {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1);
+    let count = 0;
+    // Count from 1st day of month up to today (inclusive)
+    for (let d = new Date(firstDay); d <= today; d.setDate(d.getDate() + 1)) {
+        if (isBusinessDay(d)) count++;
+    }
+    return count;
+}
+
 function getRemainingCapacityRatio(): number {
     const today = new Date();
     const totalDays = countBusinessDaysInMonth(today.getFullYear(), today.getMonth());
@@ -422,6 +434,9 @@ capacidadeRouter.get(
                 ORDER BY m.nome
             `, [targetUploadId]);
 
+            const today = new Date();
+            const totalBusinessDays = countBusinessDaysInMonth(today.getFullYear(), today.getMonth());
+            const passedBusinessDays = countPassedBusinessDays(today);
             const capacityRatio = getRemainingCapacityRatio();
 
             const items: ResumoCapacidade[] = dados.map((d: any) => {
@@ -441,7 +456,14 @@ capacidadeRouter.get(
                 };
             });
 
-            res.json({ items, uploadId: targetUploadId });
+            res.json({
+                items,
+                uploadId: targetUploadId,
+                calculation: {
+                    totalBusinessDays,
+                    passedBusinessDays
+                }
+            });
         } catch (err: any) {
             console.error('Erro ao buscar resumo TV:', err);
             res.status(500).json({ error: err.message || 'Erro interno' });
@@ -461,9 +483,11 @@ capacidadeRouter.get(
             const { uploadId } = req.query;
 
             let targetUploadId = uploadId as string | undefined;
+            let lastUploadDate: string | undefined;
+
             if (!targetUploadId) {
                 const lastUpload = await pool.query(`
-                    SELECT id FROM planejamento_uploads 
+                    SELECT id, criado_em FROM planejamento_uploads 
                     WHERE ativo = true 
                     ORDER BY criado_em DESC LIMIT 1
                 `);
@@ -471,6 +495,13 @@ capacidadeRouter.get(
                     return res.json({ items: [], message: 'Nenhum upload encontrado' });
                 }
                 targetUploadId = lastUpload.rows[0].id;
+                lastUploadDate = lastUpload.rows[0].criado_em;
+            } else {
+                // Fetch created_at for the specific uploadId if provided
+                const specificUpload = await pool.query(`SELECT criado_em FROM planejamento_uploads WHERE id = $1`, [targetUploadId]);
+                if (specificUpload.rows.length > 0) {
+                    lastUploadDate = specificUpload.rows[0].criado_em;
+                }
             }
 
             const { rows: dados } = await pool.query(`
@@ -487,6 +518,10 @@ capacidadeRouter.get(
                 ORDER BY m.nome
             `, [targetUploadId]);
 
+            const today = new Date();
+            const totalBusinessDays = countBusinessDaysInMonth(today.getFullYear(), today.getMonth());
+            const remainingBusinessDays = countRemainingBusinessDays(today);
+            const passedBusinessDays = countPassedBusinessDays(today);
             const capacityRatio = getRemainingCapacityRatio();
 
             const items: ResumoCapacidade[] = dados.map((d: any) => {
@@ -506,7 +541,17 @@ capacidadeRouter.get(
                 };
             });
 
-            res.json({ items, uploadId: targetUploadId });
+            res.json({
+                items,
+                uploadId: targetUploadId,
+                lastUploadDate,
+                calculation: {
+                    totalBusinessDays,
+                    remainingBusinessDays,
+                    passedBusinessDays,
+                    currentDate: new Date().toISOString()
+                }
+            });
         } catch (err: any) {
             console.error('Erro ao buscar resumo:', err);
             res.status(500).json({ error: err.message || 'Erro interno' });

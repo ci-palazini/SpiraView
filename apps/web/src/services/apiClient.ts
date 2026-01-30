@@ -1638,7 +1638,17 @@ export async function uploadCapacidade(rows: Record<string, unknown>[], nomeArqu
 }
 
 // Listar resumo de capacidade por centro de trabalho
-export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string): Promise<{ items: ResumoCapacidade[]; uploadId?: string }> {
+export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string): Promise<{
+    items: ResumoCapacidade[];
+    uploadId?: string;
+    lastUploadDate?: string;
+    calculation?: {
+        totalBusinessDays: number;
+        remainingBusinessDays: number;
+        passedBusinessDays: number;
+        currentDate: string;
+    };
+}> {
     const qs = new URLSearchParams();
     if (uploadId) qs.set('uploadId', uploadId);
     const r = await fetch(`${BASE}/planejamento/capacidade/resumo?${qs}`, {

@@ -81,6 +81,7 @@ function CustomTooltipProducao({ active, payload, label }: any) {
 // ==================== COMPONENT ====================
 export default function SlidePlanejamento({ currentSlide, diasProducao }: SlidePlanejamentoProps) {
     const [capacidadeData, setCapacidadeData] = useState<ResumoCapacidade[]>([]);
+    const [calculation, setCalculation] = useState<{ totalBusinessDays: number; passedBusinessDays: number } | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchCapacidade = useCallback(async () => {
@@ -90,6 +91,9 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
             const r = await fetch(`${BASE}/planejamento/capacidade/resumo/tv`);
             const data = await r.json();
             setCapacidadeData(data.items || []);
+            if (data.calculation) {
+                setCalculation(data.calculation);
+            }
         } catch (err) {
             console.error('Erro ao buscar capacidade TV:', err);
         } finally {
@@ -234,7 +238,14 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
         return (
             <div className={styles.container}>
                 <div className={styles.header}>
-                    <h2 className={styles.title}>Análise da Capacidade Mensal vs Plano do Mês</h2>
+                    <div>
+                        <h2 className={styles.title}>Análise da Capacidade Mensal vs Plano do Mês</h2>
+                        {calculation && (
+                            <p className={styles.subtitle} style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                                Dia Útil: <strong>{calculation.passedBusinessDays} / {calculation.totalBusinessDays}</strong>
+                            </p>
+                        )}
+                    </div>
                     <div className={styles.legend}>
                         <span className={styles.legendItem}>
                             <span className={styles.legendDot} style={{ background: '#3b82f6' }} />

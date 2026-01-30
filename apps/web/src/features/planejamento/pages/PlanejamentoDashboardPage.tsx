@@ -1,7 +1,8 @@
 // apps/web/src/features/planejamento/pages/PlanejamentoDashboardPage.tsx
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FiCalendar, FiUploadCloud, FiAlertTriangle, FiCheckCircle, FiActivity, FiLayers } from 'react-icons/fi';
+import { FiCalendar, FiUploadCloud, FiAlertTriangle, FiCheckCircle, FiActivity, FiLayers, FiClock, FiInfo } from 'react-icons/fi';
+
 import { useTranslation } from 'react-i18next';
 import {
     BarChart,
@@ -34,6 +35,9 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<ResumoCapacidade[]>([]);
     const [uploadId, setUploadId] = useState<string | undefined>(undefined);
+    const [lastUploadDate, setLastUploadDate] = useState<string | undefined>(undefined);
+    const [calculation, setCalculation] = useState<{ totalBusinessDays: number; remainingBusinessDays: number; passedBusinessDays: number; } | undefined>(undefined);
+
 
     const fetchData = useCallback(async () => {
         try {
@@ -41,6 +45,8 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
             const result = await listarResumoCapacidade({ role: user?.role, email: user?.email });
             setData(result.items || []);
             setUploadId(result.uploadId);
+            setLastUploadDate(result.lastUploadDate);
+            setCalculation(result.calculation);
         } catch (err) {
             console.error('Erro ao buscar resumo:', err);
         } finally {
@@ -192,6 +198,39 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                     <>
                         {/* Stats */}
                         {/* New Stats for First Chart */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                    <FiClock />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>
+                                        {lastUploadDate ? new Date(lastUploadDate).toLocaleDateString('pt-BR', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }) : '—'}
+                                    </h3>
+                                    <p>{t('planejamento.stats.lastUpdate', 'Última Atualização')}</p>
+                                </div>
+                            </div>
+                            <div className={styles.statCard}>
+                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                    <FiInfo />
+                                </div>
+                                <div className={styles.statContent}>
+                                    <h3>
+                                        {calculation
+                                            ? `${calculation.passedBusinessDays} / ${calculation.totalBusinessDays} dias`
+                                            : '—'
+                                        }
+                                    </h3>
+                                    <p>{t('planejamento.stats.calculation', 'Dias Úteis (Atual / Total)')}</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
