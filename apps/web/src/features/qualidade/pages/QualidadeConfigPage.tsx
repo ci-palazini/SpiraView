@@ -145,7 +145,7 @@ export default function QualidadeConfigPage() {
         }
     };
 
-    const handleUpdateOrigem = async (id: number, name: string, active: boolean) => {
+    const handleUpdateOrigem = async (id: number, nome: string, ativo: boolean) => {
         try {
             await editarOrigem(id, { nome, ativo });
             toast.success('Origem atualizada!');
@@ -165,7 +165,7 @@ export default function QualidadeConfigPage() {
         }
     };
 
-    const handleUpdateMotivo = async (id: number, name: string, active: boolean) => {
+    const handleUpdateMotivo = async (id: number, nome: string, ativo: boolean) => {
         try {
             await editarMotivo(id, { nome, ativo });
             toast.success('Motivo atualizado!');
