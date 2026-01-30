@@ -1,0 +1,236 @@
+.container {
+    padding: 24px;
+    max-width: 1600px;
+    /* Wider max-width to use meaningful space */
+    margin: 0 auto;
+}
+
+.grid {
+    display: grid;
+    /* Force 2 columns on desktop, wrap on mobile */
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sectionCard {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 400px;
+}
+
+.sectionTitle {
+    margin: 0 0 20px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 12px;
+}
+
+.addItemRow {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s;
+    background: #fff;
+    font-size: 0.95rem;
+}
+
+.input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.editInput {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.95rem;
+}
+
+.primaryBtn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+}
+
+.primaryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 600px;
+    /* Prevent infinite scroll */
+    padding-right: 4px;
+}
+
+/* Custom Scrollbar for list */
+.list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s;
+}
+
+.item:hover {
+    border-color: #e2e8f0;
+    transform: translateX(2px);
+}
+
+.item.inactive {
+    opacity: 0.6;
+    background: #f8fafc;
+    border-style: dashed;
+}
+
+.itemName {
+    font-weight: 500;
+    color: #334155;
+    word-break: break-word;
+    margin-right: 12px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.iconBtn:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+}
+
+.editRow {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    align-items: center;
+    width: 100%;
+}
+
+.loading,
+.empty {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Toggle Switch */
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 22px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input:checked+.slider {
+    background-color: #10b981;
+    /* Green for active */
+}
+
+input:checked+.slider:before {
+    transform: translateX(18px);
+}

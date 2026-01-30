@@ -47,3 +47,9 @@ apps/web/dev-dist/
 buckups banco.txt
 
 *.sql
+
+schema/*
+
+*.csv
+
+*.txt

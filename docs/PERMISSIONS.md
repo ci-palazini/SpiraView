@@ -127,6 +127,14 @@ const MyComponent = () => {
 | `planejamento_upload` | Planejamento | Upload de planilhas Excel | `editar` |
 | `planejamento_config` | Planejamento | Configurações de máquinas | `ver`, `editar` |
 
+
+### Qualidade
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `qualidade_dashboard` | Qualidade | Dashboard de indicadores de refugo | `ver` |
+| `qualidade_lancamento` | Qualidade | Lançamento de novos refugos | `ver`, `editar` |
+
 ---
 
 ## Role Templates (Exemplo)

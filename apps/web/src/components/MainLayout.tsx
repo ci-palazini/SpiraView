@@ -57,6 +57,9 @@ import RolesPage from '../features/configuracoes/pages/RolesPage';
 import PlanejamentoDashboardPage from '../features/planejamento/pages/PlanejamentoDashboardPage';
 import CapacidadeUploadPage from '../features/planejamento/pages/CapacidadeUploadPage';
 import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfigPage';
+import RefugoFormPage from '../features/qualidade/pages/RefugoFormPage';
+import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboardPage';
+import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -98,11 +101,14 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+        const defaults = { maintenance: false, production: false, planejamento: false, quality: false };
         try {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
-            if (saved) return JSON.parse(saved);
+            if (saved) {
+                return { ...defaults, ...JSON.parse(saved) };
+            }
         } catch { /* ignore */ }
-        return { maintenance: false, production: false, planejamento: false };
+        return defaults;
     });
 
     const toggleGroup = (key: string) => {
@@ -209,6 +215,8 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             targetGroup = 'production';
         } else if (path.startsWith('/planejamento')) {
             targetGroup = 'planejamento';
+        } else if (path.startsWith('/qualidade')) {
+            targetGroup = 'quality';
         } else if (
             path.startsWith('/maquinas') ||
             path.startsWith('/historico') ||
@@ -622,38 +630,82 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
                 </SidebarGroup>
+
             )}
 
+            {/* Qualidade - novo departamento */}
+            {
+                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config']) && (
+                    <SidebarGroup id="quality" label={t('layout.sections.quality', 'Qualidade')} icon={FiShield}>
+                        {perm.canView('qualidade_dashboard') && (
+                            <NavLink
+                                to="/qualidade/dashboard"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <LuLayoutDashboard className={styles.navIcon} />
+                                <span>{t('nav.qualityDashboard', 'Dashboard')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('qualidade_lancamento') && (
+                            <NavLink
+                                to="/qualidade/lancamentos"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPlusCircle className={styles.navIcon} />
+                                <span>{t('nav.qualityLaunch', 'Lançamento')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('qualidade_config') && (
+                            <NavLink
+                                to="/qualidade/config"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiSettings className={styles.navIcon} />
+                                <span>{t('nav.qualityConfig', 'Configurações')}</span>
+                            </NavLink>
+                        )}
+                    </SidebarGroup>
+                )
+            }
+
             {/* Administração - usa permissões granulares */}
-            {perm.canViewAny(['usuarios', 'roles']) && (
-                <>
-                    <h3 className={styles.navSectionTitle}>
-                        {t('layout.sections.managePeople', 'Administração')}
-                    </h3>
-                    {perm.canView('usuarios') && (
-                        <NavLink
-                            to="/gerir-utilizadores"
-                            className={({ isActive }) =>
-                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                            }
-                        >
-                            <FiUsers className={styles.navIcon} />
-                            <span>{t('nav.manageUsers')}</span>
-                        </NavLink>
-                    )}
-                    {perm.canView('roles') && (
-                        <NavLink
-                            to="/configuracoes/roles"
-                            className={({ isActive }) =>
-                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                            }
-                        >
-                            <FiShield className={styles.navIcon} />
-                            <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
-                        </NavLink>
-                    )}
-                </>
-            )}
+            {
+                perm.canViewAny(['usuarios', 'roles']) && (
+                    <>
+                        <h3 className={styles.navSectionTitle}>
+                            {t('layout.sections.managePeople', 'Administração')}
+                        </h3>
+                        {perm.canView('usuarios') && (
+                            <NavLink
+                                to="/gerir-utilizadores"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiUsers className={styles.navIcon} />
+                                <span>{t('nav.manageUsers')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('roles') && (
+                            <NavLink
+                                to="/configuracoes/roles"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiShield className={styles.navIcon} />
+                                <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
+                            </NavLink>
+                        )}
+                    </>
+                )
+            }
         </>
     );
 
@@ -879,7 +931,21 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     />
                     <Route
                         path="/planejamento/config"
-                        element={canAccessPage('planejamento_config', <CapacidadeConfigPage user={user} />)}
+                        element={canAccessPage('planejamento_config', <CapacidadeConfigPage />)}
+                    />
+
+                    {/* Rotas Qualidade */}
+                    <Route
+                        path="/qualidade/lancamentos"
+                        element={canAccessPage('qualidade_lancamento', <RefugoFormPage />)}
+                    />
+                    <Route
+                        path="/qualidade/dashboard"
+                        element={canAccessPage('qualidade_dashboard', <QualidadeDashboardPage />)}
+                    />
+                    <Route
+                        path="/qualidade/config"
+                        element={canAccessPage('qualidade_config', <QualidadeConfigPage />)}
                     />
 
 

@@ -31,6 +31,10 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'planejamento_dashboard', nome: 'Dashboard de Planejamento', grupo: 'Planejamento' },
     { key: 'planejamento_upload', nome: 'Upload de Capacidade', grupo: 'Planejamento' },
     { key: 'planejamento_config', nome: 'Configuração de Centros', grupo: 'Planejamento' },
+    // Qualidade
+    { key: 'qualidade_dashboard', nome: 'Dashboard de Qualidade', grupo: 'Qualidade' },
+    { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
+    { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },

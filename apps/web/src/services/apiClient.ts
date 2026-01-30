@@ -130,12 +130,16 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
     return payload as T;
 }
 
-// GET/POST helpers
+// GET/POST/PUT/DELETE helpers
 export const http = {
     get: <T = unknown>(path: string, opts: { params?: Record<string, unknown>; auth?: AuthParams } = {}): Promise<T> =>
         apiFetch<T>(`${path}${toQuery(opts.params)}`, { auth: opts.auth }),
     post: <T = unknown>(path: string, opts: { data?: unknown; auth?: AuthParams } = {}): Promise<T> =>
         apiFetch<T>(path, { method: "POST", body: opts.data, auth: opts.auth }),
+    put: <T = unknown>(path: string, opts: { data?: unknown; auth?: AuthParams } = {}): Promise<T> =>
+        apiFetch<T>(path, { method: "PUT", body: opts.data, auth: opts.auth }),
+    delete: <T = unknown>(path: string, opts: { data?: unknown; auth?: AuthParams } = {}): Promise<T> =>
+        apiFetch<T>(path, { method: "DELETE", body: opts.data, auth: opts.auth }),
 };
 
 // ===== CHAMADOS =====
@@ -1717,5 +1721,37 @@ export async function atualizarMaquinaPlanejamento(
     if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar máquina');
     return data;
 }
+
+// ===== QUALIDADE / CONFIGURAÇÕES =====
+export interface QualidadeOpcao {
+    id: number;
+    nome: string;
+    ativo: boolean;
+}
+
+export async function listarOrigens(): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/origens');
+}
+
+export async function criarOrigem(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/origens', { data: { nome }, auth });
+}
+
+export async function editarOrigem(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.put<QualidadeOpcao>(`/qualidade/origens/${id}`, { data, auth });
+}
+
+export async function listarMotivos(): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/motivos');
+}
+
+export async function criarMotivo(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/motivos', { data: { nome }, auth });
+}
+
+export async function editarMotivo(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.put<QualidadeOpcao>(`/qualidade/motivos/${id}`, { data, auth });
+}
+
 
 

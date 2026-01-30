@@ -233,6 +233,30 @@ Linhas de reserva processadas do Excel.
 | `status` | VARCHAR | Criado, Liberado, Iniciado |
 | `data_programada` | VARCHAR | Data planejada |
 
+
+---
+
+### Qualidade
+
+#### `qualidade_refugos`
+Registros de não-conformidades e refugos.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `data_ocorrencia` | DATE | Data do refugo |
+| `origem_referencia` | VARCHAR | Referência (ex: OP ou NF) |
+| `codigo_item` | VARCHAR | Código do item |
+| `descricao_item` | TEXT | Descrição do item |
+| `motivo_defeito` | TEXT | Motivo da rejeição |
+| `quantidade` | DECIMAL | Quantidade refugada |
+| `custo` | DECIMAL | Custo total do refugo |
+| `setor` | VARCHAR | Setor responsável |
+| `responsavel_nome` | VARCHAR | Nome do responsável (texto) |
+| `numero_ncr` | VARCHAR | Número da NCR |
+| `criado_por_id` | UUID | FK → usuarios.id |
+| `created_at` | TIMESTAMP | Data de lançamento |
+
 ---
 
 ## 3. Convenções

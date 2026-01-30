@@ -23,7 +23,9 @@
     "planejamentoDashboard": "Dashboard",
     "planejamentoUpload": "Upload Capacidade",
     "planejamentoConfig": "Configuração",
-    "tvMode": "Modo TV"
+    "tvMode": "Modo TV",
+    "qualityDashboard": "Dashboard",
+    "qualityLaunch": "Refugo"
   },
   "status": {
     "open": "Aberto",
@@ -780,7 +782,8 @@
       "analytics": "Análises e KPIs",
       "managePeople": "Gerenciar Colaboradores",
       "production": "Produção",
-      "planejamento": "Planejamento"
+      "planejamento": "Planejamento",
+      "quality": "Qualidade"
     }
   },
   "dashboard": {
@@ -1165,5 +1168,23 @@
     "subtitle": "Gerencie o planejamento da planta",
     "emConstrucao": "Módulo em Construção",
     "emConstrucaoDesc": "O departamento de Planejamento está sendo configurado. Em breve novas funcionalidades estarão disponíveis."
+  },
+  "quality": {
+    "newScrap": "Novo Lançamento de Refugo",
+    "success": "Lançamento realizado com sucesso!",
+    "error": "Erro ao salvar lançamento.",
+    "sector": "Setor",
+    "reference": "Referência (OP)",
+    "ncr": "NCR",
+    "itemCode": "Código Item",
+    "itemDesc": "Descrição Item",
+    "defectReason": "Motivo Defeito",
+    "quantity": "Quantidade",
+    "cost": "Custo Total (R$)",
+    "responsible": "Responsável",
+    "dashboard": "Dashboard de Qualidade",
+    "totalCost": "Custo Total de Refugo",
+    "topDefects": "Top Defeitos (por Custo)",
+    "costBySector": "Custo por Setor"
   }
 }
