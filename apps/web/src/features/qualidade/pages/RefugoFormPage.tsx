@@ -675,7 +675,8 @@ export default function RefugoFormPage() {
                                         <tr>
                                             <th>{t('common.date', 'Data')}</th>
                                             <th>{t('quality.origin', 'Origem')}</th>
-                                            <th>{t('quality.ncr', 'OP')}</th>
+                                            <th>{t('quality.reference', 'OP')}</th>
+                                            <th>{t('quality.ncr', 'NCR')}</th>
                                             <th>{t('quality.itemCode', 'Item')}</th>
                                             <th>{t('quality.quantity', 'Qtd')}</th>
                                             <th>{t('quality.cost', 'Custo')}</th>
@@ -690,6 +691,7 @@ export default function RefugoFormPage() {
                                                 <td>{new Date(item.data_ocorrencia).toLocaleDateString()}</td>
                                                 <td>{item.origem}</td>
                                                 <td>{item.origem_referencia}</td>
+                                                <td>{item.numero_ncr}</td>
                                                 <td>
                                                     <div style={{ fontWeight: 600, color: '#1e293b' }}>{item.codigo_item}</div>
                                                     <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.descricao_item}</div>
