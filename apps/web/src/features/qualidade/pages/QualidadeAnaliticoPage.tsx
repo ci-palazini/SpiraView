@@ -42,9 +42,19 @@ import {
 } from '../../../services/apiClient';
 import toast from 'react-hot-toast';
 import PageHeader from '../../../shared/components/PageHeader';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { FiLock } from 'react-icons/fi';
+import { Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function QualidadeAnaliticoPage() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
+    // Obter usuário do localStorage (padrao do app)
+    const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+    const { canView } = usePermissions(user);
+
     const [loading, setLoading] = useState(false);
 
     // Filters
@@ -98,6 +108,36 @@ export default function QualidadeAnaliticoPage() {
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
     };
+
+    if (!canView('qualidade_analitico')) {
+        return (
+            <Box sx={{
+                p: 5,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '70vh',
+                textAlign: 'center'
+            }}>
+                <FiLock size={64} color="#64748b" style={{ marginBottom: 20 }} />
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    Acesso Negado
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 400 }}>
+                    Você não tem permissão para visualizar a Análise Detalhada da Qualidade.
+                    Entre em contato com o administrador para solicitar acesso.
+                </Typography>
+                <Button
+                    variant="contained"
+                    onClick={() => navigate('/')}
+                    sx={{ borderRadius: 2, px: 4 }}
+                >
+                    Voltar para o Início
+                </Button>
+            </Box>
+        );
+    }
 
     return (
         <>

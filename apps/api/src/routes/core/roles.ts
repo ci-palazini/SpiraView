@@ -34,6 +34,7 @@ const PAGINAS_DISPONIVEIS = [
     // Qualidade
     { key: 'qualidade_dashboard', nome: 'Dashboard de Qualidade', grupo: 'Qualidade' },
     { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
+    { key: 'qualidade_analitico', nome: 'Análise Detalhada', grupo: 'Qualidade' },
     { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
