@@ -1761,6 +1761,14 @@ export async function editarResponsavel(id: number, data: { nome?: string; ativo
     return http.put<QualidadeOpcao>(`/qualidade/responsaveis/${id}`, { data, auth });
 }
 
+export async function getResponsavelUsage(id: number): Promise<{ count: number }> {
+    return http.get<{ count: number }>(`/qualidade/responsaveis/${id}/usage`);
+}
+
+export async function deletarResponsavel(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
+    return http.delete(`/qualidade/responsaveis/${id}`, { data: { transferToId }, auth });
+}
+
 // ===== QUALITY ANALYTICS =====
 export interface QualityAnalyticSummary {
     totalCost: number;
