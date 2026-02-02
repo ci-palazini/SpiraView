@@ -7,7 +7,7 @@ export const analyticsRouter: Router = Router();
 // Helper to build WHERE clause
 const buildWhere = (params: any[], query: any) => {
     let where = '1=1';
-    const { dataInicio, dataFim, origem, responsavel } = query;
+    const { dataInicio, dataFim, origem, responsavel, tipo } = query;
 
     if (dataInicio) {
         params.push(dataInicio);
@@ -25,12 +25,16 @@ const buildWhere = (params: any[], query: any) => {
         params.push(responsavel);
         where += ` AND responsavel_nome = $${params.length}`;
     }
+    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+        params.push(tipo);
+        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
+    }
     return where;
 };
 
 const buildBaseWhere = (params: any[], query: any) => {
     let where = '1=1';
-    const { origem, responsavel } = query;
+    const { origem, responsavel, tipo } = query;
     if (origem) {
         params.push(origem);
         where += ` AND origem = $${params.length}`;
@@ -38,6 +42,10 @@ const buildBaseWhere = (params: any[], query: any) => {
     if (responsavel) {
         params.push(responsavel);
         where += ` AND responsavel_nome = $${params.length}`;
+    }
+    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+        params.push(tipo);
+        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
     }
     return where;
 };
@@ -48,11 +56,34 @@ analyticsRouter.get('/qualidade/analytics/responsaveis',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
+            const params: any[] = [];
+            const { tipo, dataInicio, dataFim, origem } = req.query;
+
+            let where = 'responsavel_nome IS NOT NULL AND responsavel_nome != \'\'';
+
+            if (dataInicio) {
+                params.push(dataInicio);
+                where += ` AND data_ocorrencia >= $${params.length}`;
+            }
+            if (dataFim) {
+                params.push(dataFim);
+                where += ` AND data_ocorrencia <= $${params.length}`;
+            }
+            if (origem) {
+                params.push(origem);
+                where += ` AND origem = $${params.length}`;
+            }
+            if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+                params.push(tipo);
+                where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
+            }
+
             const query = await pool.query(
                 `SELECT DISTINCT responsavel_nome 
                  FROM qualidade_refugos 
-                 WHERE responsavel_nome IS NOT NULL AND responsavel_nome != ''
-                 ORDER BY responsavel_nome ASC`
+                 WHERE ${where}
+                 ORDER BY responsavel_nome ASC`,
+                params
             );
             res.json({
                 items: query.rows.map(r => r.responsavel_nome)

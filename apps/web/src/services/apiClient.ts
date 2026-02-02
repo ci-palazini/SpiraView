@@ -1723,17 +1723,18 @@ export interface QualidadeOpcao {
     id: number;
     nome: string;
     ativo: boolean;
+    tipo?: 'INTERNO' | 'EXTERNO';
 }
 
-export async function listarOrigens(todos = false): Promise<QualidadeOpcao[]> {
-    return http.get<QualidadeOpcao[]>('/qualidade/origens', { params: { todos } });
+export async function listarOrigens(todos = false, tipo?: string): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/origens', { params: { todos, tipo } });
 }
 
-export async function criarOrigem(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
-    return http.post<QualidadeOpcao>('/qualidade/origens', { data: { nome }, auth });
+export async function criarOrigem(nome: string, tipo: 'INTERNO' | 'EXTERNO' = 'EXTERNO', auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/origens', { data: { nome, tipo }, auth });
 }
 
-export async function editarOrigem(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+export async function editarOrigem(id: number, data: { nome?: string; ativo?: boolean; tipo?: 'INTERNO' | 'EXTERNO' }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
     return http.put<QualidadeOpcao>(`/qualidade/origens/${id}`, { data, auth });
 }
 
@@ -1769,6 +1770,22 @@ export async function deletarResponsavel(id: number, transferToId?: number, auth
     return http.delete(`/qualidade/responsaveis/${id}`, { data: { transferToId }, auth });
 }
 
+export async function getOrigemUsage(id: number): Promise<{ count: number }> {
+    return http.get<{ count: number }>(`/qualidade/origens/${id}/usage`);
+}
+
+export async function deletarOrigem(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
+    return http.delete(`/qualidade/origens/${id}`, { data: { transferToId }, auth });
+}
+
+export async function getMotivoUsage(id: number): Promise<{ count: number }> {
+    return http.get<{ count: number }>(`/qualidade/motivos/${id}/usage`);
+}
+
+export async function deletarMotivo(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
+    return http.delete(`/qualidade/motivos/${id}`, { data: { transferToId }, auth });
+}
+
 // ===== QUALITY ANALYTICS =====
 export interface QualityAnalyticSummary {
     totalCost: number;
@@ -1789,23 +1806,23 @@ export interface QualityAnalyticDetail {
     lastOccurrence: string;
 }
 
-export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
+export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
     const res = await http.get<QualityAnalyticSummary>(`/qualidade/analytics/summary`, { params, auth });
     return res;
 }
 
-export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
+export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
     const res = await http.get<{ trends: QualityAnalyticTrend[] }>(`/qualidade/analytics/trends`, { params, auth });
     return res;
 }
 
-export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
+export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
     const res = await http.get<{ items: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
     return res;
 }
 
-export async function listarResponsaveis(auth: AuthParams = {}): Promise<string[]> {
-    const res = await http.get<{ items: string[] }>(`/qualidade/analytics/responsaveis`, { auth });
+export async function listarResponsaveis(params: { dataInicio?: string; dataFim?: string; origem?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<string[]> {
+    const res = await http.get<{ items: string[] }>(`/qualidade/analytics/responsaveis`, { params, auth });
     return res.items || [];
 }
 

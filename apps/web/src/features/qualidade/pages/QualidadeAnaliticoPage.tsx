@@ -38,7 +38,9 @@ import {
     QualityAnalyticSummary,
     QualityAnalyticTrend,
     QualityAnalyticDetail,
-    listarResponsaveis
+    listarResponsaveis,
+    listarOrigens,
+    QualidadeOpcao
 } from '../../../services/apiClient';
 import toast from 'react-hot-toast';
 import PageHeader from '../../../shared/components/PageHeader';
@@ -59,7 +61,10 @@ export default function QualidadeAnaliticoPage() {
 
     // Filters
     const [responsavel, setResponsavel] = useState('');
+    const [tipo, setTipo] = useState('');
+    const [origem, setOrigem] = useState('');
     const [responsavelOpts, setResponsavelOpts] = useState<string[]>([]);
+    const [origemOpts, setOrigemOpts] = useState<QualidadeOpcao[]>([]);
 
     // Data
     const [summary, setSummary] = useState<QualityAnalyticSummary | null>(null);
@@ -67,17 +72,44 @@ export default function QualidadeAnaliticoPage() {
     const [details, setDetails] = useState<QualityAnalyticDetail[]>([]);
 
     useEffect(() => {
-        loadFilters();
-    }, []);
+        loadOrigins(tipo);
+        loadResponsibles(tipo, origem);
+    }, [tipo]);
+
+    useEffect(() => {
+        loadResponsibles(tipo, origem);
+    }, [origem]);
 
     useEffect(() => {
         fetchData();
-    }, [responsavel]);
+    }, [responsavel, tipo, origem]);
 
-    const loadFilters = async () => {
+    const loadOrigins = async (tOrigem?: string) => {
         try {
-            const data = await listarResponsaveis();
+            const data = await listarOrigens(false, tOrigem || undefined);
+            setOrigemOpts(data);
+
+            // If current selected origin is not in the new list, reset it
+            if (origem && !data.find(o => o.nome === origem)) {
+                setOrigem('');
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const loadResponsibles = async (tOrigem?: string, oNome?: string) => {
+        try {
+            const data = await listarResponsaveis({
+                tipo: tOrigem || undefined,
+                origem: oNome || undefined
+            });
             setResponsavelOpts(data);
+
+            // If current selected responsible is not in the new list, reset it
+            if (responsavel && !data.includes(responsavel)) {
+                setResponsavel('');
+            }
         } catch (error) {
             console.error(error);
         }
@@ -86,7 +118,11 @@ export default function QualidadeAnaliticoPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const params = { responsavel: responsavel || undefined };
+            const params = {
+                responsavel: responsavel || undefined,
+                tipo: tipo || undefined,
+                origem: origem || undefined
+            };
 
             const [sumRes, trendRes, detRes] = await Promise.all([
                 getQualityAnalyticsSummary(params),
@@ -122,18 +158,17 @@ export default function QualidadeAnaliticoPage() {
             }}>
                 <FiLock size={64} color="#64748b" style={{ marginBottom: 20 }} />
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Acesso Negado
+                    {t('qualityAnalytics.accessDenied', 'Acesso Negado')}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 400 }}>
-                    Você não tem permissão para visualizar a Análise Detalhada da Qualidade.
-                    Entre em contato com o administrador para solicitar acesso.
+                    {t('qualityAnalytics.accessDeniedMsg', 'Você não tem permissão para visualizar a Análise Detalhada da Qualidade. Entre em contato com o administrador para solicitar acesso.')}
                 </Typography>
                 <Button
                     variant="contained"
                     onClick={() => navigate('/')}
                     sx={{ borderRadius: 2, px: 4 }}
                 >
-                    Voltar para o Início
+                    {t('qualityAnalytics.backToStart', 'Voltar para o Início')}
                 </Button>
             </Box>
         );
@@ -145,7 +180,34 @@ export default function QualidadeAnaliticoPage() {
                 title={t('qualityAnalytics.title', 'Análise Detalhada')}
                 subtitle={t('qualityAnalytics.subtitle', 'Visão aprofundada de custos e refugos')}
                 actions={
-                    <Box sx={{ minWidth: 250 }}>
+                    <Box sx={{ display: 'flex', gap: 2, minWidth: 700 }}>
+                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                            <InputLabel>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}</InputLabel>
+                            <Select
+                                value={tipo}
+                                label={t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}
+                                onChange={(e) => setTipo(e.target.value)}
+                            >
+                                <MenuItem value=""><em>{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</em></MenuItem>
+                                <MenuItem value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</MenuItem>
+                                <MenuItem value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                            <InputLabel>{t('qualityAnalytics.filterOrigin', 'Origem')}</InputLabel>
+                            <Select
+                                value={origem}
+                                label={t('qualityAnalytics.filterOrigin', 'Origem')}
+                                onChange={(e) => setOrigem(e.target.value)}
+                            >
+                                <MenuItem value=""><em>{t('qualityAnalytics.all', 'Todas')}</em></MenuItem>
+                                {origemOpts.map(opt => (
+                                    <MenuItem key={opt.id} value={opt.nome}>{opt.nome}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                         <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
                             <InputLabel>{t('qualityAnalytics.filterResponsible', 'Filtrar por Responsável')}</InputLabel>
                             <Select
@@ -153,7 +215,7 @@ export default function QualidadeAnaliticoPage() {
                                 label={t('qualityAnalytics.filterResponsible', 'Filtrar por Responsável')}
                                 onChange={(e) => setResponsavel(e.target.value)}
                             >
-                                <MenuItem value=""><em>Todas</em></MenuItem>
+                                <MenuItem value=""><em>{t('qualityAnalytics.all', 'Todas')}</em></MenuItem>
                                 {responsavelOpts.map(opt => (
                                     <MenuItem key={opt} value={opt}>{opt}</MenuItem>
                                 ))}

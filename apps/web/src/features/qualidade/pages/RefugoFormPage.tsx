@@ -96,7 +96,7 @@ export default function RefugoFormPage() {
             setResponsaveisList(responsaveis);
         } catch (err) {
             console.error('Failed to fetch options', err);
-            toast.error('Erro ao carregar opções (Origens/Motivos).');
+            toast.error(t('quality.config.loadError', 'Erro ao carregar opções (Origens/Motivos).'));
         }
     };
 
@@ -130,19 +130,19 @@ export default function RefugoFormPage() {
                 setUploadResult(summary);
 
                 if (summary.sucesso > 0) {
-                    toast.success(`${summary.sucesso} registros importados!`);
+                    toast.success(t('quality.refugo.importSuccessMsg', { count: summary.sucesso, defaultValue: `${summary.sucesso} registros importados!` }));
                     fetchRecentEntries(1); // Refresh list
                 } else if (summary.erro > 0) {
-                    toast.error('Houve erros na importação. Verifique os detalhes.');
+                    toast.error(t('quality.refugo.importPartialMsg', 'Houve erros na importação. Verifique os detalhes.'));
                 } else if (summary.ignorado > 0) {
-                    toast('Alguns itens foram ignorados (duplicados).', { icon: '⚠️' });
+                    toast(t('quality.refugo.importIgnoredMsg', 'Alguns itens foram ignorados (duplicados).'), { icon: '⚠️' });
                 } else {
-                    toast.error('Nenhum registro foi importado. Verifique o formato do arquivo.');
+                    toast.error(t('quality.refugo.importEmptyMsg', 'Nenhum registro foi importado. Verifique o formato do arquivo.'));
                 }
             }
         } catch (err: any) {
             console.error(err);
-            toast.error('Erro ao processar: ' + err.message);
+            toast.error(t('quality.refugo.processError', { message: err.message, defaultValue: 'Erro ao processar: ' + err.message }));
         } finally {
             setImporting(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -169,7 +169,7 @@ export default function RefugoFormPage() {
 
                 console.log('Excel Data:', data);
                 if (data.length === 0) {
-                    toast.error('Arquivo vazio ou formato inválido');
+                    toast.error(t('quality.refugo.emptyFileError', 'Arquivo vazio ou formato inválido'));
                     setImporting(false);
                     return;
                 }
@@ -230,7 +230,7 @@ export default function RefugoFormPage() {
                 console.log('Filtered Items:', items);
 
                 if (items.length === 0) {
-                    toast.error('Nenhum registro válido encontrado. Verifique se as colunas obrigatórias (Data, Origem, Item, Motivo, Qtd, Custo) estão presentes e preenchidas.');
+                    toast.error(t('quality.refugo.invalidFormatError', 'Nenhum registro válido encontrado. Verifique se as colunas obrigatórias (Data, Origem, Item, Motivo, Qtd, Custo) estão presentes e preenchidas.'));
                     setImporting(false);
                     return;
                 }
@@ -282,7 +282,7 @@ export default function RefugoFormPage() {
     const handleReconciliationConfirm = async (actions: ReconciliationActions) => {
         setReconciliationData(null);
         setImporting(true);
-        const toastId = toast.loading('Processando ajustes...');
+        const toastId = toast.loading(t('quality.refugo.processingAdjustments', 'Processando ajustes...'));
 
         try {
             // 1. Create new items
@@ -336,7 +336,7 @@ export default function RefugoFormPage() {
 
         } catch (e) {
             console.error(e);
-            toast.error('Erro ao criar novos itens.', { id: toastId });
+            toast.error(t('quality.refugo.createAdjustmentsError', 'Erro ao criar novos itens.'), { id: toastId });
             setImporting(false);
         }
     };
@@ -368,14 +368,14 @@ export default function RefugoFormPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este lançamento?')) return;
+        if (!window.confirm(t('quality.refugo.confirmDelete', 'Tem certeza que deseja excluir este lançamento?'))) return;
         try {
             await http.delete(`/qualidade/refugos/${id}`);
-            toast.success('Lançamento excluído.');
+            toast.success(t('quality.refugo.deleteSuccess', 'Lançamento excluído.'));
             fetchRecentEntries();
         } catch (err: any) {
             console.error(err);
-            toast.error('Erro ao excluir.');
+            toast.error(t('quality.refugo.deleteError', 'Erro ao excluir.'));
         }
     };
 
@@ -391,7 +391,7 @@ export default function RefugoFormPage() {
 
             if (editingId) {
                 await http.put(`/qualidade/refugos/${editingId}`, { data: payload });
-                toast.success('Lançamento atualizado!');
+                toast.success(t('quality.refugo.updateSuccess', 'Lançamento atualizado!'));
             } else {
                 await http.post('/qualidade/refugos', { data: payload });
                 toast.success(t('quality.success', 'Lançamento realizado com sucesso!'));
@@ -410,7 +410,7 @@ export default function RefugoFormPage() {
     return (
         <>
             <PageHeader
-                title={editingId ? 'Editar Lançamento' : t('quality.newScrap', 'Refugo')}
+                title={editingId ? t('quality.refugo.editTitle', 'Editar Lançamento') : t('quality.newScrap', 'Refugo')}
                 subtitle={t('quality.formSubtitle', 'Registre as não-conformidades e refugos identificados no processo.')}
                 actions={
                     <button
@@ -421,7 +421,7 @@ export default function RefugoFormPage() {
                         }}
                     >
                         {uploadMode ? <FiX /> : <FiUploadCloud />}
-                        {uploadMode ? 'Cancelar Upload' : 'Importar Excel'}
+                        {uploadMode ? t('quality.refugo.cancelUpload', 'Cancelar Upload') : t('quality.refugo.importExcel', 'Importar Excel')}
                     </button>
                 }
             />
@@ -444,8 +444,8 @@ export default function RefugoFormPage() {
                         <div className={styles.uploadCard}>
                             <div className={styles.uploadHeader}>
                                 <FiFile size={48} color="#9ca3af" style={{ marginBottom: 16 }} />
-                                <h3 className={styles.textLg}>Importar planilha de Refugos</h3>
-                                <p className={styles.textSm}>Selecione um arquivo .xlsx com as colunas: Data, Origem, Item, Qtd, Custo...</p>
+                                <h3 className={styles.textLg}>{t('quality.refugo.importTitle', 'Importar planilha de Refugos')}</h3>
+                                <p className={styles.textSm}>{t('quality.refugo.importHelp', 'Selecione um arquivo .xlsx com as colunas: Data, Origem, Item, Qtd, Custo...')}</p>
                             </div>
 
                             <div className={styles.uploadActions}>
@@ -461,7 +461,7 @@ export default function RefugoFormPage() {
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={importing}
                                 >
-                                    {importing ? 'Importando...' : 'Selecionar Arquivo'}
+                                    {importing ? t('quality.refugo.importing', 'Importando...') : t('quality.refugo.selectFile', 'Selecionar Arquivo')}
                                 </button>
                             </div>
 
@@ -470,26 +470,26 @@ export default function RefugoFormPage() {
                                     <div className={styles.resultHeader}>
                                         <h3 className={styles.resultTitle}>
                                             {uploadResult.erro === 0 ? (
-                                                <><FiCheck style={{ verticalAlign: 'middle', marginRight: 8 }} /> Importação Concluída</>
+                                                <><FiCheck style={{ verticalAlign: 'middle', marginRight: 8 }} /> {t('quality.refugo.importSuccess', 'Importação Concluída')}</>
                                             ) : (
-                                                <><div style={{ color: '#dc2626', display: 'flex', alignItems: 'center' }}><FiX style={{ verticalAlign: 'middle', marginRight: 8 }} /> Importação com Erros</div></>
+                                                <><div style={{ color: '#dc2626', display: 'flex', alignItems: 'center' }}><FiX style={{ verticalAlign: 'middle', marginRight: 8 }} /> {t('quality.refugo.importError', 'Importação com Erros')}</div></>
                                             )}
                                         </h3>
                                         <button
                                             className={styles.closeBtn}
                                             onClick={() => setUploadResult(null)}
-                                            title="Fechar"
+                                            title={t('common.close', 'Fechar')}
                                         >
                                             <FiX />
                                         </button>
                                     </div>
                                     <ul className={styles.resultList}>
-                                        <li><strong>Registros importados:</strong> {uploadResult.sucesso}</li>
+                                        <li><strong>{t('quality.refugo.importedCount', 'Registros importados:')}</strong> {uploadResult.sucesso}</li>
                                         {uploadResult.ignorado > 0 && (
-                                            <li><strong>Registros ignorados (duplicados):</strong> {uploadResult.ignorado}</li>
+                                            <li><strong>{t('quality.refugo.ignoredCount', 'Registros ignorados (duplicados):')}</strong> {uploadResult.ignorado}</li>
                                         )}
                                         {uploadResult.erro > 0 && (
-                                            <li><strong>Linhas com erro:</strong> {uploadResult.erro}</li>
+                                            <li><strong>{t('quality.refugo.errorLinesCount', 'Linhas com erro:')}</strong> {uploadResult.erro}</li>
                                         )}
                                     </ul>
 
@@ -509,11 +509,11 @@ export default function RefugoFormPage() {
                         <div className={styles.formCard}>
                             <div className={styles.cardHeader}>
                                 <h3 className={styles.cardTitle}>
-                                    {editingId ? 'Editando Registro' : 'Novo Registro'}
+                                    {editingId ? t('quality.refugo.editing', 'Editando Registro') : t('quality.refugo.new', 'Novo Registro')}
                                 </h3>
                                 {editingId && (
                                     <button className={styles.secondaryBtn} onClick={handleCancelEdit} style={{ fontSize: '0.8rem', padding: '4px 12px', height: 'auto' }}>
-                                        Cancelar Edição
+                                        {t('quality.refugo.cancelEdit', 'Cancelar Edição')}
                                     </button>
                                 )}
                             </div>
@@ -655,7 +655,7 @@ export default function RefugoFormPage() {
                                         disabled={loading}
                                     >
                                         <FiSave size={18} />
-                                        {loading ? t('common.saving', 'Salvando...') : (editingId ? 'Atualizar Lançamento' : t('common.save', 'Salvar Lançamento'))}
+                                        {loading ? t('common.saving', 'Salvando...') : (editingId ? t('quality.refugo.updateBtn', 'Atualizar Lançamento') : t('common.save', 'Salvar Lançamento'))}
                                     </button>
                                 </div>
                             </form>
@@ -664,24 +664,24 @@ export default function RefugoFormPage() {
 
                     <div className={styles.tableCard}>
                         <div className={styles.cardHeader}>
-                            <h3 className={styles.cardTitle}>Últimos Lançamentos</h3>
+                            <h3 className={styles.cardTitle}>{t('quality.refugo.recentEntries', 'Últimos Lançamentos')}</h3>
                         </div>
                         {recentEntries.length === 0 ? (
-                            <div className={styles.emptyState}>Nenhum registro encontrado recentemante.</div>
+                            <div className={styles.emptyState}>{t('quality.refugo.noEntries', 'Nenhum registro encontrado recentemente.')}</div>
                         ) : (
                             <div className={styles.tableContainer}>
                                 <table className={styles.table}>
                                     <thead>
                                         <tr>
-                                            <th>Data</th>
-                                            <th>Origem</th>
-                                            <th>OP</th>
-                                            <th>Item</th>
-                                            <th>Qtd</th>
-                                            <th>Custo</th>
-                                            <th>Motivo</th>
-                                            <th>Responsável</th>
-                                            <th style={{ textAlign: 'center' }}>Ações</th>
+                                            <th>{t('common.date', 'Data')}</th>
+                                            <th>{t('quality.origin', 'Origem')}</th>
+                                            <th>{t('quality.ncr', 'OP')}</th>
+                                            <th>{t('quality.itemCode', 'Item')}</th>
+                                            <th>{t('quality.quantity', 'Qtd')}</th>
+                                            <th>{t('quality.cost', 'Custo')}</th>
+                                            <th>{t('quality.defectReason', 'Motivo')}</th>
+                                            <th>{t('quality.responsible', 'Responsável')}</th>
+                                            <th style={{ textAlign: 'center' }}>{t('common.actions', 'Ações')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -709,14 +709,14 @@ export default function RefugoFormPage() {
                                                         <button
                                                             className={`${styles.actionBtn} ${styles.editBtn}`}
                                                             onClick={() => handleEdit(item)}
-                                                            title="Editar"
+                                                            title={t('quality.config.edit', 'Editar')}
                                                         >
                                                             <FiEdit2 size={16} />
                                                         </button>
                                                         <button
                                                             className={`${styles.actionBtn} ${styles.deleteBtn}`}
                                                             onClick={() => handleDelete(item.id)}
-                                                            title="Excluir"
+                                                            title={t('quality.config.delete', 'Excluir')}
                                                         >
                                                             <FiTrash2 size={16} />
                                                         </button>
@@ -738,7 +738,7 @@ export default function RefugoFormPage() {
                                 <button
                                     className={styles.pageBtn}
                                     onClick={() => setPage(1)}
-                                    title="Primeira Página"
+                                    title={t('common.firstPage', 'Primeira Página')}
                                 >
                                     <FiChevronsLeft size={18} />
                                 </button>
@@ -748,7 +748,7 @@ export default function RefugoFormPage() {
                                 className={styles.pageBtn}
                                 disabled={page === 1}
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                                title="Página Anterior"
+                                title={t('common.prevPage', 'Página Anterior')}
                             >
                                 <FiChevronLeft size={18} />
                             </button>
@@ -781,7 +781,7 @@ export default function RefugoFormPage() {
                                 className={styles.pageBtn}
                                 disabled={page === totalPages}
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                title="Próxima Página"
+                                title={t('common.nextPage', 'Próxima Página')}
                             >
                                 <FiChevronRight size={18} />
                             </button>
@@ -791,7 +791,7 @@ export default function RefugoFormPage() {
                                 <button
                                     className={styles.pageBtn}
                                     onClick={() => setPage(totalPages)}
-                                    title="Última Página"
+                                    title={t('common.lastPage', 'Última Página')}
                                 >
                                     <FiChevronsRight size={18} />
                                 </button>

@@ -13,6 +13,7 @@ refugosRouter.get('/qualidade/refugos',
             const dataInicio = req.query.dataInicio as string;
             const dataFim = req.query.dataFim as string;
             const origem = req.query.origem as string;
+            const tipo = req.query.tipo as string;
 
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 50;
@@ -32,6 +33,10 @@ refugosRouter.get('/qualidade/refugos',
             if (origem) {
                 params.push(origem);
                 where += ` AND qr.origem = $${params.length}`;
+            }
+            if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+                params.push(tipo);
+                where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qr.origem AND qo.tipo = $${params.length})`;
             }
 
             // Count total
@@ -185,6 +190,8 @@ refugosRouter.get('/qualidade/dashboard',
         try {
             const dataInicio = req.query.dataInicio as string;
             const dataFim = req.query.dataFim as string;
+            const tipo = req.query.tipo as string;
+            const origem = req.query.origem as string;
 
             const params: any[] = [];
             let where = '1=1';
@@ -196,6 +203,14 @@ refugosRouter.get('/qualidade/dashboard',
             if (dataFim) {
                 params.push(dataFim);
                 where += ` AND data_ocorrencia <= $${params.length}`;
+            }
+            if (origem) {
+                params.push(origem);
+                where += ` AND origem = $${params.length}`;
+            }
+            if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+                params.push(tipo);
+                where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
             }
 
             // Total Custo

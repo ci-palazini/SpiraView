@@ -1,25 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { startOfYear, endOfYear, startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, subMonths } from 'date-fns';
+import { listarOrigens, QualidadeOpcao } from '../../../services/apiClient';
 import styles from './DashboardFilter.module.css';
 
 export type Period = 'current_year' | 'current_month' | 'last_month' | 'current_week' | 'custom';
 
 interface Props {
-    onChange: (period: Period, start?: string, end?: string) => void;
+    onChange: (period: Period, start?: string, end?: string, tipo?: string, origem?: string) => void;
 }
 
 export default function DashboardFilter({ onChange }: Props) {
     const { t } = useTranslation();
     const [period, setPeriod] = useState<Period>('current_month');
+    const [tipo, setTipo] = useState('');
+    const [origem, setOrigem] = useState('');
+    const [origensList, setOrigensList] = useState<QualidadeOpcao[]>([]);
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
 
     useEffect(() => {
-        applyFilter(period);
+        applyFilter(period, tipo, origem);
     }, []); // Run once on mount
 
-    const applyFilter = (p: Period, cStart?: string, cEnd?: string) => {
+    useEffect(() => {
+        fetchOrigens(tipo);
+    }, [tipo]);
+
+    const fetchOrigens = async (t?: string) => {
+        try {
+            const data = await listarOrigens(false, t || undefined);
+            setOrigensList(data);
+
+            // If current selected origin is not in the new list, reset it
+            if (origem && !data.find((o: QualidadeOpcao) => o.nome === origem)) {
+                setOrigem('');
+                applyFilter(period, tipo, '', customStart, customEnd);
+            }
+        } catch (err) {
+            console.error('Failed to fetch origins', err);
+        }
+    };
+
+    const applyFilter = (p: Period, tOrigem?: string, oEspecifica?: string, cStart?: string, cEnd?: string) => {
         const now = new Date();
         let start = '';
         let end = '';
@@ -51,7 +74,7 @@ export default function DashboardFilter({ onChange }: Props) {
         }
 
         if (p !== 'custom' || (start && end)) {
-            onChange(p, start, end);
+            onChange(p, start, end, tOrigem, oEspecifica);
         }
     };
 
@@ -59,8 +82,21 @@ export default function DashboardFilter({ onChange }: Props) {
         const p = e.target.value as Period;
         setPeriod(p);
         if (p !== 'custom') {
-            applyFilter(p);
+            applyFilter(p, tipo, origem);
         }
+    };
+
+    const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const tVal = e.target.value;
+        setTipo(tVal);
+        // Origem filtering is handled by the useEffect and fetchOrigens
+        applyFilter(period, tVal, origem, customStart, customEnd);
+    };
+
+    const handleOrigemChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const oVal = e.target.value;
+        setOrigem(oVal);
+        applyFilter(period, tipo, oVal, customStart, customEnd);
     };
 
     return (
@@ -76,6 +112,25 @@ export default function DashboardFilter({ onChange }: Props) {
                 </select>
             </div>
 
+            <div className={styles.filterGroup}>
+                <label>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}:</label>
+                <select value={tipo} onChange={handleTypeChange} className={styles.select}>
+                    <option value="">{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</option>
+                    <option value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</option>
+                    <option value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</option>
+                </select>
+            </div>
+
+            <div className={styles.filterGroup}>
+                <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
+                <select value={origem} onChange={handleOrigemChange} className={styles.select}>
+                    <option value="">{t('qualityAnalytics.all', 'Todas')}</option>
+                    {origensList.map(opt => (
+                        <option key={opt.id} value={opt.nome}>{opt.nome}</option>
+                    ))}
+                </select>
+            </div>
+
             {period === 'custom' && (
                 <div className={styles.customDates}>
                     <input
@@ -83,7 +138,7 @@ export default function DashboardFilter({ onChange }: Props) {
                         value={customStart}
                         onChange={(e) => {
                             setCustomStart(e.target.value);
-                            if (e.target.value && customEnd) applyFilter('custom', e.target.value, customEnd);
+                            if (e.target.value && customEnd) applyFilter('custom', tipo, origem, e.target.value, customEnd);
                         }}
                         className={styles.input}
                     />
@@ -93,7 +148,7 @@ export default function DashboardFilter({ onChange }: Props) {
                         value={customEnd}
                         onChange={(e) => {
                             setCustomEnd(e.target.value);
-                            if (customStart && e.target.value) applyFilter('custom', customStart, e.target.value);
+                            if (customStart && e.target.value) applyFilter('custom', tipo, origem, customStart, e.target.value);
                         }}
                         className={styles.input}
                     />

@@ -11,12 +11,19 @@ export const settingsRouter: Router = Router();
 // GET /qualidade/origens - Listar origens
 settingsRouter.get('/qualidade/origens', async (req, res) => {
     try {
-        const { todos } = req.query;
+        const { todos, tipo } = req.query;
         // Se todos=true, traz tudo. Se não, só ativos.
-        const where = (todos === 'true' || todos === '1') ? '1=1' : 'ativo = true';
+        let where = (todos === 'true' || todos === '1') ? '1=1' : 'ativo = true';
+        const params: any[] = [];
+
+        if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+            params.push(tipo);
+            where += ` AND tipo = $${params.length}`;
+        }
 
         const { rows } = await pool.query(
-            `SELECT * FROM qualidade_origens WHERE ${where} ORDER BY nome ASC`
+            `SELECT * FROM qualidade_origens WHERE ${where} ORDER BY nome ASC`,
+            params
         );
         res.json(rows);
     } catch (e: any) {
@@ -30,12 +37,12 @@ settingsRouter.post('/qualidade/origens',
     requirePermission('qualidade_config', 'editar'), // Assuming specific permission or borrowing 'qualidade_lancamento'
     async (req, res) => {
         try {
-            const { nome } = req.body;
+            const { nome, tipo } = req.body;
             if (!nome) return res.status(400).json({ error: 'Nome é obrigatório.' });
 
             const { rows } = await pool.query(
-                `INSERT INTO qualidade_origens (nome) VALUES ($1) RETURNING *`,
-                [nome.toUpperCase()]
+                `INSERT INTO qualidade_origens (nome, tipo) VALUES ($1, $2) RETURNING *`,
+                [nome.toUpperCase(), tipo || 'EXTERNO']
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
@@ -53,7 +60,7 @@ settingsRouter.put('/qualidade/origens/:id',
     async (req, res) => {
         try {
             const { id } = req.params;
-            const { nome, ativo } = req.body;
+            const { nome, ativo, tipo } = req.body;
 
             const fields: any[] = [];
             const values: any[] = [];
@@ -66,6 +73,10 @@ settingsRouter.put('/qualidade/origens/:id',
             if (ativo !== undefined) {
                 fields.push(`ativo = $${idx++}`);
                 values.push(ativo);
+            }
+            if (tipo !== undefined) {
+                fields.push(`tipo = $${idx++}`);
+                values.push(tipo);
             }
 
             if (fields.length === 0) return res.status(400).json({ error: 'Nada a atualizar.' });
@@ -82,6 +93,94 @@ settingsRouter.put('/qualidade/origens/:id',
             res.status(500).json({ error: String(e) });
         }
     });
+
+// GET /qualidade/origens/:id/usage - Verificar uso antes de excluir
+settingsRouter.get('/qualidade/origens/:id/usage', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rows: origemRows } = await pool.query(
+            `SELECT nome FROM qualidade_origens WHERE id = $1`,
+            [id]
+        );
+        if (origemRows.length === 0) {
+            return res.status(404).json({ error: 'Origem não encontrada.' });
+        }
+        const nome = origemRows[0].nome;
+        const { rows: countRows } = await pool.query(
+            `SELECT COUNT(*) as count FROM qualidade_refugos WHERE origem = $1`,
+            [nome]
+        );
+        res.json({ count: Number(countRows[0].count) });
+    } catch (e: any) {
+        console.error(e);
+        res.status(500).json({ error: String(e) });
+    }
+});
+
+// DELETE /qualidade/origens/:id - Excluir com opção de transferir
+settingsRouter.delete('/qualidade/origens/:id',
+    requirePermission('qualidade_config', 'editar'),
+    async (req, res) => {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const { id } = req.params;
+            const { transferToId } = req.body;
+
+            const { rows: oldRows } = await client.query(
+                `SELECT * FROM qualidade_origens WHERE id = $1`,
+                [id]
+            );
+            if (oldRows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Origem não encontrada.' });
+            }
+            const oldName = oldRows[0].nome;
+
+            const { rows: usageRows } = await client.query(
+                `SELECT COUNT(*) as count FROM qualidade_refugos WHERE origem = $1`,
+                [oldName]
+            );
+            const count = Number(usageRows[0].count);
+
+            if (count > 0) {
+                if (!transferToId) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({
+                        error: 'Esta origem possui vínculos.',
+                        code: 'HAS_LINKS',
+                        count
+                    });
+                }
+
+                const { rows: newRows } = await client.query(
+                    `SELECT nome FROM qualidade_origens WHERE id = $1`,
+                    [transferToId]
+                );
+                if (newRows.length === 0) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({ error: 'Origem de destino não encontrada.' });
+                }
+                const newName = newRows[0].nome;
+
+                await client.query(
+                    `UPDATE qualidade_refugos SET origem = $1, updated_at = NOW() WHERE origem = $2`,
+                    [newName, oldName]
+                );
+            }
+
+            await client.query(`DELETE FROM qualidade_origens WHERE id = $1`, [id]);
+            await client.query('COMMIT');
+            res.json({ ok: true, transferred: count });
+        } catch (e: any) {
+            await client.query('ROLLBACK');
+            console.error(e);
+            res.status(500).json({ error: String(e) });
+        } finally {
+            client.release();
+        }
+    });
+
 
 // ============================================================================
 // MOTIVOS
@@ -161,6 +260,94 @@ settingsRouter.put('/qualidade/motivos/:id',
             res.status(500).json({ error: String(e) });
         }
     });
+
+// GET /qualidade/motivos/:id/usage - Verificar uso antes de excluir
+settingsRouter.get('/qualidade/motivos/:id/usage', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rows: motivoRows } = await pool.query(
+            `SELECT nome FROM qualidade_motivos WHERE id = $1`,
+            [id]
+        );
+        if (motivoRows.length === 0) {
+            return res.status(404).json({ error: 'Motivo não encontrado.' });
+        }
+        const nome = motivoRows[0].nome;
+        const { rows: countRows } = await pool.query(
+            `SELECT COUNT(*) as count FROM qualidade_refugos WHERE motivo_defeito = $1`,
+            [nome]
+        );
+        res.json({ count: Number(countRows[0].count) });
+    } catch (e: any) {
+        console.error(e);
+        res.status(500).json({ error: String(e) });
+    }
+});
+
+// DELETE /qualidade/motivos/:id - Excluir com opção de transferir
+settingsRouter.delete('/qualidade/motivos/:id',
+    requirePermission('qualidade_config', 'editar'),
+    async (req, res) => {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const { id } = req.params;
+            const { transferToId } = req.body;
+
+            const { rows: oldRows } = await client.query(
+                `SELECT * FROM qualidade_motivos WHERE id = $1`,
+                [id]
+            );
+            if (oldRows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Motivo não encontrado.' });
+            }
+            const oldName = oldRows[0].nome;
+
+            const { rows: usageRows } = await client.query(
+                `SELECT COUNT(*) as count FROM qualidade_refugos WHERE motivo_defeito = $1`,
+                [oldName]
+            );
+            const count = Number(usageRows[0].count);
+
+            if (count > 0) {
+                if (!transferToId) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({
+                        error: 'Este motivo possui vínculos.',
+                        code: 'HAS_LINKS',
+                        count
+                    });
+                }
+
+                const { rows: newRows } = await client.query(
+                    `SELECT nome FROM qualidade_motivos WHERE id = $1`,
+                    [transferToId]
+                );
+                if (newRows.length === 0) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({ error: 'Motivo de destino não encontrada.' });
+                }
+                const newName = newRows[0].nome;
+
+                await client.query(
+                    `UPDATE qualidade_refugos SET motivo_defeito = $1, updated_at = NOW() WHERE motivo_defeito = $2`,
+                    [newName, oldName]
+                );
+            }
+
+            await client.query(`DELETE FROM qualidade_motivos WHERE id = $1`, [id]);
+            await client.query('COMMIT');
+            res.json({ ok: true, transferred: count });
+        } catch (e: any) {
+            await client.query('ROLLBACK');
+            console.error(e);
+            res.status(500).json({ error: String(e) });
+        } finally {
+            client.release();
+        }
+    });
+
 
 // ============================================================================
 // RESPONSÁVEIS

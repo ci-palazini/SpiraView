@@ -115,7 +115,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                     </p>
                     {item?.sobrecarga && (
                         <p style={{ color: '#dc2626', fontWeight: 500, marginTop: 8, fontSize: '0.85rem' }}>
-                            ⚠️ Centro em sobrecarga!
+                            ⚠️ {t('planejamento.table.overloadWarning', 'Centro em sobrecarga!')}
                         </p>
                     )}
                 </div>
@@ -148,7 +148,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                     </p>
                     {overloaded && (
                         <p style={{ color: '#dc2626', fontWeight: 500, marginTop: 8, fontSize: '0.85rem' }}>
-                            ⚠️ Carga OP excede capacidade restante!
+                            ⚠️ {t('planejamento.table.overloadExceed', 'Carga OP excede capacidade restante!')}
                         </p>
                     )}
                 </div>
@@ -285,11 +285,11 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 <div className={styles.legendContainer}>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
-                                        Carga OP
+                                        {t('planejamento.table.loadOP', 'Carga OP')}
                                     </div>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
-                                        Cap. Restante
+                                        {t('planejamento.table.capacityRestante', 'Cap. Restante')}
                                     </div>
                                 </div>
                             </div>
@@ -306,7 +306,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     />
                                     <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
                                     <Tooltip content={<MonthlyTooltip />} />
-                                    <Bar dataKey="cargaOP" name="Carga OP" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} fill="#3b82f6" radius={[4, 4, 0, 0]}>
                                         <LabelList
                                             dataKey="cargaOP"
                                             position="top"
@@ -314,7 +314,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                             formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
                                         />
                                     </Bar>
-                                    <Bar dataKey="capacidadeRestante" name="Cap. Restante" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="capacidadeRestante" name={t('planejamento.table.capacityRestante', 'Cap. Restante')} fill="#22c55e" radius={[4, 4, 0, 0]}>
                                         <LabelList
                                             dataKey="capacidadeRestante"
                                             position="top"
@@ -380,15 +380,15 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 <div className={styles.legendContainer}>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
-                                        Carga OP
+                                        {t('planejamento.table.loadOP', 'Carga OP')}
                                     </div>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.dotHoras}`}></span>
-                                        Carga Horas
+                                        {t('planejamento.table.loadHours', 'Carga Horas')}
                                     </div>
                                     <div className={styles.legendItem}>
                                         <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
-                                        Capacidade
+                                        {t('planejamento.table.capacity', 'Capacidade')}
                                     </div>
                                 </div>
                             </div>
@@ -406,7 +406,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
                                     <Tooltip content={<CustomTooltip />} />
                                     {/* Carga OP (Base - Azul) */}
-                                    <Bar dataKey="cargaOP" name="Carga OP" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]}>
+                                    <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]}>
                                         <LabelList
                                             dataKey="cargaOP"
                                             position="insideTop"
@@ -416,7 +416,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                     </Bar>
 
                                     {/* Carga Resto (Topo - Cinza) -> Representa o Total (Horas) visualmente */}
-                                    <Bar dataKey="cargaResto" name="Carga Horas" stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="cargaResto" name={t('planejamento.table.loadHours', 'Carga Horas')} stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]}>
                                         <LabelList
                                             dataKey="cargaHoras"
                                             position="top"

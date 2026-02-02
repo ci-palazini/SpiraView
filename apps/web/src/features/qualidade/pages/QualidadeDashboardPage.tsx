@@ -27,28 +27,32 @@ export default function QualidadeDashboardPage() {
     const [loading, setLoading] = useState(true);
 
     // Initialize with correct dates for "Current Month" to avoid loading "All Time" data first
-    const [filter, setFilter] = useState<{ period: Period, start?: string, end?: string }>(() => {
+    const [filter, setFilter] = useState<{ period: Period, start?: string, end?: string, tipo?: string, origem?: string }>(() => {
         const now = new Date();
         return {
             period: 'current_month',
             start: format(startOfMonth(now), 'yyyy-MM-dd'),
-            end: format(endOfMonth(now), 'yyyy-MM-dd')
+            end: format(endOfMonth(now), 'yyyy-MM-dd'),
+            tipo: '',
+            origem: ''
         };
     });
 
     const requestId = useRef(0);
 
     useEffect(() => {
-        loadData(filter.start, filter.end);
+        loadData(filter.start, filter.end, filter.tipo, filter.origem);
     }, [filter]);
 
-    const loadData = async (start?: string, end?: string) => {
+    const loadData = async (start?: string, end?: string, tipo?: string, origem?: string) => {
         const currentId = ++requestId.current;
         setLoading(true);
         try {
             const params = new URLSearchParams();
             if (start) params.append('dataInicio', start);
             if (end) params.append('dataFim', end);
+            if (tipo) params.append('tipo', tipo);
+            if (origem) params.append('origem', origem);
 
             const res = await http.get<any>(`/qualidade/dashboard?${params.toString()}`);
 
@@ -65,10 +69,10 @@ export default function QualidadeDashboardPage() {
         }
     };
 
-    const handleFilterChange = (period: Period, start?: string, end?: string) => {
+    const handleFilterChange = (period: Period, start?: string, end?: string, tipo?: string, origem?: string) => {
         // Avoid double fetch if values are fundamentally the same
-        if (filter.period === period && filter.start === start && filter.end === end) return;
-        setFilter({ period, start, end });
+        if (filter.period === period && filter.start === start && filter.end === end && filter.tipo === tipo && filter.origem === origem) return;
+        setFilter({ period, start, end, tipo, origem });
     };
 
     const barOptions = useMemo(() => ({
