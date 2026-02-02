@@ -60,6 +60,7 @@ import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfi
 import RefugoFormPage from '../features/qualidade/pages/RefugoFormPage';
 import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboardPage';
 import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
+import QualidadeAnaliticoPage from '../features/qualidade/pages/QualidadeAnaliticoPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -648,6 +649,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 <span>{t('nav.qualityDashboard', 'Dashboard')}</span>
                             </NavLink>
                         )}
+                        {perm.canView('qualidade_analitico') && (
+                            <NavLink
+                                to="/qualidade/analitico"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPieChart className={styles.navIcon} />
+                                <span>{t('qualityAnalytics.title', 'Analítico')}</span>
+                            </NavLink>
+                        )}
                         {perm.canView('qualidade_lancamento') && (
                             <NavLink
                                 to="/qualidade/lancamentos"
@@ -931,7 +943,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     />
                     <Route
                         path="/planejamento/config"
-                        element={canAccessPage('planejamento_config', <CapacidadeConfigPage />)}
+                        element={canAccessPage('planejamento_config', <CapacidadeConfigPage user={user} />)}
                     />
 
                     {/* Rotas Qualidade */}
@@ -942,6 +954,10 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/qualidade/dashboard"
                         element={canAccessPage('qualidade_dashboard', <QualidadeDashboardPage />)}
+                    />
+                    <Route
+                        path="/qualidade/analitico"
+                        element={canAccessPage('qualidade_analitico', <QualidadeAnaliticoPage />)}
                     />
                     <Route
                         path="/qualidade/config"

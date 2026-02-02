@@ -117,6 +117,20 @@ export default function QualidadeDashboardPage() {
         };
     }, [data]);
 
+    const responsaveisChartData = useMemo(() => {
+        if (!data?.responsaveis) return { labels: [], datasets: [] };
+        return {
+            labels: data.responsaveis.map((r: any) => r.responsavel_nome || 'N/A'),
+            datasets: [{
+                label: t('quality.cost', 'Custo (R$)'),
+                data: data.responsaveis.map((r: any) => r.custo),
+                backgroundColor: 'rgba(249, 115, 22, 0.6)', // Orange
+                borderColor: 'rgba(249, 115, 22, 1)',
+                borderWidth: 1,
+            }]
+        };
+    }, [data, t]);
+
     return (
         <div className={styles.container}>
             <PageHeader
@@ -153,7 +167,19 @@ export default function QualidadeDashboardPage() {
                             </div>
                         </div>
 
+                        {/* Responsáveis - Agora ao lado de defeitos */}
                         <div className={styles.chartCard}>
+                            <div className={styles.chartTitle}>
+                                {t('quality.costByResponsible', 'Custo por Responsável')}
+                                <TrendingDown size={20} className="text-gray-400" />
+                            </div>
+                            <div className={styles.chartWrapper}>
+                                <Bar options={barOptions} data={responsaveisChartData} />
+                            </div>
+                        </div>
+
+                        {/* Origem - Agora abaixo e full width */}
+                        <div className={styles.chartCard} style={{ gridColumn: '1 / -1' }}>
                             <div className={styles.chartTitle}>{t('quality.costByOrigin', 'Custo por Origem')}</div>
                             <div className={styles.chartWrapper}>
                                 <Pie options={pieOptions} data={pieChartData} />

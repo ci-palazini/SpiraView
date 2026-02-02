@@ -7,13 +7,19 @@
 
 .grid {
     display: grid;
-    /* Force 2 columns on desktop, wrap on mobile */
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    /* Force 3 columns on desktop to show Origem, Motivo, Responsável side-by-side */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
     align-items: start;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
     }

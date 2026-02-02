@@ -4,7 +4,8 @@ import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2, FiChevr
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
-import { http, listarOrigens, listarMotivos, QualidadeOpcao } from '../../../services/apiClient';
+import { http, listarOrigens, listarMotivos, listarResponsaveisSettings, QualidadeOpcao, criarOrigem, criarMotivo, criarResponsavel } from '../../../services/apiClient';
+import { ReconciliationModal, ReconciliationActions } from '../components/ReconciliationModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './RefugoFormPage.module.css';
 
@@ -52,6 +53,7 @@ export default function RefugoFormPage() {
     // Options Lists
     const [origensList, setOrigensList] = useState<QualidadeOpcao[]>([]);
     const [motivosList, setMotivosList] = useState<QualidadeOpcao[]>([]);
+    const [responsaveisList, setResponsaveisList] = useState<QualidadeOpcao[]>([]);
 
     // Upload state
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +69,13 @@ export default function RefugoFormPage() {
     }
     const [uploadResult, setUploadResult] = useState<UploadResultSummary | null>(null);
 
+    // Reconciliation State
+    const [pendingUploadItems, setPendingUploadItems] = useState<any[]>([]);
+    const [reconciliationData, setReconciliationData] = useState<{
+        unknowns: { origens: string[]; motivos: string[]; responsaveis: string[] };
+        existing: { origens: QualidadeOpcao[]; motivos: QualidadeOpcao[]; responsaveis: QualidadeOpcao[] };
+    } | null>(null);
+
     useEffect(() => {
         fetchRecentEntries(page);
     }, [page]); // Re-fetch when page changes
@@ -77,12 +86,14 @@ export default function RefugoFormPage() {
 
     const fetchOptions = async () => {
         try {
-            const [origens, motivos] = await Promise.all([
+            const [origens, motivos, responsaveis] = await Promise.all([
                 listarOrigens(),
-                listarMotivos()
+                listarMotivos(),
+                listarResponsaveisSettings()
             ]);
             setOrigensList(origens);
             setMotivosList(motivos);
+            setResponsaveisList(responsaveis);
         } catch (err) {
             console.error('Failed to fetch options', err);
             toast.error('Erro ao carregar opções (Origens/Motivos).');
@@ -107,12 +118,44 @@ export default function RefugoFormPage() {
         }
     };
 
+
+
+    const processUpload = async (items: any[]) => {
+        try {
+            setImporting(true);
+            const res = await http.post<any>('/qualidade/refugos/upload', { data: { items } });
+
+            if (res.ok || res.success) {
+                const summary = res.summary || { sucesso: items.length, erro: 0, ignorado: 0, erros: [] };
+                setUploadResult(summary);
+
+                if (summary.sucesso > 0) {
+                    toast.success(`${summary.sucesso} registros importados!`);
+                    fetchRecentEntries(1); // Refresh list
+                } else if (summary.erro > 0) {
+                    toast.error('Houve erros na importação. Verifique os detalhes.');
+                } else if (summary.ignorado > 0) {
+                    toast('Alguns itens foram ignorados (duplicados).', { icon: '⚠️' });
+                } else {
+                    toast.error('Nenhum registro foi importado. Verifique o formato do arquivo.');
+                }
+            }
+        } catch (err: any) {
+            console.error(err);
+            toast.error('Erro ao processar: ' + err.message);
+        } finally {
+            setImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            setReconciliationData(null); // Close modal
+        }
+    }
+
     const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setImporting(true);
-        setUploadResult(null); // Reset previous result
+        setUploadResult(null);
 
         const reader = new FileReader();
         reader.onload = async (evt) => {
@@ -124,27 +167,25 @@ export default function RefugoFormPage() {
 
                 const data = XLSX.utils.sheet_to_json<any>(ws);
 
+                console.log('Excel Data:', data);
                 if (data.length === 0) {
                     toast.error('Arquivo vazio ou formato inválido');
+                    setImporting(false);
                     return;
                 }
 
                 const normalizeKey = (key: string) => key
                     .toLowerCase()
                     .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, "") // Remove accents
-                    .replace(/[^a-z0-9]/g, ""); // Remove non-alphanumeric (newlines, spaces, symbols)
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9]/g, "");
 
                 const getValue = (row: any, aliases: string[]) => {
                     const keys = Object.keys(row);
-                    // 1. Try exact normalized match
                     let foundKey = keys.find(k => aliases.some(alias => normalizeKey(k) === normalizeKey(alias)));
-
-                    // 2. Try partial match (key includes alias)
                     if (!foundKey) {
                         foundKey = keys.find(k => aliases.some(alias => normalizeKey(k).includes(normalizeKey(alias))));
                     }
-
                     if (foundKey) return row[foundKey];
                     return null;
                 };
@@ -175,42 +216,129 @@ export default function RefugoFormPage() {
 
                 const items = data.map((row: any) => ({
                     data_ocorrencia: parseDate(getValue(row, ['data', 'dt', 'date'])),
-                    // Map legacy 'setor' or new 'origem' column from Excel
-                    origem: String(getValue(row, ['origem', 'setor', 'area', 'depto', 'departamento']) || '').toUpperCase(),
+                    origem: String(getValue(row, ['origem', 'setor', 'area', 'depto', 'departamento']) || '').toUpperCase().trim(),
                     origem_referencia: String(getValue(row, ['referencia', 'op', 'ordem', 'ref']) || ''),
                     numero_ncr: String(getValue(row, ['ncr', 'nao conformidade', 'numero ncr']) || ''),
                     codigo_item: String(getValue(row, ['codigo', 'item', 'cod item', 'part number', 'material']) || ''),
                     descricao_item: String(getValue(row, ['descricao', 'desc', 'descricao item']) || ''),
-                    motivo_defeito: String(getValue(row, ['motivo', 'defeito', 'causa']) || 'OUTROS').toUpperCase(),
+                    motivo_defeito: String(getValue(row, ['motivo', 'defeito', 'causa']) || 'OUTROS').toUpperCase().trim(),
                     quantidade: parseNumber(getValue(row, ['qtd', 'qtde', 'quantidade', 'quant'])),
                     custo: parseNumber(getValue(row, ['custo', 'valor', 'preco', 'total', 'vl total'])),
-                    responsavel_nome: String(getValue(row, ['responsavel', 'resp', 'funcionario']) || '')
-                }));
+                    responsavel_nome: String(getValue(row, ['responsavel', 'resp', 'funcionario']) || '').toUpperCase().trim()
+                })).filter((i: any) => i.codigo_item && i.motivo_defeito && i.origem); // Basic filter
 
-                const res = await http.post<any>('/qualidade/refugos/upload', { data: { items } });
+                console.log('Filtered Items:', items);
 
-                if (res.ok || res.success) {
-                    const summary = res.summary || { sucesso: items.length, erro: 0, ignorado: 0, erros: [] };
-                    setUploadResult(summary);
-
-                    if (summary.sucesso > 0) {
-                        toast.success(`${summary.sucesso} registros importados!`);
-                        fetchRecentEntries(1); // Refresh list
-                    } else if (summary.erro > 0) {
-                        toast.error('Houve erros na importação. Verifique os detalhes.');
-                    } else if (summary.ignorado > 0) {
-                        toast('Alguns itens foram ignorados (duplicados).', { icon: '⚠️' });
-                    }
+                if (items.length === 0) {
+                    toast.error('Nenhum registro válido encontrado. Verifique se as colunas obrigatórias (Data, Origem, Item, Motivo, Qtd, Custo) estão presentes e preenchidas.');
+                    setImporting(false);
+                    return;
                 }
+
+                // VALIDATION FOR RECONCILIATION
+                const uniqueOrigens = [...new Set(items.map((i: any) => i.origem).filter((x: string) => x))];
+                const uniqueMotivos = [...new Set(items.map((i: any) => i.motivo_defeito).filter((x: string) => x))];
+                const uniqueResponsaveis = [...new Set(items.map((i: any) => i.responsavel_nome).filter((x: string) => x))];
+
+                const unknownOrigens = uniqueOrigens.filter(u => !origensList.some(k => k.nome === u));
+                const unknownMotivos = uniqueMotivos.filter(u => !motivosList.some(k => k.nome === u));
+                const unknownResponsaveis = uniqueResponsaveis.filter(u => !responsaveisList.some(k => k.nome === u));
+
+                console.log('Unknowns:', { unknownOrigens, unknownMotivos, unknownResponsaveis });
+
+                if (unknownOrigens.length > 0 || unknownMotivos.length > 0 || unknownResponsaveis.length > 0) {
+                    console.log('Triggering Reconciliation Modal');
+                    setPendingUploadItems(items);
+                    setReconciliationData({
+                        unknowns: {
+                            origens: unknownOrigens as string[],
+                            motivos: unknownMotivos as string[],
+                            responsaveis: unknownResponsaveis as string[]
+                        },
+                        existing: {
+                            origens: origensList,
+                            motivos: motivosList,
+                            responsaveis: responsaveisList
+                        }
+                    });
+                    setImporting(false); // Stop "importing" spinner, show modal
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                    return;
+                }
+
+                // If no unknowns, proceed
+                await processUpload(items);
+
             } catch (err: any) {
                 console.error(err);
-                toast.error('Erro ao processar: ' + err.message);
-            } finally {
+                toast.error('Erro ao processar arquivo: ' + err.message);
                 setImporting(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }
         };
         reader.readAsBinaryString(file);
+    };
+
+    const handleReconciliationConfirm = async (actions: ReconciliationActions) => {
+        setReconciliationData(null);
+        setImporting(true);
+        const toastId = toast.loading('Processando ajustes...');
+
+        try {
+            // 1. Create new items
+            const newOrigens = Object.entries(actions.origens).filter(([_, a]) => a.type === 'create').map(([k]) => k);
+            const newMotivos = Object.entries(actions.motivos).filter(([_, a]) => a.type === 'create').map(([k]) => k);
+            const newResponsaveis = Object.entries(actions.responsaveis).filter(([_, a]) => a.type === 'create').map(([k]) => k);
+
+            await Promise.all([
+                ...newOrigens.map(n => criarOrigem(n)),
+                ...newMotivos.map(n => criarMotivo(n)),
+                ...newResponsaveis.map(n => criarResponsavel(n))
+            ]);
+
+            // Refresh options in background
+            fetchOptions();
+
+            // 2. Map items
+            const mappedItems = pendingUploadItems.map(item => {
+                const newItem = { ...item };
+
+                // Map Origem
+                if (actions.origens[item.origem]) {
+                    const action = actions.origens[item.origem];
+                    if (action.type === 'map' && action.targetValue) {
+                        newItem.origem = action.targetValue;
+                    }
+                    // if create, it stays as is, which matches the newly created item
+                }
+
+                // Map Motivo
+                if (actions.motivos[item.motivo_defeito]) {
+                    const action = actions.motivos[item.motivo_defeito];
+                    if (action.type === 'map' && action.targetValue) {
+                        newItem.motivo_defeito = action.targetValue;
+                    }
+                }
+
+                // Map Responsavel
+                if (actions.responsaveis[item.responsavel_nome]) {
+                    const action = actions.responsaveis[item.responsavel_nome];
+                    if (action.type === 'map' && action.targetValue) {
+                        newItem.responsavel_nome = action.targetValue;
+                    }
+                }
+
+                return newItem;
+            });
+
+            toast.dismiss(toastId);
+            await processUpload(mappedItems);
+
+        } catch (e) {
+            console.error(e);
+            toast.error('Erro ao criar novos itens.', { id: toastId });
+            setImporting(false);
+        }
     };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -297,6 +425,18 @@ export default function RefugoFormPage() {
                     </button>
                 }
             />
+            {reconciliationData && (
+                <ReconciliationModal
+                    unknowns={reconciliationData.unknowns}
+                    existing={reconciliationData.existing}
+                    onConfirm={handleReconciliationConfirm}
+                    onCancel={() => {
+                        setReconciliationData(null);
+                        setImporting(false);
+                        setUploadResult(null);
+                    }}
+                />
+            )}
             <div className={styles.container}>
 
                 <div className={styles.contentGrid}>
@@ -493,13 +633,18 @@ export default function RefugoFormPage() {
                                     </div>
                                     <div className={styles.field}>
                                         <label className={styles.label} htmlFor="responsavel_nome">{t('quality.responsible', 'Responsável')}</label>
-                                        <input
-                                            className={styles.input}
+                                        <select
+                                            className={styles.select}
                                             id="responsavel_nome"
                                             name="responsavel_nome"
                                             value={form.responsavel_nome}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">{t('common.select', 'Selecione...')}</option>
+                                            {responsaveisList.map(opt => (
+                                                <option key={opt.id} value={opt.nome}>{opt.nome}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
 
@@ -535,6 +680,7 @@ export default function RefugoFormPage() {
                                             <th>Qtd</th>
                                             <th>Custo</th>
                                             <th>Motivo</th>
+                                            <th>Responsável</th>
                                             <th style={{ textAlign: 'center' }}>Ações</th>
                                         </tr>
                                     </thead>
@@ -557,6 +703,7 @@ export default function RefugoFormPage() {
                                                         {item.motivo_defeito}
                                                     </span>
                                                 </td>
+                                                <td>{item.responsavel_nome}</td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     <div className={styles.actionButtons}>
                                                         <button

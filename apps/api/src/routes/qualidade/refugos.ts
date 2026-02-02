@@ -222,12 +222,23 @@ refugosRouter.get('/qualidade/dashboard',
              ORDER BY custo DESC`, params
             );
 
+            // Custo por Responsável
+            const responsaveisQuery = await pool.query(
+                `SELECT responsavel_nome, SUM(custo) as custo 
+             FROM qualidade_refugos 
+             WHERE ${where} 
+             GROUP BY responsavel_nome 
+             ORDER BY custo DESC 
+             LIMIT 10`, params
+            );
+
             res.json({
                 kpis: {
                     custoTotal: custoTotalQuery.rows[0]?.total || 0
                 },
                 defeitos: defeitosQuery.rows,
-                origens: origemQuery.rows // Renamed from setores
+                origens: origemQuery.rows, // Renamed from setores
+                responsaveis: responsaveisQuery.rows
             });
         } catch (e: any) {
             console.error(e);

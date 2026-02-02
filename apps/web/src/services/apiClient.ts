@@ -1692,10 +1692,7 @@ export interface MaquinaPlanejamento {
 // Listar máquinas com escopo planejamento
 export async function listarMaquinasPlanejamento(auth: AuthParams): Promise<MaquinaPlanejamento[]> {
     const r = await fetch(`${BASE}/planejamento/capacidade/maquinas`, {
-        headers: {
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
-        }
+        headers: buildAuthHeaders(auth)
     });
     const data = await r.json().catch(() => ({ items: [] }));
     if (!r.ok) throw new Error(data?.error || 'Erro ao listar máquinas');
@@ -1711,9 +1708,8 @@ export async function atualizarMaquinaPlanejamento(
     const r = await fetch(`${BASE}/planejamento/capacidade/maquinas/${id}`, {
         method: 'PATCH',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -1751,6 +1747,58 @@ export async function criarMotivo(nome: string, auth: AuthParams = {}): Promise<
 
 export async function editarMotivo(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
     return http.put<QualidadeOpcao>(`/qualidade/motivos/${id}`, { data, auth });
+}
+
+export async function listarResponsaveisSettings(todos = false): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/responsaveis', { params: { todos } });
+}
+
+export async function criarResponsavel(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/responsaveis', { data: { nome }, auth });
+}
+
+export async function editarResponsavel(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.put<QualidadeOpcao>(`/qualidade/responsaveis/${id}`, { data, auth });
+}
+
+// ===== QUALITY ANALYTICS =====
+export interface QualityAnalyticSummary {
+    totalCost: number;
+    costLastMonth: number;
+    costLastYear: number;
+    topResponsible: { name: string; cost: number }[];
+}
+
+export interface QualityAnalyticTrend {
+    period: string;
+    cost: number;
+}
+
+export interface QualityAnalyticDetail {
+    name: string;
+    totalCost: number;
+    count: number;
+    lastOccurrence: string;
+}
+
+export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
+    const res = await http.get<QualityAnalyticSummary>(`/qualidade/analytics/summary`, { params, auth });
+    return res;
+}
+
+export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
+    const res = await http.get<{ trends: QualityAnalyticTrend[] }>(`/qualidade/analytics/trends`, { params, auth });
+    return res;
+}
+
+export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
+    const res = await http.get<{ items: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
+    return res;
+}
+
+export async function listarResponsaveis(auth: AuthParams = {}): Promise<string[]> {
+    const res = await http.get<{ items: string[] }>(`/qualidade/analytics/responsaveis`, { auth });
+    return res.items || [];
 }
 
 

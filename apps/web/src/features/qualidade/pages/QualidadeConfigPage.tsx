@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import {
     listarOrigens, criarOrigem, editarOrigem,
     listarMotivos, criarMotivo, editarMotivo,
+    listarResponsaveisSettings, criarResponsavel, editarResponsavel,
     QualidadeOpcao
 } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
@@ -115,14 +116,16 @@ export default function QualidadeConfigPage() {
     const { t } = useTranslation();
     const [origens, setOrigens] = useState<QualidadeOpcao[]>([]);
     const [motivos, setMotivos] = useState<QualidadeOpcao[]>([]);
+    const [responsaveis, setResponsaveis] = useState<QualidadeOpcao[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchAll = async () => {
         setLoading(true);
         try {
-            const [o, m] = await Promise.all([listarOrigens(true), listarMotivos(true)]);
+            const [o, m, r] = await Promise.all([listarOrigens(true), listarMotivos(true), listarResponsaveisSettings(true)]);
             setOrigens(o);
             setMotivos(m);
+            setResponsaveis(r);
         } catch (err) {
             console.error(err);
             toast.error('Erro ao carregar dados.');
@@ -175,6 +178,26 @@ export default function QualidadeConfigPage() {
         }
     };
 
+    const handleAddResponsavel = async (name: string) => {
+        try {
+            await criarResponsavel(name);
+            toast.success('Responsável criado!');
+            fetchAll();
+        } catch (e) {
+            toast.error('Erro ao criar responsável.');
+        }
+    };
+
+    const handleUpdateResponsavel = async (id: number, nome: string, ativo: boolean) => {
+        try {
+            await editarResponsavel(id, { nome, ativo });
+            toast.success('Responsável atualizado!');
+            fetchAll();
+        } catch (e) {
+            toast.error('Erro ao atualizar responsável.');
+        }
+    };
+
     return (
         <>
             <PageHeader
@@ -197,6 +220,13 @@ export default function QualidadeConfigPage() {
                         loading={loading}
                         onAdd={handleAddMotivo}
                         onUpdate={handleUpdateMotivo}
+                    />
+                    <ConfigSection
+                        title="Responsáveis"
+                        items={responsaveis}
+                        loading={loading}
+                        onAdd={handleAddResponsavel}
+                        onUpdate={handleUpdateResponsavel}
                     />
                 </div>
             </div>

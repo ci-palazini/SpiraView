@@ -1196,5 +1196,23 @@
     "costByOrigin": "Custo por Origem",
     "dashSubtitle": "Visão geral dos custos e principais ofensores de qualidade.",
     "periodTotal": "Total do período selecionado"
+  },
+  "qualityAnalytics": {
+    "title": "Análise Detalhada",
+    "subtitle": "Visão aprofundada de custos, tendências e responsáveis.",
+    "totalCost": "Custo Total",
+    "topResponsible": "Top 5 Responsáveis",
+    "costTrend": "Tendência de Custos",
+    "details": "Detalhamento por Responsável",
+    "responsible": "Responsável",
+    "occurrences": "Ocorrências",
+    "lastOccurrence": "Última",
+    "cost": "Custo",
+    "viewDetails": "Ver Detalhes",
+    "filterOrigin": "Origem",
+    "filterResponsible": "Filtrar por Responsável",
+    "monthlyTrend": "Evolução Mensal",
+    "costLastMonth": "Custo Mês Anterior",
+    "costLastYear": "Custo Ano Anterior"
   }
 }
