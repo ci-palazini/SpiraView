@@ -62,6 +62,7 @@ export default function QualidadeAnaliticoPage() {
     // Filters
     const [responsavel, setResponsavel] = useState('');
     const [tipo, setTipo] = useState('');
+    const [tipoLancamento, setTipoLancamento] = useState('');
     const [origem, setOrigem] = useState('');
     const [responsavelOpts, setResponsavelOpts] = useState<string[]>([]);
     const [origemOpts, setOrigemOpts] = useState<QualidadeOpcao[]>([]);
@@ -82,7 +83,7 @@ export default function QualidadeAnaliticoPage() {
 
     useEffect(() => {
         fetchData();
-    }, [responsavel, tipo, origem]);
+    }, [responsavel, tipo, origem, tipoLancamento]);
 
     const loadOrigins = async (tOrigem?: string) => {
         try {
@@ -121,7 +122,8 @@ export default function QualidadeAnaliticoPage() {
             const params = {
                 responsavel: responsavel || undefined,
                 tipo: tipo || undefined,
-                origem: origem || undefined
+                origem: origem || undefined,
+                tipoLancamento: tipoLancamento || undefined
             };
 
             const [sumRes, trendRes, detRes] = await Promise.all([
@@ -180,7 +182,20 @@ export default function QualidadeAnaliticoPage() {
                 title={t('qualityAnalytics.title', 'Análise Detalhada')}
                 subtitle={t('qualityAnalytics.subtitle', 'Visão aprofundada de custos e refugos')}
                 actions={
-                    <Box sx={{ display: 'flex', gap: 2, minWidth: 700 }}>
+                    <Box sx={{ display: 'flex', gap: 2, minWidth: 800 }}>
+                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
+                            <InputLabel>{t('nav.tipoLancamento', 'Tipo de Dados')}</InputLabel>
+                            <Select
+                                value={tipoLancamento}
+                                label={t('nav.tipoLancamento', 'Tipo de Dados')}
+                                onChange={(e) => setTipoLancamento(e.target.value)}
+                            >
+                                <MenuItem value=""><em>{t('nav.todos', 'Todos')}</em></MenuItem>
+                                <MenuItem value="REFUGO">{t('nav.refugo', 'Refugo')}</MenuItem>
+                                <MenuItem value="QUARENTENA">{t('nav.quarentena', 'Quarentena')}</MenuItem>
+                            </Select>
+                        </FormControl>
+
                         <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
                             <InputLabel>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}</InputLabel>
                             <Select

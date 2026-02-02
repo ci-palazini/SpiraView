@@ -1806,22 +1806,22 @@ export interface QualityAnalyticDetail {
     lastOccurrence: string;
 }
 
-export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
+export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
     const res = await http.get<QualityAnalyticSummary>(`/qualidade/analytics/summary`, { params, auth });
     return res;
 }
 
-export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
+export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
     const res = await http.get<{ trends: QualityAnalyticTrend[] }>(`/qualidade/analytics/trends`, { params, auth });
     return res;
 }
 
-export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
+export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
     const res = await http.get<{ items: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
     return res;
 }
 
-export async function listarResponsaveis(params: { dataInicio?: string; dataFim?: string; origem?: string; tipo?: string } = {}, auth: AuthParams = {}): Promise<string[]> {
+export async function listarResponsaveis(params: { dataInicio?: string; dataFim?: string; origem?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<string[]> {
     const res = await http.get<{ items: string[] }>(`/qualidade/analytics/responsaveis`, { params, auth });
     return res.items || [];
 }

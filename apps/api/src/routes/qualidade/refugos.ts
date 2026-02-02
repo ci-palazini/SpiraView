@@ -14,6 +14,7 @@ refugosRouter.get('/qualidade/refugos',
             const dataFim = req.query.dataFim as string;
             const origem = req.query.origem as string;
             const tipo = req.query.tipo as string;
+            const tipoLancamento = req.query.tipoLancamento as string;
 
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 50;
@@ -37,6 +38,10 @@ refugosRouter.get('/qualidade/refugos',
             if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
                 params.push(tipo);
                 where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qr.origem AND qo.tipo = $${params.length})`;
+            }
+            if (tipoLancamento) {
+                params.push(tipoLancamento);
+                where += ` AND qr.tipo_lancamento = $${params.length}`;
             }
 
             // Count total
@@ -91,7 +96,8 @@ refugosRouter.post('/qualidade/refugos',
                 custo,
                 origem,
                 responsavel_nome,
-                numero_ncr
+                numero_ncr,
+                tipo_lancamento
             } = req.body;
 
             if (!data_ocorrencia || !codigo_item || !motivo_defeito || !origem) {
@@ -101,12 +107,13 @@ refugosRouter.post('/qualidade/refugos',
             const insert = await pool.query(
                 `INSERT INTO qualidade_refugos (
                 data_ocorrencia, origem_referencia, codigo_item, descricao_item, 
-                motivo_defeito, quantidade, custo, origem, responsavel_nome, numero_ncr, criado_por_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                motivo_defeito, quantidade, custo, origem, responsavel_nome, numero_ncr, criado_por_id, tipo_lancamento
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING id`,
                 [
                     data_ocorrencia, origem_referencia, codigo_item, descricao_item,
-                    motivo_defeito, quantidade || 0, custo || 0, origem, responsavel_nome, numero_ncr, user?.id
+                    motivo_defeito, quantidade || 0, custo || 0, origem, responsavel_nome, numero_ncr, user?.id,
+                    tipo_lancamento || 'REFUGO'
                 ]
             );
 
@@ -137,18 +144,20 @@ refugosRouter.put('/qualidade/refugos/:id',
                 custo,
                 origem,
                 responsavel_nome,
-                numero_ncr
+                numero_ncr,
+                tipo_lancamento
             } = payload;
 
             const update = await pool.query(
                 `UPDATE qualidade_refugos SET
                 data_ocorrencia = $1, origem_referencia = $2, codigo_item = $3, 
                 descricao_item = $4, motivo_defeito = $5, quantidade = $6, 
-                custo = $7, origem = $8, responsavel_nome = $9, numero_ncr = $10
+                custo = $7, origem = $8, responsavel_nome = $9, numero_ncr = $10, tipo_lancamento = $12
                 WHERE id = $11`,
                 [
                     data_ocorrencia, origem_referencia, codigo_item, descricao_item,
-                    motivo_defeito, quantidade, custo, origem, responsavel_nome, numero_ncr, id
+                    motivo_defeito, quantidade, custo, origem, responsavel_nome, numero_ncr, id,
+                    tipo_lancamento || 'REFUGO'
                 ]
             );
 
@@ -191,6 +200,7 @@ refugosRouter.get('/qualidade/dashboard',
             const dataInicio = req.query.dataInicio as string;
             const dataFim = req.query.dataFim as string;
             const tipo = req.query.tipo as string;
+            const tipoLancamento = req.query.tipoLancamento as string;
             const origem = req.query.origem as string;
 
             const params: any[] = [];
@@ -211,6 +221,10 @@ refugosRouter.get('/qualidade/dashboard',
             if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
                 params.push(tipo);
                 where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
+            }
+            if (tipoLancamento) {
+                params.push(tipoLancamento);
+                where += ` AND tipo_lancamento = $${params.length}`;
             }
 
             // Total Custo

@@ -7,7 +7,7 @@ export const analyticsRouter: Router = Router();
 // Helper to build WHERE clause
 const buildWhere = (params: any[], query: any) => {
     let where = '1=1';
-    const { dataInicio, dataFim, origem, responsavel, tipo } = query;
+    const { dataInicio, dataFim, origem, responsavel, tipo, tipoLancamento } = query;
 
     if (dataInicio) {
         params.push(dataInicio);
@@ -29,12 +29,16 @@ const buildWhere = (params: any[], query: any) => {
         params.push(tipo);
         where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
     }
+    if (tipoLancamento) {
+        params.push(tipoLancamento);
+        where += ` AND tipo_lancamento = $${params.length}`;
+    }
     return where;
 };
 
 const buildBaseWhere = (params: any[], query: any) => {
     let where = '1=1';
-    const { origem, responsavel, tipo } = query;
+    const { origem, responsavel, tipo, tipoLancamento } = query;
     if (origem) {
         params.push(origem);
         where += ` AND origem = $${params.length}`;
@@ -47,6 +51,10 @@ const buildBaseWhere = (params: any[], query: any) => {
         params.push(tipo);
         where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
     }
+    if (tipoLancamento) {
+        params.push(tipoLancamento);
+        where += ` AND tipo_lancamento = $${params.length}`;
+    }
     return where;
 };
 
@@ -57,7 +65,7 @@ analyticsRouter.get('/qualidade/analytics/responsaveis',
     async (req, res) => {
         try {
             const params: any[] = [];
-            const { tipo, dataInicio, dataFim, origem } = req.query;
+            const { tipo, dataInicio, dataFim, origem, tipoLancamento } = req.query;
 
             let where = 'responsavel_nome IS NOT NULL AND responsavel_nome != \'\'';
 
@@ -76,6 +84,10 @@ analyticsRouter.get('/qualidade/analytics/responsaveis',
             if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
                 params.push(tipo);
                 where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
+            }
+            if (tipoLancamento) {
+                params.push(tipoLancamento);
+                where += ` AND tipo_lancamento = $${params.length}`;
             }
 
             const query = await pool.query(

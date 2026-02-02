@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiChevronsRight, FiChevronsLeft } from 'react-icons/fi';
+import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiChevronsRight, FiChevronsLeft, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
@@ -21,6 +21,7 @@ interface RefugoItem {
     custo: number;
     responsavel_nome: string;
     numero_ncr: string;
+    tipo_lancamento?: 'REFUGO' | 'QUARENTENA';
     created_at?: string;
 }
 
@@ -34,7 +35,8 @@ const INITIAL_FORM = {
     custo: '',
     origem: '', // Renamed from setor
     responsavel_nome: '',
-    numero_ncr: ''
+    numero_ncr: '',
+    tipo_lancamento: 'REFUGO'
 };
 
 export default function RefugoFormPage() {
@@ -357,7 +359,8 @@ export default function RefugoFormPage() {
             custo: String(item.custo),
             origem: item.origem || '',
             responsavel_nome: item.responsavel_nome || '',
-            numero_ncr: item.numero_ncr || ''
+            numero_ncr: item.numero_ncr || '',
+            tipo_lancamento: item.tipo_lancamento || 'REFUGO'
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -407,22 +410,75 @@ export default function RefugoFormPage() {
         }
     };
 
+    const handleExportBackup = async () => {
+        const toastId = toast.loading(t('quality.refugo.exporting', 'Gerando backup...'));
+        try {
+            // Fetch ALL data with high limit
+            const res = await http.get<{ items: RefugoItem[] }>('/qualidade/refugos?limit=100000');
+            const items = Array.isArray(res) ? res : (res.items || []);
+
+            if (items.length === 0) {
+                toast.error(t('quality.refugo.noDataToExport', 'Sem dados para exportar.'), { id: toastId });
+                return;
+            }
+
+            // Map to clean format
+            const exportData = items.map(item => ({
+                Data: new Date(item.data_ocorrencia).toLocaleDateString('pt-BR'),
+                Origem: item.origem,
+                'Ref. (OP)': item.origem_referencia,
+                NCR: item.numero_ncr,
+                'Cód. Item': item.codigo_item,
+                'Desc. Item': item.descricao_item,
+                Motivo: item.motivo_defeito,
+                Qtd: item.quantidade,
+                Custo: item.custo,
+                Responsável: item.responsavel_nome,
+                Tipo: item.tipo_lancamento || 'REFUGO'
+            }));
+
+            // Generate Sheet
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Backup Refugos");
+
+            // Download
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `backup_refugos_${dateStr}.xlsx`);
+
+            toast.success(t('quality.refugo.exportSuccess', 'Backup baixado com sucesso!'), { id: toastId });
+        } catch (err: any) {
+            console.error(err);
+            toast.error(t('quality.refugo.exportError', 'Erro ao gerar backup.'), { id: toastId });
+        }
+    };
+
     return (
         <>
             <PageHeader
                 title={editingId ? t('quality.refugo.editTitle', 'Editar Lançamento') : t('quality.newScrap', 'Refugo')}
                 subtitle={t('quality.formSubtitle', 'Registre as não-conformidades e refugos identificados no processo.')}
                 actions={
-                    <button
-                        className={styles.secondaryBtn}
-                        onClick={() => {
-                            setUploadMode(!uploadMode);
-                            setUploadResult(null);
-                        }}
-                    >
-                        {uploadMode ? <FiX /> : <FiUploadCloud />}
-                        {uploadMode ? t('quality.refugo.cancelUpload', 'Cancelar Upload') : t('quality.refugo.importExcel', 'Importar Excel')}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            className={styles.secondaryBtn}
+                            onClick={handleExportBackup}
+                            title={t('quality.refugo.downloadBackup', 'Baixar todos os dados')}
+                        >
+                            <FiDownload />
+                            <span className={styles.hideMobile}>{t('common.export', 'Exportar')}</span>
+                        </button>
+                        <button
+                            className={styles.secondaryBtn}
+                            onClick={() => {
+                                setUploadMode(!uploadMode);
+                                setUploadResult(null);
+                            }}
+                        >
+                            {uploadMode ? <FiX /> : <FiUploadCloud />}
+                            {uploadMode ? t('quality.refugo.cancelUpload', 'Cancelar Upload') : t('quality.refugo.importExcel', 'Importar Excel')}
+                        </button>
+                    </div>
                 }
             />
             {reconciliationData && (
@@ -544,6 +600,21 @@ export default function RefugoFormPage() {
                                         >
                                             <option value="" disabled>{t('common.select', 'Selecione...')}</option>
                                             {origensList.map(opt => <option key={opt.id} value={opt.nome}>{opt.nome}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label className={styles.label} htmlFor="tipo_lancamento">{t('common.type', 'Tipo')}</label>
+                                        <select
+                                            className={styles.select}
+                                            id="tipo_lancamento"
+                                            name="tipo_lancamento"
+                                            value={form.tipo_lancamento}
+                                            // @ts-ignore
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="REFUGO">{t('common.refugo', 'Refugo')}</option>
+                                            <option value="QUARENTENA">{t('common.quarentena', 'Quarentena')}</option>
                                         </select>
                                     </div>
                                     <div className={styles.field}>
@@ -680,6 +751,7 @@ export default function RefugoFormPage() {
                                             <th>{t('quality.itemCode', 'Item')}</th>
                                             <th>{t('quality.quantity', 'Qtd')}</th>
                                             <th>{t('quality.cost', 'Custo')}</th>
+                                            <th>{t('common.type', 'Tipo')}</th>
                                             <th>{t('quality.defectReason', 'Motivo')}</th>
                                             <th>{t('quality.responsible', 'Responsável')}</th>
                                             <th style={{ textAlign: 'center' }}>{t('common.actions', 'Ações')}</th>
@@ -699,6 +771,13 @@ export default function RefugoFormPage() {
                                                 <td>{item.quantidade}</td>
                                                 <td>
                                                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.custo)}
+                                                </td>
+                                                <td>
+                                                    {item.tipo_lancamento === 'QUARENTENA' ? (
+                                                        <span style={{ fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#fed7aa', color: '#c2410c', fontWeight: 'bold' }}>{t('common.quarentenaAbbr', 'Qua')}</span>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#bbf7d0', color: '#15803d', fontWeight: 'bold' }}>{t('common.refugoAbbr', 'Ref')}</span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     <span className={styles.badge}>

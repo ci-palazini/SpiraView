@@ -25,7 +25,13 @@
     "planejamentoConfig": "Configuração",
     "tvMode": "Modo TV",
     "qualityDashboard": "Dashboard",
-    "qualityLaunch": "Refugo"
+    "qualityLaunch": "Refugo",
+    "quarentena": "Quarentena",
+    "refugo": "Refugo",
+    "quarentenaAbbr": "Qua",
+    "refugoAbbr": "Ref",
+    "todos": "Todos",
+    "tipoLancamento": "Tipo de Dados"
   },
   "status": {
     "open": "Aberto",

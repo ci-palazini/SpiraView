@@ -47,9 +47,15 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
                 }
 
                 // Normalizing for comparison
+                const referencia = item.origem_referencia || '';
+                const isQuarentena = referencia.toLowerCase().includes('quarentena') ||
+                    (item.origem && String(item.origem).toLowerCase().includes('quarentena'));
+
                 const normalizedItem = {
                     ...item,
                     origem: origemValue,
+                    origem_referencia: referencia,
+                    tipo_lancamento: isQuarentena ? 'QUARENTENA' : 'REFUGO',
                     motivo_defeito: item.motivo_defeito || 'OUTROS',
                     quantidade: Number(item.quantidade),
                     custo: Number(item.custo) || 0,
@@ -111,8 +117,8 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
                     let paramIdx = 1;
 
                     for (const row of chunk) {
-                        // ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                        placeHolders.push(`($${paramIdx}, $${paramIdx + 1}, $${paramIdx + 2}, $${paramIdx + 3}, $${paramIdx + 4}, $${paramIdx + 5}, $${paramIdx + 6}, $${paramIdx + 7}, $${paramIdx + 8}, $${paramIdx + 9}, $${paramIdx + 10})`);
+                        // ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                        placeHolders.push(`($${paramIdx}, $${paramIdx + 1}, $${paramIdx + 2}, $${paramIdx + 3}, $${paramIdx + 4}, $${paramIdx + 5}, $${paramIdx + 6}, $${paramIdx + 7}, $${paramIdx + 8}, $${paramIdx + 9}, $${paramIdx + 10}, $${paramIdx + 11})`);
 
                         values.push(
                             row.data_ocorrencia,
@@ -125,15 +131,16 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
                             row.quantidade,
                             row.custo,
                             row.responsavel_nome || null,
-                            auth.id || null
+                            auth.id || null,
+                            row.tipo_lancamento || 'REFUGO'
                         );
-                        paramIdx += 11;
+                        paramIdx += 12;
                     }
 
                     const query = `
                         INSERT INTO qualidade_refugos 
                         (data_ocorrencia, origem, origem_referencia, numero_ncr, codigo_item, descricao_item, 
-                         motivo_defeito, quantidade, custo, responsavel_nome, criado_por_id)
+                         motivo_defeito, quantidade, custo, responsavel_nome, criado_por_id, tipo_lancamento)
                         VALUES ${placeHolders.join(', ')}
                     `;
 
