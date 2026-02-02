@@ -8,11 +8,15 @@ export const settingsRouter: Router = Router();
 // ORIGENS (antigo Setores)
 // ============================================================================
 
-// GET /qualidade/origens - Listar origens ativas
+// GET /qualidade/origens - Listar origens
 settingsRouter.get('/qualidade/origens', async (req, res) => {
     try {
+        const { todos } = req.query;
+        // Se todos=true, traz tudo. Se não, só ativos.
+        const where = (todos === 'true' || todos === '1') ? '1=1' : 'ativo = true';
+
         const { rows } = await pool.query(
-            `SELECT * FROM qualidade_origens WHERE ativo = true ORDER BY nome ASC`
+            `SELECT * FROM qualidade_origens WHERE ${where} ORDER BY nome ASC`
         );
         res.json(rows);
     } catch (e: any) {
@@ -83,11 +87,15 @@ settingsRouter.put('/qualidade/origens/:id',
 // MOTIVOS
 // ============================================================================
 
-// GET /qualidade/motivos - Listar motivos ativos
+// GET /qualidade/motivos - Listar motivos
 settingsRouter.get('/qualidade/motivos', async (req, res) => {
     try {
+        const { todos } = req.query;
+        // Se todos=true, traz tudo. Se não, só ativos.
+        const where = (todos === 'true' || todos === '1') ? '1=1' : 'ativo = true';
+
         const { rows } = await pool.query(
-            `SELECT * FROM qualidade_motivos WHERE ativo = true ORDER BY nome ASC`
+            `SELECT * FROM qualidade_motivos WHERE ${where} ORDER BY nome ASC`
         );
         res.json(rows);
     } catch (e: any) {

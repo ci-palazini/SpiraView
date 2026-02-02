@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiChevronsRight, FiChevronsLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
@@ -42,6 +42,11 @@ export default function RefugoFormPage() {
     const [recentEntries, setRecentEntries] = useState<RefugoItem[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
     const [form, setForm] = useState(INITIAL_FORM);
 
     // Options Lists
@@ -53,8 +58,20 @@ export default function RefugoFormPage() {
     const [uploadMode, setUploadMode] = useState(false);
     const [importing, setImporting] = useState(false);
 
+    // Upload Result State
+    interface UploadResultSummary {
+        sucesso: number;
+        ignorado: number;
+        erro: number;
+        erros: string[];
+    }
+    const [uploadResult, setUploadResult] = useState<UploadResultSummary | null>(null);
+
     useEffect(() => {
-        fetchRecentEntries();
+        fetchRecentEntries(page);
+    }, [page]); // Re-fetch when page changes
+
+    useEffect(() => {
         fetchOptions();
     }, []);
 
@@ -72,11 +89,19 @@ export default function RefugoFormPage() {
         }
     };
 
-    const fetchRecentEntries = async () => {
+    const fetchRecentEntries = async (currentPage = 1) => {
         try {
-            const res = await http.get<{ items: RefugoItem[] }>('/qualidade/refugos');
-            const data = Array.isArray(res) ? res : (res.items || []);
-            setRecentEntries(data);
+            const res = await http.get<{ items: RefugoItem[], meta: any }>(`/qualidade/refugos?page=${currentPage}&limit=50`);
+            // Handle both legacy (array) and new (object with meta) response structures for safety
+            if (Array.isArray(res)) {
+                setRecentEntries(res);
+            } else {
+                setRecentEntries(res.items || []);
+                if (res.meta) {
+                    setTotalPages(res.meta.totalPages);
+                    setTotalItems(res.meta.total);
+                }
+            }
         } catch (err) {
             console.error('Failed to fetch recent entries', err);
         }
@@ -87,6 +112,8 @@ export default function RefugoFormPage() {
         if (!file) return;
 
         setImporting(true);
+        setUploadResult(null); // Reset previous result
+
         const reader = new FileReader();
         reader.onload = async (evt) => {
             try {
@@ -119,8 +146,6 @@ export default function RefugoFormPage() {
                     }
 
                     if (foundKey) return row[foundKey];
-
-                    // console.warn('Column not found for aliases:', aliases, 'Available keys:', keys);
                     return null;
                 };
 
@@ -165,19 +190,16 @@ export default function RefugoFormPage() {
                 const res = await http.post<any>('/qualidade/refugos/upload', { data: { items } });
 
                 if (res.ok || res.success) {
-                    const summary = res.summary || { sucesso: items.length, erro: 0, erros: [] };
-                    toast.success(`${summary.sucesso} registros importados!`);
+                    const summary = res.summary || { sucesso: items.length, erro: 0, ignorado: 0, erros: [] };
+                    setUploadResult(summary);
 
-                    fetchRecentEntries();
-
-                    if (summary.erro > 0) {
-                        toast.error(`${summary.erro} falhas. Verifique o console.`);
-                        console.error(summary.erros);
-                        if (summary.erros.length > 0) {
-                            alert(`Erros na importação:\n${summary.erros.slice(0, 10).join('\n')}\n...`);
-                        }
-                    } else {
-                        setUploadMode(false);
+                    if (summary.sucesso > 0) {
+                        toast.success(`${summary.sucesso} registros importados!`);
+                        fetchRecentEntries(1); // Refresh list
+                    } else if (summary.erro > 0) {
+                        toast.error('Houve erros na importação. Verifique os detalhes.');
+                    } else if (summary.ignorado > 0) {
+                        toast('Alguns itens foram ignorados (duplicados).', { icon: '⚠️' });
                     }
                 }
             } catch (err: any) {
@@ -265,7 +287,10 @@ export default function RefugoFormPage() {
                 actions={
                     <button
                         className={styles.secondaryBtn}
-                        onClick={() => setUploadMode(!uploadMode)}
+                        onClick={() => {
+                            setUploadMode(!uploadMode);
+                            setUploadResult(null);
+                        }}
                     >
                         {uploadMode ? <FiX /> : <FiUploadCloud />}
                         {uploadMode ? 'Cancelar Upload' : 'Importar Excel'}
@@ -299,6 +324,46 @@ export default function RefugoFormPage() {
                                     {importing ? 'Importando...' : 'Selecionar Arquivo'}
                                 </button>
                             </div>
+
+                            {uploadResult && (
+                                <div className={`${styles.resultCard} ${uploadResult.erro === 0 ? styles.resultSuccess : styles.resultError}`}>
+                                    <div className={styles.resultHeader}>
+                                        <h3 className={styles.resultTitle}>
+                                            {uploadResult.erro === 0 ? (
+                                                <><FiCheck style={{ verticalAlign: 'middle', marginRight: 8 }} /> Importação Concluída</>
+                                            ) : (
+                                                <><div style={{ color: '#dc2626', display: 'flex', alignItems: 'center' }}><FiX style={{ verticalAlign: 'middle', marginRight: 8 }} /> Importação com Erros</div></>
+                                            )}
+                                        </h3>
+                                        <button
+                                            className={styles.closeBtn}
+                                            onClick={() => setUploadResult(null)}
+                                            title="Fechar"
+                                        >
+                                            <FiX />
+                                        </button>
+                                    </div>
+                                    <ul className={styles.resultList}>
+                                        <li><strong>Registros importados:</strong> {uploadResult.sucesso}</li>
+                                        {uploadResult.ignorado > 0 && (
+                                            <li><strong>Registros ignorados (duplicados):</strong> {uploadResult.ignorado}</li>
+                                        )}
+                                        {uploadResult.erro > 0 && (
+                                            <li><strong>Linhas com erro:</strong> {uploadResult.erro}</li>
+                                        )}
+                                    </ul>
+
+                                    {uploadResult.erros && uploadResult.erros.length > 0 && (
+                                        <div className={styles.errorList}>
+                                            {uploadResult.erros.map((err, i) => (
+                                                <div key={i} className={styles.errorRow}>
+                                                    <span className={styles.errorMsg}>{err}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className={styles.formCard}>
@@ -517,6 +582,79 @@ export default function RefugoFormPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className={styles.pagination}>
+                            {/* First Page Button */}
+                            {page > 1 && (
+                                <button
+                                    className={styles.pageBtn}
+                                    onClick={() => setPage(1)}
+                                    title="Primeira Página"
+                                >
+                                    <FiChevronsLeft size={18} />
+                                </button>
+                            )}
+
+                            <button
+                                className={styles.pageBtn}
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                title="Página Anterior"
+                            >
+                                <FiChevronLeft size={18} />
+                            </button>
+
+                            {/* Window of 3 pages logic: always show current, prev and next if possible */}
+                            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                                let pNum = page;
+
+                                // Adjust window start based on current page
+                                if (page === 1) pNum = i + 1;
+                                else if (page === totalPages) pNum = totalPages - 2 + i;
+                                else pNum = page - 1 + i;
+
+                                // Boundary enforcement
+                                if (pNum < 1) pNum = i + 1;
+                                if (pNum > totalPages) return null;
+
+                                return (
+                                    <button
+                                        key={pNum}
+                                        className={`${styles.pageBtn} ${page === pNum ? styles.activePage : ''}`}
+                                        onClick={() => setPage(pNum)}
+                                    >
+                                        {pNum}
+                                    </button>
+                                );
+                            }).filter(Boolean)}
+
+                            <button
+                                className={styles.pageBtn}
+                                disabled={page === totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                title="Próxima Página"
+                            >
+                                <FiChevronRight size={18} />
+                            </button>
+
+                            {/* Last Page Button */}
+                            {page < totalPages && (
+                                <button
+                                    className={styles.pageBtn}
+                                    onClick={() => setPage(totalPages)}
+                                    title="Última Página"
+                                >
+                                    <FiChevronsRight size={18} />
+                                </button>
+                            )}
+
+                            <div className={styles.totalInfo}>
+                                Exibindo {(page - 1) * 50 + 1} - {Math.min(page * 50, totalItems)} de {totalItems}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </>

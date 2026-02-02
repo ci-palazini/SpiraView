@@ -14,6 +14,10 @@ refugosRouter.get('/qualidade/refugos',
             const dataFim = req.query.dataFim as string;
             const origem = req.query.origem as string;
 
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 50;
+            const offset = (page - 1) * limit;
+
             const params: any[] = [];
             let where = '1=1';
 
@@ -30,18 +34,36 @@ refugosRouter.get('/qualidade/refugos',
                 where += ` AND qr.origem = $${params.length}`;
             }
 
-            const { rows } = await pool.query(
-                `SELECT 
-                qr.*,
-                u.nome as criado_por_nome
-             FROM qualidade_refugos qr
-             LEFT JOIN usuarios u ON u.id = qr.criado_por_id
-             WHERE ${where}
-             ORDER BY qr.data_ocorrencia DESC, qr.created_at DESC`,
+            // Count total
+            const countQuery = await pool.query(
+                `SELECT COUNT(*) as total FROM qualidade_refugos qr WHERE ${where}`,
                 params
             );
+            const total = parseInt(countQuery.rows[0].total);
 
-            res.json({ items: rows });
+            // Fetch data
+            const query = `
+                SELECT 
+                    qr.*,
+                    u.nome as criado_por_nome
+                FROM qualidade_refugos qr
+                LEFT JOIN usuarios u ON u.id = qr.criado_por_id
+                WHERE ${where}
+                ORDER BY qr.data_ocorrencia DESC, qr.created_at DESC
+                LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+            `;
+
+            const { rows } = await pool.query(query, [...params, limit, offset]);
+
+            res.json({
+                items: rows,
+                meta: {
+                    total,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
         } catch (e: any) {
             console.error(e);
             res.status(500).json({ error: String(e) });
@@ -84,6 +106,72 @@ refugosRouter.post('/qualidade/refugos',
             );
 
             res.status(201).json({ id: insert.rows[0].id, ok: true });
+        } catch (e: any) {
+            console.error(e);
+            res.status(500).json({ error: String(e) });
+        }
+    });
+
+
+// PUT /qualidade/refugos/:id - Atualizar
+refugosRouter.put('/qualidade/refugos/:id',
+    requirePermission('qualidade_lancamento', 'editar'),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            // Support both wrapped in data (standard in this app) or direct body
+            const payload = req.body.data || req.body;
+
+            const {
+                data_ocorrencia,
+                origem_referencia,
+                codigo_item,
+                descricao_item,
+                motivo_defeito,
+                quantidade,
+                custo,
+                origem,
+                responsavel_nome,
+                numero_ncr
+            } = payload;
+
+            const update = await pool.query(
+                `UPDATE qualidade_refugos SET
+                data_ocorrencia = $1, origem_referencia = $2, codigo_item = $3, 
+                descricao_item = $4, motivo_defeito = $5, quantidade = $6, 
+                custo = $7, origem = $8, responsavel_nome = $9, numero_ncr = $10
+                WHERE id = $11`,
+                [
+                    data_ocorrencia, origem_referencia, codigo_item, descricao_item,
+                    motivo_defeito, quantidade, custo, origem, responsavel_nome, numero_ncr, id
+                ]
+            );
+
+            // Check if any row was actually updated
+            if ((update as any).rowCount === 0) {
+                return res.status(404).json({ error: 'Registro não encontrado ou sem alteração.' });
+            }
+
+            res.json({ ok: true });
+        } catch (e: any) {
+            console.error(e);
+            res.status(500).json({ error: String(e) });
+        }
+    });
+
+// DELETE /qualidade/refugos/:id - Excluir
+refugosRouter.delete('/qualidade/refugos/:id',
+    requirePermission('qualidade_lancamento', 'editar'),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const del = await pool.query('DELETE FROM qualidade_refugos WHERE id = $1', [id]);
+
+            if ((del as any).rowCount === 0) {
+                return res.status(404).json({ error: 'Registro não encontrado.' });
+            }
+
+            res.json({ ok: true });
         } catch (e: any) {
             console.error(e);
             res.status(500).json({ error: String(e) });

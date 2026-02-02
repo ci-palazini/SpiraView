@@ -18,19 +18,21 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
 
         const resultados = {
             sucesso: 0,
+            ignorado: 0,
             erro: 0,
             erros: [] as string[]
         };
 
         await withTx(async (client) => {
-            for (const [index, item] of items.entries()) {
-                // Validação básica
-                // Se item.setor ainda existir no excel, mapeamos para item.origem?
-                // O usuário pediu para "trocar tudo que voce trata hoje como 'setor' por 'origem'".
-                // Assumindo que o Excel também terá coluna Origem ou que o front mapeia.
-                // Vou verificar item.origem, e fallback para item.setor se necessário, mas o foco é Origem.
+            // 1. Pre-validation and Normalization
+            const validItems: any[] = [];
 
-                const origemValue = item.origem || item.setor; // Fallback para compatibilidade temporária se o Excel n mudar
+            // Extract distinct dates to minimize DB lookup scope
+            const distinctDates = new Set<string>();
+
+            for (const [index, item] of items.entries()) {
+                const imagemRow = index + 2; // Excel row approximation
+                const origemValue = item.origem || item.setor;
 
                 const missingFields = [];
                 if (!item.data_ocorrencia) missingFields.push('Data');
@@ -40,35 +42,104 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
 
                 if (missingFields.length > 0) {
                     resultados.erro++;
-                    resultados.erros.push(`Linha ${index + 1}: Faltando campos obrigatórios: ${missingFields.join(', ')}.`);
+                    resultados.erros.push(`Linha ${imagemRow}: Faltando campos: ${missingFields.join(', ')}.`);
                     continue;
                 }
 
-                try {
-                    await client.query(
-                        `INSERT INTO qualidade_refugos 
+                // Normalizing for comparison
+                const normalizedItem = {
+                    ...item,
+                    origem: origemValue,
+                    motivo_defeito: item.motivo_defeito || 'OUTROS',
+                    quantidade: Number(item.quantidade),
+                    custo: Number(item.custo) || 0,
+                    row_index: imagemRow
+                };
+
+                validItems.push(normalizedItem);
+                distinctDates.add(normalizedItem.data_ocorrencia);
+            }
+
+            if (validItems.length === 0) {
+                return; // Everything failed validation
+            }
+
+            // 2. Deduplication Strategy
+            // Fetch existing records for checking duplicates (only for the dates involved)
+            const datesArray = Array.from(distinctDates);
+            const existingRes = await client.query(
+                `SELECT data_ocorrencia, origem, codigo_item, quantidade, motivo_defeito, numero_ncr 
+                 FROM qualidade_refugos 
+                 WHERE data_ocorrencia = ANY($1::date[])`,
+                [datesArray]
+            );
+
+            // Create a set of "fingerprints" for existing records
+            const existingSet = new Set<string>();
+            existingRes.rows.forEach((row: any) => {
+                // Ensure date format matches (taking first 10 chars usually YYYY-MM-DD)
+                const d = row.data_ocorrencia instanceof Date
+                    ? row.data_ocorrencia.toISOString().split('T')[0]
+                    : String(row.data_ocorrencia).split('T')[0];
+
+                // Fingerprint: DATE|ORIGIN|ITEM|QTY|REASON|NCR
+                const key = `${d}|${row.origem}|${row.codigo_item}|${Number(row.quantidade)}|${row.motivo_defeito}|${row.numero_ncr || ''}`;
+                existingSet.add(key.toUpperCase());
+            });
+
+            // Filter out duplicates
+            const toInsert: any[] = [];
+            for (const item of validItems) {
+                const d = item.data_ocorrencia.split('T')[0];
+                const key = `${d}|${item.origem}|${item.codigo_item}|${item.quantidade}|${item.motivo_defeito}|${item.numero_ncr || ''}`;
+
+                if (existingSet.has(key.toUpperCase())) {
+                    resultados.ignorado++;
+                } else {
+                    toInsert.push(item);
+                }
+            }
+
+            // 3. Batch Insertion
+            if (toInsert.length > 0) {
+                const chunkSize = 500; // Safe chunk size
+                for (let i = 0; i < toInsert.length; i += chunkSize) {
+                    const chunk = toInsert.slice(i, i + chunkSize);
+
+                    const values: any[] = [];
+                    const placeHolders: string[] = [];
+                    let paramIdx = 1;
+
+                    for (const row of chunk) {
+                        // ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                        placeHolders.push(`($${paramIdx}, $${paramIdx + 1}, $${paramIdx + 2}, $${paramIdx + 3}, $${paramIdx + 4}, $${paramIdx + 5}, $${paramIdx + 6}, $${paramIdx + 7}, $${paramIdx + 8}, $${paramIdx + 9}, $${paramIdx + 10})`);
+
+                        values.push(
+                            row.data_ocorrencia,
+                            row.origem,
+                            row.origem_referencia || '', // Fixed: NOT NULL constraint
+                            row.numero_ncr || null,
+                            row.codigo_item,
+                            row.descricao_item || '', // Fixed: NOT NULL constraint
+                            row.motivo_defeito,
+                            row.quantidade,
+                            row.custo,
+                            row.responsavel_nome || null,
+                            auth.id || null
+                        );
+                        paramIdx += 11;
+                    }
+
+                    const query = `
+                        INSERT INTO qualidade_refugos 
                         (data_ocorrencia, origem, origem_referencia, numero_ncr, codigo_item, descricao_item, 
                          motivo_defeito, quantidade, custo, responsavel_nome, criado_por_id)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-                        [
-                            item.data_ocorrencia,
-                            origemValue,
-                            item.origem_referencia || null,
-                            item.numero_ncr || null,
-                            item.codigo_item,
-                            item.descricao_item || null,
-                            item.motivo_defeito || 'OUTROS',
-                            Number(item.quantidade),
-                            Number(item.custo) || 0,
-                            item.responsavel_nome || null,
-                            auth.id || null
-                        ]
-                    );
-                    resultados.sucesso++;
-                } catch (err: any) {
-                    resultados.erro++;
-                    resultados.erros.push(`Linha ${index + 1}: Erro ao inserir - ${err.message}`);
+                        VALUES ${placeHolders.join(', ')}
+                    `;
+
+                    await client.query(query, values);
                 }
+                resultados.sucesso = toInsert.length;
             }
         });
 

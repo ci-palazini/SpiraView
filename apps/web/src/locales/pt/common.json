@@ -343,7 +343,14 @@
     "error": "Ocorreu um erro.",
     "machine": "Máquina",
     "loadError": "Falha ao carregar dados.",
-    "back": "Voltar"
+    "back": "Voltar",
+    "period": "Período",
+    "thisMonth": "Mês Atual",
+    "lastMonth": "Mês Passado",
+    "thisYear": "Ano Atual",
+    "thisWeek": "Semana Atual",
+    "custom": "Personalizado",
+    "to": "até"
   },
   "chamadoDetalhe": {
     "notFound": "Chamado não encontrado.",
@@ -1185,6 +1192,9 @@
     "dashboard": "Dashboard de Qualidade",
     "totalCost": "Custo Total de Refugo",
     "topDefects": "Top Defeitos (por Custo)",
-    "costBySector": "Custo por Setor"
+    "costBySector": "Custo por Setor",
+    "costByOrigin": "Custo por Origem",
+    "dashSubtitle": "Visão geral dos custos e principais ofensores de qualidade.",
+    "periodTotal": "Total do período selecionado"
   }
 }

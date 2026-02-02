@@ -120,7 +120,7 @@ export default function QualidadeConfigPage() {
     const fetchAll = async () => {
         setLoading(true);
         try {
-            const [o, m] = await Promise.all([listarOrigens(), listarMotivos()]);
+            const [o, m] = await Promise.all([listarOrigens(true), listarMotivos(true)]);
             setOrigens(o);
             setMotivos(m);
         } catch (err) {

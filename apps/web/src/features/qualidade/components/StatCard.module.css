@@ -1,0 +1,92 @@
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #64748b;
+    margin: 0;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    margin-left: 1rem;
+}
+
+/* Color variations */
+.icon.blue {
+    background-color: #eff6ff;
+    color: #3b82f6;
+}
+
+.card.blue {
+    border-left: 4px solid #3b82f6;
+}
+
+.icon.green {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.card.green {
+    border-left: 4px solid #10b981;
+}
+
+.icon.yellow {
+    background-color: #fffbeb;
+    color: #f59e0b;
+}
+
+.card.yellow {
+    border-left: 4px solid #f59e0b;
+}
+
+.icon.red {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+
+.card.red {
+    border-left: 4px solid #ef4444;
+}
+
+.value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.subtitle {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}

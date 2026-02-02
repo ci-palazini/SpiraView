@@ -1729,8 +1729,8 @@ export interface QualidadeOpcao {
     ativo: boolean;
 }
 
-export async function listarOrigens(): Promise<QualidadeOpcao[]> {
-    return http.get<QualidadeOpcao[]>('/qualidade/origens');
+export async function listarOrigens(todos = false): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/origens', { params: { todos } });
 }
 
 export async function criarOrigem(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
@@ -1741,8 +1741,8 @@ export async function editarOrigem(id: number, data: { nome?: string; ativo?: bo
     return http.put<QualidadeOpcao>(`/qualidade/origens/${id}`, { data, auth });
 }
 
-export async function listarMotivos(): Promise<QualidadeOpcao[]> {
-    return http.get<QualidadeOpcao[]>('/qualidade/motivos');
+export async function listarMotivos(todos = false): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/motivos', { params: { todos } });
 }
 
 export async function criarMotivo(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
