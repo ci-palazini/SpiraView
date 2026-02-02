@@ -58,9 +58,22 @@ settingsRouter.post('/qualidade/origens',
 settingsRouter.put('/qualidade/origens/:id',
     requirePermission('qualidade_config', 'editar'),
     async (req, res) => {
+        const client = await pool.connect();
         try {
+            await client.query('BEGIN');
             const { id } = req.params;
             const { nome, ativo, tipo } = req.body;
+
+            // 1. Get old data
+            const { rows: oldRows } = await client.query(
+                `SELECT nome FROM qualidade_origens WHERE id = $1`,
+                [id]
+            );
+            if (oldRows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Origem não encontrada.' });
+            }
+            const oldName = oldRows[0].nome;
 
             const fields: any[] = [];
             const values: any[] = [];
@@ -79,18 +92,33 @@ settingsRouter.put('/qualidade/origens/:id',
                 values.push(tipo);
             }
 
-            if (fields.length === 0) return res.status(400).json({ error: 'Nada a atualizar.' });
+            if (fields.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'Nada a atualizar.' });
+            }
 
             values.push(id);
-            const { rows } = await pool.query(
+            const { rows } = await client.query(
                 `UPDATE qualidade_origens SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
                 values
             );
 
+            // 2. Propagate name change if necessary
+            if (nome && nome.toUpperCase() !== oldName) {
+                await client.query(
+                    `UPDATE qualidade_refugos SET origem = $1, updated_at = NOW() WHERE origem = $2`,
+                    [nome.toUpperCase(), oldName]
+                );
+            }
+
+            await client.query('COMMIT');
             res.json(rows[0]);
         } catch (e: any) {
+            await client.query('ROLLBACK');
             console.error(e);
             res.status(500).json({ error: String(e) });
+        } finally {
+            client.release();
         }
     });
 
@@ -229,9 +257,22 @@ settingsRouter.post('/qualidade/motivos',
 settingsRouter.put('/qualidade/motivos/:id',
     requirePermission('qualidade_config', 'editar'),
     async (req, res) => {
+        const client = await pool.connect();
         try {
+            await client.query('BEGIN');
             const { id } = req.params;
             const { nome, ativo } = req.body;
+
+            // 1. Get old data
+            const { rows: oldRows } = await client.query(
+                `SELECT nome FROM qualidade_motivos WHERE id = $1`,
+                [id]
+            );
+            if (oldRows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Motivo não encontrado.' });
+            }
+            const oldName = oldRows[0].nome;
 
             const fields: any[] = [];
             const values: any[] = [];
@@ -246,18 +287,33 @@ settingsRouter.put('/qualidade/motivos/:id',
                 values.push(ativo);
             }
 
-            if (fields.length === 0) return res.status(400).json({ error: 'Nada a atualizar.' });
+            if (fields.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'Nada a atualizar.' });
+            }
 
             values.push(id);
-            const { rows } = await pool.query(
+            const { rows } = await client.query(
                 `UPDATE qualidade_motivos SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
                 values
             );
 
+            // 2. Propagate name change if necessary
+            if (nome && nome.toUpperCase() !== oldName) {
+                await client.query(
+                    `UPDATE qualidade_refugos SET motivo_defeito = $1, updated_at = NOW() WHERE motivo_defeito = $2`,
+                    [nome.toUpperCase(), oldName]
+                );
+            }
+
+            await client.query('COMMIT');
             res.json(rows[0]);
         } catch (e: any) {
+            await client.query('ROLLBACK');
             console.error(e);
             res.status(500).json({ error: String(e) });
+        } finally {
+            client.release();
         }
     });
 
@@ -396,9 +452,22 @@ settingsRouter.post('/qualidade/responsaveis',
 settingsRouter.put('/qualidade/responsaveis/:id',
     requirePermission('qualidade_config', 'editar'),
     async (req, res) => {
+        const client = await pool.connect();
         try {
+            await client.query('BEGIN');
             const { id } = req.params;
             const { nome, ativo } = req.body;
+
+            // 1. Get old data
+            const { rows: oldRows } = await client.query(
+                `SELECT nome FROM qualidade_responsaveis WHERE id = $1`,
+                [id]
+            );
+            if (oldRows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Responsável não encontrado.' });
+            }
+            const oldName = oldRows[0].nome;
 
             const fields: any[] = [];
             const values: any[] = [];
@@ -413,18 +482,33 @@ settingsRouter.put('/qualidade/responsaveis/:id',
                 values.push(ativo);
             }
 
-            if (fields.length === 0) return res.status(400).json({ error: 'Nada a atualizar.' });
+            if (fields.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'Nada a atualizar.' });
+            }
 
             values.push(id);
-            const { rows } = await pool.query(
+            const { rows } = await client.query(
                 `UPDATE qualidade_responsaveis SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
                 values
             );
 
+            // 2. Propagate name change if necessary
+            if (nome && nome.toUpperCase() !== oldName) {
+                await client.query(
+                    `UPDATE qualidade_refugos SET responsavel_nome = $1, updated_at = NOW() WHERE responsavel_nome = $2`,
+                    [nome.toUpperCase(), oldName]
+                );
+            }
+
+            await client.query('COMMIT');
             res.json(rows[0]);
         } catch (e: any) {
+            await client.query('ROLLBACK');
             console.error(e);
             res.status(500).json({ error: String(e) });
+        } finally {
+            client.release();
         }
     });
 
