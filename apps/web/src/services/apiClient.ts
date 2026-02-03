@@ -1826,5 +1826,39 @@ export async function listarResponsaveis(params: { dataInicio?: string; dataFim?
     return res.items || [];
 }
 
+// ===== QUALITY COMPARISON =====
+export interface QualityComparisonPeriod {
+    label: string;
+    totalCost: number;
+    count: number;
+    topDefects: { motivo: string; custo: number }[];
+    topOrigens: { origem: string; custo: number }[];
+    topResponsaveis: { responsavel: string; custo: number }[];
+}
 
+export interface QualityComparisonDelta {
+    costDiff: number;
+    costPctChange: number;
+    countDiff: number;
+}
 
+export interface QualityComparisonResponse {
+    periodA: QualityComparisonPeriod;
+    periodB: QualityComparisonPeriod;
+    delta: QualityComparisonDelta;
+}
+
+export interface QualityComparisonParams {
+    dataInicioA: string;
+    dataFimA: string;
+    dataInicioB: string;
+    dataFimB: string;
+    origem?: string;
+    responsavel?: string;
+    tipo?: string;
+    tipoLancamento?: string;
+}
+
+export async function getQualityComparison(params: QualityComparisonParams, auth: AuthParams = {}): Promise<QualityComparisonResponse> {
+    return http.get<QualityComparisonResponse>(`/qualidade/analytics/compare`, { params: params as Record<string, unknown>, auth });
+}

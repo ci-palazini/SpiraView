@@ -1389,5 +1389,27 @@
     "accessDenied": "Acesso Negado",
     "accessDeniedMsg": "Você não tem permissão para visualizar a Análise Detalhada da Qualidade. Entre em contato com o administrador para solicitar acesso.",
     "backToStart": "Voltar para o Início"
+  },
+  "qualityComparative": {
+    "title": "Comparativos",
+    "subtitle": "Compare métricas entre períodos, origens e responsáveis",
+    "periodA": "Período A",
+    "periodB": "Período B",
+    "compareBy": "Comparar por",
+    "periods": "Períodos",
+    "origins": "Origens",
+    "responsibles": "Responsáveis",
+    "delta": "Variação",
+    "increase": "Aumento",
+    "decrease": "Redução",
+    "noChange": "Sem alteração",
+    "thisVsLastMonth": "Este Mês vs Mês Anterior",
+    "thisVsLastYear": "Este Mês vs Ano Anterior",
+    "yearVsYear": "Este Ano vs Ano Anterior",
+    "compare": "Comparar",
+    "occurrences": "ocorrências",
+    "totalCost": "Custo Total",
+    "costComparison": "Comparação de Custos",
+    "defectsComparison": "Top Defeitos"
   }
 }

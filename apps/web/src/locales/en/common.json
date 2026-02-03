@@ -1383,5 +1383,27 @@
     "accessDenied": "Access Denied",
     "accessDeniedMsg": "You don't have permission to view Quality Detailed Analysis. Contact administrator to request access.",
     "backToStart": "Back to Start"
+  },
+  "qualityComparative": {
+    "title": "Comparative Analysis",
+    "subtitle": "Compare metrics across periods, origins, and responsibles",
+    "periodA": "Period A",
+    "periodB": "Period B",
+    "compareBy": "Compare by",
+    "periods": "Periods",
+    "origins": "Origins",
+    "responsibles": "Responsibles",
+    "delta": "Variation",
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "noChange": "No change",
+    "thisVsLastMonth": "This Month vs Last Month",
+    "thisVsLastYear": "This Month vs Last Year",
+    "yearVsYear": "This Year vs Last Year",
+    "compare": "Compare",
+    "occurrences": "occurrences",
+    "totalCost": "Total Cost",
+    "costComparison": "Cost Comparison",
+    "defectsComparison": "Top Defects"
   }
 }
