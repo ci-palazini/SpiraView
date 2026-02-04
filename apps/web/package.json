@@ -1,5 +1,5 @@
 {
-  "name": "@manutencao/web",
+  "name": "@spiraview/web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@manutencao/shared": "workspace:^",
+    "@spiraview/shared": "workspace:^",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.2",
     "chart.js": "^4.5.0",

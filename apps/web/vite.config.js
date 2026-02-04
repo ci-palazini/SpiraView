@@ -16,9 +16,9 @@ export default defineConfig({
       ],
       //devOptions: { enabled: true },
       manifest: {
-        name: 'TPM - Manutencao',
-        short_name: 'TPM',
-        description: 'Painel de Manutencao (PWA)',
+        name: 'SpiraView',
+        short_name: 'SpiraView',
+        description: 'SpiraView - Sistema de Gestão TPM (PWA)',
         start_url: '/',
         scope: '/',
         display: 'standalone',
