@@ -26,6 +26,7 @@
     "tvMode": "TV Mode",
     "qualityDashboard": "Dashboard",
     "qualityLaunch": "Scrap",
+    "qualityConfig": "Configuration",
     "logisticsDashboard": "Dashboard",
     "quarentena": "Quarantine",
     "refugo": "Scrap",
@@ -1027,6 +1028,105 @@
       "dashboard": "Dashboard",
       "colaboradores": "Performance"
     },
+    "colaboradores": {
+      "title": "Employee Performance",
+      "subtitle": "Track individual production and goals for each operator.",
+      "stats": {
+        "active": "Active Employees",
+        "totalGoal": "Total Monthly Goal",
+        "totalReal": "Total Realized Month",
+        "performance": "Monthly Performance"
+      },
+      "filters": {
+        "monthRef": "Reference Month",
+        "dayAnalysis": "Analysis Day",
+        "runningDays": "Running Days",
+        "businessDays": "Business Days (Month)",
+        "update": "Update",
+        "addOperator": "Add Operator"
+      },
+      "table": {
+        "matricula": "Badge ID",
+        "name": "Name",
+        "dailyGoal": "Daily Goal (h)",
+        "accumGoal": "Accum Goal (h)",
+        "monthGoal": "Month Goal (h)",
+        "realDay": "Real. Day (h)",
+        "realMonth": "Real. Month (h)",
+        "perfDay": "Perf. Day",
+        "perfMonth": "Perf. Month",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "totals": "Totals",
+        "empty": {
+          "title": "No monitored operators",
+          "text": "Click \"Add Operator\" to select which operators you want to track."
+        },
+        "editTitle": "Edit goal"
+      },
+      "modal": {
+        "addTitle": "Add Operator to Monitoring",
+        "searchPlaceholder": "Search by name or badge ID...",
+        "loading": "Loading operators...",
+        "emptySearch": "No operators found with this search.",
+        "allMonitored": "All operators are already being monitored.",
+        "dailyGoalLabel": "Daily goal for {{name}} (hours)",
+        "cancel": "Cancel",
+        "add": "Add",
+        "adding": "Adding...",
+        "editTitle": "Edit Goal: {{name}}",
+        "matricula": "Badge ID",
+        "name": "Name",
+        "dailyGoal": "Daily Goal (hours)",
+        "monitoring": "Monitoring",
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "toasts": {
+        "loadError": "Error loading data",
+        "loadOperatorsError": "Error loading operators",
+        "addSuccess": "{{name}} added to monitoring!",
+        "addError": "Error adding operator",
+        "updateSuccess": "Goal updated successfully!",
+        "saveError": "Error saving"
+      }
+    },
+    "dashboard": {
+      "title": "Day View",
+      "subtitle": "Production tracking by machine",
+      "dateLabel": "WIP Date",
+      "timeLabel": "Reference Time (05:30 → 00:44)",
+      "timeHelper": {
+        "past": "Day completed — using full window",
+        "future": "Future day — waiting to start",
+        "today": "{{pct}}% of the day"
+      },
+      "summary": {
+        "title": "Factory Total",
+        "future": "FUTURE",
+        "noGoal": "No goal",
+        "produced": "Produced",
+        "expected": "Expected",
+        "dailyGoal": "Daily Goal",
+        "deviation": "Deviation",
+        "progressVsExpected": "Progress vs Expected",
+        "progressVsGoal": "vs Daily Goal",
+        "machines": "Machines",
+        "projection": "Projection",
+        "gap": "Gap"
+      },
+      "empty": {
+        "noScope": "No machine with active production scope.",
+        "noFilter": "No machines found for this filter..."
+      },
+      "sectors": {
+        "machining": "Machining",
+        "assembly": "Assembly",
+        "all": "All"
+      },
+      "mother": "MOTHER"
+    },
     "sectionTitle": "Production",
     "upload": {
       "title": "Production Upload",
@@ -1069,6 +1169,46 @@
         },
         "active": "Active",
         "inactive": "Inactive"
+      },
+      "audit": {
+        "title": "Upload Audit",
+        "subtitle": "Archived history (after 48h inactive)",
+        "loading": "Loading history...",
+        "empty": "No audit records found. Uploads are archived after 48h of inactivity.",
+        "columns": {
+          "archivedAt": "Archived at",
+          "reason": "Reason",
+          "file": "File",
+          "dateRef": "Ref. Date",
+          "lines": "Rows",
+          "hours": "Hours",
+          "sentAt": "Sent at",
+          "sentBy": "Sent by"
+        },
+        "reasons": {
+          "cleanup_48h": "Inactive 48h+"
+        }
+      },
+      "details": {
+        "title": "Upload Details",
+        "loading": "Loading...",
+        "error": "Error",
+        "notFound": "Upload not found",
+        "back": "Back",
+        "dateRef": "Reference Date",
+        "sentAt": "Sent at",
+        "by": "by",
+        "machines": "machines",
+        "total": "total",
+        "tableTitle": "Entries by Machine",
+        "emptyTable": "No entries found.",
+        "columns": {
+          "machine": "Machine",
+          "tag": "Tag",
+          "hours": "Hours",
+          "shift": "Shift(s)"
+        },
+        "totalLabel": "TOTAL"
       }
     },
     "config": {
@@ -1078,6 +1218,7 @@
         "total": "Total Registered",
         "maintenance": "Maintenance Scope",
         "production": "Production Scope",
+        "planning": "Planning Scope",
         "withGoals": "With Active Goals"
       },
       "search": "Search by name, tag, or code...",
@@ -1088,15 +1229,22 @@
       "saveError": "Error saving changes",
       "table": {
         "identification": "Identification",
-        "maintenance": "Maintenance",
-        "production": "Production",
-        "sector": "Sector",
+        "scopeMaintenance": "Maintenance",
+        "scopeProduction": "Production",
+        "scopePlanning": "Planning",
+        "hierarchyConfig": "Hierarchy Configuration",
+        "isMother": "Is Mother Machine?",
+        "showChildrenDashboard": "Show children in Dashboard?",
+        "parentMachine": "Mother Machine (Line/Group)",
+        "noParent": "None (Independent Machine)",
+        "parentHint": "Select the \"Mother\" machine for this machine.",
+        "sector": "Sector/Department",
         "goal": "Goal (h)",
         "aliases": "Aliases (Excel)",
         "active": "Active",
         "inactive": "Inactive",
-        "mapped": "mapped",
-        "mother": "MOTHER"
+        "mother": "MOTHER",
+        "planning": "Planning"
       },
       "empty": {
         "title": "No results found",
@@ -1128,7 +1276,8 @@
         "creating": "Creating...",
         "createMachine": "Create Machine",
         "saving": "Saving...",
-        "save": "Save Changes"
+        "save": "Save Changes",
+        "delete": "Delete"
       },
       "createSuccess": "Machine \"{{name}}\" created!",
       "createError": "Error creating machine",
@@ -1137,48 +1286,10 @@
       "deleteConfirm": {
         "title": "Delete Machine",
         "text": "Are you sure you want to delete the machine \"{{name}}\"? This action cannot be undone.",
+        "warning": "This action will remove the machine from listings. History will be preserved in the database.",
         "confirm": "Delete",
+        "deleting": "Deleting...",
         "cancel": "Cancel"
-      }
-    },
-    "dashboard": {
-      "title": "Daily View",
-      "subtitle": "Production tracking by machine",
-      "loadError": "Error loading data",
-      "sectors": {
-        "machining": "Machining",
-        "assembly": "Assembly",
-        "all": "All"
-      },
-      "dateLabel": "WIP Date",
-      "timeLabel": "Reference time (05:30 → 00:44)",
-      "dayCompleted": "Day completed — using full window",
-      "dayFuture": "Future day — waiting to start",
-      "dayProgress": "{{percent}}% of day",
-      "summary": {
-        "title": "Factory Total",
-        "future": "FUTURE",
-        "produced": "Produced",
-        "expected": "Expected",
-        "dailyGoal": "Daily goal",
-        "progressLabel": "Progress vs expected",
-        "machines": "Machines",
-        "projection": "Projection",
-        "gap": "Gap"
-      },
-      "card": {
-        "produced": "Produced",
-        "expected": "Expected",
-        "dailyGoal": "Daily goal",
-        "deviation": "Deviation",
-        "noGoal": "No goal",
-        "vsExpected": "vs expected",
-        "vsGoal": "vs day goal",
-        "mother": "MOTHER"
-      },
-      "empty": {
-        "noMachines": "No machines with active production scope.",
-        "noFilter": "No machines found for this filter. Check if sectors are filled in the Configuration screen."
       }
     },
     "uploadDetail": {
@@ -1197,50 +1308,6 @@
         "title": "Entries",
         "machine": "Machine",
         "hours": "Hours"
-      }
-    },
-    "colaboradores": {
-      "title": "Performance by Employee",
-      "subtitle": "For each badge number, we compare actual production with the defined daily goal.",
-      "monthGoal": "Month goal",
-      "monthReal": "Month actual",
-      "filters": {
-        "refMonth": "Reference month",
-        "analysisDay": "Analysis day",
-        "daysElapsed": "Days elapsed",
-        "workDays": "Work days in month"
-      },
-      "actions": {
-        "reload": "Reload",
-        "new": "New"
-      },
-      "table": {
-        "matricula": "Badge #",
-        "name": "Name",
-        "goalDay": "Goal Day (h)",
-        "goalAccum": "Goal Accum (h)",
-        "goalMonth": "Goal Month (h)",
-        "realDay": "Actual Day (h)",
-        "realMonth": "Actual Month (h)",
-        "perfDay": "Perf. Day (%)",
-        "perfMonth": "Perf. Month (%)",
-        "status": "Status",
-        "totals": "Totals"
-      },
-      "empty": "No employees registered.",
-      "modal": {
-        "titleNew": "New Employee",
-        "titleEdit": "Edit Employee",
-        "matricula": "Badge Number",
-        "name": "Name",
-        "dailyGoal": "Daily Goal (h)",
-        "active": "Active",
-        "cancel": "Cancel",
-        "save": "Save"
-      },
-      "status": {
-        "active": "Active",
-        "inactive": "Inactive"
       }
     }
   },
@@ -1269,7 +1336,6 @@
       "subtitle": "Import capacity reservations from an Excel file.",
       "dropzoneText": "Drag an Excel file here or click to select",
       "dropzoneHint": "Accepted formats: .xlsx, .xls",
-      "preview": "Preview",
       "lines": "lines",
       "sendBtn": "Send",
       "successTitle": "Upload completed successfully!",

@@ -15,6 +15,7 @@ import {
 } from '../../../services/apiClient';
 import type { Maquina } from '../../../types/api';
 import styles from './ProducaoDashboardPage.module.css';
+import { useTranslation } from 'react-i18next';
 
 interface User {
     role?: string;
@@ -98,6 +99,7 @@ function isPastDay(iso: string): boolean {
 }
 
 export default function ProducaoDashboardPage({ user }: ProducaoDashboardPageProps) {
+    const { t } = useTranslation();
     const [dataRef, setDataRef] = useState<string>(() => toISO(new Date()));
     const [hora, setHora] = useState<string>(() => getCurrentHHMM());
     const [maquinas, setMaquinas] = useState<Maquina[]>([]);
@@ -137,7 +139,7 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
             setResumos(resumoData);
         } catch (err) {
             console.error(err);
-            toast.error('Erro ao carregar dados');
+            toast.error(t('common.error', 'Erro ao carregar dados'));
         } finally {
             setLoading(false);
         }
@@ -344,7 +346,10 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
 
     return (
         <>
-            <PageHeader title="Visão do Dia" subtitle="Acompanhamento de produção por máquina" />
+            <PageHeader
+                title={t('producao.dashboard.title', 'Visão do Dia')}
+                subtitle={t('producao.dashboard.subtitle', 'Acompanhamento de produção por máquina')}
+            />
 
             <div className={styles.container}>
                 {/* Filtro de Setores (Tabs Discretas) */}
@@ -355,21 +360,21 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                                 }`}
                             onClick={() => setSetorFiltro('Usinagem')}
                         >
-                            Usinagem
+                            {t('producao.dashboard.sectors.machining', 'Usinagem')}
                         </button>
                         <button
                             className={`${styles.sectorTab} ${setorFiltro === 'Montagem' ? styles.sectorTabActive : ''
                                 }`}
                             onClick={() => setSetorFiltro('Montagem')}
                         >
-                            Montagem
+                            {t('producao.dashboard.sectors.assembly', 'Montagem')}
                         </button>
                         <button
                             className={`${styles.sectorTab} ${setorFiltro === 'todos' ? styles.sectorTabActive : ''
                                 }`}
                             onClick={() => setSetorFiltro('todos')}
                         >
-                            Todos
+                            {t('producao.dashboard.sectors.all', 'Todos')}
                         </button>
                     </div>
                 </div>
@@ -381,7 +386,7 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                     <div className={styles.dateCard}>
                         <label className={styles.inputLabel}>
                             <FiCalendar style={{ marginRight: 6 }} />
-                            Data do WIP
+                            {t('producao.dashboard.dateLabel', 'Data do WIP')}
                         </label>
                         <input
                             type="date"
@@ -395,7 +400,7 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                     <div className={styles.dateCard}>
                         <label className={styles.inputLabel}>
                             <FiClock style={{ marginRight: 6 }} />
-                            Hora referência (05:30 → 00:44)
+                            {t('producao.dashboard.timeLabel', 'Hora referência (05:30 → 00:44)')}
                         </label>
                         <input
                             type="time"
@@ -405,13 +410,13 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                             disabled={isPast || isFuture}
                         />
                         {isPast && (
-                            <span className={styles.helperText}>Dia concluído — usando janela completa</span>
+                            <span className={styles.helperText}>{t('producao.dashboard.timeHelper.past', 'Dia concluído — usando janela completa')}</span>
                         )}
                         {isFuture && (
-                            <span className={styles.helperText}>Dia futuro — aguardando início</span>
+                            <span className={styles.helperText}>{t('producao.dashboard.timeHelper.future', 'Dia futuro — aguardando início')}</span>
                         )}
                         {isToday && (
-                            <span className={styles.helperText}>{(frac * 100).toFixed(0)}% do dia</span>
+                            <span className={styles.helperText}>{t('producao.dashboard.timeHelper.today', { pct: (frac * 100).toFixed(0), defaultValue: '{{pct}}% do dia' })}</span>
                         )}
                     </div>
 
@@ -420,12 +425,12 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                         <div className={styles.summaryHeader}>
                             <span className={styles.summaryTitle}>
                                 <FiActivity style={{ marginRight: 6 }} />
-                                Total Fábrica
+                                {t('producao.dashboard.summary.title', 'Total Fábrica')}
                             </span>
                             {loading ? (
                                 <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 2 }} />
                             ) : isFuture ? (
-                                <span className={`${styles.badge} ${styles.badgeGray}`}>FUTURO</span>
+                                <span className={`${styles.badge} ${styles.badgeGray}`}>{t('producao.dashboard.summary.future', 'FUTURO')}</span>
                             ) : (
                                 <span
                                     className={`${styles.badge} ${styles[
@@ -448,28 +453,30 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                                     <Skeleton variant="text" width="100%" height={24} />
                                 </>
                             ) : (
+
                                 <>
                                     <div className={styles.summaryRow}>
-                                        <span>Produzido:</span>
+                                        <span>{t('producao.dashboard.summary.produced', 'Produzido')}:</span>
                                         <strong>{fabrica.produzido.toFixed(2)} h</strong>
                                     </div>
                                     <div className={styles.summaryRow}>
-                                        <span>Esperado:</span>
+                                        <span>{t('producao.dashboard.summary.expected', 'Esperado')}:</span>
                                         <strong>{fabrica.esperado.toFixed(2)} h</strong>
                                     </div>
                                     <div className={styles.summaryRow}>
-                                        <span>Meta diária:</span>
+                                        <span>{t('producao.dashboard.summary.dailyGoal', 'Meta diária')}:</span>
                                         <strong>{fabrica.meta.toFixed(2)} h</strong>
                                     </div>
                                 </>
                             )}
+
                         </div>
 
                         {/* Barra de progresso vs esperado */}
                         {!loading && (
                             <>
                                 <div className={styles.progressContainer}>
-                                    <span className={styles.progressLabel}>Progresso vs esperado</span>
+                                    <span className={styles.progressLabel}>{t('producao.dashboard.summary.progressVsExpected', 'Progresso vs esperado')}</span>
                                     <div className={styles.progressBar}>
                                         <div
                                             className={`${styles.progressFill} ${styles[
@@ -484,138 +491,144 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                                 </div>
 
                                 <div className={styles.summaryFooter}>
-                                    <span className={styles.badgeDot}>Máquinas: {fabrica.maquinas}</span>
-                                    <span className={styles.badgeDot}>Projeção: {fabrica.projEod.toFixed(2)} h</span>
+                                    <span className={styles.badgeDot}>{t('producao.dashboard.summary.machines', 'Máquinas')}: {fabrica.maquinas}</span>
+                                    <span className={styles.badgeDot}>{t('producao.dashboard.summary.projection', 'Projeção')}: {fabrica.projEod.toFixed(2)} h</span>
                                     <span
                                         className={`${styles.badgeDot} ${fabrica.gapEod >= 0 ? styles.textGreen : styles.textRed
                                             }`}
                                     >
-                                        Gap: {fabrica.gapEod >= 0 ? '+' : ''}
+                                        {t('producao.dashboard.summary.gap', 'Gap')}: {fabrica.gapEod >= 0 ? '+' : ''}
                                         {fabrica.gapEod.toFixed(2)} h
                                     </span>
                                 </div>
                             </>
                         )}
                     </div>
-                </div>
+                </div >
 
                 {/* Loading Skeleton */}
-                {loading && (
-                    <div className={styles.cardsGrid}>
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className={styles.machineCard}>
-                                <Skeleton variant="text" width="60%" height={24} />
-                                <Skeleton variant="text" width="100%" height={20} sx={{ mt: 1 }} />
-                                <Skeleton variant="text" width="100%" height={20} />
-                                <Skeleton variant="text" width="100%" height={20} />
-                                <Skeleton
-                                    variant="rectangular"
-                                    width="100%"
-                                    height={8}
-                                    sx={{ mt: 2, borderRadius: 1 }}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {
+                    loading && (
+                        <div className={styles.cardsGrid}>
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className={styles.machineCard}>
+                                    <Skeleton variant="text" width="60%" height={24} />
+                                    <Skeleton variant="text" width="100%" height={20} sx={{ mt: 1 }} />
+                                    <Skeleton variant="text" width="100%" height={20} />
+                                    <Skeleton variant="text" width="100%" height={20} />
+                                    <Skeleton
+                                        variant="rectangular"
+                                        width="100%"
+                                        height={8}
+                                        sx={{ mt: 2, borderRadius: 1 }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )
+                }
 
                 {/* Empty State */}
-                {!loading && linhasFiltradas.length === 0 && (
-                    <div className={styles.emptyState}>
-                        <FiBarChart2 className={styles.emptyIcon} />
-                        <p>
-                            {maquinas.length === 0
-                                ? 'Nenhuma máquina com escopo de produção ativo.'
-                                : 'Nenhuma máquina encontrada para este filtro. Verifique se os setores estão preenchidos na tela de Configuração.'}
-                        </p>
-                    </div>
-                )}
+                {
+                    !loading && linhasFiltradas.length === 0 && (
+                        <div className={styles.emptyState}>
+                            <FiBarChart2 className={styles.emptyIcon} />
+                            <p>
+                                {maquinas.length === 0
+                                    ? t('producao.dashboard.empty.noScope', 'Nenhuma máquina com escopo de produção ativo.')
+                                    : t('producao.dashboard.empty.noFilter', 'Nenhuma máquina encontrada para este filtro. Verifique se os setores estão preenchidos na tela de Configuração.')}
+                            </p>
+                        </div>
+                    )
+                }
 
                 {/* Grid de Cards por Máquina */}
-                {!loading && linhasFiltradas.length > 0 && (
-                    <div className={styles.cardsGrid}>
-                        {linhasFiltradas.map((r) => {
-                            const color = colorForPct(r.aderencia);
-                            const pctEsperado = r.esperado > 0 ? (r.produzido / r.esperado) * 100 : 0;
-                            const pctMeta = r.meta > 0 ? (r.produzido / r.meta) * 100 : 0;
+                {
+                    !loading && linhasFiltradas.length > 0 && (
+                        <div className={styles.cardsGrid}>
+                            {linhasFiltradas.map((r) => {
+                                const color = colorForPct(r.aderencia);
+                                const pctEsperado = r.esperado > 0 ? (r.produzido / r.esperado) * 100 : 0;
+                                const pctMeta = r.meta > 0 ? (r.produzido / r.meta) * 100 : 0;
 
-                            return (
-                                <div key={r.maquinaId} className={styles.machineCard} data-status={color}>
-                                    <div className={styles.cardHeader}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span className={styles.machineName}>{r.maquinaNome}</span>
-                                            {r.isMother && (
-                                                <span className={styles.motherBadge}>
-                                                    MÃE
+                                return (
+                                    <div key={r.maquinaId} className={styles.machineCard} data-status={color}>
+                                        <div className={styles.cardHeader}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span className={styles.machineName}>{r.maquinaNome}</span>
+                                                {r.isMother && (
+                                                    <span className={styles.motherBadge}>
+                                                        {t('producao.dashboard.mother', 'MÃE')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {isFuture ? (
+                                                <span className={`${styles.badge} ${styles.badgeGray}`}>{t('producao.dashboard.summary.future', 'FUTURO')}</span>
+                                            ) : (
+                                                <span
+                                                    className={`${styles.badge} ${styles[`badge${color.charAt(0).toUpperCase() + color.slice(1)}`]
+                                                        }`}
+                                                >
+                                                    {r.aderencia !== null ? `${r.aderencia.toFixed(1)}%` : t('producao.dashboard.summary.noGoal', 'Sem meta')}
                                                 </span>
                                             )}
                                         </div>
-                                        {isFuture ? (
-                                            <span className={`${styles.badge} ${styles.badgeGray}`}>FUTURO</span>
-                                        ) : (
-                                            <span
-                                                className={`${styles.badge} ${styles[`badge${color.charAt(0).toUpperCase() + color.slice(1)}`]
-                                                    }`}
-                                            >
-                                                {r.aderencia !== null ? `${r.aderencia.toFixed(1)}%` : 'Sem meta'}
-                                            </span>
-                                        )}
-                                    </div>
 
-                                    <div className={styles.cardBody}>
-                                        <div className={styles.statLine}>
-                                            <span>Produzido:</span>
-                                            <strong>{r.produzido.toFixed(2)} h</strong>
+                                        <div className={styles.cardBody}>
+                                            <div className={styles.statLine}>
+                                                <span>{t('producao.dashboard.summary.produced', 'Produzido')}:</span>
+                                                <strong>{r.produzido.toFixed(2)} h</strong>
+                                            </div>
+                                            <div className={styles.statLine}>
+                                                <span>{t('producao.dashboard.summary.expected', 'Esperado')}:</span>
+                                                <strong>{r.esperado.toFixed(2)} h</strong>
+                                            </div>
+                                            <div className={styles.statLine}>
+                                                <span>{t('producao.dashboard.summary.dailyGoal', 'Meta diária')}:</span>
+                                                <strong>{r.meta.toFixed(2)} h</strong>
+                                            </div>
+                                            <div className={styles.statLine}>
+                                                <span>{t('producao.dashboard.summary.deviation', 'Desvio')}:</span>
+                                                <strong style={{ color: r.desvio >= 0 ? '#16a34a' : '#dc2626' }}>
+                                                    {r.desvio >= 0 ? '+' : ''}
+                                                    {r.desvio.toFixed(2)} h
+                                                </strong>
+                                            </div>
                                         </div>
-                                        <div className={styles.statLine}>
-                                            <span>Esperado:</span>
-                                            <strong>{r.esperado.toFixed(2)} h</strong>
-                                        </div>
-                                        <div className={styles.statLine}>
-                                            <span>Meta diária:</span>
-                                            <strong>{r.meta.toFixed(2)} h</strong>
-                                        </div>
-                                        <div className={styles.statLine}>
-                                            <span>Desvio:</span>
-                                            <strong style={{ color: r.desvio >= 0 ? '#16a34a' : '#dc2626' }}>
-                                                {r.desvio >= 0 ? '+' : ''}
-                                                {r.desvio.toFixed(2)} h
-                                            </strong>
-                                        </div>
-                                    </div>
 
-                                    {/* Barras de progresso */}
-                                    <div className={styles.cardProgress}>
-                                        <span className={styles.progressLabel}>vs esperado</span>
-                                        <div className={styles.progressBar}>
-                                            <div
-                                                className={`${styles.progressFill} ${styles[`progress${color.charAt(0).toUpperCase() + color.slice(1)}`]
-                                                    }`}
-                                                style={{ width: `${clamp(pctEsperado)}%` }}
-                                            />
+                                        {/* Barras de progresso */}
+                                        <div className={styles.cardProgress}>
+                                            <span className={styles.progressLabel}>{t('producao.dashboard.summary.progressVsExpected', 'vs esperado')}</span>
+                                            <div className={styles.progressBar}>
+                                                <div
+                                                    className={`${styles.progressFill} ${styles[`progress${color.charAt(0).toUpperCase() + color.slice(1)}`]
+                                                        }`}
+                                                    style={{ width: `${clamp(pctEsperado)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardProgress}>
+                                            <span className={styles.progressLabel}>{t('producao.dashboard.summary.progressVsGoal', 'vs meta do dia')}</span>
+                                            <div className={styles.progressBar}>
+                                                <div
+                                                    className={`${styles.progressFill} ${styles.progressBlue}`}
+                                                    style={{ width: `${clamp(pctMeta)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.cardFooter}>
+                                            <span className={styles.badgeDot}>{pctEsperado.toFixed(0)}% esp.</span>
+                                            <span className={styles.badgeDot}>{pctMeta.toFixed(0)}% meta</span>
                                         </div>
                                     </div>
-
-                                    <div className={styles.cardProgress}>
-                                        <span className={styles.progressLabel}>vs meta do dia</span>
-                                        <div className={styles.progressBar}>
-                                            <div
-                                                className={`${styles.progressFill} ${styles.progressBlue}`}
-                                                style={{ width: `${clamp(pctMeta)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.cardFooter}>
-                                        <span className={styles.badgeDot}>{pctEsperado.toFixed(0)}% esp.</span>
-                                        <span className={styles.badgeDot}>{pctMeta.toFixed(0)}% meta</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+                                );
+                            })}
+                        </div>
+                    )
+                }
+            </div >
         </>
     );
 }

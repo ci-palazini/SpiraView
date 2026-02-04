@@ -1,5 +1,6 @@
 // src/features/producao/pages/ProducaoConfigPage.tsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
     FiPlus,
@@ -69,6 +70,7 @@ function toISO(d: Date): string {
 // --- Componente Principal ---
 
 export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
+    const { t } = useTranslation();
     // --- Estados ---
     const [maquinas, setMaquinas] = useState<Maquina[]>([]);
     const [metas, setMetas] = useState<ProducaoMeta[]>([]);
@@ -112,7 +114,8 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             setMetas(metasData);
         } catch (err) {
             console.error(err);
-            toast.error('Erro ao carregar dados do servidor.');
+            console.error(err);
+            toast.error(t('producao.config.loadError', 'Erro ao carregar dados do servidor.'));
         } finally {
             setLoading(false);
         }
@@ -220,12 +223,12 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                 }
             }
 
-            toast.success('Configurações salvas com sucesso!');
+            toast.success(t('producao.config.saveSuccess', 'Configurações salvas com sucesso!'));
             setEditState(null);
             loadData(); // Recarrega para garantir consistência
         } catch (err: unknown) {
             console.error(err);
-            const msg = err instanceof Error ? err.message : 'Erro ao salvar alterações';
+            const msg = err instanceof Error ? err.message : t('producao.config.saveError', 'Erro ao salvar alterações');
             toast.error(msg);
         } finally {
             setSaving(false);
@@ -300,7 +303,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             loadData();
         } catch (err: unknown) {
             console.error(err);
-            const msg = err instanceof Error ? err.message : 'Erro ao criar máquina';
+            const msg = err instanceof Error ? err.message : t('producao.config.createError', 'Erro ao criar máquina');
             toast.error(msg);
         } finally {
             setCreatingMaquina(false);
@@ -315,12 +318,12 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
         try {
             await deletarMaquina(confirmDelete.id, { role: user.role, email: user.email });
             setMaquinas(prev => prev.filter(m => m.id !== confirmDelete.id));
-            toast.success('Máquina removida com sucesso.');
+            toast.success(t('producao.config.deleteSuccess', 'Máquina removida com sucesso.'));
             setConfirmDelete(null);
             setEditState(null); // Fecha modal de edição se estiver aberto por baixo
         } catch (err: unknown) {
             console.error(err);
-            const msg = err instanceof Error ? err.message : 'Erro ao excluir máquina';
+            const msg = err instanceof Error ? err.message : t('producao.config.deleteError', 'Erro ao excluir máquina');
             toast.error(msg);
         } finally {
             setDeleting(false);
@@ -378,12 +381,12 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
     }, [maquinas, search, showOnlyProducao]);
 
     const stats = useMemo(() => [
-        { label: 'Total Cadastrado', value: maquinas.length, icon: <FiGrid />, color: 'blue' },
-        { label: 'Escopo Manutenção', value: maquinas.filter(m => m.escopo_manutencao).length, icon: <FiSettings />, color: 'orange' },
-        { label: 'Escopo Produção', value: maquinas.filter(m => m.escopo_producao).length, icon: <FiBox />, color: 'green' },
-        { label: 'Escopo Planejamento', value: maquinas.filter(m => m.escopo_planejamento).length, icon: <FiSettings />, color: 'blue' },
-        { label: 'Com Metas Ativas', value: metas.length, icon: <FiTarget />, color: 'purple' },
-    ], [maquinas, metas]);
+        { label: t('producao.config.stats.total', 'Total Cadastrado'), value: maquinas.length, icon: <FiGrid />, color: 'blue' },
+        { label: t('producao.config.stats.maintenance', 'Escopo Manutenção'), value: maquinas.filter(m => m.escopo_manutencao).length, icon: <FiSettings />, color: 'orange' },
+        { label: t('producao.config.stats.production', 'Escopo Produção'), value: maquinas.filter(m => m.escopo_producao).length, icon: <FiBox />, color: 'green' },
+        { label: t('producao.config.stats.planning', 'Escopo Planejamento'), value: maquinas.filter(m => m.escopo_planejamento).length, icon: <FiSettings />, color: 'blue' },
+        { label: t('producao.config.stats.withGoals', 'Com Metas Ativas'), value: metas.length, icon: <FiTarget />, color: 'purple' },
+    ], [maquinas, metas, t]);
 
     // Estados Auxiliares
     // Máquinas disponíveis para serem mãe (filtra apenas as que SÃO marcadas como mãe e não são a própria)
@@ -396,8 +399,8 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
     return (
         <>
             <PageHeader
-                title="Configuração de Máquinas"
-                subtitle="Gerenciamento centralizado de escopos, setores e parâmetros de produção."
+                title={t('producao.config.title', 'Configuração de Máquinas')}
+                subtitle={t('producao.config.subtitle', 'Gerenciamento centralizado de escopos, setores e parâmetros de produção.')}
             />
 
             <div className={styles.mainContainer}>
@@ -435,7 +438,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                         <FiSearch className={styles.searchIcon} />
                         <input
                             type="text"
-                            placeholder="Buscar por nome, tag ou código..."
+                            placeholder={t('producao.config.search', 'Buscar por nome, tag ou código...')}
                             className={styles.searchInput}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -449,7 +452,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 checked={showOnlyProducao}
                                 onChange={(e) => setShowOnlyProducao(e.target.checked)}
                             />
-                            <span>Apenas Produção</span>
+                            <span>{t('producao.config.onlyProduction', 'Apenas Produção')}</span>
                         </label>
 
                         <div className={styles.dividerVertical} />
@@ -459,7 +462,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                             onClick={() => setShowAddModal(true)}
                         >
                             <FiPlus />
-                            Nova Máquina
+                            {t('producao.config.newMachine', 'Nova Máquina')}
                         </button>
                     </div>
                 </div>
@@ -475,14 +478,14 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>Identificação</th>
-                                <th className={styles.centerAlign}>Manutenção</th>
-                                <th className={styles.centerAlign}>Produção</th>
-                                <th className={styles.centerAlign}>Planejamento</th>
-                                <th>Setor</th>
-                                <th className={styles.rightAlign}>Meta (h)</th>
-                                <th>Aliases (Excel)</th>
-                                <th style={{ width: 60 }}></th>
+                                <th>{t('producao.config.table.identification', 'Identificação')}</th>
+                                <th className={styles.centerAlign}>{t('producao.config.table.maintenance', 'Manutenção')}</th>
+                                <th className={styles.centerAlign}>{t('producao.config.table.production', 'Produção')}</th>
+                                <th className={styles.centerAlign}>{t('producao.config.table.planning', 'Planejamento')}</th>
+                                <th>{t('producao.config.table.sector', 'Setor')}</th>
+                                <th className={styles.rightAlign}>{t('producao.config.table.goal', 'Meta (h)')}</th>
+                                <th>{t('producao.config.table.aliases', 'Aliases (Excel)')}</th>
+                                <th style={{ width: 100 }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -491,8 +494,8 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     <td colSpan={8}>
                                         <div className={styles.emptyState}>
                                             <FiSearch size={48} />
-                                            <h3>Nenhum resultado encontrado</h3>
-                                            <p>Tente ajustar os filtros ou adicionar uma nova máquina.</p>
+                                            <h3>{t('producao.config.empty.title', 'Nenhum resultado encontrado')}</h3>
+                                            <p>{t('producao.config.empty.text', 'Tente ajustar os filtros ou adicionar uma nova máquina.')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -516,7 +519,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                     <span className={styles.machineName}>
                                                         {m.nome}
-                                                        {m.is_maquina_mae && <span title="Máquina Mãe" style={{ marginLeft: 6, fontSize: '0.7em', padding: '2px 6px', borderRadius: 4, background: '#e0e7ff', color: '#4338ca' }}>MÃE</span>}
+                                                        {m.is_maquina_mae && <span title="Máquina Mãe" style={{ marginLeft: 6, fontSize: '0.7em', padding: '2px 6px', borderRadius: 4, background: '#e0e7ff', color: '#4338ca' }}>{t('producao.config.table.mother', 'MÃE')}</span>}
                                                     </span>
                                                     {m.tag && m.tag !== m.nome && (
                                                         <span className={styles.machineTag}>{m.tag}</span>
@@ -526,17 +529,17 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                         </td>
                                         <td className={styles.centerAlign}>
                                             <span className={`${styles.statusBadge} ${m.escopo_manutencao ? styles.active : styles.inactive}`}>
-                                                {m.escopo_manutencao ? 'Ativo' : 'Inativo'}
+                                                {m.escopo_manutencao ? t('producao.config.table.active', 'Ativo') : t('producao.config.table.inactive', 'Inativo')}
                                             </span>
                                         </td>
                                         <td className={styles.centerAlign}>
                                             <span className={`${styles.statusBadge} ${m.escopo_producao ? styles.active : styles.inactive}`}>
-                                                {m.escopo_producao ? 'Ativo' : 'Inativo'}
+                                                {m.escopo_producao ? t('producao.config.table.active', 'Ativo') : t('producao.config.table.inactive', 'Inativo')}
                                             </span>
                                         </td>
                                         <td className={styles.centerAlign}>
                                             <span className={`${styles.statusBadge} ${m.escopo_planejamento ? styles.active : styles.inactive}`}>
-                                                {m.escopo_planejamento ? 'Ativo' : 'Inativo'}
+                                                {m.escopo_planejamento ? t('producao.config.table.active', 'Ativo') : t('producao.config.table.inactive', 'Inativo')}
                                             </span>
                                         </td>
                                         <td>
@@ -556,20 +559,34 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                         <td>
                                             {m.escopo_producao && aliasesCount > 0 ? (
                                                 <span className={styles.aliasCount} title={m.aliases_producao?.join(', ')}>
-                                                    {aliasesCount} mapeado(s)
+                                                    <span className={styles.aliasCount} title={m.aliases_producao?.join(', ')}>
+                                                        {aliasesCount} {t('producao.config.table.mapped', 'mapeado(s)')}
+                                                    </span>
                                                 </span>
                                             ) : (
                                                 <span className={styles.dash}>—</span>
                                             )}
                                         </td>
                                         <td>
-                                            <button
-                                                className={styles.iconButton}
-                                                onClick={() => openEditModal(m)}
-                                                title="Editar configurações"
-                                            >
-                                                <FiEdit2 />
-                                            </button>
+                                            <div style={{ display: 'flex', gap: 4 }}>
+                                                <button
+                                                    className={styles.iconButton}
+                                                    onClick={() => openEditModal(m)}
+                                                    title={t('producao.config.table.editMachine', 'Editar configurações')}
+                                                >
+                                                    <FiEdit2 />
+                                                </button>
+                                                <button
+                                                    className={styles.deleteIconBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setConfirmDelete(m);
+                                                    }}
+                                                    title={t('producao.config.deleteConfirm.title', 'Excluir Máquina')}
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -583,15 +600,15 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             <Modal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                title="Adicionar Nova Máquina"
+                title={t('producao.config.modal.addTitle', 'Adicionar Nova Máquina')}
             >
                 <div className={styles.modalForm}>
                     <div className={styles.modalField}>
-                        <label className={styles.modalLabel}>Nome da Máquina *</label>
+                        <label className={styles.modalLabel}>{t('producao.config.modal.machineName', 'Nome da Máquina')} *</label>
                         <input
                             type="text"
                             className={styles.modalInput}
-                            placeholder="Ex: TCN-20"
+                            placeholder={t('producao.config.modal.machineNamePlaceholder', 'Ex: TCN-20')}
                             value={newMaquina.nome}
                             onChange={(e) => setNewMaquina(prev => ({ ...prev, nome: e.target.value }))}
                             disabled={creatingMaquina}
@@ -600,10 +617,10 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                     </div>
 
                     <div className={styles.modalField}>
-                        <label className={styles.modalLabel}>Escopos</label>
+                        <label className={styles.modalLabel}>{t('producao.config.modal.scopes', 'Escopos')}</label>
                         <div className={styles.toggleGroup}>
                             <label className={styles.toggleItem}>
-                                <span>Manutenção</span>
+                                <span>{t('producao.config.modal.scopeMaintenance', 'Manutenção')}</span>
                                 <button
                                     type="button"
                                     className={`${styles.toggle} ${newMaquina.escopoManutencao ? styles.toggleActive : ''}`}
@@ -614,7 +631,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 </button>
                             </label>
                             <label className={styles.toggleItem}>
-                                <span>Produção</span>
+                                <span>{t('producao.config.modal.scopeProduction', 'Produção')}</span>
                                 <button
                                     type="button"
                                     className={`${styles.toggle} ${newMaquina.escopoProducao ? styles.toggleActive : ''}`}
@@ -625,7 +642,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 </button>
                             </label>
                             <label className={styles.toggleItem}>
-                                <span>Planejamento</span>
+                                <span>{t('producao.config.modal.scopePlanning', 'Planejamento')}</span>
                                 <button
                                     type="button"
                                     className={`${styles.toggle} ${newMaquina.escopoPlanejamento ? styles.toggleActive : ''}`}
@@ -641,10 +658,10 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                     {newMaquina.escopoProducao && (
                         <>
                             <div className={styles.modalField}>
-                                <label className={styles.modalLabel}>Configuração de Hierarquia</label>
+                                <label className={styles.modalLabel}>{t('producao.config.modal.hierarchyConfig', 'Configuração de Hierarquia')}</label>
                                 <div className={styles.toggleGroup}>
                                     <label className={styles.toggleItem}>
-                                        <span>É Máquina Mãe?</span>
+                                        <span>{t('producao.config.modal.isMother', 'É Máquina Mãe?')}</span>
                                         <button
                                             type="button"
                                             className={`${styles.toggle} ${newMaquina.isMaquinaMae ? styles.toggleActive : ''}`}
@@ -657,7 +674,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
 
                                     {newMaquina.isMaquinaMae && (
                                         <label className={styles.toggleItem}>
-                                            <span>Exibir filhos no Dashboard?</span>
+                                            <span>{t('producao.config.modal.showChildrenDashboard', 'Exibir filhos no Dashboard?')}</span>
                                             <button
                                                 type="button"
                                                 className={`${styles.toggle} ${newMaquina.exibirFilhosDashboard ? styles.toggleActive : ''}`}
@@ -673,14 +690,14 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
 
                             {!newMaquina.isMaquinaMae && (
                                 <div className={styles.modalField}>
-                                    <label className={styles.modalLabel}>Máquina Mãe (Linha/Agrupadora)</label>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.parentMachine', 'Máquina Mãe (Linha/Agrupadora)')}</label>
                                     <select
                                         className={styles.modalSelect}
                                         value={newMaquina.parentId}
                                         onChange={(e) => setNewMaquina(prev => ({ ...prev, parentId: e.target.value }))}
                                         disabled={creatingMaquina}
                                     >
-                                        <option value="">Nenhuma (Máquina Independente)</option>
+                                        <option value="">{t('producao.config.modal.noParent', 'Nenhuma (Máquina Independente)')}</option>
                                         {availableParents.map(parent => (
                                             <option key={parent.id} value={parent.id}>
                                                 {parent.nome}
@@ -688,37 +705,37 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                         ))}
                                     </select>
                                     <span className={styles.helperText}>
-                                        Selecione a máquina "Mãe" desta máquina.
+                                        {t('producao.config.modal.parentHint', 'Selecione a máquina "Mãe" desta máquina.')}
                                     </span>
                                 </div>
                             )}
 
                             <div className={styles.modalField}>
-                                <label className={styles.modalLabel}>Setor/Departamento</label>
+                                <label className={styles.modalLabel}>{t('producao.config.modal.sector', 'Setor/Departamento')}</label>
                                 <select
                                     className={styles.modalSelect}
                                     value={newMaquina.setor}
                                     onChange={(e) => setNewMaquina(prev => ({ ...prev, setor: e.target.value }))}
                                     disabled={creatingMaquina}
                                 >
-                                    <option value="">Selecione...</option>
+                                    <option value="">{t('producao.config.modal.selectSector', 'Selecione...')}</option>
                                     <option value="usinagem">Usinagem</option>
                                     <option value="montagem">Montagem</option>
                                 </select>
                             </div>
 
                             <div className={styles.modalField}>
-                                <label className={styles.modalLabel}>Aliases para Upload</label>
+                                <label className={styles.modalLabel}>{t('producao.config.modal.aliasesLabel', 'Aliases para Upload')}</label>
                                 <textarea
                                     className={styles.modalTextarea}
-                                    placeholder="Nomes usados no Excel (separados por vírgula)"
+                                    placeholder={t('producao.config.modal.aliasesPlaceholder', 'Nomes usados no Excel (separados por vírgula)')}
                                     value={newMaquina.aliases}
                                     onChange={(e) => setNewMaquina(prev => ({ ...prev, aliases: e.target.value }))}
                                     disabled={creatingMaquina}
                                     rows={3}
                                 />
                                 <span className={styles.helperText}>
-                                    Nomes diferentes que aparecem no Excel e devem resolver para esta máquina.
+                                    {t('producao.config.modal.aliasesHint', 'Nomes diferentes que aparecem no Excel e devem resolver para esta máquina.')}
                                 </span>
                             </div>
                         </>
@@ -730,14 +747,14 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                             onClick={() => setShowAddModal(false)}
                             disabled={creatingMaquina}
                         >
-                            Cancelar
+                            {t('producao.config.modal.cancel', 'Cancelar')}
                         </button>
                         <button
                             className={styles.modalPrimaryButton}
                             onClick={handleCreateMaquina}
                             disabled={creatingMaquina || !newMaquina.nome.trim()}
                         >
-                            {creatingMaquina ? 'Criando...' : 'Criar Máquina'}
+                            {creatingMaquina ? t('producao.config.modal.creating', 'Criando...') : t('producao.config.modal.createMachine', 'Criar Máquina')}
                         </button>
                     </div>
                 </div>
@@ -747,15 +764,15 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             <Modal
                 isOpen={!!editState}
                 onClose={() => setEditState(null)}
-                title={editState ? `Editar: ${editState.maquina.nome}` : ''}
+                title={editState ? t('producao.config.modal.editTitle', 'Editar: {{name}}', { name: editState.maquina.nome }) : ''}
             >
                 {editState && (
                     <div className={styles.modalForm}>
                         <div className={styles.modalField}>
-                            <label className={styles.modalLabel}>Escopos</label>
+                            <label className={styles.modalLabel}>{t('producao.config.modal.scopes', 'Escopos')}</label>
                             <div className={styles.toggleGroup}>
                                 <label className={styles.toggleItem}>
-                                    <span>Manutenção</span>
+                                    <span>{t('producao.config.modal.scopeMaintenance', 'Manutenção')}</span>
                                     <button
                                         type="button"
                                         className={`${styles.toggle} ${editState.escopoManutencao ? styles.toggleActive : ''}`}
@@ -766,7 +783,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     </button>
                                 </label>
                                 <label className={styles.toggleItem}>
-                                    <span>Produção</span>
+                                    <span>{t('producao.config.modal.scopeProduction', 'Produção')}</span>
                                     <button
                                         type="button"
                                         className={`${styles.toggle} ${editState.escopoProducao ? styles.toggleActive : ''}`}
@@ -777,7 +794,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     </button>
                                 </label>
                                 <label className={styles.toggleItem}>
-                                    <span>Planejamento</span>
+                                    <span>{t('producao.config.modal.scopePlanning', 'Planejamento')}</span>
                                     <button
                                         type="button"
                                         className={`${styles.toggle} ${editState.escopoPlanejamento ? styles.toggleActive : ''}`}
@@ -793,10 +810,10 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                         {editState.escopoProducao && (
                             <>
                                 <div className={styles.modalField}>
-                                    <label className={styles.modalLabel}>Configuração de Hierarquia</label>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.hierarchyConfig', 'Configuração de Hierarquia')}</label>
                                     <div className={styles.toggleGroup}>
                                         <label className={styles.toggleItem}>
-                                            <span>É Máquina Mãe?</span>
+                                            <span>{t('producao.config.modal.isMother', 'É Máquina Mãe?')}</span>
                                             <button
                                                 type="button"
                                                 className={`${styles.toggle} ${editState.isMaquinaMae ? styles.toggleActive : ''}`}
@@ -809,7 +826,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
 
                                         {editState.isMaquinaMae && (
                                             <label className={styles.toggleItem}>
-                                                <span>Exibir filhos no Dashboard?</span>
+                                                <span>{t('producao.config.modal.showChildrenDashboard', 'Exibir filhos no Dashboard?')}</span>
                                                 <button
                                                     type="button"
                                                     className={`${styles.toggle} ${editState.exibirFilhosDashboard ? styles.toggleActive : ''}`}
@@ -825,14 +842,14 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
 
                                 {!editState.isMaquinaMae && (
                                     <div className={styles.modalField}>
-                                        <label className={styles.modalLabel}>Máquina Mãe (Linha/Agrupadora)</label>
+                                        <label className={styles.modalLabel}>{t('producao.config.modal.parentMachine', 'Máquina Mãe (Linha/Agrupadora)')}</label>
                                         <select
                                             className={styles.modalSelect}
                                             value={editState.parentId}
                                             onChange={(e) => setEditState(prev => prev ? ({ ...prev, parentId: e.target.value }) : null)}
                                             disabled={saving}
                                         >
-                                            <option value="">Nenhuma (Máquina Independente)</option>
+                                            <option value="">{t('producao.config.modal.noParent', 'Nenhuma (Máquina Independente)')}</option>
                                             {availableParents
                                                 .filter(p => p.id !== editState.maquina.id) // Não pode ser mãe de si mesma
                                                 .map(parent => (
@@ -846,43 +863,46 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
 
 
                                 <div className={styles.modalField}>
-                                    <label className={styles.modalLabel}>Setor/Departamento</label>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.sector', 'Setor/Departamento')}</label>
                                     <select
                                         className={styles.modalSelect}
                                         value={editState.setor}
                                         onChange={(e) => setEditState(prev => prev ? ({ ...prev, setor: e.target.value }) : null)}
                                         disabled={saving}
                                     >
-                                        <option value="">Selecione...</option>
+                                        <option value="">{t('producao.config.modal.selectSector', 'Selecione...')}</option>
                                         <option value="usinagem">Usinagem</option>
                                         <option value="montagem">Montagem</option>
                                     </select>
                                 </div>
 
                                 <div className={styles.modalField}>
-                                    <label className={styles.modalLabel}>Meta Diária (horas)</label>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.goalLabel', 'Meta diária (horas)')}</label>
                                     <input
                                         type="text"
                                         className={styles.modalInput}
-                                        placeholder="Ex: 8.5"
+                                        placeholder={t('producao.config.modal.goalPlaceholder', 'Ex: 18.50')}
                                         value={editState.meta}
                                         onChange={(e) => setEditState(prev => prev ? ({ ...prev, meta: e.target.value }) : null)}
                                         disabled={saving}
                                     />
+                                    <span className={styles.helperText}>
+                                        {t('producao.config.modal.goalHint', 'Será criada uma nova meta vigente a partir de hoje.')}
+                                    </span>
                                 </div>
 
                                 <div className={styles.modalField}>
-                                    <label className={styles.modalLabel}>Aliases para Upload</label>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.aliasesLabel', 'Aliases para Upload')}</label>
                                     <textarea
                                         className={styles.modalTextarea}
-                                        placeholder="Nomes usados no Excel (separados por vírgula)"
+                                        placeholder={t('producao.config.modal.aliasesPlaceholder', 'Nomes usados no Excel (separados por vírgula)')}
                                         value={editState.aliases}
                                         onChange={(e) => setEditState(prev => prev ? ({ ...prev, aliases: e.target.value }) : null)}
                                         disabled={saving}
                                         rows={3}
                                     />
                                     <span className={styles.helperText}>
-                                        Nomes diferentes que aparecem no Excel e devem resolver para esta máquina.
+                                        {t('producao.config.modal.aliasesHint', 'Nomes diferentes que aparecem no Excel e devem resolver para esta máquina.')}
                                     </span>
                                 </div>
                             </>
@@ -893,9 +913,9 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 className={styles.modalDangerButton}
                                 onClick={() => setConfirmDelete(editState.maquina)}
                                 disabled={saving}
-                                title="Excluir máquina"
+                                title={t('producao.config.deleteConfirm.title', 'Excluir Máquina')}
                             >
-                                <FiTrash2 /> Excluir
+                                <FiTrash2 /> {t('producao.config.modal.delete', 'Excluir')}
                             </button>
                             <div className={styles.modalActionsRight}>
                                 <button
@@ -903,14 +923,14 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     onClick={() => setEditState(null)}
                                     disabled={saving}
                                 >
-                                    Cancelar
+                                    {t('producao.config.modal.cancel', 'Cancelar')}
                                 </button>
                                 <button
                                     className={styles.modalPrimaryButton}
                                     onClick={handleSaveEdit}
                                     disabled={saving}
                                 >
-                                    {saving ? 'Salvando...' : 'Salvar'}
+                                    {saving ? t('producao.config.modal.saving', 'Salvando...') : t('producao.config.modal.save', 'Salvar Alterações')}
                                 </button>
                             </div>
                         </div>
@@ -919,18 +939,18 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             </Modal>
 
             {/* --- Modal Confirmação Exclusão --- */}
-            <Modal
-                isOpen={!!confirmDelete}
-                onClose={() => setConfirmDelete(null)}
-                title="Confirmar Exclusão"
-            >
-                {confirmDelete && (
+            {confirmDelete && (
+                <Modal
+                    isOpen={!!confirmDelete}
+                    onClose={() => setConfirmDelete(null)}
+                    title={t('producao.config.deleteConfirm.title', 'Excluir Máquina')}
+                >
                     <div className={styles.modalForm}>
                         <p className={styles.confirmText}>
-                            Tem certeza que deseja excluir a máquina <strong>"{confirmDelete.nome}"</strong>?
+                            {t('producao.config.deleteConfirm.text', 'Tem certeza que deseja excluir a máquina "{{name}}"?', { name: confirmDelete.nome })}
                         </p>
                         <p className={styles.confirmWarning}>
-                            Esta ação removerá a máquina das listagens. O histórico será preservado no banco.
+                            {t('producao.config.deleteConfirm.warning', 'Esta ação removerá a máquina das listagens. O histórico será preservado no banco.')}
                         </p>
                         <div className={styles.modalActions}>
                             <button
@@ -938,19 +958,19 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                 onClick={() => setConfirmDelete(null)}
                                 disabled={deleting}
                             >
-                                Cancelar
+                                {t('producao.config.deleteConfirm.cancel', 'Cancelar')}
                             </button>
                             <button
                                 className={styles.modalDangerButton}
                                 onClick={handleDeleteMaquina}
                                 disabled={deleting}
                             >
-                                {deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                                {deleting ? t('producao.config.deleteConfirm.deleting', 'Excluindo...') : t('producao.config.deleteConfirm.confirm', 'Sim, Excluir')}
                             </button>
                         </div>
                     </div>
-                )}
-            </Modal>
+                </Modal>
+            )}
         </>
     );
 }

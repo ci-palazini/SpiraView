@@ -460,6 +460,25 @@
     color: var(--color-primary);
 }
 
+.deleteIconBtn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.deleteIconBtn:hover {
+    background: #fee2e2;
+    color: var(--color-danger);
+}
+
 /* Loading & Empty States */
 .loadingOverlay {
     position: absolute;
@@ -799,95 +818,17 @@
     transition: background 0.2s;
 }
 
-.dangerButton:hover:not(:disabled) {
-    background: #fee2e2;
-}
-
-.dangerButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Alert Box para Delete */
-.alertBox {
-    background: #fff7ed;
-    /* Orange 50 */
-    border: 1px solid #fed7aa;
-    /* Orange 200 */
-    border-radius: var(--radius-md);
-    padding: 16px;
+.dangerOutlineButton {
+    background: transparent;
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
     display: flex;
-    gap: 16px;
-    color: #9a3412;
-    /* Orange 900 */
-    align-items: flex-start;
-}
-
-.alertBox p {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-.alertBox p:last-child {
-    margin-bottom: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .mainContainer {
-        padding: 16px;
-    }
-
-    .controlBar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .searchWrapper {
-        width: 100%;
-    }
-
-    .actionsWrapper {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .dividerVertical {
-        display: none;
-    }
-
-    .tableContainer {
-        overflow-x: auto;
-    }
-
-    .formStack {
-        min-width: auto;
-        width: 100%;
-    }
-
-    .togglesRow,
-    .rowTwoCols {
-        grid-template-columns: 1fr;
-    }
-
-    .modalFooter {
-        flex-direction: column-reverse;
-    }
-
-    .modalFooter.spaceBetween {
-        flex-direction: column-reverse;
-    }
-
-    .secondaryButton,
-    .primaryButton,
-    .dangerButton {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .rightActions {
-        flex-direction: column-reverse;
-        width: 100%;
-    }
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
 }

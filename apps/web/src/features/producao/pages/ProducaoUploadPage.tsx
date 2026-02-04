@@ -1,5 +1,6 @@
 // src/features/producao/pages/ProducaoUploadPage.tsx
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
@@ -45,6 +46,7 @@ interface UploadResult {
 }
 
 export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [file, setFile] = useState<File | null>(null);
     const [rows, setRows] = useState<Record<string, unknown>[]>([]);
@@ -110,10 +112,10 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 const sheet = workbook.Sheets[sheetName];
                 const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
                 setRows(json);
-                toast.success(`Arquivo carregado: ${json.length} linhas`);
+                toast.success(t('producao.upload.fileLoaded', { count: json.length, defaultValue: `Arquivo carregado: ${json.length} linhas` }));
             } catch (err) {
                 console.error(err);
-                toast.error('Erro ao ler arquivo Excel');
+                toast.error(t('producao.upload.readError', 'Erro ao ler arquivo Excel'));
                 setFile(null);
                 setRows([]);
             }
@@ -128,7 +130,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
         if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) {
             processFile(f);
         } else {
-            toast.error('Envie um arquivo .xlsx ou .xls');
+            toast.error(t('producao.upload.invalidFormat', 'Envie um arquivo .xlsx ou .xls'));
         }
     }, [processFile]);
 
@@ -167,9 +169,9 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
             setResult(res);
 
             if (res.resumo.linhasComErro === 0) {
-                toast.success(`Upload concluído! ${res.resumo.linhasValidas} linhas processadas.`);
+                toast.success(t('producao.upload.successFull', { count: res.resumo.linhasValidas, defaultValue: `Upload concluído! ${res.resumo.linhasValidas} linhas processadas.` }));
             } else {
-                toast.success(`Upload parcial: ${res.resumo.linhasValidas} linhas OK, ${res.resumo.linhasComErro} com erro.`);
+                toast.success(t('producao.upload.successPartial', { valid: res.resumo.linhasValidas, errors: res.resumo.linhasComErro, defaultValue: `Upload parcial: ${res.resumo.linhasValidas} linhas OK, ${res.resumo.linhasComErro} com erro.` }));
             }
 
             // Limpar arquivo e voltar ao estado inicial (sempre, mesmo com erros parciais)
@@ -181,7 +183,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
             fetchUploads(dataFiltro);
         } catch (err: unknown) {
             // Tentar extrair erros detalhados da resposta
-            let errorMessage = 'Erro ao fazer upload';
+            let errorMessage = t('producao.upload.uploadError', 'Erro ao fazer upload');
             let errorDetails: Array<{ linha: number; erro: string }> = [];
 
             if (err instanceof Error) {
@@ -230,8 +232,8 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
     return (
         <>
             <PageHeader
-                title="Upload de Produção"
-                subtitle="Importe lançamentos de horas de produção a partir de um arquivo Excel."
+                title={t('producao.upload.title', 'Upload de Produção')}
+                subtitle={t('producao.upload.subtitle', 'Importe lançamentos de horas de produção a partir de um arquivo Excel.')}
             />
 
             <div className={styles.container}>
@@ -246,10 +248,10 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                     >
                         <FiUploadCloud className={styles.dropzoneIcon} />
                         <p className={styles.dropzoneText}>
-                            Arraste um arquivo Excel aqui ou clique para selecionar
+                            {t('producao.upload.dropzone', 'Arraste um arquivo Excel aqui ou clique para selecionar')}
                         </p>
                         <p className={styles.dropzoneHint}>
-                            Formatos aceitos: .xlsx, .xls
+                            {t('producao.upload.dropzoneHint', 'Formatos aceitos: .xlsx, .xls')}
                         </p>
                         <input
                             ref={inputRef}
@@ -267,7 +269,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                         <FiFileText className={styles.fileIcon} />
                         <span className={styles.fileName}>{file.name}</span>
                         <span className={styles.fileSize}>{formatBytes(file.size)}</span>
-                        <button className={styles.removeBtn} onClick={handleRemoveFile} title="Remover arquivo">
+                        <button className={styles.removeBtn} onClick={handleRemoveFile} title={t('producao.upload.removeFile', 'Remover arquivo')}>
                             <FiX />
                         </button>
                     </div>
@@ -277,7 +279,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 {rows.length > 0 && (
                     <div className={styles.previewSection}>
                         <h3 className={styles.previewTitle}>
-                            Pré-visualização ({rows.length} linhas total, mostrando {previewRows.length})
+                            {t('producao.upload.preview', { total: rows.length, showing: previewRows.length, defaultValue: `Pré-visualização (${rows.length} linhas total, mostrando ${previewRows.length})` })}
                         </h3>
                         <div style={{ overflowX: 'auto' }}>
                             <table className={styles.previewTable}>
@@ -310,17 +312,17 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                 {uploading ? (
                                     <>
                                         <span className={styles.spinner}></span>
-                                        Enviando...
+                                        {t('producao.upload.sending', 'Enviando...')}
                                     </>
                                 ) : (
                                     <>
                                         <FiUploadCloud />
-                                        Enviar {rows.length} linhas
+                                        {t('producao.upload.send', { count: rows.length, defaultValue: `Enviar ${rows.length} linhas` })}
                                     </>
                                 )}
                             </button>
                             <button className={styles.cancelBtn} onClick={handleRemoveFile}>
-                                Cancelar
+                                {t('producao.upload.cancel', 'Cancelar')}
                             </button>
                         </div>
                     </div>
@@ -332,9 +334,9 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                         <div className={styles.resultHeader}>
                             <h3 className={styles.resultTitle}>
                                 {result.resumo.linhasComErro === 0 ? (
-                                    <><FiCheck style={{ verticalAlign: 'middle', marginRight: 8 }} /> Upload concluído com sucesso!</>
+                                    <><FiCheck style={{ verticalAlign: 'middle', marginRight: 8 }} /> {t('producao.upload.result.successTitle', 'Upload concluído com sucesso!')}</>
                                 ) : (
-                                    <><FiAlertTriangle style={{ verticalAlign: 'middle', marginRight: 8 }} /> Upload concluído com erros</>
+                                    <><FiAlertTriangle style={{ verticalAlign: 'middle', marginRight: 8 }} /> {t('producao.upload.result.errorTitle', 'Upload concluído com erros')}</>
                                 )}
                             </h3>
                             <button
@@ -346,10 +348,10 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                             </button>
                         </div>
                         <ul className={styles.resultList}>
-                            <li><strong>Total de linhas:</strong> {result.resumo.totalLinhas}</li>
-                            <li><strong>Linhas válidas:</strong> {result.resumo.linhasValidas}</li>
-                            <li><strong>Linhas com erro:</strong> {result.resumo.linhasComErro}</li>
-                            <li><strong>Datas processadas:</strong> {result.resumo.datasProcessadas}</li>
+                            <li><strong>{t('producao.upload.result.totalLines', 'Total de linhas')}:</strong> {result.resumo.totalLinhas}</li>
+                            <li><strong>{t('producao.upload.result.validLines', 'Linhas válidas')}:</strong> {result.resumo.linhasValidas}</li>
+                            <li><strong>{t('producao.upload.result.errorLines', 'Linhas com erro')}:</strong> {result.resumo.linhasComErro}</li>
+                            <li><strong>{t('producao.upload.result.datesProcessed', 'Datas processadas')}:</strong> {result.resumo.datasProcessadas}</li>
                         </ul>
 
                         {result.resultados.length > 0 && (
@@ -366,7 +368,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                             <div className={styles.errorList}>
                                 {result.erros.map((err, i) => (
                                     <div key={i} className={styles.errorRow}>
-                                        <span className={styles.errorLinha}>Linha {err.linha}</span>
+                                        <span className={styles.errorLinha}>{t('producao.upload.result.line', 'Linha')} {err.linha}</span>
                                         <span className={styles.errorMsg}>{err.erro}</span>
                                     </div>
                                 ))}
@@ -381,11 +383,11 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 <div className={styles.historyHeader}>
                     <div className={styles.historyTitle}>
                         <FiClock />
-                        <span>Uploads do Dia</span>
-                        <span className={styles.badge}>{uploads.length} arquivo(s)</span>
+                        <span>{t('producao.upload.history.title', 'Uploads do Dia')}</span>
+                        <span className={styles.badge}>{uploads.length} {t('producao.upload.history.files', 'arquivo(s)')}</span>
                         {!loadingUploads && uploads.length > 0 && (
                             <span className={styles.badgeOutline}>
-                                Total: {uploads.reduce((sum, u) => sum + Number(u.horasTotal || 0), 0).toFixed(2)} h
+                                {t('producao.upload.history.total', 'Total')}: {uploads.reduce((sum, u) => sum + Number(u.horasTotal || 0), 0).toFixed(2)} h
                             </span>
                         )}
                     </div>
@@ -398,21 +400,21 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 </div>
 
                 {loadingUploads ? (
-                    <p style={{ color: '#64748b' }}>Carregando...</p>
+                    <p style={{ color: '#64748b' }}>{t('producao.upload.history.loading', 'Carregando...')}</p>
                 ) : uploads.length === 0 ? (
-                    <p style={{ color: '#64748b' }}>Nenhum upload encontrado para {formatDateBR(dataFiltro)}.</p>
+                    <p style={{ color: '#64748b' }}>{t('producao.upload.history.empty', { date: formatDateBR(dataFiltro), defaultValue: `Nenhum upload encontrado para ${formatDateBR(dataFiltro)}.` })}</p>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>
                         <table className={styles.previewTable}>
                             <thead>
                                 <tr>
-                                    <th>Arquivo</th>
-                                    <th>Data Ref.</th>
-                                    <th>Linhas</th>
-                                    <th>Horas</th>
-                                    <th>Enviado por</th>
-                                    <th>Enviado em</th>
-                                    <th>Status</th>
+                                    <th>{t('producao.upload.history.columns.file', 'Arquivo')}</th>
+                                    <th>{t('producao.upload.history.columns.dateRef', 'Data Ref.')}</th>
+                                    <th>{t('producao.upload.history.columns.lines', 'Linhas')}</th>
+                                    <th>{t('producao.upload.history.columns.hours', 'Horas')}</th>
+                                    <th>{t('producao.upload.history.columns.sentBy', 'Enviado por')}</th>
+                                    <th>{t('producao.upload.history.columns.sentAt', 'Enviado em')}</th>
+                                    <th>{t('producao.upload.history.columns.status', 'Status')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -434,9 +436,9 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                         <td>{new Date(u.criadoEm).toLocaleString('pt-BR')}</td>
                                         <td>
                                             {u.ativo ? (
-                                                <span style={{ color: '#16a34a', fontWeight: 500 }}>Ativo</span>
+                                                <span style={{ color: '#16a34a', fontWeight: 500 }}>{t('producao.upload.history.active', 'Ativo')}</span>
                                             ) : (
-                                                <span style={{ color: '#94a3b8' }}>Inativo</span>
+                                                <span style={{ color: '#94a3b8' }}>{t('producao.upload.history.inactive', 'Inativo')}</span>
                                             )}
                                         </td>
                                     </tr>
@@ -456,9 +458,9 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 >
                     <div className={styles.historyTitle}>
                         <FiArchive />
-                        <span>Auditoria de Envios</span>
+                        <span>{t('producao.upload.audit.title', 'Auditoria de Envios')}</span>
                         <span className={styles.badgeOutline}>
-                            Histórico arquivado (após 48h inativo)
+                            {t('producao.upload.audit.subtitle', 'Histórico arquivado (após 48h inativo)')}
                         </span>
                     </div>
                     {showAuditoria ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
@@ -467,24 +469,24 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                 {showAuditoria && (
                     <>
                         {loadingAuditoria ? (
-                            <p style={{ color: '#64748b', padding: '1rem 0' }}>Carregando histórico...</p>
+                            <p style={{ color: '#64748b', padding: '1rem 0' }}>{t('producao.upload.audit.loading', 'Carregando histórico...')}</p>
                         ) : historicoAuditoria.length === 0 ? (
                             <p style={{ color: '#64748b', padding: '1rem 0' }}>
-                                Nenhum registro de auditoria encontrado. Uploads são arquivados após 48h de inatividade.
+                                {t('producao.upload.audit.empty', 'Nenhum registro de auditoria encontrado. Uploads são arquivados após 48h de inatividade.')}
                             </p>
                         ) : (
                             <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
                                 <table className={styles.previewTable}>
                                     <thead>
                                         <tr>
-                                            <th>Arquivo</th>
-                                            <th>Data Ref.</th>
-                                            <th>Linhas</th>
-                                            <th>Horas</th>
-                                            <th>Enviado por</th>
-                                            <th>Enviado em</th>
-                                            <th>Arquivado em</th>
-                                            <th>Motivo</th>
+                                            <th>{t('producao.upload.audit.columns.file', 'Arquivo')}</th>
+                                            <th>{t('producao.upload.audit.columns.dateRef', 'Data Ref.')}</th>
+                                            <th>{t('producao.upload.audit.columns.lines', 'Linhas')}</th>
+                                            <th>{t('producao.upload.audit.columns.hours', 'Horas')}</th>
+                                            <th>{t('producao.upload.audit.columns.sentBy', 'Enviado por')}</th>
+                                            <th>{t('producao.upload.audit.columns.sentAt', 'Enviado em')}</th>
+                                            <th>{t('producao.upload.audit.columns.archivedAt', 'Arquivado em')}</th>
+                                            <th>{t('producao.upload.audit.columns.reason', 'Motivo')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -502,9 +504,11 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                                 <td>{new Date(h.criadoEm).toLocaleString('pt-BR')}</td>
                                                 <td>{new Date(h.arquivadoEm).toLocaleString('pt-BR')}</td>
                                                 <td>
-                                                    <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>
-                                                        {h.motivo === 'cleanup_48h' ? 'Inativo 48h+' : h.motivo}
-                                                    </span>
+                                                    <td>
+                                                        <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>
+                                                            {h.motivo === 'cleanup_48h' ? t('producao.upload.audit.reasons.cleanup_48h', 'Inativo 48h+') : h.motivo}
+                                                        </span>
+                                                    </td>
                                                 </td>
                                             </tr>
                                         ))}

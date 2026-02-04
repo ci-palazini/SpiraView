@@ -1,5 +1,6 @@
 // src/features/producao/pages/ProducaoUploadDetalhePage.tsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FiArrowLeft, FiCheck, FiX } from 'react-icons/fi';
@@ -9,6 +10,7 @@ import { buscarDetalheUploadProducao, type ProducaoUploadDetalhe } from '../../.
 import styles from './ProducaoUploadPage.module.css';
 
 export default function ProducaoUploadDetalhePage() {
+    const { t } = useTranslation();
     const { uploadId } = useParams<{ uploadId: string }>();
     const navigate = useNavigate();
 
@@ -26,7 +28,7 @@ export default function ProducaoUploadDetalhePage() {
             setData(result);
         } catch (err) {
             console.error(err);
-            const msg = err instanceof Error ? err.message : 'Erro ao carregar detalhes';
+            const msg = err instanceof Error ? err.message : t('producao.upload.details.error', 'Erro ao carregar detalhes');
             setError(msg);
             toast.error(msg);
         } finally {
@@ -57,9 +59,9 @@ export default function ProducaoUploadDetalhePage() {
     if (loading) {
         return (
             <>
-                <PageHeader title="Detalhes do Upload" subtitle="Carregando..." />
+                <PageHeader title={t('producao.upload.details.title', 'Detalhes do Upload')} subtitle={t('producao.upload.details.loading', 'Carregando...')} />
                 <div className={styles.container}>
-                    <p style={{ color: '#64748b' }}>Carregando...</p>
+                    <p style={{ color: '#64748b' }}>{t('producao.upload.details.loading', 'Carregando...')}</p>
                 </div>
             </>
         );
@@ -68,12 +70,12 @@ export default function ProducaoUploadDetalhePage() {
     if (error || !data) {
         return (
             <>
-                <PageHeader title="Detalhes do Upload" subtitle="Erro" />
+                <PageHeader title={t('producao.upload.details.title', 'Detalhes do Upload')} subtitle={t('producao.upload.details.error', 'Erro')} />
                 <div className={styles.container}>
-                    <p style={{ color: '#ef4444' }}>{error || 'Upload não encontrado'}</p>
+                    <p style={{ color: '#ef4444' }}>{error || t('producao.upload.details.notFound', 'Upload não encontrado')}</p>
                     <button className={styles.cancelBtn} onClick={() => navigate('/producao/upload')}>
                         <FiArrowLeft style={{ marginRight: 6 }} />
-                        Voltar
+                        {t('producao.upload.details.back', 'Voltar')}
                     </button>
                 </div>
             </>
@@ -85,7 +87,7 @@ export default function ProducaoUploadDetalhePage() {
     return (
         <>
             <PageHeader
-                title="Detalhes do Upload"
+                title={t('producao.upload.details.title', 'Detalhes do Upload')}
                 subtitle={upload.nomeArquivo}
             />
 
@@ -97,7 +99,7 @@ export default function ProducaoUploadDetalhePage() {
                     style={{ marginBottom: 16 }}
                 >
                     <FiArrowLeft style={{ marginRight: 6 }} />
-                    Voltar
+                    {t('producao.upload.details.back', 'Voltar')}
                 </button>
 
                 {/* Header do upload */}
@@ -112,11 +114,11 @@ export default function ProducaoUploadDetalhePage() {
                         <div>
                             <h3 style={{ margin: 0, color: '#1e293b' }}>{upload.nomeArquivo}</h3>
                             <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-                                Data de referência: <strong>{formatDate(upload.dataRef)}</strong>
+                                {t('producao.upload.details.dateRef', 'Data de referência')}: <strong>{formatDate(upload.dataRef)}</strong>
                             </p>
                             <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: '0.85rem' }}>
-                                Enviado em: {formatDateTime(upload.criadoEm)}
-                                {upload.uploadPorNome && ` por ${upload.uploadPorNome}`}
+                                {t('producao.upload.details.sentAt', 'Enviado em')}: {formatDateTime(upload.criadoEm)}
+                                {upload.uploadPorNome && ` ${t('producao.upload.details.by', 'por')} ${upload.uploadPorNome}`}
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -128,7 +130,7 @@ export default function ProducaoUploadDetalhePage() {
                                 fontSize: '0.85rem',
                                 fontWeight: 500
                             }}>
-                                {resumo.totalMaquinas} máquinas
+                                {resumo.totalMaquinas} {t('producao.upload.details.machines', 'máquinas')}
                             </span>
                             <span style={{
                                 background: '#f0fdf4',
@@ -138,7 +140,7 @@ export default function ProducaoUploadDetalhePage() {
                                 fontSize: '0.85rem',
                                 fontWeight: 500
                             }}>
-                                {Number(resumo.totalHoras).toFixed(1)}h total
+                                {Number(resumo.totalHoras).toFixed(1)}h {t('producao.upload.details.total', 'total')}
                             </span>
                             <span style={{
                                 background: upload.ativo ? '#dcfce7' : '#f1f5f9',
@@ -151,26 +153,26 @@ export default function ProducaoUploadDetalhePage() {
                                 alignItems: 'center',
                                 gap: 4
                             }}>
-                                {upload.ativo ? <><FiCheck /> Ativo</> : <><FiX /> Inativo</>}
+                                {upload.ativo ? <><FiCheck /> {t('producao.upload.history.active', 'Ativo')}</> : <><FiX /> {t('producao.upload.history.inactive', 'Inativo')}</>}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Tabela de máquinas */}
-                <h3 className={styles.previewTitle}>Lançamentos por Máquina</h3>
+                <h3 className={styles.previewTitle}>{t('producao.upload.details.tableTitle', 'Lançamentos por Máquina')}</h3>
 
                 {porMaquina.length === 0 ? (
-                    <p style={{ color: '#64748b' }}>Nenhum lançamento encontrado.</p>
+                    <p style={{ color: '#64748b' }}>{t('producao.upload.details.emptyTable', 'Nenhum lançamento encontrado.')}</p>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>
                         <table className={styles.previewTable}>
                             <thead>
                                 <tr>
-                                    <th>Máquina</th>
-                                    <th>Tag</th>
-                                    <th style={{ textAlign: 'right' }}>Horas</th>
-                                    <th style={{ textAlign: 'center' }}>Turno(s)</th>
+                                    <th>{t('producao.upload.details.columns.machine', 'Máquina')}</th>
+                                    <th>{t('producao.upload.details.columns.tag', 'Tag')}</th>
+                                    <th style={{ textAlign: 'right' }}>{t('producao.upload.details.columns.hours', 'Horas')}</th>
+                                    <th style={{ textAlign: 'center' }}>{t('producao.upload.details.columns.shift', 'Turno(s)')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,7 +192,7 @@ export default function ProducaoUploadDetalhePage() {
                                 ))}
                                 {/* Linha de total */}
                                 <tr style={{ background: '#f1f5f9', fontWeight: 600 }}>
-                                    <td colSpan={2}>TOTAL</td>
+                                    <td colSpan={2}>{t('producao.upload.details.totalLabel', 'TOTAL')}</td>
                                     <td style={{ textAlign: 'right' }}>
                                         {Number(resumo.totalHoras).toFixed(2)}h
                                     </td>

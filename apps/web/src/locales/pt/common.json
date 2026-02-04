@@ -26,6 +26,7 @@
     "tvMode": "Modo TV",
     "qualityDashboard": "Dashboard",
     "qualityLaunch": "Refugo",
+    "qualityConfig": "Configurações",
     "quarentena": "Quarentena",
     "refugo": "Refugo",
     "quarentenaAbbr": "Qua",
@@ -1105,6 +1106,105 @@
       "dashboard": "Dashboard",
       "colaboradores": "Colaboradores"
     },
+    "colaboradores": {
+      "title": "Performance por Colaborador",
+      "subtitle": "Acompanhe a produção e metas individuais de cada operador.",
+      "stats": {
+        "active": "Colaboradores Ativos",
+        "totalGoal": "Meta Mensal Total",
+        "totalReal": "Realizado Mês",
+        "performance": "Performance Mês"
+      },
+      "filters": {
+        "monthRef": "Mês de Referência",
+        "dayAnalysis": "Dia para Análise",
+        "runningDays": "Dias Corridos",
+        "businessDays": "Dias Úteis Mês",
+        "update": "Atualizar",
+        "addOperator": "Adicionar Operador"
+      },
+      "table": {
+        "matricula": "Matrícula",
+        "name": "Nome",
+        "dailyGoal": "Meta Dia (h)",
+        "accumGoal": "Meta Acum (h)",
+        "monthGoal": "Meta Mês (h)",
+        "realDay": "Real Dia (h)",
+        "realMonth": "Real Mês (h)",
+        "perfDay": "Perf. Dia",
+        "perfMonth": "Perf. Mês",
+        "status": "Status",
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "totals": "Totais",
+        "empty": {
+          "title": "Nenhum operador monitorado",
+          "text": "Clique em \"Adicionar Operador\" para selecionar quais operadores deseja acompanhar."
+        },
+        "editTitle": "Editar meta"
+      },
+      "modal": {
+        "addTitle": "Adicionar Operador ao Monitoramento",
+        "searchPlaceholder": "Buscar por nome ou matrícula...",
+        "loading": "Carregando operadores...",
+        "emptySearch": "Nenhum operador encontrado com essa busca.",
+        "allMonitored": "Todos os operadores já estão sendo monitorados.",
+        "dailyGoalLabel": "Meta diária para {{name}} (horas)",
+        "cancel": "Cancelar",
+        "add": "Adicionar",
+        "adding": "Adicionando...",
+        "editTitle": "Editar Meta: {{name}}",
+        "matricula": "Matrícula",
+        "name": "Nome",
+        "dailyGoal": "Meta Diária (horas)",
+        "monitoring": "Monitorando",
+        "save": "Salvar",
+        "saving": "Salvando..."
+      },
+      "toasts": {
+        "loadError": "Erro ao carregar dados",
+        "loadOperatorsError": "Erro ao carregar operadores",
+        "addSuccess": "{{name}} adicionado ao monitoramento!",
+        "addError": "Erro ao adicionar operador",
+        "updateSuccess": "Meta atualizada com sucesso!",
+        "saveError": "Erro ao salvar"
+      }
+    },
+    "dashboard": {
+      "title": "Visão do Dia",
+      "subtitle": "Acompanhamento de produção por máquina",
+      "dateLabel": "Data do WIP",
+      "timeLabel": "Hora referência (05:30 → 00:44)",
+      "timeHelper": {
+        "past": "Dia concluído — usando janela completa",
+        "future": "Dia futuro — aguardando início",
+        "today": "{{pct}}% do dia"
+      },
+      "summary": {
+        "title": "Total Fábrica",
+        "future": "FUTURO",
+        "noGoal": "Sem meta",
+        "produced": "Produzido",
+        "expected": "Esperado",
+        "dailyGoal": "Meta diária",
+        "deviation": "Desvio",
+        "progressVsExpected": "Progresso vs esperado",
+        "progressVsGoal": "vs meta do dia",
+        "machines": "Máquinas",
+        "projection": "Projeção",
+        "gap": "Gap"
+      },
+      "empty": {
+        "noScope": "Nenhuma máquina com escopo de produção ativo.",
+        "noFilter": "Nenhuma máquina encontrada para este filtro..."
+      },
+      "sectors": {
+        "machining": "Usinagem",
+        "assembly": "Montagem",
+        "all": "Todos"
+      },
+      "mother": "MÃE"
+    },
     "sectionTitle": "Produção",
     "upload": {
       "title": "Upload de Produção",
@@ -1147,6 +1247,46 @@
         },
         "active": "Ativo",
         "inactive": "Inativo"
+      },
+      "audit": {
+        "title": "Auditoria de Envios",
+        "subtitle": "Histórico arquivado (após 48h inativo)",
+        "loading": "Carregando histórico...",
+        "empty": "Nenhum registro de auditoria encontrado. Uploads são arquivados após 48h de inatividade.",
+        "columns": {
+          "archivedAt": "Arquivado em",
+          "reason": "Motivo",
+          "file": "Arquivo",
+          "dateRef": "Data Ref.",
+          "lines": "Linhas",
+          "hours": "Horas",
+          "sentAt": "Enviado em",
+          "sentBy": "Enviado por"
+        },
+        "reasons": {
+          "cleanup_48h": "Inativo 48h+"
+        }
+      },
+      "details": {
+        "title": "Detalhes do Upload",
+        "loading": "Carregando...",
+        "error": "Erro",
+        "notFound": "Upload não encontrado",
+        "back": "Voltar",
+        "dateRef": "Data de referência",
+        "sentAt": "Enviado em",
+        "by": "por",
+        "machines": "máquinas",
+        "total": "total",
+        "tableTitle": "Lançamentos por Máquina",
+        "emptyTable": "Nenhum lançamento encontrado.",
+        "columns": {
+          "machine": "Máquina",
+          "tag": "Tag",
+          "hours": "Horas",
+          "shift": "Turno(s)"
+        },
+        "totalLabel": "TOTAL"
       }
     },
     "config": {
@@ -1156,6 +1296,7 @@
         "total": "Total Cadastrado",
         "maintenance": "Escopo Manutenção",
         "production": "Escopo Produção",
+        "planning": "Escopo Planejamento",
         "withGoals": "Com Metas Ativas"
       },
       "search": "Buscar por nome, tag ou código...",
@@ -1174,7 +1315,8 @@
         "active": "Ativo",
         "inactive": "Inativo",
         "mapped": "mapeado(s)",
-        "mother": "MÃE"
+        "mother": "MÃE",
+        "planning": "Planejamento"
       },
       "empty": {
         "title": "Nenhum resultado encontrado",
@@ -1206,7 +1348,8 @@
         "creating": "Criando...",
         "createMachine": "Criar Máquina",
         "saving": "Salvando...",
-        "save": "Salvar Alterações"
+        "save": "Salvar Alterações",
+        "delete": "Excluir"
       },
       "createSuccess": "Máquina \"{{name}}\" criada!",
       "createError": "Erro ao criar máquina",
@@ -1215,48 +1358,10 @@
       "deleteConfirm": {
         "title": "Excluir Máquina",
         "text": "Tem certeza que deseja excluir a máquina \"{{name}}\"? Esta ação não pode ser desfeita.",
+        "warning": "Esta ação removerá a máquina das listagens. O histórico será preservado no banco.",
         "confirm": "Excluir",
+        "deleting": "Excluindo...",
         "cancel": "Cancelar"
-      }
-    },
-    "dashboard": {
-      "title": "Visão do Dia",
-      "subtitle": "Acompanhamento de produção por máquina",
-      "loadError": "Erro ao carregar dados",
-      "sectors": {
-        "machining": "Usinagem",
-        "assembly": "Montagem",
-        "all": "Todos"
-      },
-      "dateLabel": "Data do WIP",
-      "timeLabel": "Hora referência (05:30 → 00:44)",
-      "dayCompleted": "Dia concluído — usando janela completa",
-      "dayFuture": "Dia futuro — aguardando início",
-      "dayProgress": "{{percent}}% do dia",
-      "summary": {
-        "title": "Total Fábrica",
-        "future": "FUTURO",
-        "produced": "Produzido",
-        "expected": "Esperado",
-        "dailyGoal": "Meta diária",
-        "progressLabel": "Progresso vs esperado",
-        "machines": "Máquinas",
-        "projection": "Projeção",
-        "gap": "Gap"
-      },
-      "card": {
-        "produced": "Produzido",
-        "expected": "Esperado",
-        "dailyGoal": "Meta diária",
-        "deviation": "Desvio",
-        "noGoal": "Sem meta",
-        "vsExpected": "vs esperado",
-        "vsGoal": "vs meta do dia",
-        "mother": "MÃE"
-      },
-      "empty": {
-        "noMachines": "Nenhuma máquina com escopo de produção ativo.",
-        "noFilter": "Nenhuma máquina encontrada para este filtro. Verifique se os setores estão preenchidos na tela de Configuração."
       }
     },
     "uploadDetail": {
@@ -1275,50 +1380,6 @@
         "title": "Lançamentos",
         "machine": "Máquina",
         "hours": "Horas"
-      }
-    },
-    "colaboradores": {
-      "title": "Performance por colaborador",
-      "subtitle": "Para cada matrícula, comparamos a produção real com a meta diária definida.",
-      "monthGoal": "Meta mês",
-      "monthReal": "Real mês",
-      "filters": {
-        "refMonth": "Mês de referência",
-        "analysisDay": "Dia para análise",
-        "daysElapsed": "Dias corridos",
-        "workDays": "Dias úteis mês"
-      },
-      "actions": {
-        "reload": "Recarregar",
-        "new": "Novo"
-      },
-      "table": {
-        "matricula": "Matrícula",
-        "name": "Nome",
-        "goalDay": "Meta Dia (h)",
-        "goalAccum": "Meta Acum (h)",
-        "goalMonth": "Meta Mês (h)",
-        "realDay": "Real Dia (h)",
-        "realMonth": "Real Mês (h)",
-        "perfDay": "Perf. Dia (%)",
-        "perfMonth": "Perf. Mês (%)",
-        "status": "Status",
-        "totals": "Totais"
-      },
-      "empty": "Nenhum colaborador cadastrado.",
-      "modal": {
-        "titleNew": "Novo Colaborador",
-        "titleEdit": "Editar Colaborador",
-        "matricula": "Matrícula",
-        "name": "Nome",
-        "dailyGoal": "Meta Diária (h)",
-        "active": "Ativo",
-        "cancel": "Cancelar",
-        "save": "Salvar"
-      },
-      "status": {
-        "active": "Ativo",
-        "inactive": "Inativo"
       }
     }
   },

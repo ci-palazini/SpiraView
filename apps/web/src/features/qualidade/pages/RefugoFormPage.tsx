@@ -273,7 +273,7 @@ export default function RefugoFormPage() {
 
             } catch (err: any) {
                 console.error(err);
-                toast.error('Erro ao processar arquivo: ' + err.message);
+                toast.error(t('quality.refugo.processError', { message: err.message, defaultValue: 'Erro ao processar: ' + err.message }));
                 setImporting(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }

@@ -1,5 +1,6 @@
 // src/features/producao/pages/ProducaoColaboradoresPage.tsx
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
     FiUsers,
@@ -172,6 +173,7 @@ interface ProducaoColaboradoresPageProps {
    Componente Principal
    ========================== */
 export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradoresPageProps) {
+    const { t } = useTranslation();
     const today = startOfDayLocal(new Date());
 
     // Estados de filtro
@@ -245,7 +247,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
             );
         } catch (e) {
             console.error(e);
-            toast.error('Erro ao carregar dados');
+            toast.error(t('producao.colaboradores.toasts.loadError', 'Erro ao carregar dados'));
         } finally {
             setLoading(false);
         }
@@ -273,7 +275,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                 setOperadores(users.filter(u => u.matricula)); // Só operadores com matrícula
             } catch (e) {
                 console.error(e);
-                toast.error('Erro ao carregar operadores');
+                toast.error(t('producao.colaboradores.toasts.loadOperatorsError', 'Erro ao carregar operadores'));
             } finally {
                 setLoadingOperadores(false);
             }
@@ -310,13 +312,13 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                 meta_diaria_horas: novaMeta,
                 ativo: true,
             }, { role: user.role, email: user.email });
-            toast.success(`${selectedOperador.nome || selectedOperador.matricula} adicionado ao monitoramento!`);
+            toast.success(t('producao.colaboradores.toasts.addSuccess', { name: selectedOperador.nome || selectedOperador.matricula, defaultValue: '{{name}} adicionado ao monitoramento!' }));
             await carregarDados();
             setShowSelectModal(false);
             setSelectedOperador(null);
         } catch (e) {
             console.error(e);
-            toast.error('Erro ao adicionar operador');
+            toast.error(t('producao.colaboradores.toasts.addError', 'Erro ao adicionar operador'));
         } finally {
             setSaving(false);
         }
@@ -350,12 +352,12 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                 meta_diaria_horas: Number(editState.meta_diaria_horas) || 0,
                 ativo: editState.ativo,
             }, { role: user.role, email: user.email });
-            toast.success('Meta atualizada com sucesso!');
+            toast.success(t('producao.colaboradores.toasts.updateSuccess', 'Meta atualizada com sucesso!'));
             await carregarDados();
             setEditState(null);
         } catch (e) {
             console.error(e);
-            toast.error('Erro ao salvar');
+            toast.error(t('producao.colaboradores.toasts.saveError', 'Erro ao salvar'));
         } finally {
             setSaving(false);
         }
@@ -409,11 +411,11 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
 
     /* --- Stats cards --- */
     const stats = useMemo(() => [
-        { label: 'Colaboradores Ativos', value: linhas.filter(l => l.ativo).length, icon: <FiUsers />, color: 'cardBlue' },
-        { label: 'Meta Mensal Total', value: `${totalMetaMensal.toFixed(1)}h`, icon: <FiTarget />, color: 'cardOrange' },
-        { label: 'Realizado Mês', value: `${totalRealMensal.toFixed(1)}h`, icon: <FiTrendingUp />, color: 'cardGreen' },
-        { label: 'Performance Mês', value: perfMesGlobal != null ? `${perfMesGlobal.toFixed(1)}%` : '—', icon: <FiCalendar />, color: 'cardPurple' },
-    ], [linhas, totalMetaMensal, totalRealMensal, perfMesGlobal]);
+        { label: t('producao.colaboradores.stats.active', 'Colaboradores Ativos'), value: linhas.filter(l => l.ativo).length, icon: <FiUsers />, color: 'cardBlue' },
+        { label: t('producao.colaboradores.stats.totalGoal', 'Meta Mensal Total'), value: `${totalMetaMensal.toFixed(1)}h`, icon: <FiTarget />, color: 'cardOrange' },
+        { label: t('producao.colaboradores.stats.totalReal', 'Realizado Mês'), value: `${totalRealMensal.toFixed(1)}h`, icon: <FiTrendingUp />, color: 'cardGreen' },
+        { label: t('producao.colaboradores.stats.performance', 'Performance Mês'), value: perfMesGlobal != null ? `${perfMesGlobal.toFixed(1)}%` : '—', icon: <FiCalendar />, color: 'cardPurple' },
+    ], [linhas, totalMetaMensal, totalRealMensal, perfMesGlobal, t]);
 
     /* --- Helpers de UI --- */
     const formatNum = (v: number, dec = 2) => Number.isFinite(v) ? v.toFixed(dec) : '—';
@@ -429,8 +431,8 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
     return (
         <>
             <PageHeader
-                title="Performance por Colaborador"
-                subtitle="Acompanhe a produção e metas individuais de cada operador."
+                title={t('producao.colaboradores.title', 'Performance por Colaborador')}
+                subtitle={t('producao.colaboradores.subtitle', 'Acompanhe a produção e metas individuais de cada operador.')}
             />
 
             <div className={styles.mainContainer}>
@@ -451,7 +453,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                 <div className={styles.controlBar}>
                     <div className={styles.filterGroup}>
                         <div className={styles.filterField}>
-                            <label className={styles.filterLabel}>Mês de Referência</label>
+                            <label className={styles.filterLabel}>{t('producao.colaboradores.filters.monthRef', 'Mês de Referência')}</label>
                             <input
                                 type="month"
                                 className={styles.filterInput}
@@ -474,7 +476,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                         </div>
 
                         <div className={styles.filterField}>
-                            <label className={styles.filterLabel}>Dia para Análise</label>
+                            <label className={styles.filterLabel}>{t('producao.colaboradores.filters.dayAnalysis', 'Dia para Análise')}</label>
                             <input
                                 type="date"
                                 className={styles.filterInput}
@@ -491,7 +493,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                         </div>
 
                         <div className={styles.filterField}>
-                            <label className={styles.filterLabel}>Dias Corridos</label>
+                            <label className={styles.filterLabel}>{t('producao.colaboradores.filters.runningDays', 'Dias Corridos')}</label>
                             <input
                                 type="number"
                                 className={styles.filterInput}
@@ -503,7 +505,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                         </div>
 
                         <div className={styles.filterField}>
-                            <label className={styles.filterLabel}>Dias Úteis Mês</label>
+                            <label className={styles.filterLabel}>{t('producao.colaboradores.filters.businessDays', 'Dias Úteis Mês')}</label>
                             <input
                                 type="number"
                                 className={styles.filterInput}
@@ -517,10 +519,10 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
 
                     <div className={styles.actionsWrapper}>
                         <button className={styles.secondaryButton} onClick={carregarDados} disabled={loading}>
-                            <FiRefreshCw className={loading ? styles.spin : ''} /> Atualizar
+                            <FiRefreshCw className={loading ? styles.spin : ''} /> {t('producao.colaboradores.filters.update', 'Atualizar')}
                         </button>
                         <button className={styles.primaryButton} onClick={abrirModalSelecao}>
-                            <FiUserPlus /> Adicionar Operador
+                            <FiUserPlus /> {t('producao.colaboradores.filters.addOperator', 'Adicionar Operador')}
                         </button>
                     </div>
                 </div>
@@ -536,16 +538,16 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>Matrícula</th>
-                                <th>Nome</th>
-                                <th className={styles.alignRight}>Meta Dia (h)</th>
-                                <th className={styles.alignRight}>Meta Acum (h)</th>
-                                <th className={styles.alignRight}>Meta Mês (h)</th>
-                                <th className={styles.alignRight}>Real Dia (h)</th>
-                                <th className={styles.alignRight}>Real Mês (h)</th>
-                                <th className={styles.alignRight}>Perf. Dia</th>
-                                <th className={styles.alignRight}>Perf. Mês</th>
-                                <th className={styles.alignCenter}>Status</th>
+                                <th>{t('producao.colaboradores.table.matricula', 'Matrícula')}</th>
+                                <th>{t('producao.colaboradores.table.name', 'Nome')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.dailyGoal', 'Meta Dia (h)')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.accumGoal', 'Meta Acum (h)')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.monthGoal', 'Meta Mês (h)')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.realDay', 'Real Dia (h)')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.realMonth', 'Real Mês (h)')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.perfDay', 'Perf. Dia')}</th>
+                                <th className={styles.alignRight}>{t('producao.colaboradores.table.perfMonth', 'Perf. Mês')}</th>
+                                <th className={styles.alignCenter}>{t('producao.colaboradores.table.status', 'Status')}</th>
                                 <th style={{ width: 60 }}></th>
                             </tr>
                         </thead>
@@ -555,8 +557,8 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                     <td colSpan={11}>
                                         <div className={styles.emptyState}>
                                             <FiUsers size={48} />
-                                            <h3>Nenhum operador monitorado</h3>
-                                            <p>Clique em "Adicionar Operador" para selecionar quais operadores deseja acompanhar.</p>
+                                            <h3>{t('producao.colaboradores.table.empty.title', 'Nenhum operador monitorado')}</h3>
+                                            <p>{t('producao.colaboradores.table.empty.text', 'Clique em "Adicionar Operador" para selecionar quais operadores deseja acompanhar.')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -583,11 +585,11 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                     </td>
                                     <td className={styles.alignCenter}>
                                         <span className={`${styles.statusBadge} ${l.ativo ? styles.badgeActive : styles.badgeInactive}`}>
-                                            {l.ativo ? 'Ativo' : 'Inativo'}
+                                            {l.ativo ? t('producao.colaboradores.table.active', 'Ativo') : t('producao.colaboradores.table.inactive', 'Inativo')}
                                         </span>
                                     </td>
                                     <td>
-                                        <button className={styles.iconButton} onClick={() => abrirEditar(l)} title="Editar meta">
+                                        <button className={styles.iconButton} onClick={() => abrirEditar(l)} title={t('producao.colaboradores.table.editTitle', 'Editar meta')}>
                                             <FiEdit2 />
                                         </button>
                                     </td>
@@ -596,7 +598,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
 
                             {linhas.length > 0 && (
                                 <tr className={styles.totalRow}>
-                                    <td colSpan={2}><strong>Totais</strong></td>
+                                    <td colSpan={2}><strong>{t('producao.colaboradores.table.totals', 'Totais')}</strong></td>
                                     <td className={styles.alignRight}><span className={styles.numericValue}>{formatNum(totalMetaDiaria)}</span></td>
                                     <td className={styles.alignRight}><span className={styles.numericValue}>{formatNum(totalMetaAcumulada)}</span></td>
                                     <td className={styles.alignRight}><span className={styles.numericValue}>{formatNum(totalMetaMensal)}</span></td>
@@ -624,7 +626,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
             <Modal
                 isOpen={showSelectModal}
                 onClose={() => !saving && setShowSelectModal(false)}
-                title="Adicionar Operador ao Monitoramento"
+                title={t('producao.colaboradores.modal.addTitle', 'Adicionar Operador ao Monitoramento')}
             >
                 <div className={styles.modalForm}>
                     {/* Busca */}
@@ -633,7 +635,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                         <input
                             type="text"
                             className={styles.searchInput}
-                            placeholder="Buscar por nome ou matrícula..."
+                            placeholder={t('producao.colaboradores.modal.searchPlaceholder', 'Buscar por nome ou matrícula...')}
                             value={searchOperador}
                             onChange={(e) => setSearchOperador(e.target.value)}
                         />
@@ -643,13 +645,13 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     <div className={styles.operadorList}>
                         {loadingOperadores ? (
                             <div className={styles.listLoading}>
-                                <FiRefreshCw className={styles.spin} /> Carregando operadores...
+                                <FiRefreshCw className={styles.spin} /> {t('producao.colaboradores.modal.loading', 'Carregando operadores...')}
                             </div>
                         ) : operadoresFiltrados.length === 0 ? (
                             <div className={styles.listEmpty}>
                                 {searchOperador
-                                    ? 'Nenhum operador encontrado com essa busca.'
-                                    : 'Todos os operadores já estão sendo monitorados.'}
+                                    ? t('producao.colaboradores.modal.emptySearch', 'Nenhum operador encontrado com essa busca.')
+                                    : t('producao.colaboradores.modal.allMonitored', 'Todos os operadores já estão sendo monitorados.')}
                             </div>
                         ) : (
                             operadoresFiltrados.map((op) => (
@@ -660,7 +662,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                 >
                                     <div className={styles.operadorInfo}>
                                         <span className={styles.operadorNome}>{op.nome}</span>
-                                        <span className={styles.operadorMatricula}>Mat: {op.matricula}</span>
+                                        <span className={styles.operadorMatricula}>{t('producao.colaboradores.modal.matricula', 'Mat: ')} {op.matricula}</span>
                                     </div>
                                     {selectedOperador?.id === op.id && (
                                         <FiCheck className={styles.checkIcon} />
@@ -674,7 +676,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     {selectedOperador && (
                         <div className={styles.modalField}>
                             <label className={styles.modalLabel}>
-                                Meta diária para {selectedOperador.nome} (horas)
+                                {t('producao.colaboradores.modal.dailyGoalLabel', { name: selectedOperador.nome, defaultValue: `Meta diária para ${selectedOperador.nome} (horas)` })}
                             </label>
                             <input
                                 type="number"
@@ -693,14 +695,14 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                             onClick={() => setShowSelectModal(false)}
                             disabled={saving}
                         >
-                            Cancelar
+                            {t('producao.colaboradores.modal.cancel', 'Cancelar')}
                         </button>
                         <button
                             className={styles.modalPrimaryButton}
                             onClick={handleAdicionarOperador}
                             disabled={saving || !selectedOperador}
                         >
-                            {saving ? 'Adicionando...' : 'Adicionar'}
+                            {saving ? t('producao.colaboradores.modal.adding', 'Adicionando...') : t('producao.colaboradores.modal.add', 'Adicionar')}
                         </button>
                     </div>
                 </div>
@@ -710,11 +712,11 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
             <Modal
                 isOpen={!!editState}
                 onClose={fecharModal}
-                title={`Editar Meta: ${editState?.nome || ''}`}
+                title={t('producao.colaboradores.modal.editTitle', { name: editState?.nome || '', defaultValue: `Editar Meta: ${editState?.nome || ''}` })}
             >
                 <div className={styles.modalForm}>
                     <div className={styles.modalField}>
-                        <label className={styles.modalLabel}>Matrícula</label>
+                        <label className={styles.modalLabel}>{t('producao.colaboradores.modal.matricula', 'Matrícula')}</label>
                         <input
                             type="text"
                             className={styles.modalInput}
@@ -724,7 +726,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     </div>
 
                     <div className={styles.modalField}>
-                        <label className={styles.modalLabel}>Nome</label>
+                        <label className={styles.modalLabel}>{t('producao.colaboradores.modal.name', 'Nome')}</label>
                         <input
                             type="text"
                             className={styles.modalInput}
@@ -734,7 +736,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     </div>
 
                     <div className={styles.modalField}>
-                        <label className={styles.modalLabel}>Meta Diária (horas)</label>
+                        <label className={styles.modalLabel}>{t('producao.colaboradores.modal.dailyGoal', 'Meta Diária (horas)')}</label>
                         <input
                             type="number"
                             className={styles.modalInput}
@@ -747,7 +749,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     </div>
 
                     <div className={styles.toggleRow}>
-                        <span>Monitorando</span>
+                        <span>{t('producao.colaboradores.modal.monitoring', 'Monitorando')}</span>
                         <button
                             type="button"
                             className={`${styles.toggle} ${editState?.ativo ? styles.toggleActive : ''}`}
@@ -760,10 +762,10 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
 
                     <div className={styles.modalActions}>
                         <button className={styles.modalSecondaryButton} onClick={fecharModal} disabled={saving}>
-                            Cancelar
+                            {t('producao.colaboradores.modal.cancel', 'Cancelar')}
                         </button>
                         <button className={styles.modalPrimaryButton} onClick={handleSalvar} disabled={saving}>
-                            {saving ? 'Salvando...' : 'Salvar'}
+                            {saving ? t('producao.colaboradores.modal.saving', 'Salvando...') : t('producao.colaboradores.modal.save', 'Salvar')}
                         </button>
                     </div>
                 </div>

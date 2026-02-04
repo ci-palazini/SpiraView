@@ -71,8 +71,8 @@ const ConfigSection = ({ title, items, loading, onAdd, onUpdate, onDelete, showT
                         value={newItemType}
                         onChange={(e) => setNewItemType(e.target.value as 'INTERNO' | 'EXTERNO')}
                     >
-                        <option value="INTERNO">Interno</option>
-                        <option value="EXTERNO">Externo</option>
+                        <option value="INTERNO">{t('quality.config.internal', 'Interno')}</option>
+                        <option value="EXTERNO">{t('quality.config.external', 'Externo')}</option>
                     </select>
                 )}
                 <button className={styles.primaryBtn} onClick={handleCreate}>
@@ -101,8 +101,8 @@ const ConfigSection = ({ title, items, loading, onAdd, onUpdate, onDelete, showT
                                             value={editType}
                                             onChange={(e) => setEditType(e.target.value as 'INTERNO' | 'EXTERNO')}
                                         >
-                                            <option value="INTERNO">Interno</option>
-                                            <option value="EXTERNO">Externo</option>
+                                            <option value="INTERNO">{t('quality.config.internal', 'Interno')}</option>
+                                            <option value="EXTERNO">{t('quality.config.external', 'Externo')}</option>
                                         </select>
                                     )}
                                     <button className={styles.iconBtn} onClick={() => submitEdit(item.id, item.ativo)}>
@@ -118,7 +118,7 @@ const ConfigSection = ({ title, items, loading, onAdd, onUpdate, onDelete, showT
                                         <span className={styles.itemName}>{item.nome}</span>
                                         {showType && (
                                             <span className={`${styles.typeBadge} ${item.tipo === 'INTERNO' ? styles.interno : styles.externo}`}>
-                                                {item.tipo || 'EXTERNO'}
+                                                {item.tipo === 'INTERNO' ? t('quality.config.internal', 'Interno') : t('quality.config.external', 'Externo')}
                                             </span>
                                         )}
                                     </div>
@@ -309,7 +309,7 @@ export default function QualidadeConfigPage() {
             <div className={styles.container}>
                 <div className={styles.grid}>
                     <ConfigSection
-                        title="Origens"
+                        title={t('quality.config.origins', 'Origens')}
                         items={origens}
                         loading={loading}
                         onAdd={handleAddOrigem}
@@ -318,7 +318,7 @@ export default function QualidadeConfigPage() {
                         showType
                     />
                     <ConfigSection
-                        title="Motivos de Defeito"
+                        title={t('quality.config.reasons', 'Motivos de Defeito')}
                         items={motivos}
                         loading={loading}
                         onAdd={handleAddMotivo}
@@ -326,7 +326,7 @@ export default function QualidadeConfigPage() {
                         onDelete={(item) => checkAndDelete(item, 'motivo')}
                     />
                     <ConfigSection
-                        title="Responsáveis"
+                        title={t('quality.config.responsibles', 'Responsáveis')}
                         items={responsaveis}
                         loading={loading}
                         onAdd={handleAddResponsavel}
