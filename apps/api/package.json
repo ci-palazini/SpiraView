@@ -1,5 +1,5 @@
 {
-  "name": "@manutencao/api",
+  "name": "@spiraview/api",
   "private": true,
   "version": "1.0.0",
   "description": "",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.3",
-    "@manutencao/shared": "workspace:^",
+    "@spiraview/shared": "workspace:^",
     "@supabase/supabase-js": "^2.86.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
