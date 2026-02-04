@@ -189,7 +189,6 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
       `
       SELECT
         c.id,
-        c.fs_id,
         m.nome AS maquina,
         c.tipo,
         c.status,

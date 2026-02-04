@@ -328,15 +328,6 @@ export interface SSEHandlers {
     onOpen?: () => void;
 }
 
-// ---------- Eventos ----------
-export interface EventoChamado {
-    id?: string;
-    tipo?: string;
-    descricao?: string;
-    criado_em?: string;
-    autor?: string;
-}
-
 // ---------- Conclusão Chamado ----------
 export interface ConcluirChamadoPayload {
     tipo?: string;

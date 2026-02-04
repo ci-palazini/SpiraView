@@ -30,7 +30,6 @@ import type {
     ChangePasswordPayload,
     SSEMessage,
     SSEHandlers,
-    EventoChamado,
     ConcluirChamadoPayload,
     LogisticaKpi,
     LogisticaMeta,
@@ -320,12 +319,7 @@ export async function deletarChamado(id: string, auth: AuthParams): Promise<unkn
     return data;
 }
 
-export async function listarEventosChamado(id: string): Promise<EventoChamado[]> {
-    const r = await fetch(`${BASE}/chamados/${id}/eventos`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Erro ao listar eventos (${r.status})`);
-    return data.items || [];
-}
+
 
 // ===== FOTOS =====
 export async function listarFotosChamado(id: string, auth: AuthParams = {}): Promise<Foto[]> {
