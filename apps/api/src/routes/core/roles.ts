@@ -36,6 +36,9 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
     { key: 'qualidade_analitico', nome: 'Análise Detalhada', grupo: 'Qualidade' },
     { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
+    // Logística
+    { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
+    { key: 'logistica_kpis', nome: 'Gerenciamento de Indicadores', grupo: 'Logística' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },

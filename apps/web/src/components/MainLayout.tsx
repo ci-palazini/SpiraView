@@ -62,6 +62,7 @@ import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboa
 import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
 import QualidadeAnaliticoPage from '../features/qualidade/pages/QualidadeAnaliticoPage';
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
+import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -103,7 +104,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-        const defaults = { maintenance: false, production: false, planejamento: false, quality: false };
+        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false };
         try {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
             if (saved) {
@@ -219,6 +220,8 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             targetGroup = 'planejamento';
         } else if (path.startsWith('/qualidade')) {
             targetGroup = 'quality';
+        } else if (path.startsWith('/logistica')) {
+            targetGroup = 'logistics';
         } else if (
             path.startsWith('/maquinas') ||
             path.startsWith('/historico') ||
@@ -698,6 +701,25 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 )
             }
 
+            {/* Logística - novo departamento */}
+            {
+                perm.canViewAny(['logistica_dashboard']) && (
+                    <SidebarGroup id="logistics" label={t('layout.sections.logistics', 'Logística')} icon={FiPackage}>
+                        {perm.canView('logistica_dashboard') && (
+                            <NavLink
+                                to="/logistica/dashboard"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <LuLayoutDashboard className={styles.navIcon} />
+                                <span>{t('nav.logisticsDashboard', 'Dashboard')}</span>
+                            </NavLink>
+                        )}
+                    </SidebarGroup>
+                )
+            }
+
             {/* Administração - usa permissões granulares */}
             {
                 perm.canViewAny(['usuarios', 'roles']) && (
@@ -978,6 +1000,12 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/qualidade/config"
                         element={canAccessPage('qualidade_config', <QualidadeConfigPage />)}
+                    />
+
+                    {/* Rotas Logística */}
+                    <Route
+                        path="/logistica/dashboard"
+                        element={canAccessPage('logistica_dashboard', <LogisticaDashboardPage />)}
                     />
 
 

@@ -32,6 +32,9 @@ import type {
     SSEHandlers,
     EventoChamado,
     ConcluirChamadoPayload,
+    LogisticaKpi,
+    LogisticaMeta,
+    LogisticaDashboardData,
 } from '../types/api';
 
 // ===== BASE =====
@@ -1861,4 +1864,37 @@ export interface QualityComparisonParams {
 
 export async function getQualityComparison(params: QualityComparisonParams, auth: AuthParams = {}): Promise<QualityComparisonResponse> {
     return http.get<QualityComparisonResponse>(`/qualidade/analytics/compare`, { params: params as Record<string, unknown>, auth });
+}
+
+// ===== LOGISTICA =====
+export async function getLogisticaKpis(mes: number, ano: number, auth: AuthParams = {}): Promise<LogisticaDashboardData> {
+    return http.get<LogisticaDashboardData>(`/logistica/kpis`, { params: { mes, ano }, auth });
+}
+
+export async function saveLogisticaKpi(data: string, payload: Partial<LogisticaKpi>, auth: AuthParams = {}): Promise<LogisticaKpi> {
+    const res = await fetch(`${BASE}/logistica/kpis/${data}`, {
+        method: 'PUT',
+        headers: {
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error || `Erro ao salvar KPI (${res.status})`);
+    return json as LogisticaKpi;
+}
+
+export async function saveLogisticaMeta(mes: number, ano: number, meta_financeira: number, auth: AuthParams = {}): Promise<LogisticaMeta> {
+    const res = await fetch(`${BASE}/logistica/metas/${mes}/${ano}`, {
+        method: 'PUT',
+        headers: {
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ meta_financeira })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error || `Erro ao salvar Meta (${res.status})`);
+    return json as LogisticaMeta;
 }

@@ -344,3 +344,32 @@ export interface ConcluirChamadoPayload {
     solucao?: string;
     checklist?: ChecklistItem[];
 }
+
+// ---------- Logística ----------
+export interface LogisticaMeta {
+    id: string;
+    mes: number;
+    ano: number;
+    meta_financeira: number;
+    updated_at: string;
+}
+
+export interface LogisticaKpi {
+    id: string;
+    data: string; // YYYY-MM-DD
+    faturado_acumulado: number;
+    exportacao_acumulado: number;
+    devolucoes_dia: number;
+    total_linhas: number;
+    linhas_atraso: number;
+    backlog_atraso: number;
+    ottr_ytd: number;
+    is_dia_util: boolean;
+    updated_at: string;
+}
+
+export interface LogisticaDashboardData {
+    meta: LogisticaMeta | null;
+    items: LogisticaKpi[];
+    previousItems: LogisticaKpi[];
+}

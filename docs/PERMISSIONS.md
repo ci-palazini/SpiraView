@@ -136,6 +136,13 @@ const MyComponent = () => {
 | `qualidade_lancamento` | Qualidade | Lançamento de novos refugos | `ver`, `editar` |
 | `qualidade_analitico` | Qualidade | Análise detalhada de custos e tendências | `ver` |
 
+### Logística
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `logistica_dashboard` | Logística | Dashboard de logística | `ver` |
+| `logistica_kpis` | Logística | Gerenciamento de indicadores/metas | `ver`, `editar` |
+
 ---
 
 ## Role Templates (Exemplo)

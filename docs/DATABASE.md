@@ -259,6 +259,38 @@ Registros de não-conformidades e refugos.
 
 ---
 
+### Logística
+
+#### `logistica_metas`
+Metas mensais do departamento.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `mes` | INTEGER | Mês (1-12) |
+| `ano` | INTEGER | Ano |
+| `meta_financeira` | DECIMAL | Meta de faturamento total |
+| `updated_at` | TIMESTAMP | Última atualização |
+
+#### `logistica_kpis_diario`
+Apontamentos diários de logística.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `data` | DATE | Data do apontamento (Unique) |
+| `faturado_acumulado` | DECIMAL | Valor acumulado de faturamento |
+| `exportacao_acumulado` | DECIMAL | Valor acumulado de exportação |
+| `devolucoes_dia` | DECIMAL | Valor de devoluções do dia |
+| `total_linhas` | INTEGER | Total de linhas expedidas |
+| `linhas_atraso` | INTEGER | Linhas em atraso |
+| `backlog_atraso` | INTEGER | Backlog acumulado em atraso |
+| `ottr_ytd` | DECIMAL | Percentual OTTR acumulado (0-100) |
+| `is_dia_util` | BOOLEAN | (Default true) Se conta para meta |
+| `updated_at` | TIMESTAMP | Última atualização |
+
+---
+
 ## 3. Convenções
 
 | Padrão | Descrição |

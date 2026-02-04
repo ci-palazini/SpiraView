@@ -121,6 +121,7 @@ flowchart LR
 | **Usuários** | `features/usuarios/` | Gestão de usuários e roles |
 | **Configurações** | `features/configuracoes/` | Settings globais |
 | **TV/Kiosk** | `features/tv/` | Dashboards para monitores |
+| **Logística** | `features/logistica/` | Dashboard de logística |
 
 ---
 

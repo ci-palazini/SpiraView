@@ -25,7 +25,8 @@
     "planejamentoConfig": "Configuration",
     "tvMode": "TV Mode",
     "qualityDashboard": "Dashboard",
-    "qualityLaunch": "Scrap"
+    "qualityLaunch": "Scrap",
+    "logisticsDashboard": "Dashboard"
   },
   "status": {
     "open": "Open",
@@ -801,7 +802,8 @@
       "managePeople": "Manage Team",
       "production": "Production",
       "planejamento": "Planning",
-      "quality": "Quality"
+      "quality": "Quality",
+      "logistics": "Logistics"
     }
   },
   "dashboard": {
@@ -1405,5 +1407,9 @@
     "totalCost": "Total Cost",
     "costComparison": "Cost Comparison",
     "defectsComparison": "Top Defects"
+  },
+  "logistics": {
+    "dashboardTitle": "Logistics Panel",
+    "dashboardSubtitle": "Daily tracking of financial and operational KPIs"
   }
 }

@@ -13,6 +13,7 @@ import { manutencaoRouter } from './routes/manutencao';
 import { producaoRouter } from './routes/producao';
 import { planejamentoRouter } from './routes/planejamento';
 import { qualidadeRouter } from './routes/qualidade';
+import { logisticaRouter } from './routes/logistica';
 
 export const app: Express = express(); // 👈 evita o TS2742
 
@@ -36,4 +37,5 @@ app.use(manutencaoRouter);    // Departamento Manutenção
 app.use(producaoRouter);      // Departamento Produção
 app.use(planejamentoRouter);  // Departamento Planejamento
 app.use(qualidadeRouter);     // Departamento Qualidade
+app.use(logisticaRouter);     // Departamento Logística
 
