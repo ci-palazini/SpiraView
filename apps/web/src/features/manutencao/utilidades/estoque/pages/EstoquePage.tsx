@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 import usePermissions from '../../../../../hooks/usePermissions';
 
-// Reaproveitando as helpers do histÃ³rico
+// Reaproveitando as helpers do histórico
 import { exportToExcel } from '../../../../../utils/exportExcel';
 import { exportToPdf } from '../../../../../utils/exportPdf';
 
@@ -111,7 +111,7 @@ export default function EstoquePage({ user }: EstoquePageProps) {
         <>
             <PageHeader
                 title={t('estoque.title')}
-                subtitle={t('estoque.subtitle', 'Gerencie o catÃ¡logo de peÃ§as, estoque mÃ­nimo e movimentaÃ§Ãµes.')}
+                subtitle={t('estoque.subtitle', 'Gerencie o catálogo de peças, estoque mínimo e movimentações.')}
             />
 
             {/* Container branco principal */}

@@ -23,7 +23,7 @@ export interface HistoricoMovimentacoesPageProps {
 // ---------- Helpers ----------
 function formatDate(dateStr: string): string {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('pt-BR', {
+    return d.toLocaleDateString(undefined, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -62,7 +62,7 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
             setMovimentacoes(movs);
             if (!pecas.length) setPecas(pecasList);
         } catch (e) {
-            console.error('Erro ao carregar movimentaÃ§Ãµes:', e);
+            console.error('Erro ao carregar movimentações:', e);
         } finally {
             setLoading(false);
         }
@@ -74,35 +74,39 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
 
     const handleExportExcel = () => {
         const data = movimentacoes.map(m => ({
-            'Data/Hora': formatDate(m.criadoEm),
-            'CÃ³digo': m.pecaCodigo,
-            'PeÃ§a': m.pecaNome,
-            'Tipo': m.tipo === 'entrada' ? 'Entrada' : 'SaÃ­da',
-            'Quantidade': `${m.tipo === 'entrada' ? '+' : '-'}${m.quantidade}`,
-            'Saldo': m.estoqueApos ?? '',
-            'DescriÃ§Ã£o': m.descricao || '',
-            'UsuÃ¡rio': m.usuarioNome || ''
+            [t('historicoMovimentacoes.table.date', 'Data/Hora')]: formatDate(m.criadoEm),
+            [t('historicoMovimentacoes.table.code', 'Código')]: m.pecaCodigo,
+            [t('historicoMovimentacoes.table.part', 'Peça')]: m.pecaNome,
+            [t('historicoMovimentacoes.table.type', 'Tipo')]: m.tipo === 'entrada'
+                ? t('historicoMovimentacoes.types.entry', 'Entrada')
+                : t('historicoMovimentacoes.types.exit', 'Saída'),
+            [t('historicoMovimentacoes.table.qty', 'Qtd')]: `${m.tipo === 'entrada' ? '+' : '-'}${m.quantidade}`,
+            [t('historicoMovimentacoes.table.balance', 'Saldo')]: m.estoqueApos ?? '',
+            [t('historicoMovimentacoes.table.description', 'Descrição')]: m.descricao || '',
+            [t('historicoMovimentacoes.table.user', 'Usuário')]: m.usuarioNome || ''
         }));
         exportToExcel(data, 'historico_movimentacoes');
     };
 
     const handleExportPdf = () => {
         const columns = [
-            { key: 'dataHora', label: 'Data/Hora' },
-            { key: 'codigo', label: 'CÃ³digo' },
-            { key: 'peca', label: 'PeÃ§a' },
-            { key: 'tipo', label: 'Tipo' },
-            { key: 'quantidade', label: 'Qtd' },
-            { key: 'saldo', label: 'Saldo' },
-            { key: 'descricao', label: 'DescriÃ§Ã£o' },
+            { key: 'dataHora', label: t('historicoMovimentacoes.table.date', 'Data/Hora') },
+            { key: 'codigo', label: t('historicoMovimentacoes.table.code', 'Código') },
+            { key: 'peca', label: t('historicoMovimentacoes.table.part', 'Peça') },
+            { key: 'tipo', label: t('historicoMovimentacoes.table.type', 'Tipo') },
+            { key: 'quantidade', label: t('historicoMovimentacoes.table.qty', 'Qtd') },
+            { key: 'saldo', label: t('historicoMovimentacoes.table.balance', 'Saldo') },
+            { key: 'descricao', label: t('historicoMovimentacoes.table.description', 'Descrição') },
         ];
         const data = movimentacoes.map(m => ({
             dataHora: formatDate(m.criadoEm),
             codigo: m.pecaCodigo,
             peca: m.pecaNome,
-            tipo: m.tipo === 'entrada' ? 'Entrada' : 'SaÃ­da',
+            tipo: m.tipo === 'entrada'
+                ? t('historicoMovimentacoes.types.entry', 'Entrada')
+                : t('historicoMovimentacoes.types.exit', 'Saída'),
             quantidade: `${m.tipo === 'entrada' ? '+' : '-'}${m.quantidade}`,
-            saldo: m.estoqueApos !== null ? String(m.estoqueApos) : 'â€”',
+            saldo: m.estoqueApos !== null ? String(m.estoqueApos) : '-',
             descricao: m.descricao || ''
         }));
         exportToPdf(data, columns, 'historico_movimentacoes');
@@ -118,36 +122,36 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
     return (
         <div className={styles.container}>
             <PageHeader
-                title={t('estoque.historicoMovimentacoes', 'HistÃ³rico de MovimentaÃ§Ãµes')}
-                subtitle={t('estoque.historicoSubtitle', 'Controle de entradas e saÃ­das de estoque')}
+                title={t('historicoMovimentacoes.title', 'Histórico de Movimentações')}
+                subtitle={t('historicoMovimentacoes.subtitle', 'Controle de entradas e saídas de estoque')}
             />
 
             <div className={styles.listContainer}>
                 {/* Filtros */}
                 <div className={styles.filters}>
                     <div className={styles.filterGroup}>
-                        <label htmlFor="filtro-tipo">Tipo</label>
+                        <label htmlFor="filtro-tipo">{t('historicoMovimentacoes.filters.type', 'Tipo')}</label>
                         <select
                             id="filtro-tipo"
                             value={filtroTipo}
                             onChange={e => setFiltroTipo(e.target.value as '' | 'entrada' | 'saida')}
                             className={styles.select}
                         >
-                            <option value="">Todos</option>
-                            <option value="entrada">Entrada</option>
-                            <option value="saida">SaÃ­da</option>
+                            <option value="">{t('historicoMovimentacoes.filters.all', 'Todos')}</option>
+                            <option value="entrada">{t('historicoMovimentacoes.types.entry', 'Entrada')}</option>
+                            <option value="saida">{t('historicoMovimentacoes.types.exit', 'Saída')}</option>
                         </select>
                     </div>
 
                     <div className={styles.filterGroup}>
-                        <label htmlFor="filtro-peca">PeÃ§a</label>
+                        <label htmlFor="filtro-peca">{t('historicoMovimentacoes.filters.part', 'Peça')}</label>
                         <select
                             id="filtro-peca"
                             value={filtroPecaId}
                             onChange={e => setFiltroPecaId(e.target.value)}
                             className={styles.select}
                         >
-                            <option value="">Todas</option>
+                            <option value="">{t('historicoMovimentacoes.filters.all', 'Todas')}</option>
                             {pecas.map(p => (
                                 <option key={p.id} value={p.id}>
                                     {p.codigo} - {p.nome}
@@ -157,7 +161,7 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
                     </div>
 
                     <div className={styles.filterGroup}>
-                        <label htmlFor="filtro-data-inicio">Data InÃ­cio</label>
+                        <label htmlFor="filtro-data-inicio">{t('historicoMovimentacoes.filters.startDate', 'Data Início')}</label>
                         <input
                             id="filtro-data-inicio"
                             type="date"
@@ -168,7 +172,7 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
                     </div>
 
                     <div className={styles.filterGroup}>
-                        <label htmlFor="filtro-data-fim">Data Fim</label>
+                        <label htmlFor="filtro-data-fim">{t('historicoMovimentacoes.filters.endDate', 'Data Fim')}</label>
                         <input
                             id="filtro-data-fim"
                             type="date"
@@ -179,14 +183,14 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
                     </div>
 
                     <button onClick={limparFiltros} className={styles.btnSecondary}>
-                        Limpar Filtros
+                        {t('historicoMovimentacoes.filters.clear', 'Limpar Filtros')}
                     </button>
                 </div>
 
-                {/* AÃ§Ãµes */}
+                {/* Ações */}
                 <div className={styles.actions}>
                     <span className={styles.count}>
-                        {movimentacoes.length} registro{movimentacoes.length !== 1 ? 's' : ''} encontrado{movimentacoes.length !== 1 ? 's' : ''}
+                        {t('historicoMovimentacoes.count', '{{count}} registro(s) encontrado(s)', { count: movimentacoes.length })}
                     </span>
                     <ExportButtons
                         onExportExcel={handleExportExcel}
@@ -204,20 +208,20 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
                         </div>
                     ) : movimentacoes.length === 0 ? (
                         <div className={styles.empty}>
-                            <p>Nenhuma movimentaÃ§Ã£o encontrada.</p>
+                            <p>{t('historicoMovimentacoes.empty', 'Nenhuma movimentação encontrada.')}</p>
                         </div>
                     ) : (
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>Data/Hora</th>
-                                    <th>CÃ³digo</th>
-                                    <th>PeÃ§a</th>
-                                    <th>Tipo</th>
-                                    <th>Qtd</th>
-                                    <th>Saldo</th>
-                                    <th>DescriÃ§Ã£o</th>
-                                    <th>UsuÃ¡rio</th>
+                                    <th>{t('historicoMovimentacoes.table.date', 'Data/Hora')}</th>
+                                    <th>{t('historicoMovimentacoes.table.code', 'Código')}</th>
+                                    <th>{t('historicoMovimentacoes.table.part', 'Peça')}</th>
+                                    <th>{t('historicoMovimentacoes.table.type', 'Tipo')}</th>
+                                    <th>{t('historicoMovimentacoes.table.qty', 'Qtd')}</th>
+                                    <th>{t('historicoMovimentacoes.table.balance', 'Saldo')}</th>
+                                    <th>{t('historicoMovimentacoes.table.description', 'Descrição')}</th>
+                                    <th>{t('historicoMovimentacoes.table.user', 'Usuário')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -228,17 +232,19 @@ export default function HistoricoMovimentacoesPage({ user }: HistoricoMovimentac
                                         <td>{m.pecaNome}</td>
                                         <td>
                                             <span className={`${styles.badge} ${styles[m.tipo]}`}>
-                                                {m.tipo === 'entrada' ? 'â†‘ Entrada' : 'â†“ SaÃ­da'}
+                                                {m.tipo === 'entrada'
+                                                    ? `↑ ${t('historicoMovimentacoes.types.entry', 'Entrada')}`
+                                                    : `↓ ${t('historicoMovimentacoes.types.exit', 'Saída')}`}
                                             </span>
                                         </td>
                                         <td className={styles.quantity}>
                                             {m.tipo === 'entrada' ? '+' : '-'}{m.quantidade}
                                         </td>
                                         <td className={styles.saldo}>
-                                            {m.estoqueApos !== null ? m.estoqueApos : 'â€”'}
+                                            {m.estoqueApos !== null ? m.estoqueApos : '-'}
                                         </td>
-                                        <td className={styles.description}>{m.descricao || 'â€”'}</td>
-                                        <td className={styles.usuario}>{m.usuarioNome || 'â€”'}</td>
+                                        <td className={styles.description}>{m.descricao || '-'}</td>
+                                        <td className={styles.usuario}>{m.usuarioNome || '-'}</td>
                                     </tr>
                                 ))}
                             </tbody>

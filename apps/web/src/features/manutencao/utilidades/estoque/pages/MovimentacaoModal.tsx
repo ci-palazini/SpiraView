@@ -1,5 +1,6 @@
 // src/features/estoque/pages/MovimentacaoModal.tsx
 import React, { useState, FormEvent, ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { registrarMovimentacao } from '../../../../../services/apiClient';
 import type { Peca } from '../../../../../types/api';
 import styles from './MovimentacaoModal.module.css';
@@ -22,23 +23,23 @@ interface MovimentacaoModalProps {
 
 // ---------- Component ----------
 export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }: MovimentacaoModalProps) {
+    const { t } = useTranslation();
     const [quantidade, setQuantidade] = useState(1);
     const [descricao, setDescricao] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // ProteÃ§Ã£o contra chamada dupla
         if (isSaving) return;
         setIsSaving(true);
         try {
-            // validaÃ§Ã£o simples
+            // validação simples
             const q = Number(quantidade);
             if (!Number.isFinite(q) || q <= 0) {
-                throw new Error('Quantidade invÃ¡lida');
+                throw new Error(t('movimentacaoModal.invalidQty', 'Quantidade inválida'));
             }
 
-            // chama a API (back jÃ¡ registra a movimentaÃ§Ã£o e atualiza o estoque em transaÃ§Ã£o)
+            // chama a API (back já registra a movimentação e atualiza o estoque em transação)
             const result = await registrarMovimentacao(
                 peca.id,
                 {
@@ -49,7 +50,7 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }
                 { role: user?.role, email: user?.email }
             ) as { ok: boolean; peca: { estoque_atual: number } };
 
-            // Atualiza a peÃ§a com o novo estoque retornado pelo backend
+            // Atualiza a peça com o novo estoque retornado pelo backend
             if (result?.peca && onSaved) {
                 onSaved({
                     ...peca,
@@ -57,11 +58,14 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }
                 });
             }
 
-            toast.success(`MovimentaÃ§Ã£o de ${tipo} realizada com sucesso!`);
+            const successMsg = tipo === 'entrada'
+                ? t('movimentacaoModal.successIn', 'Movimentação de entrada realizada com sucesso!')
+                : t('movimentacaoModal.successOut', 'Movimentação de saída realizada com sucesso!');
+            toast.success(successMsg);
             onClose();
         } catch (err: any) {
-            console.error('Erro ao registrar movimentaÃ§Ã£o:', err);
-            const msg = err?.message || 'Falha ao registrar movimentaÃ§Ã£o.';
+            console.error('Erro ao registrar movimentação:', err);
+            const msg = err?.message || t('movimentacaoModal.error', 'Falha ao registrar movimentação.');
             toast.error(msg);
         } finally {
             setIsSaving(false);
@@ -72,19 +76,21 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }
         <Modal
             isOpen={true}
             onClose={onClose}
-            title={tipo === 'entrada' ? 'Registrar Entrada' : 'Registrar SaÃ­da'}
+            title={tipo === 'entrada'
+                ? t('movimentacaoModal.titleIn', 'Registrar Entrada')
+                : t('movimentacaoModal.titleOut', 'Registrar Saída')}
         >
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>
-                    <label>PeÃ§a</label>
+                    <label>{t('movimentacaoModal.part', 'Peça')}</label>
                     <p>
                         <strong>
-                            {peca.codigo} â€“ {peca.nome}
+                            {peca.codigo} – {peca.nome}
                         </strong>
                     </p>
                 </div>
                 <div className={styles.formGroup}>
-                    <label htmlFor="quantidade">Quantidade</label>
+                    <label htmlFor="quantidade">{t('movimentacaoModal.quantity', 'Quantidade')}</label>
                     <input
                         id="quantidade"
                         type="number"
@@ -96,7 +102,7 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label htmlFor="descricao">DescriÃ§Ã£o (opcional)</label>
+                    <label htmlFor="descricao">{t('movimentacaoModal.description', 'Descrição (opcional)')}</label>
                     <textarea
                         id="descricao"
                         className={styles.textarea}
@@ -110,7 +116,9 @@ export default function MovimentacaoModal({ peca, tipo, user, onClose, onSaved }
                     className={styles.button}
                     disabled={isSaving}
                 >
-                    {isSaving ? 'Processando...' : 'Confirmar'}
+                    {isSaving
+                        ? t('movimentacaoModal.processing', 'Processando...')
+                        : t('movimentacaoModal.confirm', 'Confirmar')}
                 </button>
             </form>
         </Modal>

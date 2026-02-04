@@ -31,8 +31,86 @@
     "quarentenaAbbr": "Qua",
     "refugoAbbr": "Ref",
     "todos": "Todos",
-    "tipoLancamento": "Tipo de Dados",
-    "logisticsDashboard": "Dashboard"
+    "tipoLancamento": "Tipo de Dados"
+  },
+  "logistics": {
+    "dashboardTitle": "Painel de Logística",
+    "dashboardSubtitle": "Acompanhamento diário de KPIs financeiros e operacionais",
+    "controls": {
+      "title": "Dashboard de Logística",
+      "titleFullscreen": "PERFORMANCE DO FATURAMENTO - {{month}} - {{year}}",
+      "firstFortnight": "1ª Quinzena",
+      "secondFortnight": "2ª Quinzena",
+      "monthlyTarget": "Meta Mensal",
+      "expand": "Expandir",
+      "refresh": "Atualizar",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "loading": "Carregando...",
+      "downloadTable": "Baixar Tabela",
+      "downloadChart": "Baixar Gráfico"
+    },
+    "headers": {
+      "indicator": "INDICADOR",
+      "total": "TOTAL",
+      "billing": "FATURAMENTO",
+      "meta": "META & ADERÊNCIA",
+      "comparison": "COMPARATIVO MÊS ANTERIOR",
+      "returns": "DEVOLUÇÕES",
+      "ottr": "OTTR"
+    },
+    "rows": {
+      "nationalBilling": "Faturado Nacional",
+      "exportBilling": "Faturado Exportação",
+      "total": "TOTAL",
+      "realizedDay": "Realizado no Dia",
+      "metaMonth": "Meta {{month}}",
+      "realizedVsMeta": "Realizado X Meta",
+      "realizedLastMonth": "Realizado {{month}}",
+      "variation": "{{month1}} X {{month2}}",
+      "returns": "Devoluções",
+      "totalLines": "Total de Linhas",
+      "linesOnTime": "Linhas On Time",
+      "linesLate": "Linhas em Atraso",
+      "backlogLate": "Backlog em Atraso",
+      "ottrYtd": "OTTR YTD (Acum)",
+      "ottrLastMonth": "OTTR {{month}}"
+    },
+    "charts": {
+      "financialPerformance": "Performance Financeira",
+      "ottrEvolution": "Evolução OTTR YTD (Acumulado)",
+      "day": "Dia do Mês",
+      "value": "Valor (em milhares de R$)",
+      "ottrYtd": "OTTR YTD (%)"
+    },
+    "modal": {
+      "title": "Dia {{day}} - {{weekday}}",
+      "billing": "Faturamento",
+      "nationalBillingAcum": "Faturado Nacional (Acum.)",
+      "exportBillingAcum": "Faturado Exportação (Acum.)",
+      "returns": "Devoluções",
+      "returnsDay": "Devoluções do Dia",
+      "serviceLevel": "Nível de Serviço (OTTR)",
+      "totalLines": "Total de Linhas",
+      "linesLate": "Linhas em Atraso",
+      "backlogLate": "Backlog em Atraso",
+      "workingDay": "Dia Útil?",
+      "suggested": "sugerido",
+      "cancel": "Cancelar",
+      "save": "Salvar"
+    },
+    "summary": {
+      "realizedMonth": "Realizado Mês",
+      "monthlyTarget": "Meta Mensal",
+      "reached": "% Atingido",
+      "variationVsMeta": "Variação vs Meta"
+    },
+    "legend": {
+      "total": "Total {{date}}",
+      "meta": "Meta {{date}}",
+      "returns": "Devoluções {{date}}",
+      "ottrYtd": "OTTR YTD {{date}}"
+    }
   },
   "status": {
     "open": "Aberto",
@@ -665,6 +743,47 @@
       }
     }
   },
+  "movimentacaoModal": {
+    "titleIn": "Registrar Entrada",
+    "titleOut": "Registrar Saída",
+    "part": "Peça",
+    "quantity": "Quantidade",
+    "description": "Descrição (opcional)",
+    "confirm": "Confirmar",
+    "processing": "Processando...",
+    "successIn": "Movimentação de entrada realizada com sucesso!",
+    "successOut": "Movimentação de saída realizada com sucesso!",
+    "error": "Falha ao registrar movimentação.",
+    "invalidQty": "Quantidade inválida"
+  },
+  "historicoMovimentacoes": {
+    "title": "Histórico de Movimentações",
+    "subtitle": "Controle de entradas e saídas de estoque",
+    "table": {
+      "date": "Data/Hora",
+      "code": "Código",
+      "part": "Peça",
+      "type": "Tipo",
+      "qty": "Qtd",
+      "balance": "Saldo",
+      "description": "Descrição",
+      "user": "Usuário"
+    },
+    "filters": {
+      "type": "Tipo",
+      "part": "Peça",
+      "startDate": "Data Início",
+      "endDate": "Data Fim",
+      "clear": "Limpar Filtros",
+      "all": "Todos"
+    },
+    "types": {
+      "entry": "Entrada",
+      "exit": "Saída"
+    },
+    "empty": "Nenhuma movimentação encontrada.",
+    "count": "{{count}} registro(s) encontrado(s)"
+  },
   "pecaModal": {
     "title": {
       "create": "Nova Peça",
@@ -718,6 +837,13 @@
     },
     "confirm": {
       "delete": "Excluir esta causa?"
+    },
+    "filters": {
+      "machine": "Máquina",
+      "allMachines": "Todas",
+      "start": "De",
+      "end": "Até",
+      "clear": "Limpar"
     },
     "chart": {
       "seriesCalls": "Chamados",
@@ -906,7 +1032,14 @@
     "empty": "Nenhuma máquina encontrada para o filtro atual.",
     "sent": "Enviado",
     "missing": "Pendente",
-    "details": "Ver detalhes"
+    "details": "Ver detalhes",
+    "noChecklist": "Sem checklist",
+    "machinesWithChecklist": "Máquinas com checklist",
+    "noChecklistCount": "Sem checklist",
+    "weekend": {
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    }
   },
   "operatorDashboard": {
     "form": {
@@ -1413,9 +1546,5 @@
     "totalCost": "Custo Total",
     "costComparison": "Comparação de Custos",
     "defectsComparison": "Top Defeitos"
-  },
-  "logistics": {
-    "dashboardTitle": "Painel de Logística",
-    "dashboardSubtitle": "Acompanhamento diário de KPIs financeiros e operacionais"
   }
 }

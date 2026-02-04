@@ -472,7 +472,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
     // --- RENDER FUNCTIONS ---
     const renderHeader = () => (
         <tr>
-            <th className={styles.headerRowLabel}>INDICADOR</th>
+            <th className={styles.headerRowLabel}>{t('logistics.headers.indicator')}</th>
             {visibleDays.map(d => {
                 const date = new Date(ano, mes - 1, d);
                 const isUtil = isDayUtil(d);
@@ -490,7 +490,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                     </th>
                 );
             })}
-            <th className={styles.headerTotal}>TOTAL</th>
+            <th className={styles.headerTotal}>{t('logistics.headers.total')}</th>
         </tr>
     );
 
@@ -561,12 +561,12 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                 {!isFullscreen ? (
                     <div className={styles.controlsTitle}>
                         <FiTrendingUp size={24} />
-                        Dashboard de Logística
+                        {t('logistics.controls.title')}
                     </div>
                 ) : (
                     <div className={styles.controlsTitle}>
                         <img src={logoSpirax} alt="Spirax Sarco" style={{ height: '32px', marginRight: '16px' }} />
-                        <span>PERFORMANCE DO FATURAMENTO - {format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase()} - {ano}</span>
+                        <span>{t('logistics.controls.titleFullscreen', { month: format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase(), year: ano })}</span>
                     </div>
                 )}
 
@@ -574,7 +574,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                     {(loading || saving) && (
                         <div className={styles.savingIndicator}>
                             <CircularProgress size={14} color="inherit" />
-                            <span>{saving ? 'Salvando...' : 'Carregando...'}</span>
+                            <span>{saving ? t('logistics.controls.saving') : t('logistics.controls.loading')}</span>
                         </div>
                     )}
 
@@ -585,20 +585,20 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 className={`${styles.periodBtn} ${periodView === '1H' ? styles.periodBtnActive : ''}`}
                                 onClick={() => setPeriodView('1H')}
                             >
-                                1ª Quinzena
+                                {t('logistics.controls.firstFortnight')}
                             </button>
                             <button
                                 className={`${styles.periodBtn} ${periodView === '2H' ? styles.periodBtnActive : ''}`}
                                 onClick={() => setPeriodView('2H')}
                             >
-                                2ª Quinzena
+                                {t('logistics.controls.secondFortnight')}
                             </button>
                         </div>
                     )}
 
                     {/* Meta Input */}
                     <div className={styles.metaInputContainer}>
-                        <label className={styles.metaInputLabel}>Meta Mensal</label>
+                        <label className={styles.metaInputLabel}>{t('logistics.controls.monthlyTarget')}</label>
                         <input
                             type="number"
                             className={styles.metaInputHeader}
@@ -622,13 +622,13 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                     </div>
 
                     {!isFullscreen && (
-                        <button className={styles.actionBtn} onClick={() => setIsFullscreen(true)} title="Tela Cheia">
+                        <button className={styles.actionBtn} onClick={() => setIsFullscreen(true)} title={t('logistics.controls.expand')}>
                             <FiMaximize2 size={16} />
-                            Expandir
+                            {t('logistics.controls.expand')}
                         </button>
                     )}
 
-                    <button className={`${styles.actionBtn} ${styles.refreshBtn}`} onClick={fetchData} title="Atualizar">
+                    <button className={`${styles.actionBtn} ${styles.refreshBtn}`} onClick={fetchData} title={t('logistics.controls.refresh')}>
                         <FiRefreshCw size={16} />
                     </button>
                 </div>
@@ -648,12 +648,12 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     onClick={() => handleDownload(
                                         tableRef,
                                         `faturamento-${format(currentDate, 'MMMM-yyyy', { locale: ptBR })}.png`,
-                                        `PERFORMANCE DO FATURAMENTO - ${format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase()} - ${ano}`
+                                        t('logistics.controls.titleFullscreen', { month: format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase(), year: ano })
                                     )}
                                     title="Baixar tabela como imagem"
                                 >
                                     <FiDownload size={18} />
-                                    Baixar Tabela
+                                    {t('logistics.controls.downloadTable')}
                                 </button>
                             </div>
                         )}
@@ -662,11 +662,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <thead>{renderHeader()}</thead>
                                 <tbody>
                                     {/* === FATURAMENTO SECTION === */}
-                                    {renderSectionHeader("FATURAMENTO", visibleDays.length)}
+                                    {renderSectionHeader(t('logistics.headers.billing'), visibleDays.length)}
 
                                     {/* Faturado Nacional */}
                                     <tr className={styles.rowFaturamento}>
-                                        <td className={styles.rowHeader}>Faturado Nacional</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.nationalBilling')}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             return renderTextCell(d, vals.faturado);
@@ -676,7 +676,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Faturado Exportação */}
                                     <tr className={styles.rowFaturamento}>
-                                        <td className={styles.rowHeader}>Faturado Exportação</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.exportBilling')}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             return renderTextCell(d, vals.exportacao);
@@ -686,7 +686,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* TOTAL */}
                                     <tr className={styles.rowTotal}>
-                                        <td className={styles.rowHeader}>TOTAL</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.total')}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             return renderTextCell(d, vals.total);
@@ -696,7 +696,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Realizado no Dia */}
                                     <tr className={styles.rowRealizado}>
-                                        <td className={styles.rowHeader}>Realizado no Dia</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.realizedDay')}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             return renderTextCell(d, vals.realizadoDia);
@@ -707,11 +707,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     {renderSpacer(visibleDays.length)}
 
                                     {/* === META SECTION === */}
-                                    {renderSectionHeader("META & ADERÊNCIA", visibleDays.length)}
+                                    {renderSectionHeader(t('logistics.headers.meta'), visibleDays.length)}
 
                                     {/* Meta Acumulada */}
                                     <tr className={styles.rowMeta}>
-                                        <td className={styles.rowHeader}>Meta {format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase()}</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.metaMonth', { month: format(currentDate, 'MMMM', { locale: ptBR }).toUpperCase() })}</td>
                                         {visibleDays.map(d => {
                                             const metaAcum = metaAcumMap.get(d) || 0;
                                             return renderTextCell(d, metaAcum);
@@ -721,7 +721,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Realizado X Meta */}
                                     <tr className={styles.rowMeta}>
-                                        <td className={styles.rowHeader}>Realizado X Meta</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.realizedVsMeta')}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             const metaAcum = metaAcumMap.get(d) || 0;
@@ -736,11 +736,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     {renderSpacer(visibleDays.length)}
 
                                     {/* === COMPARATIVO SECTION === */}
-                                    {renderSectionHeader("COMPARATIVO MÊS ANTERIOR", visibleDays.length)}
+                                    {renderSectionHeader(t('logistics.headers.comparison'), visibleDays.length)}
 
                                     {/* Mês Anterior */}
                                     <tr className={styles.rowComparativo}>
-                                        <td className={styles.rowHeader}>Realizado {format(subMonths(currentDate, 1), 'MMMM', { locale: ptBR }).toUpperCase()}</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.realizedLastMonth', { month: format(subMonths(currentDate, 1), 'MMMM', { locale: ptBR }).toUpperCase() })}</td>
                                         {visibleDays.map(d => {
                                             const prevKpi = prevKpiMap.get(d);
                                             const totalPrev = prevKpi ? Number(prevKpi.faturado_acumulado || 0) + Number(prevKpi.exportacao_acumulado || 0) : 0;
@@ -755,7 +755,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Variação vs Mês Anterior */}
                                     <tr className={styles.rowComparativo}>
-                                        <td className={styles.rowHeader}>{format(subMonths(currentDate, 1), 'MMM', { locale: ptBR }).toUpperCase()} X {format(currentDate, 'MMM', { locale: ptBR }).toUpperCase()}</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.variation', { month1: format(subMonths(currentDate, 1), 'MMM', { locale: ptBR }).toUpperCase(), month2: format(currentDate, 'MMM', { locale: ptBR }).toUpperCase() })}</td>
                                         {visibleDays.map(d => {
                                             const vals = getValues(d);
                                             const prevKpi = prevKpiMap.get(d);
@@ -771,10 +771,10 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     {renderSpacer(visibleDays.length)}
 
                                     {/* === DEVOLUÇÕES SECTION === */}
-                                    {renderSectionHeader("DEVOLUÇÕES", visibleDays.length)}
+                                    {renderSectionHeader(t('logistics.headers.returns'), visibleDays.length)}
 
                                     <tr className={styles.rowDevolucoes}>
-                                        <td className={styles.rowHeader}>Devoluções</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.returns')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             return renderTextCell(d, Number(kpi?.devolucoes_dia || 0));
@@ -785,11 +785,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     {renderSpacer(visibleDays.length)}
 
                                     {/* === OTTR SECTION === */}
-                                    {renderSectionHeader("OTTR", visibleDays.length)}
+                                    {renderSectionHeader(t('logistics.headers.ottr'), visibleDays.length)}
 
                                     {/* Total de Linhas */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>Total de Linhas</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.totalLines')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             return renderTextCell(d, Number(kpi?.total_linhas || 0));
@@ -799,7 +799,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Linhas On Time */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>Linhas On Time</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.linesOnTime')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             const onTime = Number(kpi?.total_linhas || 0) - Number(kpi?.linhas_atraso || 0);
@@ -810,7 +810,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Linhas Atraso */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>Linhas em Atraso</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.linesLate')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             return renderTextCell(d, Number(kpi?.linhas_atraso || 0));
@@ -820,7 +820,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* Backlog Atraso */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>Backlog em Atraso</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.backlogLate')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             return renderTextCell(d, Number(kpi?.backlog_atraso || 0));
@@ -830,7 +830,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* OTTR YTD */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>OTTR YTD (Acum)</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.ottrYtd')}</td>
                                         {visibleDays.map(d => {
                                             const kpi = kpiMap.get(d);
                                             const val = Number(kpi?.ottr_ytd || 0);
@@ -849,7 +849,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                     {/* OTTR Mês Anterior */}
                                     <tr className={styles.rowOttr}>
-                                        <td className={styles.rowHeader}>OTTR {format(subMonths(currentDate, 1), 'MMMM', { locale: ptBR }).toUpperCase()}</td>
+                                        <td className={styles.rowHeader}>{t('logistics.rows.ottrLastMonth', { month: format(subMonths(currentDate, 1), 'MMMM', { locale: ptBR }).toUpperCase() })}</td>
                                         {visibleDays.map(d => {
                                             const prevKpi = prevKpiMap.get(d);
                                             const val = Number(prevKpi?.ottr_ytd || 0);
@@ -875,21 +875,21 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
             {!isFullscreen && (
                 <div className={styles.summarySection}>
                     <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Realizado Mês</div>
+                        <div className={styles.summaryLabel}>{t('logistics.summary.realizedMonth')}</div>
                         <div className={styles.summaryValue}>{formatNumber(summary.totalAtual)}</div>
                     </div>
                     <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Meta Mensal</div>
+                        <div className={styles.summaryLabel}>{t('logistics.summary.monthlyTarget')}</div>
                         <div className={styles.summaryValue}>{formatNumber(metaMensal)}</div>
                     </div>
                     <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>% Atingido</div>
+                        <div className={styles.summaryLabel}>{t('logistics.summary.reached')}</div>
                         <div className={`${styles.summaryValue} ${summary.pctAtingido >= 100 ? styles.textGreen : styles.textRed}`}>
                             {summary.pctAtingido.toFixed(1)}%
                         </div>
                     </div>
                     <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Variação vs Meta</div>
+                        <div className={styles.summaryLabel}>{t('logistics.summary.variationVsMeta')}</div>
                         <div className={`${styles.summaryValue} ${summary.pctMeta >= 0 ? styles.textGreen : styles.textRed}`}>
                             {summary.pctMeta > 0 ? '+' : ''}{summary.pctMeta.toFixed(1)}%
                         </div>
@@ -901,7 +901,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
             {isFullscreen && (
                 <div className={styles.chartSection}>
                     <div className={styles.chartHeader}>
-                        <h3 className={styles.chartTitle}>Performance Financeira</h3>
+                        <h3 className={styles.chartTitle}>{t('logistics.charts.financialPerformance')}</h3>
                         <button
                             className={styles.downloadBtn}
                             onClick={() => handleDownload(
@@ -910,10 +910,10 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 ``,
                                 false
                             )}
-                            title="Baixar gráfico como imagem"
+                            title={t('logistics.controls.downloadChart')}
                         >
                             <FiDownload size={18} />
-                            Baixar Gráfico
+                            {t('logistics.controls.downloadChart')}
                         </button>
                     </div>
                     <div ref={lineChartRef} className={styles.chartContainer}>
@@ -925,11 +925,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis
                                     dataKey="day"
-                                    label={{ value: 'Dia do Mês', position: 'insideBottom', offset: -10, style: { fontSize: '14px', fontWeight: 600 } }}
+                                    label={{ value: t('logistics.charts.day'), position: 'insideBottom', offset: -10, style: { fontSize: '14px', fontWeight: 600 } }}
                                     tick={{ fontSize: 12 }}
                                 />
                                 <YAxis
-                                    label={{ value: 'Valor (em milhares de R$)', angle: -90, position: 'insideLeft', style: { fontSize: '14px', fontWeight: 600, textAnchor: 'middle' } }}
+                                    label={{ value: t('logistics.charts.value'), angle: -90, position: 'insideLeft', style: { fontSize: '14px', fontWeight: 600, textAnchor: 'middle' } }}
                                     tick={{ fontSize: 12 }}
                                     tickFormatter={(value) => formatNumber(value)}
                                 />
@@ -950,7 +950,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <Line
                                     type="monotone"
                                     dataKey="totalMes"
-                                    name={`Total ${format(currentDate, 'MMMM yyyy', { locale: ptBR })}`}
+                                    name={t('logistics.legend.total', { date: format(currentDate, 'MMMM yyyy', { locale: ptBR }) })}
                                     stroke="#3b82f6"
                                     strokeWidth={3}
                                     dot={{ fill: '#3b82f6', r: 4 }}
@@ -960,7 +960,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <Line
                                     type="monotone"
                                     dataKey="metaMes"
-                                    name={`Meta ${format(currentDate, 'MMMM yyyy', { locale: ptBR })}`}
+                                    name={t('logistics.legend.meta', { date: format(currentDate, 'MMMM yyyy', { locale: ptBR }) })}
                                     stroke="#f59e0b"
                                     strokeWidth={2}
                                     strokeDasharray="5 5"
@@ -970,7 +970,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <Line
                                     type="monotone"
                                     dataKey="totalUltimoMes"
-                                    name={`Total ${format(subMonths(currentDate, 1), 'MMMM yyyy', { locale: ptBR })}`}
+                                    name={t('logistics.legend.total', { date: format(subMonths(currentDate, 1), 'MMMM yyyy', { locale: ptBR }) })}
                                     stroke="#8b5cf6"
                                     strokeWidth={2}
                                     dot={{ fill: '#8b5cf6', r: 3 }}
@@ -979,7 +979,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <Line
                                     type="monotone"
                                     dataKey="devolucoes"
-                                    name={`Devoluções ${format(currentDate, 'MMMM yyyy', { locale: ptBR })}`}
+                                    name={t('logistics.legend.returns', { date: format(currentDate, 'MMMM yyyy', { locale: ptBR }) })}
                                     stroke="#dc2626"
                                     strokeWidth={2}
                                     dot={{ fill: '#dc2626', r: 3 }}
@@ -995,7 +995,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                     {/* OTTR Bar Chart */}
                     <div className={styles.chartHeader}>
                         <h3 className={styles.chartTitle} style={{ color: '#0d9488' }}>
-                            Evolução OTTR YTD (Acumulado)
+                            {t('logistics.charts.ottrEvolution')}
                         </h3>
                         <button
                             className={styles.downloadBtn}
@@ -1005,10 +1005,10 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 ``,
                                 false
                             )}
-                            title="Baixar gráfico como imagem"
+                            title={t('logistics.controls.downloadChart')}
                         >
                             <FiDownload size={18} />
-                            Baixar Gráfico
+                            {t('logistics.controls.downloadChart')}
                         </button>
                     </div>
                     <div ref={barChartRef} className={styles.chartContainer}>
@@ -1020,11 +1020,11 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis
                                     dataKey="day"
-                                    label={{ value: 'Dia do Mês', position: 'insideBottom', offset: -10, style: { fontSize: '14px', fontWeight: 600 } }}
+                                    label={{ value: t('logistics.charts.day'), position: 'insideBottom', offset: -10, style: { fontSize: '14px', fontWeight: 600 } }}
                                     tick={{ fontSize: 12 }}
                                 />
                                 <YAxis
-                                    label={{ value: 'OTTR YTD (%)', angle: -90, position: 'insideLeft', style: { fontSize: '14px', fontWeight: 600, textAnchor: 'middle' } }}
+                                    label={{ value: t('logistics.charts.ottrYtd'), angle: -90, position: 'insideLeft', style: { fontSize: '14px', fontWeight: 600, textAnchor: 'middle' } }}
                                     tick={{ fontSize: 12 }}
                                     domain={[0, 100]}
                                 />
@@ -1043,7 +1043,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 />
                                 <Bar
                                     dataKey="ottrYtd"
-                                    name={`OTTR YTD ${format(currentDate, 'MMMM yyyy', { locale: ptBR })}`}
+                                    name={t('logistics.legend.ottrYtd', { date: format(currentDate, 'MMMM yyyy', { locale: ptBR }) })}
                                     fill="#14b8a6"
                                     radius={[4, 4, 0, 0]}
                                     barSize={20}
@@ -1068,7 +1068,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                         <div className={styles.modalHeader}>
                             <div className={styles.modalTitle}>
                                 <FiEdit3 size={20} />
-                                Dia {String(modalData.day).padStart(2, '0')} - {format(new Date(ano, mes - 1, modalData.day), 'EEEE', { locale: ptBR })}
+                                {t('logistics.modal.title', { day: String(modalData.day).padStart(2, '0'), weekday: format(new Date(ano, mes - 1, modalData.day), 'EEEE', { locale: ptBR }) })}
                             </div>
                             <button className={styles.modalCloseBtn} onClick={() => setModalOpen(false)}>
                                 <FiX size={18} />
@@ -1080,13 +1080,13 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                             <div className={styles.modalSection}>
                                 <div className={`${styles.modalSectionTitle} ${styles.blue}`}>
                                     <FiDollarSign size={16} />
-                                    Faturamento
+                                    {t('logistics.modal.billing')}
                                 </div>
                                 <div className={styles.modalInputRow}>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            Faturado Nacional (Acum.)
-                                            {suggestedFields.faturado_acumulado && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.modal.nationalBillingAcum')}
+                                            {suggestedFields.faturado_acumulado && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1097,8 +1097,8 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     </div>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            Faturado Exportação (Acum.)
-                                            {suggestedFields.exportacao_acumulado && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.modal.exportBillingAcum')}
+                                            {suggestedFields.exportacao_acumulado && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1110,14 +1110,13 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 </div>
                             </div>
 
-                            {/* Devoluções Section */}
                             <div className={styles.modalSection}>
                                 <div className={`${styles.modalSectionTitle} ${styles.red}`}>
                                     <FiPackage size={16} />
-                                    Devoluções
+                                    {t('logistics.modal.returns')}
                                 </div>
                                 <div className={styles.modalInputGroup}>
-                                    <label className={styles.modalInputLabel}>Devoluções do Dia</label>
+                                    <label className={styles.modalInputLabel}>{t('logistics.modal.returnsDay')}</label>
                                     <input
                                         type="number"
                                         className={styles.modalInput}
@@ -1127,17 +1126,16 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 </div>
                             </div>
 
-                            {/* OTTR Section */}
                             <div className={styles.modalSection}>
                                 <div className={`${styles.modalSectionTitle} ${styles.teal}`}>
                                     <FiTruck size={16} />
-                                    Nível de Serviço (OTTR)
+                                    {t('logistics.modal.serviceLevel')}
                                 </div>
                                 <div className={styles.modalInputRow}>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            Total de Linhas
-                                            {suggestedFields.total_linhas && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.modal.totalLines')}
+                                            {suggestedFields.total_linhas && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1148,8 +1146,8 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     </div>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            Linhas em Atraso
-                                            {suggestedFields.linhas_atraso && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.modal.linesLate')}
+                                            {suggestedFields.linhas_atraso && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1162,8 +1160,8 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                 <div className={styles.modalInputRow}>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            Backlog em Atraso
-                                            {suggestedFields.backlog_atraso && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.modal.backlogLate')}
+                                            {suggestedFields.backlog_atraso && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1174,8 +1172,8 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     </div>
                                     <div className={styles.modalInputGroup}>
                                         <label className={styles.modalInputLabel}>
-                                            OTTR YTD (%)
-                                            {suggestedFields.ottr_ytd && <span className={styles.suggestionBadge}><FiZap />sugerido</span>}
+                                            {t('logistics.charts.ottrYtd')}
+                                            {suggestedFields.ottr_ytd && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
                                         </label>
                                         <input
                                             type="number"
@@ -1189,7 +1187,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                                 {/* Toggle for working day */}
                                 <div className={styles.toggleContainer}>
-                                    <span className={styles.toggleLabel}>Dia Útil?</span>
+                                    <span className={styles.toggleLabel}>{t('logistics.modal.workingDay')}</span>
                                     <div
                                         className={`${styles.toggle} ${modalData.is_dia_util ? styles.active : ''}`}
                                         onClick={() => setModalData({ ...modalData, is_dia_util: !modalData.is_dia_util })}
@@ -1200,10 +1198,10 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
 
                         <div className={styles.modalFooter}>
                             <button className={styles.modalBtnCancel} onClick={() => setModalOpen(false)}>
-                                Cancelar
+                                {t('logistics.modal.cancel')}
                             </button>
                             <button className={styles.modalBtnSave} onClick={handleModalSave} disabled={saving}>
-                                {saving ? 'Salvando...' : 'Salvar'}
+                                {saving ? t('logistics.controls.saving') : t('logistics.modal.save')}
                             </button>
                         </div>
                     </div>

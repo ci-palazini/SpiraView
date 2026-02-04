@@ -33,7 +33,7 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
 
     useEffect(() => {
         if (peca) {
-            // preenche o formulÃ¡rio para ediÃ§Ã£o
+            // preenche o formulário para edição
             setCodigo(peca.codigo || '');
             setNome(peca.nome || '');
             setCategoria(peca.categoria || '');
@@ -41,7 +41,7 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
             setEstoqueMinimo(peca.estoqueMinimo ?? 0);
             setLocalizacao(peca.localizacao || '');
         } else {
-            // limpa para criaÃ§Ã£o
+            // limpa para criação
             setCodigo('');
             setNome('');
             setCategoria('');
@@ -76,7 +76,7 @@ export default function PecaModal({ peca, onClose, user, onSaved }: PecaModalPro
             onSaved?.(saved);
             onClose();
         } catch (err) {
-            console.error('Erro ao salvar peÃ§a:', err);
+            console.error('Erro ao salvar peça:', err);
             toast.error(t('pecaModal.toasts.error'));
         } finally {
             setIsSaving(false);

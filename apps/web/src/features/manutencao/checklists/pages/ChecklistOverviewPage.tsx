@@ -166,8 +166,8 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
 
     const weekDayNamePt = (d: Date) => {
         const n = d.getDay();
-        if (n === 6) return 'SÃ¡bado';
-        if (n === 0) return 'Domingo';
+        if (n === 6) return t('checklistOverview.weekend.saturday', 'Sábado');
+        if (n === 0) return t('checklistOverview.weekend.sunday', 'Domingo');
         return '';
     };
 
@@ -269,7 +269,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 operadores2: m.turno2Nomes.join(', '),
                 ultimoChecklist: m.ultimaSub?.criado_em
                     ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
-                    : 'â€”',
+                    : '-',
             }));
 
             await exportEngajamentoTPMExcel({
@@ -322,8 +322,8 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
     return (
         <>
             <PageHeader
-                title={t('checklistOverview.title', 'Checklists diÃ¡rios por mÃ¡quina')}
-                subtitle={t('checklistOverview.subtitle', 'Veja rapidamente se os checklists do 1Âº e 2Âº turno foram enviados.')}
+                title={t('checklistOverview.title', 'Checklists diários por máquina')}
+                subtitle={t('checklistOverview.subtitle', 'Veja rapidamente se os checklists do 1º e 2º turno foram enviados.')}
             />
 
             {/* Card branco principal */}
@@ -388,14 +388,14 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                                 <span className={styles.summaryLabel}>
                                     {t(
                                         'checklistOverview.machinesWithChecklist',
-                                        'MÃ¡quinas com checklist'
+                                        'Máquinas com checklist'
                                     )}
                                 </span>
                                 <strong className={styles.summaryValue}>{totals.total}</strong>
                             </div>
                             <div className={styles.summaryCard}>
                                 <span className={styles.summaryLabel}>
-                                    {t('checklistOverview.turn1', '1Âº turno')}
+                                    {t('checklistOverview.turn1', '1º turno')}
                                 </span>
                                 <strong className={styles.summaryValue}>
                                     {totals.t1ok}/{totals.total}
@@ -403,7 +403,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             </div>
                             <div className={styles.summaryCard}>
                                 <span className={styles.summaryLabel}>
-                                    {t('checklistOverview.turn2', '2Âº turno')}
+                                    {t('checklistOverview.turn2', '2º turno')}
                                 </span>
                                 <strong className={styles.summaryValue}>
                                     {totals.t2ok}/{totals.total}
@@ -428,7 +428,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                     <span className={styles.tableTitle}>
                         {t(
                             'checklistOverview.tableTitle',
-                            'Status por mÃ¡quina'
+                            'Status por máquina'
                         )}
                     </span>
                     {loading && (
@@ -444,16 +444,16 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                         <thead>
                             <tr>
                                 <th>
-                                    {t('checklistOverview.machine', 'MÃ¡quina')}
+                                    {t('checklistOverview.machine', 'Máquina')}
                                 </th>
                                 <th>
-                                    {t('checklistOverview.turn1Short', '1Âº turno')}
+                                    {t('checklistOverview.turn1Short', '1º turno')}
                                 </th>
                                 <th>
-                                    {t('checklistOverview.turn2Short', '2Âº turno')}
+                                    {t('checklistOverview.turn2Short', '2º turno')}
                                 </th>
                                 <th>
-                                    {t('checklistOverview.lastSent', 'Ãšltimo checklist')}
+                                    {t('checklistOverview.lastSent', 'Último checklist')}
                                 </th>
                                 <th />
                             </tr>
@@ -476,7 +476,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                                     <td colSpan={5} className={styles.emptyCell}>
                                         {t(
                                             'checklistOverview.empty',
-                                            'Nenhuma mÃ¡quina encontrada para o filtro atual.'
+                                            'Nenhuma máquina encontrada para o filtro atual.'
                                         )}
                                     </td>
                                 </tr>
@@ -485,7 +485,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                             {!loading && visibleItems.map((m) => {
                                 const lastSent = m.ultimaSub?.criado_em
                                     ? fmtDateTime.format(new Date(m.ultimaSub.criado_em))
-                                    : 'â€”';
+                                    : '-';
 
                                 return (
                                     <tr key={m.id}>

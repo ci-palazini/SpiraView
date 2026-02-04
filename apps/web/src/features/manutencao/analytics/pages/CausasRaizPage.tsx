@@ -132,7 +132,7 @@ function CausasCrud({ user }: CausasCrudProps) {
             }
 
             if (!id) {
-                alert('Registro sem id');
+                alert(t('common.error', 'Registro sem id'));
                 return;
             }
 
@@ -140,7 +140,7 @@ function CausasCrud({ user }: CausasCrudProps) {
             setCausas(prev => prev.filter(c => c.id !== id));
         } catch (err) {
             console.error(err);
-            alert((err as Error)?.message || 'Falha ao excluir causa');
+            alert((err as Error)?.message || t('common.error', 'Falha ao excluir causa'));
         }
     };
 
@@ -205,7 +205,7 @@ function ParetoChart() {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [maquinaId, setMaquinaId] = useState('');
 
-    // Carregar lista de mÃ¡quinas
+    // Carregar lista de máquinas
     useEffect(() => {
         getMaquinas('', 'manutencao').then((list: Maquina[] | { items?: Maquina[] }) => {
             const arr = Array.isArray((list as { items?: Maquina[] })?.items)
@@ -269,7 +269,7 @@ function ParetoChart() {
             {/* Filtros */}
             <div className={styles.filterContainer}>
                 <div className={styles.filterField}>
-                    <label htmlFor="maquinaFilter">{t('causas.filters.machine', 'MÃ¡quina')}</label>
+                    <label htmlFor="maquinaFilter">{t('causas.filters.machine', 'Máquina')}</label>
                     <select
                         id="maquinaFilter"
                         className={styles.select}
@@ -295,7 +295,7 @@ function ParetoChart() {
                 </div>
 
                 <div className={styles.filterField}>
-                    <label htmlFor="endDateFilter">{t('causas.filters.end', 'AtÃ©')}</label>
+                    <label htmlFor="endDateFilter">{t('causas.filters.end', 'Até')}</label>
                     <input
                         type="date"
                         id="endDateFilter"
@@ -316,7 +316,7 @@ function ParetoChart() {
 
             {loading ? (
                 <>
-                    {/* Skeleton do grÃ¡fico Pareto */}
+                    {/* Skeleton do gráfico Pareto */}
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 350, marginTop: 16 }}>
                         {[180, 150, 120, 90, 60, 40, 25].map((h, i) => (
                             <Skeleton key={i} variant="rectangular" width={50} height={h} sx={{ borderRadius: 1 }} />
@@ -368,7 +368,7 @@ function ParetoChart() {
     );
 }
 
-// ---------- PÃ¡gina ----------
+// ---------- Página ----------
 export default function CausasRaizPage({ user }: CausasRaizPageProps) {
     const { t } = useTranslation();
     return (

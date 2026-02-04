@@ -26,7 +26,13 @@
     "tvMode": "TV Mode",
     "qualityDashboard": "Dashboard",
     "qualityLaunch": "Scrap",
-    "logisticsDashboard": "Dashboard"
+    "logisticsDashboard": "Dashboard",
+    "quarentena": "Quarantine",
+    "refugo": "Scrap",
+    "quarentenaAbbr": "Qrt",
+    "refugoAbbr": "Scr",
+    "todos": "All",
+    "tipoLancamento": "Data Type"
   },
   "status": {
     "open": "Open",
@@ -659,6 +665,47 @@
       }
     }
   },
+  "movimentacaoModal": {
+    "titleIn": "Register Entry",
+    "titleOut": "Register Exit",
+    "part": "Part",
+    "quantity": "Quantity",
+    "description": "Description (optional)",
+    "confirm": "Confirm",
+    "processing": "Processing...",
+    "successIn": "Entry successfully registered!",
+    "successOut": "Exit successfully registered!",
+    "error": "Failed to register movement.",
+    "invalidQty": "Invalid quantity"
+  },
+  "historicoMovimentacoes": {
+    "title": "Movement History",
+    "subtitle": "Inventory entry and exit control",
+    "table": {
+      "date": "Date/Time",
+      "code": "Code",
+      "part": "Part",
+      "type": "Type",
+      "qty": "Qty",
+      "balance": "Balance",
+      "description": "Description",
+      "user": "User"
+    },
+    "filters": {
+      "type": "Type",
+      "part": "Part",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "clear": "Clear Filters",
+      "all": "All"
+    },
+    "types": {
+      "entry": "Entry",
+      "exit": "Exit"
+    },
+    "empty": "No movements found.",
+    "count": "{{count}} record(s) found"
+  },
   "pecaModal": {
     "title": {
       "create": "New Part",
@@ -712,6 +759,13 @@
     },
     "confirm": {
       "delete": "Delete this cause?"
+    },
+    "filters": {
+      "machine": "Machine",
+      "allMachines": "All",
+      "start": "From",
+      "end": "To",
+      "clear": "Clear"
     },
     "chart": {
       "seriesCalls": "Work Orders",
@@ -900,7 +954,14 @@
     "empty": "No machines found for the current filter.",
     "sent": "Sent",
     "missing": "Pending",
-    "details": "View details"
+    "details": "View details",
+    "noChecklist": "No checklist",
+    "machinesWithChecklist": "Machines with checklist",
+    "noChecklistCount": "No checklist",
+    "weekend": {
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
   },
   "operatorDashboard": {
     "form": {
@@ -1410,6 +1471,81 @@
   },
   "logistics": {
     "dashboardTitle": "Logistics Panel",
-    "dashboardSubtitle": "Daily tracking of financial and operational KPIs"
+    "dashboardSubtitle": "Daily tracking of financial and operational KPIs",
+    "controls": {
+      "title": "Logistics Dashboard",
+      "titleFullscreen": "BILLING PERFORMANCE - {{month}} - {{year}}",
+      "firstFortnight": "1st Fortnight",
+      "secondFortnight": "2nd Fortnight",
+      "monthlyTarget": "Monthly Target",
+      "expand": "Expand",
+      "refresh": "Refresh",
+      "save": "Save",
+      "saving": "Saving...",
+      "loading": "Loading...",
+      "downloadTable": "Download Table",
+      "downloadChart": "Download Chart"
+    },
+    "headers": {
+      "indicator": "INDICATOR",
+      "total": "TOTAL",
+      "billing": "BILLING",
+      "meta": "TARGET & ADHERENCE",
+      "comparison": "PREVIOUS MONTH COMPARISON",
+      "returns": "RETURNS",
+      "ottr": "OTTR"
+    },
+    "rows": {
+      "nationalBilling": "Domestic Billing",
+      "exportBilling": "Export Billing",
+      "total": "TOTAL",
+      "realizedDay": "Realized Day",
+      "metaMonth": "Target {{month}}",
+      "realizedVsMeta": "Realized vs Target",
+      "realizedLastMonth": "Realized {{month}}",
+      "variation": "{{month1}} vs {{month2}}",
+      "returns": "Returns",
+      "totalLines": "Total Lines",
+      "linesOnTime": "Lines On Time",
+      "linesLate": "Lines Late",
+      "backlogLate": "Backlog Late",
+      "ottrYtd": "OTTR YTD (Accum)",
+      "ottrLastMonth": "OTTR {{month}}"
+    },
+    "charts": {
+      "financialPerformance": "Financial Performance",
+      "ottrEvolution": "OTTR Evolution YTD (Accumulated)",
+      "day": "Day of Month",
+      "value": "Value (in thousands R$)",
+      "ottrYtd": "OTTR YTD (%)"
+    },
+    "modal": {
+      "title": "Day {{day}} - {{weekday}}",
+      "billing": "Billing",
+      "nationalBillingAcum": "Domestic Billing (Accum.)",
+      "exportBillingAcum": "Export Billing (Accum.)",
+      "returns": "Returns",
+      "returnsDay": "Returns of the Day",
+      "serviceLevel": "Service Level (OTTR)",
+      "totalLines": "Total Lines",
+      "linesLate": "Lines Late",
+      "backlogLate": "Backlog Late",
+      "workingDay": "Business Day?",
+      "suggested": "suggested",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "summary": {
+      "realizedMonth": "Realized Month",
+      "monthlyTarget": "Monthly Target",
+      "reached": "% Reached",
+      "variationVsMeta": "Variation vs Target"
+    },
+    "legend": {
+      "total": "Total {{date}}",
+      "meta": "Target {{date}}",
+      "returns": "Returns {{date}}",
+      "ottrYtd": "OTTR YTD {{date}}"
+    }
   }
 }
