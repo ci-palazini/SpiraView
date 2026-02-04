@@ -7,6 +7,16 @@ interface UserPermissions {
     [pageKey: string]: PermissionLevel;
 }
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Express {
+        interface Request {
+            permissions?: UserPermissions;
+            isAdmin?: boolean;
+        }
+    }
+}
+
 /**
  * Verifica se o nível de permissão do usuário é suficiente
  */
@@ -42,8 +52,8 @@ export function requirePermission(
             // Admin tem acesso total - bypass
             const userRole = (user.role || "").toLowerCase();
             if (userRole === "admin") {
-                (req as any).permissions = {}; // Permissões não são necessárias
-                (req as any).isAdmin = true;
+                req.permissions = {}; // Permissões não são necessárias
+                req.isAdmin = true;
                 return next();
             }
 
@@ -72,7 +82,7 @@ export function requirePermission(
             }
 
             // Anexa permissões ao request para uso posterior
-            (req as any).permissions = permissions;
+            req.permissions = permissions;
 
             next();
         } catch (error) {
@@ -100,8 +110,8 @@ export function requireAnyPermission(
             // Admin tem acesso total - bypass
             const userRole = (user.role || "").toLowerCase();
             if (userRole === "admin") {
-                (req as any).permissions = {};
-                (req as any).isAdmin = true;
+                req.permissions = {};
+                req.isAdmin = true;
                 return next();
             }
 
@@ -128,7 +138,7 @@ export function requireAnyPermission(
                 });
             }
 
-            (req as any).permissions = permissions;
+            req.permissions = permissions;
 
             next();
         } catch (error) {

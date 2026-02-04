@@ -33,10 +33,10 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build shared package first
-RUN pnpm --filter @manutencao/shared build
+RUN pnpm --filter @spiraview/shared build
 
 # Build api
-RUN pnpm --filter @manutencao/api build
+RUN pnpm --filter @spiraview/api build
 
 # Final stage for app image
 FROM base

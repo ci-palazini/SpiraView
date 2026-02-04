@@ -8,7 +8,7 @@ import {
   ConcluirChamadoSchema,
   PatchChecklistSchema,
   ObservacaoSchema,
-} from "@manutencao/shared";
+} from "@spiraview/shared";
 
 import multer from "multer";
 import { storageProvider } from "../../utils/storage";
@@ -173,7 +173,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
     );
 
     res.json({ items, page, pageSize, total, hasNext: offset + items.length < total });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
@@ -440,7 +440,7 @@ chamadosRouter.post(
       if (!parsed.success) {
         return res.status(400).json({
           error: "VALIDATION_ERROR",
-          issues: parsed.error.issues.map(i => ({ path: i.path.join("."), message: i.message })),
+          issues: parsed.error.issues.map((i: { path: (string | number)[]; message: string }) => ({ path: i.path.join("."), message: i.message })),
         });
       }
       const { texto } = parsed.data;
@@ -614,7 +614,7 @@ chamadosRouter.post(
       if (!parsed.success) {
         return res.status(400).json({
           error: "VALIDATION_ERROR",
-          issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
+          issues: parsed.error.issues.map((i: { path: (string | number)[]; message: string }) => ({ path: i.path.join("."), message: i.message })),
         });
       }
       const body = parsed.data;
@@ -899,7 +899,7 @@ chamadosRouter.patch(
       if (!parsed.success) {
         return res.status(400).json({
           error: "VALIDATION_ERROR",
-          issues: parsed.error.issues.map(i => ({ path: i.path.join("."), message: i.message })),
+          issues: parsed.error.issues.map((i: { path: (string | number)[]; message: string }) => ({ path: i.path.join("."), message: i.message })),
         });
       }
       const { checklist } = parsed.data;
@@ -979,7 +979,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({
         error: "VALIDATION_ERROR",
-        issues: parsed.error.issues.map(i => ({ path: i.path.join("."), message: i.message })),
+        issues: parsed.error.issues.map((i: { path: (string | number)[]; message: string }) => ({ path: i.path.join("."), message: i.message })),
       });
     }
 
@@ -1049,7 +1049,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
     // checklist jsonb (opcional)
     let checklistFinal: any[] = [];
     if (Array.isArray(data.checklistItems) && data.checklistItems.length) {
-      checklistFinal = data.checklistItems.map((t) => ({ item: String(t), resposta: "sim" }));
+      checklistFinal = data.checklistItems.map((t: string | number) => ({ item: String(t), resposta: "sim" }));
     }
 
     // manutentor (se vier email e o usuário tiver permissão para atribuir)
@@ -1229,7 +1229,7 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
     sseBroadcast({ topic: "chamados", action: "updated", id });
 
     res.json(rows[0]);
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     res.status(500).json({ error: String(e) });
   }
