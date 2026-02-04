@@ -1715,6 +1715,24 @@ export async function atualizarMaquinaPlanejamento(
     return data;
 }
 
+// ===== QUALIDADE / REFUGOS =====
+export async function listarRefugos(params: { page?: number; limit?: number; dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: any[]; meta: any }> {
+    const res = await http.get<{ items: any[]; meta: any }>(`/qualidade/refugos`, { params, auth });
+    return res;
+}
+
+export async function criarRefugo(data: any, auth: AuthParams = {}): Promise<{ id: number; ok: boolean }> {
+    return http.post<{ id: number; ok: boolean }>('/qualidade/refugos', { data, auth });
+}
+
+export async function editarRefugo(id: number, data: any, auth: AuthParams = {}): Promise<{ ok: boolean }> {
+    return http.put<{ ok: boolean }>(`/qualidade/refugos/${id}`, { data, auth });
+}
+
+export async function excluirRefugo(id: number, auth: AuthParams = {}): Promise<{ ok: boolean }> {
+    return http.delete<{ ok: boolean }>(`/qualidade/refugos/${id}`, { auth });
+}
+
 // ===== QUALIDADE / CONFIGURAÇÕES =====
 export interface QualidadeOpcao {
     id: number;
@@ -1789,6 +1807,7 @@ export interface QualityAnalyticSummary {
     costLastMonth: number;
     costLastYear: number;
     topResponsible: { name: string; cost: number }[];
+    topOrigins: { name: string; cost: number }[];
 }
 
 export interface QualityAnalyticTrend {
@@ -1813,8 +1832,8 @@ export async function getQualityAnalyticsTrends(params: { dataInicio?: string; d
     return res;
 }
 
-export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[] }> {
-    const res = await http.get<{ items: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
+export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[]; originItems: QualityAnalyticDetail[] }> {
+    const res = await http.get<{ items: QualityAnalyticDetail[]; originItems: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
     return res;
 }
 
@@ -1857,7 +1876,7 @@ export interface QualityComparisonParams {
 }
 
 export async function getQualityComparison(params: QualityComparisonParams, auth: AuthParams = {}): Promise<QualityComparisonResponse> {
-    return http.get<QualityComparisonResponse>(`/qualidade/analytics/compare`, { params: params as Record<string, unknown>, auth });
+    return http.get<QualityComparisonResponse>(`/qualidade/analytics/compare`, { params: params as any, auth });
 }
 
 // ===== LOGISTICA =====

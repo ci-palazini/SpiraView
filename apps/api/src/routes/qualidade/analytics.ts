@@ -133,6 +133,17 @@ analyticsRouter.get('/qualidade/analytics/summary',
                 params
             );
 
+            // Top 5 Origins
+            const topOriginsQuery = await pool.query(
+                `SELECT origem, SUM(custo) as custo 
+                 FROM qualidade_refugos 
+                 WHERE ${where} AND origem IS NOT NULL AND origem != ''
+                 GROUP BY origem 
+                 ORDER BY custo DESC 
+                 LIMIT 5`,
+                params
+            );
+
             // Cost Last Month
             const paramsLastMonth: any[] = [];
             const whereLastMonth = buildBaseWhere(paramsLastMonth, req.query);
@@ -161,6 +172,10 @@ analyticsRouter.get('/qualidade/analytics/summary',
                 costLastYear: parseFloat(lastYearQuery.rows[0]?.total || '0'),
                 topResponsible: topResponsibleQuery.rows.map(r => ({
                     name: r.responsavel_nome,
+                    cost: parseFloat(r.custo)
+                })),
+                topOrigins: topOriginsQuery.rows.map(r => ({
+                    name: r.origem,
                     cost: parseFloat(r.custo)
                 }))
             });
@@ -225,13 +240,35 @@ analyticsRouter.get('/qualidade/analytics/details',
                  FROM qualidade_refugos 
                  WHERE ${where} AND responsavel_nome IS NOT NULL AND responsavel_nome != ''
                  GROUP BY responsavel_nome 
-                 ORDER BY total_custo DESC`,
+                 ORDER BY total_custo DESC
+                 LIMIT 100`, // Limiting for performance
+                params
+            );
+
+            // Origin List with aggregation
+            const originQuery = await pool.query(
+                `SELECT 
+                    origem,
+                SUM(custo) as total_custo,
+                COUNT(*) as total_ocorrencias,
+                MAX(data_ocorrencia) as ultima_ocorrencia
+                 FROM qualidade_refugos 
+                 WHERE ${where} AND origem IS NOT NULL AND origem != ''
+                 GROUP BY origem 
+                 ORDER BY total_custo DESC
+                 LIMIT 100`,
                 params
             );
 
             res.json({
                 items: listQuery.rows.map(r => ({
                     name: r.responsavel_nome,
+                    totalCost: parseFloat(r.total_custo),
+                    count: parseInt(r.total_ocorrencias),
+                    lastOccurrence: r.ultima_ocorrencia
+                })),
+                originItems: originQuery.rows.map(r => ({
+                    name: r.origem,
                     totalCost: parseFloat(r.total_custo),
                     count: parseInt(r.total_ocorrencias),
                     lastOccurrence: r.ultima_ocorrencia

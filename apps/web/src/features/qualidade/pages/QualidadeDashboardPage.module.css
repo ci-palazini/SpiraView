@@ -1,8 +1,15 @@
 .container {
-    padding: 1rem;
     background-color: #f8fafc;
     min-height: calc(100vh - 64px);
-    /* Adjust based on navbar height */
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    padding: 0 24px 24px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .sectionTitle {

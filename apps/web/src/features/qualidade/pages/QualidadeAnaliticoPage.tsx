@@ -3,22 +3,15 @@ import { useTranslation } from 'react-i18next';
 import {
     Box,
     Typography,
-    Paper,
-
     CircularProgress,
-    Card,
-    CardContent,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Table,
     TableHead,
     TableRow,
     TableCell,
     TableBody,
     TableContainer,
-    Chip
+    Chip,
+    Button
 } from '@mui/material';
 import {
     BarChart,
@@ -46,8 +39,11 @@ import toast from 'react-hot-toast';
 import PageHeader from '../../../shared/components/PageHeader';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { FiLock } from 'react-icons/fi';
-import { Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import QualityDrillDownModal from '../components/QualityDrillDownModal';
+import styles from './QualidadeAnaliticoPage.module.css';
+import StatCard from '../components/StatCard';
+import { Banknote, Calendar, History, TrendingUp, Filter, User, MapPin } from 'lucide-react';
 
 export default function QualidadeAnaliticoPage() {
     const { t } = useTranslation();
@@ -71,6 +67,17 @@ export default function QualidadeAnaliticoPage() {
     const [summary, setSummary] = useState<QualityAnalyticSummary | null>(null);
     const [trends, setTrends] = useState<QualityAnalyticTrend[]>([]);
     const [details, setDetails] = useState<QualityAnalyticDetail[]>([]);
+    const [originDetails, setOriginDetails] = useState<QualityAnalyticDetail[]>([]);
+
+    // Drilldown
+    const [drillDownOpen, setDrillDownOpen] = useState(false);
+    const [drillDownTitle, setDrillDownTitle] = useState('');
+    const [drillDownFilters, setDrillDownFilters] = useState<{
+        responsavel?: string;
+        origem?: string;
+        tipo?: string;
+        tipoLancamento?: string;
+    }>({});
 
     useEffect(() => {
         loadOrigins(tipo);
@@ -135,6 +142,7 @@ export default function QualidadeAnaliticoPage() {
             setSummary(sumRes);
             setTrends(trendRes.trends);
             setDetails(detRes.items);
+            setOriginDetails(detRes.originItems || []);
         } catch (error) {
             console.error(error);
             toast.error(t('common.error'));
@@ -145,6 +153,17 @@ export default function QualidadeAnaliticoPage() {
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    };
+
+    const handleDrillDown = (item: QualityAnalyticDetail, type: 'responsavel' | 'origem') => {
+        setDrillDownTitle(`${type === 'responsavel' ? t('qualityAnalytics.responsible', 'Responsável') : t('qualityAnalytics.filterOrigin', 'Origem')}: ${item.name}`);
+        setDrillDownFilters({
+            tipo: tipo || undefined,
+            tipoLancamento: tipoLancamento || undefined,
+            responsavel: type === 'responsavel' ? item.name : (responsavel || undefined),
+            origem: type === 'origem' ? item.name : (origem || undefined)
+        });
+        setDrillDownOpen(true);
     };
 
     if (!canView('qualidade_analitico')) {
@@ -177,144 +196,118 @@ export default function QualidadeAnaliticoPage() {
     }
 
     return (
-        <>
+        <div className={styles.container}>
             <PageHeader
                 title={t('qualityAnalytics.title', 'Análise Detalhada')}
                 subtitle={t('qualityAnalytics.subtitle', 'Visão aprofundada de custos e refugos')}
-                actions={
-                    <Box sx={{ display: 'flex', gap: 2, minWidth: 800 }}>
-                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                            <InputLabel>{t('nav.tipoLancamento', 'Tipo de Dados')}</InputLabel>
-                            <Select
-                                value={tipoLancamento}
-                                label={t('nav.tipoLancamento', 'Tipo de Dados')}
-                                onChange={(e) => setTipoLancamento(e.target.value)}
-                            >
-                                <MenuItem value=""><em>{t('nav.todos', 'Todos')}</em></MenuItem>
-                                <MenuItem value="REFUGO">{t('nav.refugo', 'Refugo')}</MenuItem>
-                                <MenuItem value="QUARENTENA">{t('nav.quarentena', 'Quarentena')}</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                            <InputLabel>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}</InputLabel>
-                            <Select
-                                value={tipo}
-                                label={t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}
-                                onChange={(e) => setTipo(e.target.value)}
-                            >
-                                <MenuItem value=""><em>{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</em></MenuItem>
-                                <MenuItem value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</MenuItem>
-                                <MenuItem value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                            <InputLabel>{t('qualityAnalytics.filterOrigin', 'Origem')}</InputLabel>
-                            <Select
-                                value={origem}
-                                label={t('qualityAnalytics.filterOrigin', 'Origem')}
-                                onChange={(e) => setOrigem(e.target.value)}
-                            >
-                                <MenuItem value=""><em>{t('qualityAnalytics.all', 'Todas')}</em></MenuItem>
-                                {origemOpts.map(opt => (
-                                    <MenuItem key={opt.id} value={opt.nome}>{opt.nome}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small" variant="outlined" sx={{ bgcolor: 'background.paper', borderRadius: 1 }}>
-                            <InputLabel>{t('qualityAnalytics.filterResponsible', 'Filtrar por Responsável')}</InputLabel>
-                            <Select
-                                value={responsavel}
-                                label={t('qualityAnalytics.filterResponsible', 'Filtrar por Responsável')}
-                                onChange={(e) => setResponsavel(e.target.value)}
-                            >
-                                <MenuItem value=""><em>{t('qualityAnalytics.all', 'Todas')}</em></MenuItem>
-                                {responsavelOpts.map(opt => (
-                                    <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Box>
-                }
             />
 
-            <Box sx={{ p: 3 }}>
+            <div className={styles.content}>
+                {/* Filter Bar */}
+                <div className={styles.filterContainer}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', marginRight: '0.5rem' }}>
+                        <Filter size={20} />
+                    </div>
+
+                    <div className={styles.filterGroup}>
+                        <label>{t('nav.tipoLancamento', 'Tipo de Dados')}:</label>
+                        <select
+                            value={tipoLancamento}
+                            onChange={(e) => setTipoLancamento(e.target.value)}
+                            className={styles.select}
+                        >
+                            <option value="">{t('nav.todos', 'Todos')}</option>
+                            <option value="REFUGO">{t('nav.refugo', 'Refugo')}</option>
+                            <option value="QUARENTENA">{t('nav.quarentena', 'Quarentena')}</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.filterGroup}>
+                        <label>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}:</label>
+                        <select
+                            value={tipo}
+                            onChange={(e) => setTipo(e.target.value)}
+                            className={styles.select}
+                        >
+                            <option value="">{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</option>
+                            <option value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</option>
+                            <option value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.filterGroup}>
+                        <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
+                        <select
+                            value={origem}
+                            onChange={(e) => setOrigem(e.target.value)}
+                            className={styles.select}
+                        >
+                            <option value="">{t('qualityAnalytics.all', 'Todas')}</option>
+                            {origemOpts.map(opt => (
+                                <option key={opt.id} value={opt.nome}>{opt.nome}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.filterGroup}>
+                        <label>{t('qualityAnalytics.filterResponsible', 'Responsável')}:</label>
+                        <select
+                            value={responsavel}
+                            onChange={(e) => setResponsavel(e.target.value)}
+                            className={styles.select}
+                        >
+                            <option value="">{t('qualityAnalytics.all', 'Todos')}</option>
+                            {responsavelOpts.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
                 {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
                         <CircularProgress />
                     </Box>
                 ) : (
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gap: 3 }}>
-                        {/* Summary Cards */}
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-                            <Card sx={{
-                                height: '100%',
-                                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                                color: '#fff',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                borderRadius: 2
-                            }}>
-                                <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-                                    <Typography variant="subtitle1" sx={{ opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.75rem' }}>
-                                        {t('qualityAnalytics.totalCost', 'Custo Total')}
-                                    </Typography>
-                                    <Typography variant="h3" fontWeight="bold" sx={{ mt: 1 }}>
-                                        {formatCurrency(summary?.totalCost || 0)}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Box>
+                    <>
+                        {/* KPIs */}
+                        <div className={styles.kpiContainer}>
+                            <StatCard
+                                title={t('qualityAnalytics.totalCost', 'Custo Total')}
+                                value={formatCurrency(summary?.totalCost || 0)}
+                                icon={<Banknote size={24} />}
+                                color="blue"
+                                subtitle={t('qualityAnalytics.periodSelected', 'No período filtrado')}
+                            />
+                            <StatCard
+                                title={t('qualityAnalytics.costLastMonth', 'Custo Mês Anterior')}
+                                value={formatCurrency(summary?.costLastMonth || 0)}
+                                icon={<Calendar size={24} />}
+                                color="blue"
+                                subtitle={t('qualityAnalytics.vsCurrent', 'Mês anterior completo')}
+                            />
+                            <StatCard
+                                title={t('qualityAnalytics.costLastYear', 'Custo Ano Anterior')}
+                                value={formatCurrency(summary?.costLastYear || 0)}
+                                icon={<History size={24} />}
+                                color="purple"
+                                subtitle={t('qualityAnalytics.vsCurrentYear', 'Ano anterior completo')}
+                            />
+                        </div>
 
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-                            <Card sx={{
-                                height: '100%',
-                                bgcolor: '#fff',
-                                color: '#1e293b',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                                borderRadius: 2,
-                                borderLeft: '4px solid #3b82f6'
-                            }}>
-                                <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-                                    <Typography variant="subtitle1" sx={{ opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.75rem', fontWeight: 600 }}>
-                                        {t('qualityAnalytics.costLastMonth', 'Custo Mês Anterior')}
-                                    </Typography>
-                                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1, color: '#1e293b' }}>
-                                        {formatCurrency(summary?.costLastMonth || 0)}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Box>
-
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-                            <Card sx={{
-                                height: '100%',
-                                bgcolor: '#fff',
-                                color: '#1e293b',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                                borderRadius: 2,
-                                borderLeft: '4px solid #8b5cf6'
-                            }}>
-                                <CardContent sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-                                    <Typography variant="subtitle1" sx={{ opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.75rem', fontWeight: 600 }}>
-                                        {t('qualityAnalytics.costLastYear', 'Custo Ano Anterior')}
-                                    </Typography>
-                                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1, color: '#1e293b' }}>
-                                        {formatCurrency(summary?.costLastYear || 0)}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Box>
-
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 12' } }}>
-                            <Paper sx={{ p: 3, height: '100%', borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                                    {t('qualityAnalytics.monthlyTrend', 'Evolução Mensal')}
-                                </Typography>
-                                <Box sx={{ height: 250 }}>
+                        {/* Main Grid */}
+                        <div className={styles.gridContainer}>
+                            {/* Monthly Trend */}
+                            <div className={`${styles.card} ${styles.fullWidth}`}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardTitle}>
+                                        <TrendingUp size={20} className="text-blue-500" />
+                                        {t('qualityAnalytics.monthlyTrend', 'Evolução Mensal')}
+                                    </div>
+                                </div>
+                                <div className={styles.chartContainer} style={{ height: 300 }}>
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={trends}>
+                                        <LineChart data={trends} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                             <XAxis dataKey="period" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
                                             <YAxis tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -322,81 +315,165 @@ export default function QualidadeAnaliticoPage() {
                                                 contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                                 formatter={(val: any) => [formatCurrency(Number(val)), t('qualityAnalytics.cost', 'Custo')]}
                                             />
-                                            <Line type="monotone" dataKey="cost" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="cost"
+                                                stroke="#3b82f6"
+                                                strokeWidth={3}
+                                                dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+                                                activeDot={{ r: 6 }}
+                                            />
                                         </LineChart>
                                     </ResponsiveContainer>
-                                </Box>
-                            </Paper>
-                        </Box>
+                                </div>
+                            </div>
 
-                        {/* Top 5 Responsible Chart */}
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 5' } }}>
-                            <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                                    {t('qualityAnalytics.topResponsible', 'Top 5 Responsáveis')}
-                                </Typography>
-                                <Box sx={{ height: 350 }}>
+                            {/* Top 5 Responsible */}
+                            <div className={`${styles.card} ${styles.halfWidth}`}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardTitle}>
+                                        <User size={20} className="text-orange-500" />
+                                        {t('qualityAnalytics.topResponsible', 'Top 5 Responsáveis')}
+                                    </div>
+                                </div>
+                                <div className={styles.chartContainer}>
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart layout="vertical" data={summary?.topResponsible || []} margin={{ left: 20 }}>
+                                        <BarChart layout="vertical" data={summary?.topResponsible || []} margin={{ left: 20, right: 20 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
                                             <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+                                            <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
                                             <Tooltip
                                                 cursor={{ fill: 'transparent' }}
                                                 contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                                 formatter={(val: any) => [formatCurrency(Number(val)), t('qualityAnalytics.cost', 'Custo')]}
                                             />
-                                            <Bar dataKey="cost" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
+                                            <Bar dataKey="cost" fill="#f97316" radius={[0, 4, 4, 0]} barSize={20} />
                                         </BarChart>
                                     </ResponsiveContainer>
-                                </Box>
-                            </Paper>
-                        </Box>
+                                </div>
+                            </div>
 
-                        {/* Detailed Table */}
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 7' } }}>
-                            <Paper sx={{ p: 0, overflow: 'hidden', borderRadius: 2, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                                <Box sx={{ p: 3, pb: 2 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {/* Top 5 Origins */}
+                            <div className={`${styles.card} ${styles.halfWidth}`}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardTitle}>
+                                        <MapPin size={20} className="text-yellow-500" />
+                                        {t('qualityAnalytics.topOrigins', 'Top 5 Origens')}
+                                    </div>
+                                </div>
+                                <div className={styles.chartContainer}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart layout="vertical" data={summary?.topOrigins || []} margin={{ left: 20, right: 20 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                                            <XAxis type="number" hide />
+                                            <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
+                                            <Tooltip
+                                                cursor={{ fill: 'transparent' }}
+                                                contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                formatter={(val: any) => [formatCurrency(Number(val)), t('qualityAnalytics.cost', 'Custo')]}
+                                            />
+                                            <Bar dataKey="cost" fill="#eab308" radius={[0, 4, 4, 0]} barSize={20} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* Detailed Table (Responsible) */}
+                            <div className={`${styles.card} ${styles.halfWidth}`} style={{ height: 'auto', maxHeight: 500, overflow: 'hidden' }}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardTitle}>
                                         {t('qualityAnalytics.details', 'Detalhamento por Responsável')}
-                                    </Typography>
-                                </Box>
-                                <TableContainer sx={{ maxHeight: 350 }}>
-                                    <Table stickyHeader>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.responsible', 'Responsável')}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.occurrences', 'Ocorrências')}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.cost', 'Custo')}</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.lastOccurrence', 'Última')}</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {details.map((row) => (
-                                                <TableRow key={row.name} hover>
-                                                    <TableCell component="th" scope="row">
-                                                        {row.name}
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        <Chip label={row.count} size="small" sx={{ borderRadius: 1, bgcolor: '#eff6ff', color: '#1d4ed8', fontWeight: 600 }} />
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                                                        {formatCurrency(row.totalCost)}
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-                                                        {row.lastOccurrence ? new Date(row.lastOccurrence).toLocaleDateString() : '-'}
-                                                    </TableCell>
+                                    </div>
+                                </div>
+                                <div className={styles.tableContainer}>
+                                    <TableContainer sx={{ maxHeight: 400 }}>
+                                        <Table stickyHeader>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.responsible', 'Responsável')}</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.occurrences', 'Qtd')}</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.cost', 'Custo')}</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Paper>
-                        </Box>
-                    </Box>
-                )}
-            </Box>
-        </>
+                                            </TableHead>
+                                            <TableBody>
+                                                {details.map((row) => (
+                                                    <TableRow
+                                                        key={row.name}
+                                                        hover
+                                                        onClick={() => handleDrillDown(row, 'responsavel')}
+                                                        sx={{ cursor: 'pointer' }}
+                                                        className="group"
+                                                    >
+                                                        <TableCell component="th" scope="row">
+                                                            {row.name}
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <Chip label={row.count} size="small" sx={{ borderRadius: 1, bgcolor: '#eff6ff', color: '#1d4ed8', fontWeight: 600 }} />
+                                                        </TableCell>
+                                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                                                            {formatCurrency(row.totalCost)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </div>
+                            </div>
 
+                            {/* Detailed Table (Origins) */}
+                            <div className={`${styles.card} ${styles.halfWidth}`} style={{ height: 'auto', maxHeight: 500, overflow: 'hidden' }}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardTitle}>
+                                        {t('qualityAnalytics.detailsOrigin', 'Detalhamento por Origem')}
+                                    </div>
+                                </div>
+                                <div className={styles.tableContainer}>
+                                    <TableContainer sx={{ maxHeight: 400 }}>
+                                        <Table stickyHeader>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.filterOrigin', 'Origem')}</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.occurrences', 'Qtd')}</TableCell>
+                                                    <TableCell align="right" sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>{t('qualityAnalytics.cost', 'Custo')}</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {originDetails.map((row) => (
+                                                    <TableRow
+                                                        key={row.name}
+                                                        hover
+                                                        onClick={() => handleDrillDown(row, 'origem')}
+                                                        sx={{ cursor: 'pointer' }}
+                                                    >
+                                                        <TableCell component="th" scope="row">
+                                                            {row.name}
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <Chip label={row.count} size="small" sx={{ borderRadius: 1, bgcolor: '#fff7ed', color: '#c2410c', fontWeight: 600 }} />
+                                                        </TableCell>
+                                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                                                            {formatCurrency(row.totalCost)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </div>
+                            </div>
+
+                        </div>
+                    </>
+                )}
+
+                <QualityDrillDownModal
+                    open={drillDownOpen}
+                    onClose={() => setDrillDownOpen(false)}
+                    filters={drillDownFilters}
+                    title={drillDownTitle}
+                />
+            </div>
+        </div>
     );
 }

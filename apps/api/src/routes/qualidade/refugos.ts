@@ -44,6 +44,12 @@ refugosRouter.get('/qualidade/refugos',
                 where += ` AND qr.tipo_lancamento = $${params.length}`;
             }
 
+            const responsavel = req.query.responsavel as string;
+            if (responsavel) {
+                params.push(responsavel);
+                where += ` AND qr.responsavel_nome = $${params.length}`;
+            }
+
             // Count total
             const countQuery = await pool.query(
                 `SELECT COUNT(*) as total FROM qualidade_refugos qr WHERE ${where}`,

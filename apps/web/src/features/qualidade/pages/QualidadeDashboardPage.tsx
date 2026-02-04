@@ -142,56 +142,58 @@ export default function QualidadeDashboardPage() {
                 subtitle={t('quality.dashSubtitle', 'Visão geral dos custos e principais ofensores de qualidade.')}
             />
 
-            <DashboardFilter onChange={handleFilterChange} />
+            <div className={styles.content}>
+                <DashboardFilter onChange={handleFilterChange} />
 
-            {loading ? (
-                <div className={styles.loading}>{t('common.loading', 'Carregando...')}</div>
-            ) : (
-                <>
-                    {/* KPIs */}
-                    <div className={styles.kpiContainer}>
-                        <StatCard
-                            title={t('quality.totalCost', 'Custo Total de Refugo')}
-                            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.kpis?.custoTotal || 0)}
-                            icon={<Banknote size={24} />}
-                            color="blue"
-                            subtitle={t('quality.periodTotal', 'Total do período selecionado')}
-                        />
-                    </div>
-
-                    {/* Gráficos */}
-                    <div className={styles.chartsGrid}>
-                        <div className={styles.chartCard}>
-                            <div className={styles.chartTitle}>
-                                {t('quality.topDefects', 'Top Defeitos (Custo)')}
-                                <TrendingDown size={20} className="text-gray-400" />
-                            </div>
-                            <div className={styles.chartWrapper}>
-                                <Bar options={barOptions} data={barChartData} />
-                            </div>
+                {loading ? (
+                    <div className={styles.loading}>{t('common.loading', 'Carregando...')}</div>
+                ) : (
+                    <>
+                        {/* KPIs */}
+                        <div className={styles.kpiContainer}>
+                            <StatCard
+                                title={t('quality.totalCost', 'Custo Total de Refugo')}
+                                value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data?.kpis?.custoTotal || 0)}
+                                icon={<Banknote size={24} />}
+                                color="blue"
+                                subtitle={t('quality.periodTotal', 'Total do período selecionado')}
+                            />
                         </div>
 
-                        {/* Responsáveis - Agora ao lado de defeitos */}
-                        <div className={styles.chartCard}>
-                            <div className={styles.chartTitle}>
-                                {t('quality.costByResponsible', 'Custo por Responsável')}
-                                <TrendingDown size={20} className="text-gray-400" />
+                        {/* Gráficos */}
+                        <div className={styles.chartsGrid}>
+                            <div className={styles.chartCard}>
+                                <div className={styles.chartTitle}>
+                                    {t('quality.topDefects', 'Top Defeitos (Custo)')}
+                                    <TrendingDown size={20} className="text-gray-400" />
+                                </div>
+                                <div className={styles.chartWrapper}>
+                                    <Bar options={barOptions} data={barChartData} />
+                                </div>
                             </div>
-                            <div className={styles.chartWrapper}>
-                                <Bar options={barOptions} data={responsaveisChartData} />
-                            </div>
-                        </div>
 
-                        {/* Origem - Agora abaixo e full width */}
-                        <div className={styles.chartCard} style={{ gridColumn: '1 / -1' }}>
-                            <div className={styles.chartTitle}>{t('quality.costByOrigin', 'Custo por Origem')}</div>
-                            <div className={styles.chartWrapper}>
-                                <Pie options={pieOptions} data={pieChartData} />
+                            {/* Responsáveis - Agora ao lado de defeitos */}
+                            <div className={styles.chartCard}>
+                                <div className={styles.chartTitle}>
+                                    {t('quality.costByResponsible', 'Custo por Responsável')}
+                                    <TrendingDown size={20} className="text-gray-400" />
+                                </div>
+                                <div className={styles.chartWrapper}>
+                                    <Bar options={barOptions} data={responsaveisChartData} />
+                                </div>
+                            </div>
+
+                            {/* Origem - Agora abaixo e full width */}
+                            <div className={styles.chartCard} style={{ gridColumn: '1 / -1' }}>
+                                <div className={styles.chartTitle}>{t('quality.costByOrigin', 'Custo por Origem')}</div>
+                                <div className={styles.chartWrapper}>
+                                    <Pie options={pieOptions} data={pieChartData} />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
