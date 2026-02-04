@@ -239,6 +239,30 @@
       "planningConfig": {
         "title": "Planejamento: Config",
         "desc": "Gerencie capacidade hora/máquina."
+      },
+      "logisticsDashboard": {
+        "title": "Logística: Dashboard",
+        "desc": "Acompanhe KPIs e faturamento em tempo real."
+      },
+      "qualityDashboard": {
+        "title": "Qualidade: Dashboard",
+        "desc": "Visão geral dos indicadores de qualidade."
+      },
+      "qualityAnalytics": {
+        "title": "Qualidade: Analítico",
+        "desc": "Análise detalhada de refugo e quarentena."
+      },
+      "qualityComparative": {
+        "title": "Qualidade: Comparativos",
+        "desc": "Compare desempenho entre períodos."
+      },
+      "qualityLaunch": {
+        "title": "Qualidade: Lançamento",
+        "desc": "Registre ocorrências de refugo."
+      },
+      "qualityConfig": {
+        "title": "Qualidade: Configurações",
+        "desc": "Configure origens, motivos e responsáveis."
       }
     }
   },

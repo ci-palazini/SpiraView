@@ -31,7 +31,12 @@ export interface ShortcutDefinition {
 }
 
 // Lista completa de todos os atalhos disponíveis
+// IMPORTANTE: A ordem dos itens aqui deve seguir a mesma ordem da sidebar (MainLayout.tsx)
+// EXCEÇÃO: 'usuarios' e 'perfil' devem SEMPRE ficar no final desta lista
 export const ALL_SHORTCUTS: ShortcutDefinition[] = [
+    // ============================================================
+    // MANUTENÇÃO (seguindo ordem da sidebar)
+    // ============================================================
     {
         id: 'maquinas',
         pageKey: 'maquinas',
@@ -113,6 +118,9 @@ export const ALL_SHORTCUTS: ShortcutDefinition[] = [
         icon: FiPieChart,
     },
 
+    // ============================================================
+    // PRODUÇÃO (seguindo ordem da sidebar)
+    // ============================================================
     {
         id: 'producao_dashboard',
         pageKey: 'producao_dashboard',
@@ -145,14 +153,10 @@ export const ALL_SHORTCUTS: ShortcutDefinition[] = [
         descKey: 'inicio.cards.productionConfig.desc',
         icon: FiSettings,
     },
-    {
-        id: 'usuarios',
-        pageKey: 'usuarios',
-        path: '/gerir-utilizadores',
-        titleKey: 'inicio.cards.manageUsers.title',
-        descKey: 'inicio.cards.manageUsers.desc',
-        icon: FiUsers,
-    },
+
+    // ============================================================
+    // PLANEJAMENTO (seguindo ordem da sidebar)
+    // ============================================================
     {
         id: 'planejamento_dashboard',
         pageKey: 'planejamento_dashboard',
@@ -176,6 +180,77 @@ export const ALL_SHORTCUTS: ShortcutDefinition[] = [
         titleKey: 'inicio.cards.planningConfig.title',
         descKey: 'inicio.cards.planningConfig.desc',
         icon: FiSettings,
+    },
+
+    // ============================================================
+    // QUALIDADE (seguindo ordem da sidebar)
+    // ============================================================
+    {
+        id: 'qualidade_dashboard',
+        pageKey: 'qualidade_dashboard',
+        path: '/qualidade/dashboard',
+        titleKey: 'inicio.cards.qualityDashboard.title',
+        descKey: 'inicio.cards.qualityDashboard.desc',
+        icon: LuLayoutDashboard,
+    },
+    {
+        id: 'qualidade_analitico',
+        pageKey: 'qualidade_analitico',
+        path: '/qualidade/analitico',
+        titleKey: 'inicio.cards.qualityAnalytics.title',
+        descKey: 'inicio.cards.qualityAnalytics.desc',
+        icon: FiPieChart,
+    },
+    {
+        id: 'qualidade_comparativo',
+        pageKey: 'qualidade_analitico',
+        path: '/qualidade/comparativo',
+        titleKey: 'inicio.cards.qualityComparative.title',
+        descKey: 'inicio.cards.qualityComparative.desc',
+        icon: FiBarChart2,
+    },
+    {
+        id: 'qualidade_lancamento',
+        pageKey: 'qualidade_lancamento',
+        path: '/qualidade/lancamentos',
+        titleKey: 'inicio.cards.qualityLaunch.title',
+        descKey: 'inicio.cards.qualityLaunch.desc',
+        icon: FiPlusCircle,
+    },
+    {
+        id: 'qualidade_config',
+        pageKey: 'qualidade_config',
+        path: '/qualidade/config',
+        titleKey: 'inicio.cards.qualityConfig.title',
+        descKey: 'inicio.cards.qualityConfig.desc',
+        icon: FiSettings,
+    },
+
+    // ============================================================
+    // LOGÍSTICA (seguindo ordem da sidebar)
+    // ============================================================
+    {
+        id: 'logistica_dashboard',
+        pageKey: 'logistica_dashboard',
+        path: '/logistica/dashboard',
+        titleKey: 'inicio.cards.logisticsDashboard.title',
+        descKey: 'inicio.cards.logisticsDashboard.desc',
+        icon: FiPackage,
+    },
+
+    // ============================================================
+    // ADMINISTRAÇÃO - SEMPRE NO FINAL
+    // IMPORTANTE: 'usuarios' e 'perfil' devem SEMPRE ser os últimos
+    // itens desta lista. Ao adicionar novos atalhos no futuro,
+    // adicione-os ANTES desta seção.
+    // ============================================================
+    {
+        id: 'usuarios',
+        pageKey: 'usuarios',
+        path: '/gerir-utilizadores',
+        titleKey: 'inicio.cards.manageUsers.title',
+        descKey: 'inicio.cards.manageUsers.desc',
+        icon: FiUsers,
     },
     {
         id: 'perfil',

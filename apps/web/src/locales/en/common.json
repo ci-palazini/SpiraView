@@ -161,6 +161,30 @@
       "planningConfig": {
         "title": "Planning: Config",
         "desc": "Manage machine hourly capacity."
+      },
+      "logisticsDashboard": {
+        "title": "Logistics: Dashboard",
+        "desc": "Track KPIs and billing in real-time."
+      },
+      "qualityDashboard": {
+        "title": "Quality: Dashboard",
+        "desc": "Overview of quality indicators."
+      },
+      "qualityAnalytics": {
+        "title": "Quality: Analytics",
+        "desc": "Detailed analysis of scrap and quarantine."
+      },
+      "qualityComparative": {
+        "title": "Quality: Comparative",
+        "desc": "Compare performance across periods."
+      },
+      "qualityLaunch": {
+        "title": "Quality: Entries",
+        "desc": "Record scrap occurrences."
+      },
+      "qualityConfig": {
+        "title": "Quality: Configuration",
+        "desc": "Configure origins, motives, and assignees."
       }
     }
   },
