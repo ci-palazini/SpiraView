@@ -918,6 +918,7 @@
       "tempPassword": "Senha Provisória",
       "usernameOptional": "Nome de usuário (login) – opcional",
       "usernamePlaceholder": "ex: gabriel.palazini",
+      "emailReal": "Email Real (Opcional)",
       "role": "Função (Papel)",
       "saving": "Salvando...",
       "saveChanges": "Salvar Alterações",

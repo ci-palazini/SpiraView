@@ -32,6 +32,7 @@ interface UserRow {
     nome: string;
     usuario?: string;
     email?: string;
+    email_real?: string;
     role?: string;
     funcao?: string;
     matricula?: string;
@@ -62,6 +63,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     // form
     const [nome, setNome] = useState('');
     const [usuario, setUsuario] = useState('');
+    const [emailReal, setEmailReal] = useState('');
     const [senha, setSenha] = useState('');
     const [role, setRole] = useState('operador');
     const [matricula, setMatricula] = useState('');
@@ -137,9 +139,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setIsSaving(true);
         try {
             if (modoEdicao && usuarioEditandoId) {
-                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string } = {
+                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string; email_real?: string } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
+                    email_real: emailReal.trim() || undefined,
                     role,
                     funcao,
                 };
@@ -162,6 +165,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     nome: string;
                     usuario: string;
                     email: string;
+                    email_real?: string;
                     role: string;
                     funcao: string;
                     senha?: string;
@@ -170,6 +174,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
                     email: emailGerado,
+                    email_real: emailReal.trim() || undefined,
                     role,
                     funcao,
                 };
@@ -198,6 +203,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setIsSaving(false);
             setNome('');
             setUsuario('');
+            setEmailReal('');
             setSenha('');
             setRole('operador');
             setMatricula('');
@@ -217,6 +223,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setUsuarioEditandoId(null);
         setNome('');
         setUsuario('');
+        setEmailReal('');
         setSenha('');
         setRole('operador'); // Default seguro
         setMatricula('');
@@ -225,6 +232,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const abrirModalEdicao = (userRow: UserRow) => {
         setNome(userRow.nome || '');
         setUsuario(userRow.usuario || '');
+        setEmailReal(userRow.email_real || '');
         setRole(userRow.role || 'operador');
         setMatricula(userRow.matricula || '');
         setModoEdicao(true);
@@ -450,6 +458,15 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         value={usuario}
                         onChange={(e) => setUsuario(e.target.value)}
                         placeholder={t('users.form.usernamePlaceholder', 'ex: gabriel.palazini')}
+                    />
+
+                    <Input
+                        id="emailReal"
+                        label={t('users.form.emailReal', 'Email Real (Opcional)')}
+                        type="email"
+                        value={emailReal}
+                        onChange={(e) => setEmailReal(e.target.value)}
+                        placeholder="nome@exemplo.com"
                     />
 
                     {!modoEdicao && (

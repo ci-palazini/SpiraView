@@ -80,6 +80,7 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
          nome,
          usuario,
          email,
+         email_real,
          role,
          COALESCE(
            funcao,
@@ -144,10 +145,11 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
 // POST /usuarios - criar usuário (requer editar)
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async (req, res) => {
   try {
-    let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
+    let { nome, usuario, email, email_real, role, funcao, senha, matricula } = req.body || {};
     nome = String(nome || '').trim();
     usuario = String(usuario || '').trim().toLowerCase();
     email = String(email || '').trim().toLowerCase();
+    email_real = email_real ? String(email_real).trim().toLowerCase() : null;
     role = String(role || '').trim().toLowerCase();
     funcao = String(funcao || '').trim();
     matricula = matricula !== undefined ? String(matricula).trim() : null;
@@ -169,10 +171,10 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async 
 
     // Inserção
     const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, usuario, email, role, funcao, senha_hash, matricula)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
-       RETURNING id, nome, usuario, email, role, funcao, matricula`,
-      [nome, usuario, email, role, funcao, senha_hash, matricula]
+      `INSERT INTO usuarios (nome, usuario, email, email_real, role, funcao, senha_hash, matricula)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING id, nome, usuario, email, email_real, role, funcao, matricula`,
+      [nome, usuario, email, email_real, role, funcao, senha_hash, matricula]
     );
 
     res.status(201).json(rows[0]);
@@ -191,10 +193,11 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
   try {
     const id = String(req.params.id);
 
-    let { nome, usuario, email, role, funcao, senha, matricula } = req.body || {};
+    let { nome, usuario, email, email_real, role, funcao, senha, matricula } = req.body || {};
     nome = nome !== undefined ? String(nome).trim() : undefined;
     usuario = usuario !== undefined ? String(usuario).trim().toLowerCase() : undefined;
     email = email !== undefined ? String(email).trim().toLowerCase() : undefined;
+    email_real = email_real !== undefined ? (email_real ? String(email_real).trim().toLowerCase() : null) : undefined;
     role = role !== undefined ? String(role).trim().toLowerCase() : undefined;
     funcao = funcao !== undefined ? String(funcao).trim() : undefined;
     matricula = matricula !== undefined ? String(matricula).trim() : undefined;
@@ -207,6 +210,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
     if (nome !== undefined) add('nome', nome);
     if (usuario !== undefined) add('usuario', usuario);
     if (email !== undefined) add('email', email);
+    if (email_real !== undefined) add('email_real', email_real);
     if (role !== undefined) add('role', role);
     if (role !== undefined && funcao === undefined) {
       funcao = roleToFuncao(role);

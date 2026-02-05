@@ -12,6 +12,7 @@ import {
 
 import multer from "multer";
 import { storageProvider } from "../../utils/storage";
+import { TicketCreatedNotification } from "../../services/notifications/TicketCreated";
 
 export const chamadosRouter: Router = Router();
 
@@ -1122,6 +1123,10 @@ chamadosRouter.post("/chamados", async (req, res) => {
     );
 
     try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch { }
+
+    // Dispara notificação de email (fire-and-forget)
+    void TicketCreatedNotification.handle(rows[0]);
+
     return res.status(201).json(rows[0]);
 
   } catch (e: any) {

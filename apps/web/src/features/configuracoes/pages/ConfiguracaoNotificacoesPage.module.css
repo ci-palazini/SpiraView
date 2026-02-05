@@ -1,0 +1,113 @@
+.container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 24px;
+}
+
+.cardHeader {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+}
+
+.cardHeader h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.cardHeader p {
+    margin: 0;
+    color: #666;
+}
+
+.icon {
+    color: #2196F3;
+}
+
+.addSection {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.listSection h4 {
+    margin: 0 0 16px 0;
+    color: #444;
+}
+
+.userList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.userItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.userItem:last-child {
+    border-bottom: none;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-weight: 500;
+    color: #333;
+}
+
+.userEmail {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.fakeEmail {
+    color: #f57c00;
+}
+
+.removeButton {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.removeButton:hover {
+    background: #fee;
+    color: #d32f2f;
+}
+
+.empty {
+    text-align: center;
+    color: #999;
+    padding: 32px;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+}

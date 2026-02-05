@@ -95,6 +95,7 @@ const MyComponent = () => {
 |---------|--------|-----------|---------------|
 | `usuarios` | Core | Gestão de usuários (CRUD) | `ver`, `editar` |
 | `roles` | Core | Gestão de papéis/permissões | `ver`, `editar` |
+| `notificacoes_config` | Core | Configuração de destinatários de email | `ver`, `editar` |
 
 ### Shared (Recursos Compartilhados)
 

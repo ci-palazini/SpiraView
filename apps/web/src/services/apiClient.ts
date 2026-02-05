@@ -3,6 +3,7 @@
 
 import type {
     AuthParams,
+    NotificacaoConfigUser,
     Chamado,
     ChamadoCreate,
     ListaChamadosParams,
@@ -740,6 +741,22 @@ export async function atualizarUsuario(id: string, data: Partial<UsuarioCreate>,
     const json = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(json?.error || `Falha ao atualizar usuário (${r.status})`);
     return json as Usuario;
+}
+
+// ===== NOTIFICAÇÕES =====
+export async function listarNotificacoesConfig(evento: string, auth: AuthParams = {}): Promise<NotificacaoConfigUser[]> {
+    return http.get<NotificacaoConfigUser[]>(`/notificacoes/config/${evento}`, { auth });
+}
+
+export async function adicionarNotificacaoConfig(evento: string, usuario_id: string, auth: AuthParams = {}): Promise<NotificacaoConfigUser> {
+    return http.post<NotificacaoConfigUser>(`/notificacoes/config`, {
+        data: { evento, usuario_id },
+        auth
+    });
+}
+
+export async function removerNotificacaoConfig(evento: string, usuarioId: string, auth: AuthParams = {}): Promise<void> {
+    return http.delete(`/notificacoes/config/${evento}/${usuarioId}`, { auth });
 }
 
 export async function excluirUsuario(id: string, auth: AuthParams): Promise<unknown> {

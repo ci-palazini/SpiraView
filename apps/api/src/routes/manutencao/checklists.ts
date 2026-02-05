@@ -93,7 +93,7 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
           ELSE (now() AT TIME ZONE 'America/Sao_Paulo')::date
         END
       )
-      ON CONFLICT (operador_id, maquina_id, data_ref)
+      ON CONFLICT (operador_id, maquina_id, data_ref, turno)
       DO UPDATE SET
         respostas     = EXCLUDED.respostas,
         turno         = EXCLUDED.turno,
@@ -128,13 +128,26 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
       const descricao = `Checklist: item "${pergunta}" marcado como NÃO.`;
 
       try {
-        await pool.query(
+        const { rows: createdInfos } = await pool.query(
           `INSERT INTO chamados
             (maquina_id, tipo, status, descricao, criado_por_id, item, checklist_item_key)
-          VALUES ($1, 'preditiva', 'Aberto', $2, $3, $4, $5)`,
+          VALUES ($1, 'preditiva', 'Aberto', $2, $3, $4, $5)
+          RETURNING id, tipo, descricao, criado_em`,
           [maquinaId, descricao, operadorId, pergunta, key]
         );
-        try { sseBroadcast?.({ topic: 'chamados', action: 'created' }); } catch { }
+
+        // Dispara notificação
+        if (createdInfos.length) {
+          const novoChamado = {
+            ...createdInfos[0],
+            maquina: maquinaNomeFinal, // Já temos o nome da máquina aqui
+            criado_por: operadorNomeFinal
+          };
+          try { sseBroadcast?.({ topic: 'chamados', action: 'created' }); } catch { }
+          // Async notification
+          void import('../../services/notifications/TicketCreated').then(m => m.TicketCreatedNotification.handle(novoChamado));
+        }
+
         gerados++;
       } catch (e: any) {
         if (e.code === '23505') {

@@ -364,3 +364,13 @@ export interface LogisticaDashboardData {
     items: LogisticaKpi[];
     previousItems: LogisticaKpi[];
 }
+
+// ---------- Notificações ----------
+export interface NotificacaoConfigUser {
+    id: string;
+    evento: string;
+    usuario_id: string;
+    nome: string;
+    email: string;
+    email_real?: string;
+}

@@ -63,6 +63,7 @@ import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage
 import QualidadeAnaliticoPage from '../features/qualidade/pages/QualidadeAnaliticoPage';
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
+import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -720,9 +721,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 )
             }
 
-            {/* Administração - usa permissões granulares */}
+
+
+            {/* Configurações - usa permissões granulares */}
             {
-                perm.canViewAny(['usuarios', 'roles']) && (
+                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config']) && (
                     <>
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
@@ -747,6 +750,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             >
                                 <FiShield className={styles.navIcon} />
                                 <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('notificacoes_config') && (
+                            <NavLink
+                                to="/configuracoes/notificacoes"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiSettings className={styles.navIcon} />
+                                <span>{t('nav.notificationConfig', 'Notificações')}</span>
                             </NavLink>
                         )}
                     </>
@@ -939,6 +953,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/configuracoes/roles"
                         element={canAccessPage('roles', <RolesPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/configuracoes/notificacoes"
+                        element={canAccessPage('notificacoes_config', <ConfiguracaoNotificacoesPage user={user} />)}
                     />
 
                     <Route
