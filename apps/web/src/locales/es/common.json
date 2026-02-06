@@ -55,10 +55,77 @@
     }
   },
   "inicio": {
-    "title": "Página de inicio",
-    "welcome": "¡Bienvenido de nuevo, <1>{{name}}</1>!",
-    "quickAccess": "Acceso rápido",
+    "customize": "Personalizar",
+    "noShortcuts": "Ningún atajo seleccionado.",
+    "addShortcuts": "Agregar atajos",
+    "customizeModal": {
+      "title": "Personalizar Atajos",
+      "subtitle": "Seleccione hasta {{max}} atajos para mostrar en la página de inicio",
+      "selected": "seleccionados",
+      "save": "Concluido",
+      "reset": "Restaurar predeterminado"
+    },
     "cards": {
+      "dailyChecklists": {
+        "title": "Checklists Diarios",
+        "desc": "Acompañe el estado y llenado diario."
+      },
+      "productionDashboard": {
+        "title": "Producción: Visión del Día",
+        "desc": "Siga las metas y producción en tiempo real."
+      },
+      "productionEmployees": {
+        "title": "Producción: Colaboradores",
+        "desc": "Análisis de rendimiento individual."
+      },
+      "productionUpload": {
+        "title": "Producción: Upload",
+        "desc": "Suba planillas de apuntes."
+      },
+      "productionConfig": {
+        "title": "Producción: Configuraciones",
+        "desc": "Configure metas y parámetros de máquinas."
+      },
+      "planningDashboard": {
+        "title": "Planificación: Capacidad",
+        "desc": "Visualiza ocupación vs capacidad disponible."
+      },
+      "planningUpload": {
+        "title": "Planificación: Upload",
+        "desc": "Importe planillas de reservas de capacidad."
+      },
+      "planningConfig": {
+        "title": "Planificación: Config",
+        "desc": "Gestione capacidad hora/máquina."
+      },
+      "logisticsDashboard": {
+        "title": "Logística: Dashboard",
+        "desc": "Siga KPIs y facturación en tiempo real."
+      },
+      "qualityDashboard": {
+        "title": "Calidad: Dashboard",
+        "desc": "Visión general de los indicadores de calidad."
+      },
+      "qualityAnalytics": {
+        "title": "Calidad: Analítico",
+        "desc": "Análisis detallado de rechazo y cuarentena."
+      },
+      "qualityIndividual": {
+        "title": "Calidad: Rendimiento",
+        "desc": "Rendimiento individual de colaboradores."
+      },
+      "qualityComparative": {
+        "title": "Calidad: Comparativos",
+        "desc": "Compare rendimiento entre períodos."
+      },
+      "qualityLaunch": {
+        "title": "Calidad: Lanzamiento",
+        "desc": "Registre ocurrencias de rechazo."
+      },
+      "qualityConfig": {
+        "title": "Calidad: Configuraciones",
+        "desc": "Configure orígenes, motivos y responsables."
+      },
       "machines": {
         "title": "Panel de Máquinas",
         "desc": "Visualiza y gestiona el prontuario de todos los equipos."
@@ -103,7 +170,10 @@
         "title": "Tickets Abiertos",
         "desc": "Visualiza todos los tickets pendientes de conclusión."
       }
-    }
+    },
+    "title": "Página de inicio",
+    "welcome": "¡Bienvenido de nuevo, <1>{{name}}</1>!",
+    "quickAccess": "Acceso rápido"
   },
   "perfil": {
     "title": "Mi Perfil",
@@ -276,6 +346,24 @@
     "showMore": "+{{total}} más"
   },
   "common": {
+    "period": "Período",
+    "thisMonth": "Mes Actual",
+    "lastMonth": "Mes Pasado",
+    "thisYear": "Año Actual",
+    "thisWeek": "Semana Actual",
+    "custom": "Personalizado",
+    "to": "hasta",
+    "success": "Éxito",
+    "close": "Cerrar",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "date": "Fecha",
+    "select": "Seleccione...",
+    "firstPage": "Primera Página",
+    "prevPage": "Página Anterior",
+    "nextPage": "Próxima Página",
+    "lastPage": "Última Página",
+    "actions": "Acciones",
     "loading": "Cargando...",
     "processing": "Procesando...",
     "saving": "Guardando...",
@@ -396,10 +484,10 @@
     }
   },
   "calendarioGeral": {
-    "title": "Calendario General de Mantenimientos",
-    "subtitle": "Visualiza y gestiona los mantenimientos preventivos y predictivos programados.",
-    "loading": "Cargando programaciones...",
     "legend": {
+      "scheduled": "Programado",
+      "inProgress": "En curso",
+      "completed": "Concluido",
       "overdue": "Vencido",
       "today": "Hoy",
       "future": "Futuro",
@@ -407,6 +495,17 @@
       "finished": "Concluido",
       "finishedLate": "Concluido con retraso"
     },
+    "confirm": {
+      "title": "Confirmar Eliminación",
+      "message": "¿Está seguro que desea eliminar esta programación?",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar",
+      "startNow": "¿Iniciar el mantenimiento \"{{title}}\" ahora?",
+      "delete": "¿Seguro que deseas eliminar la programación \"{{title}}\"?"
+    },
+    "title": "Calendario General de Mantenimientos",
+    "subtitle": "Visualiza y gestiona los mantenimientos preventivos y predictivos programados.",
+    "loading": "Cargando programaciones...",
     "details": {
       "machine": "Máquina:",
       "description": "Descripción:",
@@ -419,10 +518,6 @@
     "actions": {
       "startNow": "Iniciar mantenimiento ahora",
       "delete": "Eliminar programación"
-    },
-    "confirm": {
-      "startNow": "¿Iniciar el mantenimiento \"{{title}}\" ahora?",
-      "delete": "¿Seguro que deseas eliminar la programación \"{{title}}\"?"
     },
     "generated": {
       "callDesc": "Mantenimiento preventivo programado: {{title}}",
@@ -627,6 +722,13 @@
     }
   },
   "causas": {
+    "filters": {
+      "machine": "Máquina",
+      "allMachines": "Todas",
+      "start": "De",
+      "end": "Hasta",
+      "clear": "Limpiar"
+    },
     "titleCrud": "Gestionar Causas Raíz",
     "titlePareto": "Pareto de Fallas",
     "form": {
@@ -650,6 +752,20 @@
     }
   },
   "users": {
+    "form": {
+      "emailReal": "Email Real (Opcional)",
+      "fullName": "Nombre completo",
+      "tempPassword": "Contraseña provisional",
+      "usernameOptional": "Nombre de usuario (login) – opcional",
+      "usernamePlaceholder": "p. ej.: gabriel.palazini",
+      "role": "Función (Rol)",
+      "saving": "Guardando...",
+      "saveChanges": "Guardar cambios",
+      "createUser": "Crear usuario",
+      "matricula": "Matrícula",
+      "matriculaPlaceholder": "Ej: 1234",
+      "matriculaHint": "4 dígitos numéricos para inicio de sesión simplificado"
+    },
     "title": "Gestión de Usuarios",
     "subtitle": "Administra los usuarios del sistema, sus roles y credenciales internas.",
     "loading": "Cargando usuarios...",
@@ -683,19 +799,6 @@
       "createTitle": "Crear nuevo usuario",
       "editTitle": "Editar usuario"
     },
-    "form": {
-      "fullName": "Nombre completo",
-      "tempPassword": "Contraseña provisional",
-      "usernameOptional": "Nombre de usuario (login) – opcional",
-      "usernamePlaceholder": "p. ej.: gabriel.palazini",
-      "role": "Función (Rol)",
-      "saving": "Guardando...",
-      "saveChanges": "Guardar cambios",
-      "createUser": "Crear usuario",
-      "matricula": "Matrícula",
-      "matriculaPlaceholder": "Ej: 1234",
-      "matriculaHint": "4 dígitos numéricos para inicio de sesión simplificado"
-    },
     "roles": {
       "all": "Todas",
       "operator": "Operador",
@@ -723,6 +826,8 @@
   },
   "layout": {
     "sections": {
+      "quality": "Calidad",
+      "logistics": "Logística",
       "maintenance": "Mantenimiento",
       "manageMaintenance": "Gestionar mantenimiento",
       "analytics": "Análisis y KPIs",
@@ -808,6 +913,13 @@
     "alreadySent": "✓ Checklist ya enviado hoy"
   },
   "checklistOverview": {
+    "noChecklist": "Sin checklist",
+    "machinesWithChecklist": "Máquinas con checklist",
+    "noChecklistCount": "Sin checklist",
+    "weekend": {
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
     "title": "Checklists diarios por máquina",
     "subtitle": "Revisa rápidamente si se enviaron los checklists del 1.º y 2.º turno.",
     "errorLoad": "Error al cargar los datos. Intente nuevamente.",
@@ -883,5 +995,650 @@
     "success": {
       "created": "¡Ticket creado con éxito!"
     }
+  },
+  "producao": {
+    "nav": {
+      "upload": "Carga Producción",
+      "config": "Config. Máquinas",
+      "dashboard": "Panel",
+      "colaboradores": "Colaboradores"
+    },
+    "colaboradores": {
+      "title": "Rendimiento por Colaborador",
+      "subtitle": "Siga la producción y metas individuales de cada operador.",
+      "stats": {
+        "active": "Colaboradores Activos",
+        "totalGoal": "Meta Mensual Total",
+        "totalReal": "Realizado Mes",
+        "performance": "Rendimiento Mes"
+      },
+      "filters": {
+        "monthRef": "Mes de Referencia",
+        "dayAnalysis": "Día para Análisis",
+        "runningDays": "Días Corridos",
+        "businessDays": "Días Hábiles Mes",
+        "update": "Actualizar",
+        "addOperator": "Agregar Operador"
+      },
+      "table": {
+        "matricula": "Matrícula",
+        "name": "Nombre",
+        "dailyGoal": "Meta Día (h)",
+        "accumGoal": "Meta Acum (h)",
+        "monthGoal": "Meta Mes (h)",
+        "realDay": "Real Día (h)",
+        "realMonth": "Real Mes (h)",
+        "perfDay": "Rend. Día",
+        "perfMonth": "Rend. Mes",
+        "status": "Estado",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "totals": "Totales",
+        "empty": {
+          "title": "Ningún operador monitoreado",
+          "text": "Haga clic en \"Agregar Operador\" para seleccionar qué operadores desea seguir."
+        },
+        "editTitle": "Editar meta"
+      },
+      "modal": {
+        "addTitle": "Agregar Operador al Monitoreo",
+        "searchPlaceholder": "Buscar por nombre o matrícula...",
+        "loading": "Cargando operadores...",
+        "emptySearch": "Ningún operador encontrado con esa búsqueda.",
+        "allMonitored": "Todos los operadores ya están siendo monitoreados.",
+        "dailyGoalLabel": "Meta diaria para {{name}} (horas)",
+        "cancel": "Cancelar",
+        "add": "Agregar",
+        "adding": "Agregando...",
+        "editTitle": "Editar Meta: {{name}}",
+        "matricula": "Matrícula",
+        "name": "Nombre",
+        "dailyGoal": "Meta Diaria (horas)",
+        "monitoring": "Monitoreando",
+        "save": "Guardar",
+        "saving": "Guardando..."
+      },
+      "toasts": {
+        "loadError": "Error al cargar datos",
+        "loadOperatorsError": "Error al cargar operadores",
+        "addSuccess": "¡{{name}} agregado al monitoreo!",
+        "addError": "Error al agregar operador",
+        "updateSuccess": "¡Meta actualizada con éxito!",
+        "saveError": "Error al guardar"
+      }
+    },
+    "dashboard": {
+      "title": "Visión del Día",
+      "subtitle": "Seguimiento de producción por máquina",
+      "dateLabel": "Fecha del WIP",
+      "timeLabel": "Hora referencia (05:30 → 00:44)",
+      "timeHelper": {
+        "past": "Día concluido — usando ventana completa",
+        "future": "Día futuro — esperando inicio",
+        "today": "{{pct}}% del día"
+      },
+      "summary": {
+        "title": "Total Fábrica",
+        "future": "FUTURO",
+        "noGoal": "Sin meta",
+        "produced": "Producido",
+        "expected": "Esperado",
+        "dailyGoal": "Meta diaria",
+        "deviation": "Desviación",
+        "progressVsExpected": "Progreso vs esperado",
+        "progressVsGoal": "vs meta del día",
+        "machines": "Máquinas",
+        "projection": "Proyección",
+        "gap": "Brecha"
+      },
+      "empty": {
+        "noScope": "Ninguna máquina con alcance de producción activo.",
+        "noFilter": "Ninguna máquina encontrada para este filtro..."
+      },
+      "sectors": {
+        "machining": "Mecanizado",
+        "assembly": "Montaje",
+        "all": "Todos"
+      },
+      "mother": "MADRE"
+    },
+    "sectionTitle": "Producción",
+    "upload": {
+      "title": "Carga de Producción",
+      "subtitle": "Importe registros de horas de producción desde un archivo Excel.",
+      "dropzone": "Arrastre un archivo Excel aquí o haga clic para seleccionar",
+      "dropzoneHint": "Formatos aceptados: .xlsx, .xls",
+      "fileLoaded": "Archivo cargado: {{count}} líneas",
+      "readError": "Error al leer archivo Excel",
+      "invalidFormat": "Envíe un archivo .xlsx o .xls",
+      "preview": "Previsualización ({{total}} líneas total, mostrando {{showing}})",
+      "send": "Enviar {{count}} líneas",
+      "sending": "Enviando...",
+      "cancel": "Cancelar",
+      "removeFile": "Eliminar archivo",
+      "successFull": "¡Carga concluida! {{count}} líneas procesadas.",
+      "successPartial": "Carga parcial: {{valid}} líneas OK, {{errors}} con error.",
+      "uploadError": "Error al hacer carga",
+      "result": {
+        "successTitle": "¡Carga concluida con éxito!",
+        "errorTitle": "Carga concluida con errores",
+        "totalLines": "Total de líneas",
+        "validLines": "Líneas válidas",
+        "errorLines": "Líneas con error",
+        "datesProcessed": "Fechas procesadas",
+        "line": "Línea"
+      },
+      "history": {
+        "title": "Cargas del Día",
+        "files": "archivo(s)",
+        "total": "Total",
+        "loading": "Cargando...",
+        "empty": "Ninguna carga encontrada para {{date}}.",
+        "columns": {
+          "file": "Archivo",
+          "dateRef": "Fecha Ref.",
+          "lines": "Líneas",
+          "hours": "Horas",
+          "sentAt": "Enviado el",
+          "status": "Estado"
+        },
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "audit": {
+        "title": "Auditoría de Envíos",
+        "subtitle": "Historial archivado (después de 48h inactivo)",
+        "loading": "Cargando historial...",
+        "empty": "Ningún registro de auditoría encontrado. Las cargas se archivan después de 48h de inactividad.",
+        "columns": {
+          "archivedAt": "Archivado el",
+          "reason": "Motivo",
+          "file": "Archivo",
+          "dateRef": "Fecha Ref.",
+          "lines": "Líneas",
+          "hours": "Horas",
+          "sentAt": "Enviado el",
+          "sentBy": "Enviado por"
+        },
+        "reasons": {
+          "cleanup_48h": "Inactivo 48h+"
+        }
+      },
+      "details": {
+        "title": "Detalles de la Carga",
+        "loading": "Cargando...",
+        "error": "Error",
+        "notFound": "Carga no encontrada",
+        "back": "Volver",
+        "dateRef": "Fecha de referencia",
+        "sentAt": "Enviado el",
+        "by": "por",
+        "machines": "máquinas",
+        "total": "total",
+        "tableTitle": "Registros por Máquina",
+        "emptyTable": "Ningún registro encontrado.",
+        "columns": {
+          "machine": "Máquina",
+          "tag": "Etiqueta",
+          "hours": "Horas",
+          "shift": "Turno(s)"
+        },
+        "totalLabel": "TOTAL"
+      }
+    },
+    "config": {
+      "title": "Configuración de Máquinas",
+      "subtitle": "Gestión centralizada de alcances, sectores y parámetros de producción.",
+      "stats": {
+        "total": "Total Registrado",
+        "maintenance": "Alcance Mantenimiento",
+        "production": "Alcance Producción",
+        "planning": "Alcance Planificación",
+        "withGoals": "Con Metas Activas"
+      },
+      "search": "Buscar por nombre, etiqueta o código...",
+      "onlyProduction": "Solo Producción",
+      "newMachine": "Nueva Máquina",
+      "loadError": "Error al cargar datos del servidor.",
+      "saveSuccess": "¡Configuraciones guardadas con éxito!",
+      "saveError": "Error al guardar cambios",
+      "table": {
+        "identification": "Identificación",
+        "maintenance": "Mantenimiento",
+        "production": "Producción",
+        "sector": "Sector",
+        "goal": "Meta (h)",
+        "aliases": "Alias (Excel)",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "mapped": "mapeado(s)",
+        "mother": "MADRE",
+        "planning": "Planificación"
+      },
+      "empty": {
+        "title": "Ningún resultado encontrado",
+        "text": "Intente ajustar los filtros o agregar una nueva máquina."
+      },
+      "modal": {
+        "addTitle": "Agregar Nueva Máquina",
+        "editTitle": "Editar: {{name}}",
+        "machineName": "Nombre de la Máquina",
+        "machineNamePlaceholder": "Ej: TCN-20",
+        "scopes": "Alcances",
+        "scopeMaintenance": "Mantenimiento",
+        "scopeProduction": "Producción",
+        "hierarchyConfig": "Configuración de Jerarquía",
+        "isMother": "¿Es Máquina Madre?",
+        "showChildrenDashboard": "¿Mostrar hijos en el Panel?",
+        "parentMachine": "Máquina Madre (Línea/Agrupadora)",
+        "noParent": "Ninguna (Máquina Independiente)",
+        "parentHint": "Seleccione la máquina \"Madre\" de esta máquina.",
+        "sector": "Sector/Departamento",
+        "selectSector": "Seleccione...",
+        "aliasesLabel": "Alias para Carga",
+        "aliasesPlaceholder": "Nombres usados en Excel (separados por coma)",
+        "aliasesHint": "Nombres diferentes que aparecen en el Excel y deben resolver a esta máquina.",
+        "goalLabel": "Meta diaria (horas)",
+        "goalPlaceholder": "Ej: 18.50",
+        "goalHint": "Se creará una nueva meta vigente a partir de hoy.",
+        "cancel": "Cancelar",
+        "creating": "Creando...",
+        "createMachine": "Crear Máquina",
+        "saving": "Guardando...",
+        "save": "Guardar Cambios",
+        "delete": "Eliminar"
+      },
+      "createSuccess": "¡Máquina \"{{name}}\" creada!",
+      "createError": "Error al crear máquina",
+      "deleteSuccess": "Máquina eliminada con éxito.",
+      "deleteError": "Error al eliminar máquina",
+      "deleteConfirm": {
+        "title": "Eliminar Máquina",
+        "text": "¿Está seguro que desea eliminar la máquina \"{{name}}\"? Esta acción no se puede deshacer.",
+        "warning": "Esta acción eliminará la máquina de los listados. El historial se conservará en la base de datos.",
+        "confirm": "Eliminar",
+        "deleting": "Eliminando...",
+        "cancel": "Cancelar"
+      }
+    },
+    "uploadDetail": {
+      "title": "Detalles de la Carga",
+      "loading": "Cargando...",
+      "notFound": "Carga no encontrada.",
+      "info": {
+        "file": "Archivo",
+        "dateRef": "Fecha Referencia",
+        "lines": "Líneas",
+        "hours": "Horas Total",
+        "sentAt": "Enviado el",
+        "sentBy": "Enviado por"
+      },
+      "entries": {
+        "title": "Registros",
+        "machine": "Máquina",
+        "hours": "Horas"
+      }
+    }
+  },
+  "planejamento": {
+    "title": "Planificación",
+    "subtitle": "Gestione la planificación de la planta",
+    "emConstrucao": "Módulo en Construcción",
+    "emConstrucaoDesc": "El departamento de Planificación está siendo configurado. Pronto estarán disponibles nuevas funcionalidades.",
+    "config": {
+      "title": "Configuración de Capacidades",
+      "subtitle": "Defina la capacidad disponible y alias por máquina",
+      "howTo": "Cómo funciona",
+      "howToDesc": "Las máquinas listadas abajo son las que tienen alcance de Planificación activo. Configure la capacidad (en horas) de cada una y agregue alias para que el sistema pueda identificar automáticamente el \"Centro de Trabajo\" del Excel.",
+      "machinesTitle": "Máquinas con Alcance Planificación",
+      "noMachines": "Ninguna máquina con alcance Planificación. Active el alcance en las máquinas deseadas en Configuraciones > Máquinas.",
+      "machineName": "Máquina",
+      "capacity": "Capacidad (h)",
+      "aliases": "Alias",
+      "loadError": "Error al cargar máquinas",
+      "capacityRequired": "Informe una capacidad válida",
+      "saved": "Capacidad guardada con éxito",
+      "saveError": "Error al guardar"
+    },
+    "upload": {
+      "title": "Carga de Capacidad",
+      "subtitle": "Importe reservas de capacidad desde un archivo Excel.",
+      "dropzoneText": "Arrastre un archivo Excel aquí o haga clic para seleccionar",
+      "dropzoneHint": "Formatos aceptados: .xlsx, .xls",
+      "preview": "Previsualización",
+      "lines": "líneas",
+      "sendBtn": "Enviar",
+      "successTitle": "¡Carga concluida con éxito!",
+      "errorTitle": "Carga concluida con errores",
+      "totalLines": "Total de líneas",
+      "validLines": "Líneas válidas",
+      "errorLines": "Líneas con error",
+      "line": "Línea",
+      "history": "Historial de Cargas",
+      "files": "archivo(s)",
+      "fileName": "Archivo",
+      "linesCount": "Líneas",
+      "uploadedAt": "Enviado el",
+      "uploadedBy": "Enviado por",
+      "status": "Estado",
+      "noUploads": "Ninguna carga encontrada.",
+      "historyOnly": "Historial",
+      "fileLoaded": "Archivo cargado",
+      "readError": "Error al leer archivo Excel",
+      "invalidFormat": "Envíe un archivo .xlsx o .xls",
+      "success": "¡Carga concluida!",
+      "partial": "Carga parcial"
+    },
+    "stats": {
+      "lastUpdate": "Última Actualización",
+      "calculation": "Días Hábiles (Actual / Total)",
+      "totalOpLoad": "Carga OP Total",
+      "totalRemainingCapacity": "Capacidad Restante",
+      "totalOverload": "Sobrecarga Total",
+      "deficitCenters": "Centros con Déficit",
+      "workCenters": "Centros de Trabajo",
+      "totalLoad": "Carga Total",
+      "totalCapacity": "Capacidad Total",
+      "overloaded": "En Sobrecarga"
+    },
+    "chart": {
+      "monthlyTitle": "Análisis de la Capacidad Mensual vs Plan del Mes",
+      "monthlySubtitle": "Carga OP vs Capacidad Restante (proporcional a los días hábiles)",
+      "thirtyDayTitle": "Análisis de la Capacidad (30 días) vs Necesidad Total",
+      "thirtyDaySubtitle": "Orden de Venta + IQM"
+    },
+    "table": {
+      "title": "Detalles por Centro de Trabajo",
+      "workCenter": "Centro de Trabajo",
+      "loadOP": "Carga OP",
+      "loadHours": "Carga Horas",
+      "capacity": "Capacidad",
+      "occupation": "% Ocupación",
+      "status": "Estado",
+      "noCapacity": "Sin meta",
+      "overloaded": "Sobrecarga",
+      "ok": "OK",
+      "capacityRestante": "Cap. Restante",
+      "overloadWarning": "¡Centro en sobrecarga!",
+      "overloadExceed": "¡Carga OP excede capacidad restante!"
+    }
+  },
+  "quality": {
+    "newScrap": "Rechazo",
+    "success": "¡Registro realizado con éxito!",
+    "error": "Error al guardar registro.",
+    "sector": "Sector",
+    "reference": "Referencia (OP)",
+    "ncr": "NCR",
+    "itemCode": "Código Ítem",
+    "itemDesc": "Descripción Ítem",
+    "defectReason": "Motivo Defecto",
+    "quantity": "Cantidad",
+    "cost": "Costo (R$)",
+    "responsible": "Responsable",
+    "dashboard": "Panel de Calidad",
+    "totalCost": "Costo Total de Rechazo",
+    "totalOccurrences": "Cant. Ítems",
+    "vsLastMonth": "vs Mes Anterior",
+    "vsLastYear": "vs Año Anterior",
+    "monthlyTrend": "Evolución Mensal (Últimos 12 meses)",
+    "topDefects": "Top Defectos (Costo)",
+    "costBySector": "Costo por Sector",
+    "costByOrigin": "Costo por Origen",
+    "dashSubtitle": "Visión general de los costos y principales ofensores de calidad.",
+    "periodTotal": "Total del período seleccionado",
+    "settings": "Configuraciones de Calidad",
+    "settingsSubtitle": "Gestione los orígenes y motivos de defecto.",
+    "formSubtitle": "Registre las no conformidades y rechazos identificados en el proceso.",
+    "costByResponsible": "Costo por Responsable",
+    "origin": "Origen",
+    "totalCostInternal": "Costo Total (Interno)",
+    "totalItems": "Cantidad Total",
+    "totalCount": "Ocurrencias",
+    "averageTicket": "Ticket Promedio",
+    "shareTotal": "Part. Global",
+    "shareCell": "Part. en la Célula",
+    "config": {
+      "addPlaceholder": "Agregar nuevo...",
+      "loading": "Cargando...",
+      "empty": "Ningún ítem registrado.",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "originCreated": "¡Origen creado!",
+      "originUpdateError": "Error al actualizar origen.",
+      "originUpdateSuccess": "¡Origen actualizado!",
+      "originCreateError": "Error al crear origen.",
+      "reasonCreated": "¡Motivo creado!",
+      "reasonUpdateError": "Error al actualizar motivo.",
+      "reasonUpdateSuccess": "¡Motivo actualizado!",
+      "reasonCreateError": "Error al crear motivo.",
+      "respCreated": "¡Responsable creado!",
+      "respUpdateError": "Error al actualizar responsable.",
+      "respUpdateSuccess": "¡Responsable actualizado!",
+      "respCreateError": "Error al crear responsable.",
+      "respDeleteSuccess": "¡Responsable eliminado con éxito!",
+      "respDeleteError": "Error al eliminar responsable.",
+      "respUsageCheckError": "Error al verificar uso del responsable.",
+      "loadError": "Error al cargar datos.",
+      "confirmDelete": "¿Eliminar {{name}}?",
+      "usageWarning": "⚠️ Este ítem tiene {{count}} registros vinculados. Para eliminar, debe transferir estos registros.",
+      "transferTo": "Transferir a:",
+      "selectPlaceholder": "Seleccione...",
+      "deletePermanentWarning": "¿Está seguro que desea eliminar este ítem? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "deleting": "Eliminando..."
+    },
+    "refugo": {
+      "title": "Rechazo",
+      "editTitle": "Editar Registro",
+      "formSubtitle": "Registre las no conformidades y rechazos identificados en el proceso.",
+      "importExcel": "Importar Excel",
+      "cancelUpload": "Cancelar Carga",
+      "importTitle": "Importar planilla de Rechazos",
+      "importHelp": "Seleccione un archivo .xlsx con las columnas: Fecha, Origen, Ítem, Cant, Costo...",
+      "selectFile": "Seleccionar Archivo",
+      "importing": "Importando...",
+      "importSuccess": "Importación Concluida",
+      "importError": "Importación con Errores",
+      "importedCount": "Registros importados:",
+      "ignoredCount": "Registros ignorados (duplicados):",
+      "errorLinesCount": "Líneas con error:",
+      "editing": "Editando Registro",
+      "new": "Nuevo Registro",
+      "cancelEdit": "Cancelar Edición",
+      "updateBtn": "Actualizar Registro",
+      "saveBtn": "Guardar Registro",
+      "recentEntries": "Últimos Registros",
+      "noEntries": "Ningún registro encontrado recientemente.",
+      "confirmDelete": "¿Está seguro que desea eliminar este registro?",
+      "deleteSuccess": "Registro eliminado.",
+      "deleteError": "Error al eliminar.",
+      "updateSuccess": "¡Registro actualizado!",
+      "importSuccessMsg": "¡{{count}} registros importados!",
+      "importPartialMsg": "Hubo errores en la importación. Verifique los detalles.",
+      "importIgnoredMsg": "Algunos ítems fueron ignorados (duplicados).",
+      "importEmptyMsg": "Ningún registro fue importado. Verifique el formato del archivo.",
+      "processError": "Error al procesar: {message}",
+      "emptyFileError": "Archivo vacío o formato inválido",
+      "invalidFormatError": "Ningún registro válido encontrado. Verifique si las columnas obligatorias están presentes.",
+      "processingAdjustments": "Procesando ajustes...",
+      "createAdjustmentsError": "Error al crear nuevos ítems."
+    }
+  },
+  "qualityAnalytics": {
+    "title": "Análisis Detallado",
+    "subtitle": "Visión profunda de costos y rechazos",
+    "totalCost": "Costo Total",
+    "topResponsible": "Top 5 Responsables",
+    "topOrigins": "Top 5 Orígenes",
+    "costTrend": "Tendencia de Costos",
+    "details": "Detalle por Responsable",
+    "detailsOrigin": "Detalle por Origen",
+    "drillDownSubtitle": "Visualizando registros individuales",
+    "responsible": "Responsable",
+    "occurrences": "Ocurrencias",
+    "lastOccurrence": "Última",
+    "cost": "Costo",
+    "viewDetails": "Ver Detalles",
+    "filterOrigin": "Origen",
+    "filterResponsible": "Filtrar por Responsable",
+    "monthlyTrend": "Evolución Mensal",
+    "costLastMonth": "Costo Mes Anterior",
+    "costLastYear": "Costo Año Anterior",
+    "all": "Todas",
+    "filterOriginType": "Tipo de Origen",
+    "internal": "Interno",
+    "external": "Externo",
+    "allTypes": "Todos los Tipos",
+    "accessDenied": "Acceso Denegado",
+    "accessDeniedMsg": "No tiene permiso para visualizar el Análisis Detallado de Calidad. Contacte al administrador para solicitar acceso.",
+    "backToStart": "Volver al Inicio"
+  },
+  "qualityComparative": {
+    "title": "Comparativos",
+    "subtitle": "Compare métricas entre períodos, orígenes y responsables",
+    "periodA": "Período A",
+    "periodB": "Período B",
+    "compareBy": "Comparar por",
+    "periods": "Períodos",
+    "origins": "Orígenes",
+    "responsibles": "Responsables",
+    "delta": "Variación",
+    "increase": "Aumento",
+    "decrease": "Reducción",
+    "noChange": "Sin cambios",
+    "thisVsLastMonth": "Este Mes vs Mes Anterior",
+    "thisVsLastYear": "Este Mes vs Año Anterior",
+    "yearVsYear": "Este Año vs Año Anterior",
+    "compare": "Comparar",
+    "occurrences": "ocurrencias",
+    "totalCost": "Costo Total",
+    "costComparison": "Comparación de Costos"
+  },
+  "qualityIndividual": {
+    "title": "Rendimiento Individual",
+    "desc": "Rendimiento detallado por colaborador."
+  },
+  "logistics": {
+    "dashboardTitle": "Panel de Logística",
+    "dashboardSubtitle": "Seguimiento diario de KPIs financieros y operativos",
+    "controls": {
+      "title": "Dashboard de Logística",
+      "titleFullscreen": "RENDIMIENTO DE FACTURACIÓN - {{month}} - {{year}}",
+      "firstFortnight": "1.ª Quincena",
+      "secondFortnight": "2.ª Quincena",
+      "monthlyTarget": "Meta Mensual",
+      "expand": "Expandir",
+      "refresh": "Actualizar",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "loading": "Cargando...",
+      "downloadTable": "Descargar Tabla",
+      "downloadChart": "Descargar Gráfico"
+    },
+    "headers": {
+      "indicator": "INDICADOR",
+      "total": "TOTAL",
+      "billing": "FACTURACIÓN",
+      "meta": "META y ADHERENCIA",
+      "comparison": "COMPARATIVO MES ANTERIOR",
+      "returns": "DEVOLUCIONES",
+      "ottr": "OTTR"
+    },
+    "rows": {
+      "nationalBilling": "Facturado Nacional",
+      "exportBilling": "Facturado Exportación",
+      "total": "TOTAL",
+      "realizedDay": "Realizado en el Día",
+      "metaMonth": "Meta {{month}}",
+      "realizedVsMeta": "Realizado X Meta",
+      "realizedLastMonth": "Realizado {{month}}",
+      "variation": "{{month1}} X {{month2}}",
+      "returns": "Devoluciones",
+      "totalLines": "Total de Líneas",
+      "linesOnTime": "Líneas On Time",
+      "linesLate": "Líneas con Retraso",
+      "backlogLate": "Backlog con Retraso",
+      "ottrYtd": "OTTR YTD (Acum)",
+      "ottrLastMonth": "OTTR {{month}}"
+    },
+    "charts": {
+      "financialPerformance": "Rendimiento Financiero",
+      "ottrEvolution": "Evolución OTTR YTD (Acumulado)",
+      "day": "Día del Mes",
+      "value": "Valor (en miles de R$)",
+      "ottrYtd": "OTTR YTD (%)"
+    },
+    "modal": {
+      "title": "Día {{day}} - {{weekday}}",
+      "billing": "Facturación",
+      "nationalBillingAcum": "Facturado Nacional (Acum.)",
+      "exportBillingAcum": "Facturado Exportación (Acum.)",
+      "returns": "Devoluciones",
+      "returnsDay": "Devoluciones del Día",
+      "serviceLevel": "Nivel de Servicio (OTTR)",
+      "totalLines": "Total de Líneas",
+      "linesLate": "Líneas con Retraso",
+      "backlogLate": "Backlog con Retraso",
+      "workingDay": "¿Día Hábil?",
+      "suggested": "sugerido",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "summary": {
+      "realizedMonth": "Realizado Mes",
+      "monthlyTarget": "Meta Mensual",
+      "reached": "% Alcanzado",
+      "variationVsMeta": "Variación vs Meta"
+    },
+    "legend": {
+      "total": "Total {{date}}",
+      "meta": "Meta {{date}}",
+      "returns": "Devoluciones {{date}}",
+      "ottrYtd": "OTTR YTD {{date}}"
+    }
+  },
+  "movimentacaoModal": {
+    "titleIn": "Registrar Entrada",
+    "titleOut": "Registrar Salida",
+    "part": "Pieza",
+    "quantity": "Cantidad",
+    "description": "Descripción (opcional)",
+    "confirm": "Confirmar",
+    "processing": "Procesando...",
+    "successIn": "¡Movimiento de entrada realizado con éxito!",
+    "successOut": "¡Movimiento de salida realizado con éxito!",
+    "error": "Fallo al registrar movimiento.",
+    "invalidQty": "Cantidad inválida"
+  },
+  "historicoMovimentacoes": {
+    "title": "Historial de Movimientos",
+    "subtitle": "Control de entradas y salidas de stock",
+    "table": {
+      "date": "Fecha/Hora",
+      "code": "Código",
+      "part": "Pieza",
+      "type": "Tipo",
+      "qty": "Cant",
+      "balance": "Saldo",
+      "description": "Descripción",
+      "user": "Usuario"
+    },
+    "filters": {
+      "type": "Tipo",
+      "part": "Pieza",
+      "startDate": "Fecha Inicio",
+      "endDate": "Fecha Fin",
+      "clear": "Limpiar Filtros",
+      "all": "Todos"
+    },
+    "types": {
+      "entry": "Entrada",
+      "exit": "Salida"
+    },
+    "empty": "Ningún movimiento encontrado.",
+    "count": "{{count}} registro(s) encontrado(s)"
   }
 }
