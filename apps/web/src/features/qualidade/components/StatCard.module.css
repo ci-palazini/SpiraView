@@ -78,6 +78,15 @@
     border-left: 4px solid #ef4444;
 }
 
+.icon.purple {
+    background-color: #f3e8ff;
+    color: #a855f7;
+}
+
+.card.purple {
+    border-left: 4px solid #a855f7;
+}
+
 .value {
     font-size: 1.875rem;
     font-weight: 700;

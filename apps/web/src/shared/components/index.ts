@@ -21,6 +21,7 @@ export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 
 export { SelectList } from './SelectList';
+export { default as MultiSelect } from './MultiSelect';
 export type { SelectListProps, SelectListOption } from './SelectList';
 
 export { NumericKeypad } from './NumericKeypad';

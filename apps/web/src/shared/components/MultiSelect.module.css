@@ -1,0 +1,119 @@
+.container {
+    position: relative;
+    width: 100%;
+}
+
+.trigger {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 42px;
+    font-size: 0.875rem;
+    color: #1e293b;
+}
+
+.trigger:hover {
+    border-color: #cbd5e1;
+}
+
+.trigger:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.placeholder {
+    color: #94a3b8;
+}
+
+.value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 50;
+    margin-top: 4px;
+}
+
+.searchContainer {
+    padding: 0.5rem;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.option {
+    padding: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.option:hover {
+    background-color: #f1f5f9;
+}
+
+.optionSelected {
+    background-color: #eff6ff;
+    color: #3b82f6;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkboxChecked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.badge {
+    background-color: #e2e8f0;
+    color: #475569;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}

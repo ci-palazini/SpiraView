@@ -21,12 +21,22 @@ const buildWhereForPeriod = (
     where += ` AND data_ocorrencia <= $${params.length}`;
 
     if (origem) {
-        params.push(origem);
-        where += ` AND origem = $${params.length}`;
+        if (Array.isArray(origem)) {
+            params.push(origem);
+            where += ` AND origem = ANY($${params.length})`;
+        } else {
+            params.push(origem);
+            where += ` AND origem = $${params.length}`;
+        }
     }
     if (responsavel) {
-        params.push(responsavel);
-        where += ` AND responsavel_nome = $${params.length}`;
+        if (Array.isArray(responsavel)) {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = ANY($${params.length})`;
+        } else {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = $${params.length}`;
+        }
     }
     if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
         params.push(tipo);
@@ -42,6 +52,7 @@ const buildWhereForPeriod = (
 interface PeriodData {
     label: string;
     totalCost: number;
+    totalQuantity: number;
     count: number;
     topDefects: { motivo: string; custo: number }[];
     topOrigens: { origem: string; custo: number }[];
@@ -57,9 +68,9 @@ const fetchPeriodData = async (
     const params: any[] = [];
     const where = buildWhereForPeriod(params, dataInicio, dataFim, query);
 
-    // Total cost and count
+    // Total cost, quantity and count
     const totalsQuery = await pool.query(
-        `SELECT COALESCE(SUM(custo), 0) as total_cost, COUNT(*) as total_count 
+        `SELECT COALESCE(SUM(custo), 0) as total_cost, COALESCE(SUM(quantidade), 0) as total_quantity, COUNT(*) as total_count 
          FROM qualidade_refugos WHERE ${where}`,
         params
     );
@@ -106,6 +117,7 @@ const fetchPeriodData = async (
     return {
         label,
         totalCost: parseFloat(totalsQuery.rows[0]?.total_cost || '0'),
+        totalQuantity: parseFloat(totalsQuery.rows[0]?.total_quantity || '0'),
         count: parseInt(totalsQuery.rows[0]?.total_count || '0', 10),
         topDefects: defectsQuery.rows.map(r => ({
             motivo: r.motivo,
@@ -180,7 +192,8 @@ compareRouter.get('/qualidade/analytics/compare',
                 delta: {
                     costDiff: +costDiff.toFixed(2),
                     costPctChange: +costPctChange.toFixed(2),
-                    countDiff
+                    countDiff,
+                    quantityDiff: periodA.totalQuantity - periodB.totalQuantity
                 }
             });
 

@@ -4,6 +4,7 @@ import { uploadRouter } from './upload';
 import { settingsRouter } from './settings';
 import { analyticsRouter } from './analytics';
 import { compareRouter } from './compare';
+import { individualRouter } from './individual';
 
 export const qualidadeRouter: Router = Router();
 
@@ -12,4 +13,5 @@ qualidadeRouter.use(uploadRouter);
 qualidadeRouter.use(settingsRouter);
 qualidadeRouter.use(analyticsRouter);
 qualidadeRouter.use(compareRouter);
+qualidadeRouter.use(individualRouter);
 

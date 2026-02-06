@@ -26,8 +26,8 @@ interface QualityDrillDownModalProps {
     onClose: () => void;
     filters: {
         tipo?: string;
-        origem?: string;
-        responsavel?: string;
+        origem?: string | string[];
+        responsavel?: string | string[];
         tipoLancamento?: string;
         dataInicio?: string;
         dataFim?: string;

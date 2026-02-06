@@ -136,6 +136,7 @@ const MyComponent = () => {
 | `qualidade_dashboard` | Qualidade | Dashboard de indicadores de refugo | `ver` |
 | `qualidade_lancamento` | Qualidade | Lançamento de novos refugos | `ver`, `editar` |
 | `qualidade_analitico` | Qualidade | Análise detalhada de custos e tendências | `ver` |
+| `qualidade_desempenho` | Qualidade | Análise de desempenho individual | `ver` |
 
 ### Logística
 

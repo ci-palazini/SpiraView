@@ -1,26 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { startOfYear, endOfYear, startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, subMonths } from 'date-fns';
-import { listarOrigens, QualidadeOpcao } from '../../../services/apiClient';
+import { listarOrigens, listarResponsaveisSettings, QualidadeOpcao } from '../../../services/apiClient';
 import styles from './DashboardFilter.module.css';
+
+import { MultiSelect } from '../../../shared/components';
 
 export type Period = 'current_year' | 'current_month' | 'last_month' | 'current_week' | 'custom';
 
 interface Props {
-    onChange: (period: Period, start?: string, end?: string, tipo?: string, origem?: string) => void;
+    onChange: (period: Period, start?: string, end?: string, tipo?: string, origem?: string | string[], responsavel?: string | string[]) => void;
+    hideOriginType?: boolean;
 }
 
-export default function DashboardFilter({ onChange }: Props) {
+export default function DashboardFilter({ onChange, hideOriginType = false }: Props) {
     const { t } = useTranslation();
     const [period, setPeriod] = useState<Period>('current_month');
     const [tipo, setTipo] = useState('');
-    const [origem, setOrigem] = useState('');
+    const [origem, setOrigem] = useState<string[]>([]);
+    const [responsavel, setResponsavel] = useState<string[]>([]);
     const [origensList, setOrigensList] = useState<QualidadeOpcao[]>([]);
+    const [responsaveisList, setResponsaveisList] = useState<QualidadeOpcao[]>([]);
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
 
     useEffect(() => {
-        applyFilter(period, tipo, origem);
+        applyFilter(period, tipo, origem, responsavel);
+        fetchResponsaveis();
     }, []); // Run once on mount
 
     useEffect(() => {
@@ -33,16 +39,28 @@ export default function DashboardFilter({ onChange }: Props) {
             setOrigensList(data);
 
             // If current selected origin is not in the new list, reset it
-            if (origem && !data.find((o: QualidadeOpcao) => o.nome === origem)) {
-                setOrigem('');
-                applyFilter(period, tipo, '', customStart, customEnd);
+            if (origem.length > 0) {
+                const validOrigens = origem.filter(o => data.find((d: QualidadeOpcao) => d.nome === o));
+                if (validOrigens.length !== origem.length) {
+                    setOrigem(validOrigens);
+                    applyFilter(period, tipo, validOrigens, responsavel, customStart, customEnd);
+                }
             }
         } catch (err) {
             console.error('Failed to fetch origins', err);
         }
     };
 
-    const applyFilter = (p: Period, tOrigem?: string, oEspecifica?: string, cStart?: string, cEnd?: string) => {
+    const fetchResponsaveis = async () => {
+        try {
+            const data = await listarResponsaveisSettings(false);
+            setResponsaveisList(data);
+        } catch (err) {
+            console.error('Failed to fetch responsibles', err);
+        }
+    };
+
+    const applyFilter = (p: Period, tOrigem?: string, oEspecifica?: string | string[], respEspecifico?: string | string[], cStart?: string, cEnd?: string) => {
         const now = new Date();
         let start = '';
         let end = '';
@@ -74,7 +92,7 @@ export default function DashboardFilter({ onChange }: Props) {
         }
 
         if (p !== 'custom' || (start && end)) {
-            onChange(p, start, end, tOrigem, oEspecifica);
+            onChange(p, start, end, tOrigem, oEspecifica, respEspecifico);
         }
     };
 
@@ -82,7 +100,7 @@ export default function DashboardFilter({ onChange }: Props) {
         const p = e.target.value as Period;
         setPeriod(p);
         if (p !== 'custom') {
-            applyFilter(p, tipo, origem);
+            applyFilter(p, tipo, origem, responsavel);
         }
     };
 
@@ -90,13 +108,19 @@ export default function DashboardFilter({ onChange }: Props) {
         const tVal = e.target.value;
         setTipo(tVal);
         // Origem filtering is handled by the useEffect and fetchOrigens
-        applyFilter(period, tVal, origem, customStart, customEnd);
+        applyFilter(period, tVal, origem, responsavel, customStart, customEnd);
     };
 
-    const handleOrigemChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const oVal = e.target.value;
-        setOrigem(oVal);
-        applyFilter(period, tipo, oVal, customStart, customEnd);
+    const handleOrigemChange = (val: (string | number)[]) => {
+        const newOrigem = val as string[];
+        setOrigem(newOrigem);
+        applyFilter(period, tipo, newOrigem, responsavel, customStart, customEnd);
+    };
+
+    const handleResponsavelChange = (val: (string | number)[]) => {
+        const newResponsavel = val as string[];
+        setResponsavel(newResponsavel);
+        applyFilter(period, tipo, origem, newResponsavel, customStart, customEnd);
     };
 
     return (
@@ -112,23 +136,39 @@ export default function DashboardFilter({ onChange }: Props) {
                 </select>
             </div>
 
-            <div className={styles.filterGroup}>
-                <label>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}:</label>
-                <select value={tipo} onChange={handleTypeChange} className={styles.select}>
-                    <option value="">{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</option>
-                    <option value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</option>
-                    <option value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</option>
-                </select>
-            </div>
+            {!hideOriginType && (
+                <div className={styles.filterGroup}>
+                    <label>{t('qualityAnalytics.filterOriginType', 'Tipo de Origem')}:</label>
+                    <select value={tipo} onChange={handleTypeChange} className={styles.select}>
+                        <option value="">{t('qualityAnalytics.allTypes', 'Todos os Tipos')}</option>
+                        <option value="INTERNO">{t('qualityAnalytics.internal', 'Interno')}</option>
+                        <option value="EXTERNO">{t('qualityAnalytics.external', 'Externo')}</option>
+                    </select>
+                </div>
+            )}
 
             <div className={styles.filterGroup}>
                 <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
-                <select value={origem} onChange={handleOrigemChange} className={styles.select}>
-                    <option value="">{t('qualityAnalytics.all', 'Todas')}</option>
-                    {origensList.map(opt => (
-                        <option key={opt.id} value={opt.nome}>{opt.nome}</option>
-                    ))}
-                </select>
+                <div style={{ width: '250px' }}>
+                    <MultiSelect
+                        options={origensList.map(o => ({ label: o.nome, value: o.nome }))}
+                        value={origem}
+                        onChange={handleOrigemChange}
+                        placeholder={t('qualityAnalytics.all', 'Todas')}
+                    />
+                </div>
+            </div>
+
+            <div className={styles.filterGroup}>
+                <label>{t('qualityAnalytics.responsible', 'Responsável')}:</label>
+                <div style={{ width: '250px' }}>
+                    <MultiSelect
+                        options={responsaveisList.map(r => ({ label: r.nome, value: r.nome }))}
+                        value={responsavel}
+                        onChange={handleResponsavelChange}
+                        placeholder={t('qualityAnalytics.all', 'Todos')}
+                    />
+                </div>
             </div>
 
             {period === 'custom' && (
@@ -138,7 +178,7 @@ export default function DashboardFilter({ onChange }: Props) {
                         value={customStart}
                         onChange={(e) => {
                             setCustomStart(e.target.value);
-                            if (e.target.value && customEnd) applyFilter('custom', tipo, origem, e.target.value, customEnd);
+                            if (e.target.value && customEnd) applyFilter('custom', tipo, origem, responsavel, e.target.value, customEnd);
                         }}
                         className={styles.input}
                     />
@@ -148,7 +188,7 @@ export default function DashboardFilter({ onChange }: Props) {
                         value={customEnd}
                         onChange={(e) => {
                             setCustomEnd(e.target.value);
-                            if (customStart && e.target.value) applyFilter('custom', tipo, origem, customStart, e.target.value);
+                            if (customStart && e.target.value) applyFilter('custom', tipo, origem, responsavel, customStart, e.target.value);
                         }}
                         className={styles.input}
                     />

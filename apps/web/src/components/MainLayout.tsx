@@ -60,8 +60,9 @@ import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfi
 import RefugoFormPage from '../features/qualidade/pages/RefugoFormPage';
 import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboardPage';
 import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
-import QualidadeAnaliticoPage from '../features/qualidade/pages/QualidadeAnaliticoPage';
+// QualidadeAnaliticoPage removed - merged into QualidadeDashboardPage
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
+import QualidadeDesempenhoPage from '../features/qualidade/pages/QualidadeDesempenhoPage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 
@@ -641,7 +642,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Qualidade - novo departamento */}
             {
-                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config']) && (
+                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho']) && (
                     <SidebarGroup id="quality" label={t('layout.sections.quality', 'Qualidade')} icon={FiShield}>
                         {perm.canView('qualidade_dashboard') && (
                             <NavLink
@@ -654,18 +655,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 <span>{t('nav.qualityDashboard', 'Dashboard')}</span>
                             </NavLink>
                         )}
-                        {perm.canView('qualidade_analitico') && (
-                            <NavLink
-                                to="/qualidade/analitico"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiPieChart className={styles.navIcon} />
-                                <span>{t('qualityAnalytics.title', 'Analítico')}</span>
-                            </NavLink>
-                        )}
-                        {perm.canView('qualidade_analitico') && (
+                        {perm.canView('qualidade_dashboard') && (
                             <NavLink
                                 to="/qualidade/comparativo"
                                 className={({ isActive }) =>
@@ -674,6 +664,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             >
                                 <FiBarChart2 className={styles.navIcon} />
                                 <span>{t('qualityComparative.title', 'Comparativos')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('qualidade_desempenho') && (
+                            <NavLink
+                                to="/qualidade/desempenho"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiUsers className={styles.navIcon} />
+                                <span>{t('qualityIndividual.title', 'Desempenho')}</span>
                             </NavLink>
                         )}
                         {perm.canView('qualidade_lancamento') && (
@@ -1008,13 +1009,14 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         path="/qualidade/dashboard"
                         element={canAccessPage('qualidade_dashboard', <QualidadeDashboardPage />)}
                     />
-                    <Route
-                        path="/qualidade/analitico"
-                        element={canAccessPage('qualidade_analitico', <QualidadeAnaliticoPage />)}
-                    />
+                    {/* Route /qualidade/analitico removed - merged into Dashboard */}
                     <Route
                         path="/qualidade/comparativo"
-                        element={canAccessPage('qualidade_analitico', <QualidadeComparativoPage />)}
+                        element={canAccessPage('qualidade_dashboard', <QualidadeComparativoPage />)}
+                    />
+                    <Route
+                        path="/qualidade/desempenho"
+                        element={canAccessPage('qualidade_desempenho', <QualidadeDesempenhoPage />)}
                     />
                     <Route
                         path="/qualidade/config"

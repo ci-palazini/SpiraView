@@ -32,8 +32,13 @@ refugosRouter.get('/qualidade/refugos',
                 where += ` AND qr.data_ocorrencia <= $${params.length}`;
             }
             if (origem) {
-                params.push(origem);
-                where += ` AND qr.origem = $${params.length}`;
+                if (Array.isArray(origem)) {
+                    params.push(origem);
+                    where += ` AND qr.origem = ANY($${params.length})`;
+                } else {
+                    params.push(origem);
+                    where += ` AND qr.origem = $${params.length}`;
+                }
             }
             if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
                 params.push(tipo);
@@ -44,10 +49,15 @@ refugosRouter.get('/qualidade/refugos',
                 where += ` AND qr.tipo_lancamento = $${params.length}`;
             }
 
-            const responsavel = req.query.responsavel as string;
+            const responsavel = req.query.responsavel as string | string[];
             if (responsavel) {
-                params.push(responsavel);
-                where += ` AND qr.responsavel_nome = $${params.length}`;
+                if (Array.isArray(responsavel)) {
+                    params.push(responsavel);
+                    where += ` AND qr.responsavel_nome = ANY($${params.length})`;
+                } else {
+                    params.push(responsavel);
+                    where += ` AND qr.responsavel_nome = $${params.length}`;
+                }
             }
 
             // Count total
@@ -206,8 +216,9 @@ refugosRouter.get('/qualidade/dashboard',
             const dataInicio = req.query.dataInicio as string;
             const dataFim = req.query.dataFim as string;
             const tipo = req.query.tipo as string;
+            const origem = req.query.origem as string | string[];
             const tipoLancamento = req.query.tipoLancamento as string;
-            const origem = req.query.origem as string;
+            const responsavel = req.query.responsavel as string | string[];
 
             const params: any[] = [];
             let where = '1=1';
@@ -221,8 +232,13 @@ refugosRouter.get('/qualidade/dashboard',
                 where += ` AND data_ocorrencia <= $${params.length}`;
             }
             if (origem) {
-                params.push(origem);
-                where += ` AND origem = $${params.length}`;
+                if (Array.isArray(origem)) {
+                    params.push(origem);
+                    where += ` AND origem = ANY($${params.length})`;
+                } else {
+                    params.push(origem);
+                    where += ` AND origem = $${params.length}`;
+                }
             }
             if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
                 params.push(tipo);
@@ -232,10 +248,72 @@ refugosRouter.get('/qualidade/dashboard',
                 params.push(tipoLancamento);
                 where += ` AND tipo_lancamento = $${params.length}`;
             }
+            if (responsavel) {
+                if (Array.isArray(responsavel)) {
+                    params.push(responsavel);
+                    where += ` AND responsavel_nome = ANY($${params.length})`;
+                } else {
+                    params.push(responsavel);
+                    where += ` AND responsavel_nome = $${params.length}`;
+                }
+            }
 
-            // Total Custo
-            const custoTotalQuery = await pool.query(
-                `SELECT SUM(custo) as total FROM qualidade_refugos WHERE ${where}`, params
+            // Build base WHERE without date filters for comparison queries
+            const buildBaseWhere = () => {
+                const baseParams: any[] = [];
+                let baseWhere = '1=1';
+                if (origem) {
+                    if (Array.isArray(origem)) {
+                        baseParams.push(origem);
+                        baseWhere += ` AND origem = ANY($${baseParams.length})`;
+                    } else {
+                        baseParams.push(origem);
+                        baseWhere += ` AND origem = $${baseParams.length}`;
+                    }
+                }
+                if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
+                    baseParams.push(tipo);
+                    baseWhere += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${baseParams.length})`;
+                }
+                if (tipoLancamento) {
+                    baseParams.push(tipoLancamento);
+                    baseWhere += ` AND tipo_lancamento = $${baseParams.length}`;
+                }
+                if (responsavel) {
+                    if (Array.isArray(responsavel)) {
+                        baseParams.push(responsavel);
+                        baseWhere += ` AND responsavel_nome = ANY($${baseParams.length})`;
+                    } else {
+                        baseParams.push(responsavel);
+                        baseWhere += ` AND responsavel_nome = $${baseParams.length}`;
+                    }
+                }
+                return { baseWhere, baseParams };
+            };
+
+            // Total Custo e Ocorrências
+            const totaisQuery = await pool.query(
+                `SELECT SUM(custo) as total, COUNT(*) as ocorrencias FROM qualidade_refugos WHERE ${where}`, params
+            );
+
+            // Custo Mês Anterior
+            const { baseWhere, baseParams } = buildBaseWhere();
+            const custoMesAnteriorQuery = await pool.query(
+                `SELECT SUM(custo) as total FROM qualidade_refugos 
+                 WHERE ${baseWhere}
+                 AND data_ocorrencia >= date_trunc('month', current_date - interval '1 month')
+                 AND data_ocorrencia < date_trunc('month', current_date)`,
+                baseParams
+            );
+
+            // Custo Ano Anterior (mesmo período do ano passado)
+            const { baseWhere: baseWhere2, baseParams: baseParams2 } = buildBaseWhere();
+            const custoAnoAnteriorQuery = await pool.query(
+                `SELECT SUM(custo) as total FROM qualidade_refugos 
+                 WHERE ${baseWhere2}
+                 AND data_ocorrencia >= date_trunc('year', current_date - interval '1 year')
+                 AND data_ocorrencia < date_trunc('year', current_date)`,
+                baseParams2
             );
 
             // Top 5 Defeitos
@@ -267,13 +345,47 @@ refugosRouter.get('/qualidade/dashboard',
              LIMIT 10`, params
             );
 
+            // Tendência mensal (últimos 12 meses)
+            const { baseWhere: baseWhere3, baseParams: baseParams3 } = buildBaseWhere();
+            const trendsQuery = await pool.query(
+                `SELECT TO_CHAR(data_ocorrencia, 'YYYY-MM') as periodo, SUM(custo) as custo, COUNT(*) as ocorrencias
+                 FROM qualidade_refugos 
+                 WHERE ${baseWhere3}
+                 AND data_ocorrencia >= current_date - interval '12 months'
+                 GROUP BY periodo 
+                 ORDER BY periodo ASC`,
+                baseParams3
+            );
+
+            // Calculate variations
+            const custoTotal = parseFloat(totaisQuery.rows[0]?.total || '0');
+            const custoMesAnterior = parseFloat(custoMesAnteriorQuery.rows[0]?.total || '0');
+            const custoAnoAnterior = parseFloat(custoAnoAnteriorQuery.rows[0]?.total || '0');
+
+            const variacaoMes = custoMesAnterior > 0
+                ? ((custoTotal - custoMesAnterior) / custoMesAnterior) * 100
+                : 0;
+            const variacaoAno = custoAnoAnterior > 0
+                ? ((custoTotal - custoAnoAnterior) / custoAnoAnterior) * 100
+                : 0;
+
             res.json({
                 kpis: {
-                    custoTotal: custoTotalQuery.rows[0]?.total || 0
+                    custoTotal,
+                    totalOcorrencias: parseInt(totaisQuery.rows[0]?.ocorrencias || '0'),
+                    custoMesAnterior,
+                    custoAnoAnterior,
+                    variacaoMes: Math.round(variacaoMes * 10) / 10,
+                    variacaoAno: Math.round(variacaoAno * 10) / 10
                 },
                 defeitos: defeitosQuery.rows,
-                origens: origemQuery.rows, // Renamed from setores
-                responsaveis: responsaveisQuery.rows
+                origens: origemQuery.rows,
+                responsaveis: responsaveisQuery.rows,
+                trends: trendsQuery.rows.map(r => ({
+                    period: r.periodo,
+                    cost: parseFloat(r.custo),
+                    count: parseInt(r.ocorrencias)
+                }))
             });
         } catch (e: any) {
             console.error(e);

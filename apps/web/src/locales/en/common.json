@@ -1432,6 +1432,9 @@
     "responsible": "Responsible",
     "dashboard": "Quality Dashboard",
     "totalCost": "Total Scrap Cost",
+    "vsLastMonth": "vs Last Month",
+    "vsLastYear": "vs Last Year",
+    "monthlyTrend": "Monthly Trend (Last 12 months)",
     "topDefects": "Top Defects (Cost)",
     "costBySector": "Cost by Sector",
     "costByOrigin": "Cost by Origin",
@@ -1440,8 +1443,17 @@
     "settings": "Quality Settings",
     "settingsSubtitle": "Manage origins and defect reasons.",
     "formSubtitle": "Record non-conformities and scrap identified in the process.",
-    "costByResponsible": "Cost by Responsible",
+    "costByResponsible": "Cost by Assignee",
     "origin": "Origin",
+    "totalCostInternal": "Total Cost (Internal)",
+    "totalItems": "Total Quantity",
+    "totalCount": "Occurrences",
+    "totalOccurrences": "Items Raised",
+    "averageTicket": "Average Ticket",
+    "shareTotal": "Global Share",
+    "shareCell": "Cell Share",
+    "shareTotalShort": "Global Share",
+    "shareCellShort": "Cell Share",
     "config": {
       "addPlaceholder": "Add new...",
       "loading": "Loading...",
@@ -1561,6 +1573,10 @@
     "totalCost": "Total Cost",
     "costComparison": "Cost Comparison",
     "defectsComparison": "Top Defects"
+  },
+  "qualityIndividual": {
+    "title": "Individual Performance",
+    "desc": "Detailed performance by collaborator."
   },
   "logistics": {
     "dashboardTitle": "Logistics Panel",

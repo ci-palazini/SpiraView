@@ -16,6 +16,7 @@ import { Bar } from 'react-chartjs-2';
 import toast from 'react-hot-toast';
 
 import PageHeader from '../../../shared/components/PageHeader';
+import { MultiSelect } from '../../../shared/components';
 import {
     getQualityComparison,
     listarOrigens,
@@ -48,8 +49,8 @@ export default function QualidadeComparativoPage() {
     // Common filters
     const [tipo, setTipo] = useState('');
     const [tipoLancamento, setTipoLancamento] = useState('');
-    const [origem, setOrigem] = useState('');
-    const [responsavel, setResponsavel] = useState('');
+    const [origem, setOrigem] = useState<string[]>([]);
+    const [responsavel, setResponsavel] = useState<string[]>([]);
 
     // Options
     const [origemOpts, setOrigemOpts] = useState<QualidadeOpcao[]>([]);
@@ -61,8 +62,8 @@ export default function QualidadeComparativoPage() {
     useEffect(() => {
         loadOptions();
         // Reset dependent filters when type changes
-        setOrigem('');
-        setResponsavel('');
+        setOrigem([]);
+        setResponsavel([]);
     }, [tipo]);
 
     const loadOptions = async () => {
@@ -78,32 +79,32 @@ export default function QualidadeComparativoPage() {
         }
     };
 
-    const handleCompare = async () => {
-        setLoading(true);
-        try {
-            const data = await getQualityComparison({
-                dataInicioA,
-                dataFimA,
-                dataInicioB,
-                dataFimB,
-                tipo: tipo || undefined,
-                tipoLancamento: tipoLancamento || undefined,
-                origem: origem || undefined,
-                responsavel: responsavel || undefined
-            });
-            setResult(data);
-        } catch (err) {
-            console.error(err);
-            toast.error(t('common.error', 'Erro ao carregar dados'));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Auto-compare on mount
+    // Auto-compare when filters change
     useEffect(() => {
-        handleCompare();
-    }, []);
+        const fetchComparison = async () => {
+            setLoading(true);
+            try {
+                const data = await getQualityComparison({
+                    dataInicioA,
+                    dataFimA,
+                    dataInicioB,
+                    dataFimB,
+                    tipo: tipo || undefined,
+                    tipoLancamento: tipoLancamento || undefined,
+                    origem: origem.length ? origem : undefined,
+                    responsavel: responsavel.length ? responsavel : undefined
+                });
+                setResult(data);
+            } catch (err) {
+                console.error(err);
+                toast.error(t('common.error', 'Erro ao carregar dados'));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchComparison();
+    }, [dataInicioA, dataFimA, dataInicioB, dataFimB, tipo, tipoLancamento, origem, responsavel, t]);
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -221,7 +222,7 @@ export default function QualidadeComparativoPage() {
         }
     }), []);
 
-    if (!canView('qualidade_analitico')) {
+    if (!canView('qualidade_dashboard')) {
         return (
             <div className={styles.container}>
                 <div className={styles.emptyState}>
@@ -301,41 +302,27 @@ export default function QualidadeComparativoPage() {
                     </div>
                     <div className={styles.filterGroup}>
                         <label className={styles.filterLabel}>{t('qualityComparative.origins', 'Origem')}</label>
-                        <select
-                            className={styles.filterSelect}
-                            value={origem}
-                            onChange={(e) => setOrigem(e.target.value)}
-                        >
-                            <option value="">{t('nav.todos', 'Todas')}</option>
-                            {origemOpts.map((opt) => (
-                                <option key={opt.id} value={opt.nome}>
-                                    {opt.nome}
-                                </option>
-                            ))}
-                        </select>
+                        <div style={{ width: '250px' }}>
+                            <MultiSelect
+                                options={origemOpts.map((opt) => ({ label: opt.nome, value: opt.nome }))}
+                                value={origem}
+                                onChange={(val) => setOrigem(val as string[])}
+                                placeholder={t('nav.todos', 'Todas')}
+                            />
+                        </div>
                     </div>
                     <div className={styles.filterGroup}>
                         <label className={styles.filterLabel}>{t('qualityComparative.responsibles', 'Responsável')}</label>
-                        <select
-                            className={styles.filterSelect}
-                            value={responsavel}
-                            onChange={(e) => setResponsavel(e.target.value)}
-                        >
-                            <option value="">{t('nav.todos', 'Todos')}</option>
-                            {responsavelOpts.map((resp) => (
-                                <option key={resp} value={resp}>
-                                    {resp}
-                                </option>
-                            ))}
-                        </select>
+                        <div style={{ width: '250px' }}>
+                            <MultiSelect
+                                options={responsavelOpts.map((resp) => ({ label: resp, value: resp }))}
+                                value={responsavel}
+                                onChange={(val) => setResponsavel(val as string[])}
+                                placeholder={t('nav.todos', 'Todos')}
+                            />
+                        </div>
                     </div>
-                    <button
-                        className={styles.compareButton}
-                        onClick={handleCompare}
-                        disabled={loading}
-                    >
-                        {loading ? t('common.loading', 'Carregando...') : t('qualityComparative.compare', 'Comparar')}
-                    </button>
+
                 </div>
 
                 {/* Comparison Grid */}
@@ -363,6 +350,7 @@ export default function QualidadeComparativoPage() {
                         {result && (
                             <>
                                 <div className={styles.costValue}>{formatCurrency(result.periodA.totalCost)}</div>
+                                <div className={styles.countValue}>{result.periodA.totalQuantity} {t('qualityComparative.quantity', 'qtd')}</div>
                                 <div className={styles.countValue}>{result.periodA.count} {t('qualityComparative.occurrences', 'ocorrências')}</div>
                             </>
                         )}
@@ -382,6 +370,9 @@ export default function QualidadeComparativoPage() {
                                 </div>
                                 <div className={`${styles.deltaPercent} ${styles[`deltaPercent${getDeltaClass(result.delta.costPctChange).charAt(0).toUpperCase() + getDeltaClass(result.delta.costPctChange).slice(1)}`]}`}>
                                     {result.delta.costPctChange > 0 ? '+' : ''}{result.delta.costPctChange.toFixed(1)}%
+                                </div>
+                                <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#666' }}>
+                                    {result.delta.quantityDiff > 0 ? '+' : ''}{result.delta.quantityDiff} {t('qualityComparative.quantity', 'qtd')}
                                 </div>
                             </>
                         ) : (
@@ -412,6 +403,7 @@ export default function QualidadeComparativoPage() {
                         {result && (
                             <>
                                 <div className={styles.costValue}>{formatCurrency(result.periodB.totalCost)}</div>
+                                <div className={styles.countValue}>{result.periodB.totalQuantity} {t('qualityComparative.quantity', 'qtd')}</div>
                                 <div className={styles.countValue}>{result.periodB.count} {t('qualityComparative.occurrences', 'ocorrências')}</div>
                             </>
                         )}

@@ -87,7 +87,15 @@ function toQuery(params: Record<string, unknown> = {}): string {
     const usp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
         if (v === undefined || v === null || v === "") return;
-        usp.append(k, String(v));
+        if (Array.isArray(v)) {
+            v.forEach(val => {
+                if (val !== undefined && val !== null && val !== "") {
+                    usp.append(k, String(val));
+                }
+            });
+        } else {
+            usp.append(k, String(v));
+        }
     });
     const s = usp.toString();
     return s ? `?${s}` : "";
@@ -1733,7 +1741,7 @@ export async function atualizarMaquinaPlanejamento(
 }
 
 // ===== QUALIDADE / REFUGOS =====
-export async function listarRefugos(params: { page?: number; limit?: number; dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: any[]; meta: any }> {
+export async function listarRefugos(params: { page?: number; limit?: number; dataInicio?: string; dataFim?: string; origem?: string | string[]; responsavel?: string | string[]; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: any[]; meta: any }> {
     const res = await http.get<{ items: any[]; meta: any }>(`/qualidade/refugos`, { params, auth });
     return res;
 }
@@ -1863,6 +1871,7 @@ export async function listarResponsaveis(params: { dataInicio?: string; dataFim?
 export interface QualityComparisonPeriod {
     label: string;
     totalCost: number;
+    totalQuantity: number;
     count: number;
     topDefects: { motivo: string; custo: number }[];
     topOrigens: { origem: string; custo: number }[];
@@ -1873,6 +1882,7 @@ export interface QualityComparisonDelta {
     costDiff: number;
     costPctChange: number;
     countDiff: number;
+    quantityDiff: number;
 }
 
 export interface QualityComparisonResponse {
@@ -1886,8 +1896,8 @@ export interface QualityComparisonParams {
     dataFimA: string;
     dataInicioB: string;
     dataFimB: string;
-    origem?: string;
-    responsavel?: string;
+    origem?: string | string[];
+    responsavel?: string | string[];
     tipo?: string;
     tipoLancamento?: string;
 }

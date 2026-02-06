@@ -25,6 +25,7 @@
     "planejamentoConfig": "Configuração",
     "tvMode": "Modo TV",
     "qualityDashboard": "Dashboard",
+    "qualityIndividual": "Desempenho Individual",
     "qualityLaunch": "Refugo",
     "qualityConfig": "Configurações",
     "quarentena": "Quarentena",
@@ -251,6 +252,10 @@
       "qualityAnalytics": {
         "title": "Qualidade: Analítico",
         "desc": "Análise detalhada de refugo e quarentena."
+      },
+      "qualityIndividual": {
+        "title": "Qualidade: Desempenho",
+        "desc": "Performance individual de colaboradores."
       },
       "qualityComparative": {
         "title": "Qualidade: Comparativos",
@@ -1506,6 +1511,10 @@
     "responsible": "Responsável",
     "dashboard": "Dashboard de Qualidade",
     "totalCost": "Custo Total de Refugo",
+    "totalOccurrences": "Qtd. Itens",
+    "vsLastMonth": "vs Mês Anterior",
+    "vsLastYear": "vs Ano Anterior",
+    "monthlyTrend": "Evolução Mensal (Últimos 12 meses)",
     "topDefects": "Top Defeitos (Custo)",
     "costBySector": "Custo por Setor",
     "costByOrigin": "Custo por Origem",
@@ -1516,6 +1525,12 @@
     "formSubtitle": "Registre as não-conformidades e refugos identificados no processo.",
     "costByResponsible": "Custo por Responsável",
     "origin": "Origem",
+    "totalCostInternal": "Custo Total (Interno)",
+    "totalItems": "Quantidade Total",
+    "totalCount": "Ocorrências",
+    "averageTicket": "Ticket Médio",
+    "shareTotal": "Part. Global",
+    "shareCell": "Part. na Célula",
     "config": {
       "addPlaceholder": "Adicionar novo...",
       "loading": "Carregando...",
@@ -1633,7 +1648,10 @@
     "compare": "Comparar",
     "occurrences": "ocorrências",
     "totalCost": "Custo Total",
-    "costComparison": "Comparação de Custos",
-    "defectsComparison": "Top Defeitos"
+    "costComparison": "Comparação de Custos"
+  },
+  "qualityIndividual": {
+    "title": "Desempenho Individual",
+    "desc": "Performance detalhada por colaborador."
   }
 }

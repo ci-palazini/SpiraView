@@ -21,7 +21,7 @@
 
 .kpiContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -40,6 +40,16 @@
     border: 1px solid #f1f5f9;
 }
 
+.chartCardClickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chartCardClickable:hover {
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
 .chartTitle {
     font-size: 1rem;
     font-weight: 600;
@@ -56,6 +66,16 @@
     width: 100%;
 }
 
+.trendWrapper {
+    height: 280px;
+    position: relative;
+    width: 100%;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
 .loading {
     display: flex;
     justify-content: center;
@@ -65,7 +85,55 @@
     font-weight: 500;
 }
 
+/* Variation Indicators */
+.variationPositive {
+    color: #ef4444;
+}
+
+.variationNegative {
+    color: #10b981;
+}
+
+.variationNeutral {
+    color: #64748b;
+}
+
+.variationBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+}
+
+.variationBadgePositive {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.variationBadgeNegative {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.variationBadgeNeutral {
+    background: #f8fafc;
+    color: #64748b;
+}
+
+@media (max-width: 1200px) {
+    .kpiContainer {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .kpiContainer {
+        grid-template-columns: 1fr;
+    }
+
     .chartsGrid {
         grid-template-columns: 1fr;
     }

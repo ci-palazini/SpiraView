@@ -18,12 +18,22 @@ const buildWhere = (params: any[], query: any) => {
         where += ` AND data_ocorrencia <= $${params.length}`;
     }
     if (origem) {
-        params.push(origem);
-        where += ` AND origem = $${params.length}`;
+        if (Array.isArray(origem)) {
+            params.push(origem);
+            where += ` AND origem = ANY($${params.length})`;
+        } else {
+            params.push(origem);
+            where += ` AND origem = $${params.length}`;
+        }
     }
     if (responsavel) {
-        params.push(responsavel);
-        where += ` AND responsavel_nome = $${params.length}`;
+        if (Array.isArray(responsavel)) {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = ANY($${params.length})`;
+        } else {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = $${params.length}`;
+        }
     }
     if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
         params.push(tipo);
@@ -40,12 +50,22 @@ const buildBaseWhere = (params: any[], query: any) => {
     let where = '1=1';
     const { origem, responsavel, tipo, tipoLancamento } = query;
     if (origem) {
-        params.push(origem);
-        where += ` AND origem = $${params.length}`;
+        if (Array.isArray(origem)) {
+            params.push(origem);
+            where += ` AND origem = ANY($${params.length})`;
+        } else {
+            params.push(origem);
+            where += ` AND origem = $${params.length}`;
+        }
     }
     if (responsavel) {
-        params.push(responsavel);
-        where += ` AND responsavel_nome = $${params.length}`;
+        if (Array.isArray(responsavel)) {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = ANY($${params.length})`;
+        } else {
+            params.push(responsavel);
+            where += ` AND responsavel_nome = $${params.length}`;
+        }
     }
     if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
         params.push(tipo);

@@ -3,7 +3,7 @@ import styles from './StatCard.module.css';
 interface Props {
     title: string;
     value: React.ReactNode;
-    subtitle?: string;
+    subtitle?: React.ReactNode;
     icon?: React.ReactNode;
     color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple';
 }
