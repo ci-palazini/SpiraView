@@ -14,6 +14,7 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'historico_chamados', nome: 'Histórico de Chamados', grupo: 'Manutenção' },
     { key: 'meus_chamados', nome: 'Meus Chamados', grupo: 'Manutenção' },
     { key: 'abrir_chamado', nome: 'Abrir Chamado', grupo: 'Manutenção' },
+    { key: 'abrir_chamado', nome: 'Abrir Chamado', grupo: 'Manutenção' },
     { key: 'chamados_gestao', nome: 'Atribuir / Gerenciar Chamados', grupo: 'Manutenção' },
     { key: 'maquinas', nome: 'Máquinas', grupo: 'Manutenção' },
     { key: 'calendario', nome: 'Calendário', grupo: 'Manutenção' },
@@ -33,12 +34,13 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'planejamento_config', nome: 'Configuração de Centros', grupo: 'Planejamento' },
     // Qualidade
     { key: 'qualidade_dashboard', nome: 'Dashboard de Qualidade', grupo: 'Qualidade' },
+    { key: 'qualidade_comparativo', nome: 'Comparativo de Qualidade', grupo: 'Qualidade' },
+    { key: 'qualidade_desempenho', nome: 'Desempenho Individual', grupo: 'Qualidade' },
     { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
-    { key: 'qualidade_analitico', nome: 'Análise Detalhada', grupo: 'Qualidade' },
     { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
     // Logística
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
-    { key: 'logistica_kpis', nome: 'Gerenciamento de Indicadores', grupo: 'Logística' },
+    { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },

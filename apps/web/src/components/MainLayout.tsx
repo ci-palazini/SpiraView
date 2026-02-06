@@ -642,7 +642,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Qualidade - novo departamento */}
             {
-                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho']) && (
+                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho', 'qualidade_comparativo']) && (
                     <SidebarGroup id="quality" label={t('layout.sections.quality', 'Qualidade')} icon={FiShield}>
                         {perm.canView('qualidade_dashboard') && (
                             <NavLink
@@ -655,7 +655,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 <span>{t('nav.qualityDashboard', 'Dashboard')}</span>
                             </NavLink>
                         )}
-                        {perm.canView('qualidade_dashboard') && (
+                        {perm.canView('qualidade_comparativo') && (
                             <NavLink
                                 to="/qualidade/comparativo"
                                 className={({ isActive }) =>
