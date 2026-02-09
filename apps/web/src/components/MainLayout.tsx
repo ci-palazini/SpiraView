@@ -65,6 +65,9 @@ import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeCompa
 import QualidadeDesempenhoPage from '../features/qualidade/pages/QualidadeDesempenhoPage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
+import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
+import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';
+import PdcaPlanoDetailPage from '../features/pdca/pages/PdcaPlanoDetailPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -106,7 +109,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false };
+        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false, pdca: false };
         try {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
             if (saved) {
@@ -722,7 +725,35 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 )
             }
 
-
+            {/* PDCA - Melhoria Contínua (admin bypass via role==='admin' in usePermissions) */}
+            {
+                perm.canViewAny(['pdca_dashboard', 'pdca_planos']) && (
+                    <SidebarGroup id="pdca" label={t('layout.sections.pdca', 'PDCA')} icon={FiCheckSquare}>
+                        {perm.canView('pdca_dashboard') && (
+                            <NavLink
+                                to="/pdca/dashboard"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <LuLayoutDashboard className={styles.navIcon} />
+                                <span>{t('nav.pdcaDashboard', 'Dashboard')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('pdca_planos') && (
+                            <NavLink
+                                to="/pdca/planos"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiClipboard className={styles.navIcon} />
+                                <span>{t('nav.pdcaPlanos', 'Planos de Ação')}</span>
+                            </NavLink>
+                        )}
+                    </SidebarGroup>
+                )
+            }
 
             {/* Configurações - usa permissões granulares */}
             {
@@ -1029,6 +1060,19 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         element={canAccessPage('logistica_dashboard', <LogisticaDashboardPage />)}
                     />
 
+                    {/* Rotas PDCA */}
+                    <Route
+                        path="/pdca/dashboard"
+                        element={canAccessPage('pdca_dashboard', <PdcaDashboardPage />)}
+                    />
+                    <Route
+                        path="/pdca/planos"
+                        element={canAccessPage('pdca_planos', <PdcaPlanosPage />)}
+                    />
+                    <Route
+                        path="/pdca/planos/:planoId"
+                        element={canAccessPage('pdca_planos', <PdcaPlanoDetailPage />)}
+                    />
 
                 </Routes>
             </main>

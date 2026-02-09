@@ -14,6 +14,7 @@ import { producaoRouter } from './routes/producao';
 import { planejamentoRouter } from './routes/planejamento';
 import { qualidadeRouter } from './routes/qualidade';
 import { logisticaRouter } from './routes/logistica';
+import { pdcaRouter } from './routes/pdca';
 
 export const app: Express = express(); // 👈 evita o TS2742
 
@@ -38,4 +39,5 @@ app.use(producaoRouter);      // Departamento Produção
 app.use(planejamentoRouter);  // Departamento Planejamento
 app.use(qualidadeRouter);     // Departamento Qualidade
 app.use(logisticaRouter);     // Departamento Logística
+app.use(pdcaRouter);          // Módulo PDCA
 

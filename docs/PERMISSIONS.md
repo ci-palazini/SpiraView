@@ -145,6 +145,13 @@ const MyComponent = () => {
 | `logistica_dashboard` | Logística | Dashboard de logística | `ver` |
 | `logistica_kpis` | Logística | Gerenciamento de indicadores/metas | `ver`, `editar` |
 
+### PDCA
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `pdca_dashboard` | PDCA | Dashboard consolidado do PDCA | `ver` |
+| `pdca_planos` | PDCA | Gestão de planos de ação e causas | `ver`, `editar` |
+
 ---
 
 ## Role Templates (Exemplo)

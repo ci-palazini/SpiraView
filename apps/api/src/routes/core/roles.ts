@@ -41,6 +41,9 @@ const PAGINAS_DISPONIVEIS = [
     // Logística
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
+    // PDCA
+    { key: 'pdca_dashboard', nome: 'Dashboard PDCA', grupo: 'PDCA' },
+    { key: 'pdca_planos', nome: 'Planos de Ação', grupo: 'PDCA' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },
