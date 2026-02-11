@@ -47,6 +47,29 @@ export default function App() {
         return () => window.removeEventListener(AUTH_EVENT, onAuth);
     }, []);
 
+    // 🔄 Busca dados atualizados do usuário (permissões) ao carregar
+    useEffect(() => {
+        if (!user?.email) return;
+
+        import('./services/apiClient').then(({ me }) => {
+            me()
+                .then((freshUser) => {
+                    // Se o usuário retornado for o mesmo que está logado, atualiza
+                    if (freshUser.email === user.email) {
+                        const newUser = { ...user, ...freshUser };
+                        setUser(newUser);
+                        localStorage.setItem('usuario', JSON.stringify(newUser));
+                    }
+                })
+                .catch((err) => {
+                    // Se der erro 401/403, talvez o token tenha expirado ou usuário bloqueado?
+                    // Por enquanto, não desloga forçado para não atrapalhar offline/instabilidade, 
+                    // mas poderia ser feito.
+                    console.error('Erro ao validar sessão:', err);
+                });
+        });
+    }, [user?.email]); // Roda sempre que o email mudar (login) ou no mount se já tiver email
+
     // Multi-aba: se outra aba fizer login/logout (aqui o 'storage' funciona)
     useEffect(() => {
         const onStorage = (e: StorageEvent) => {

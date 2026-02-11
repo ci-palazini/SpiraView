@@ -101,6 +101,79 @@ authRouter.post('/auth/login', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Obter dados do usuário logado
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Dados do usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 nome:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *       401:
+ *         description: Não autenticado
+ */
+authRouter.get('/auth/me', async (req, res) => {
+  try {
+    const email = req.user?.email || req.header('x-user-email');
+    if (!email) {
+      return res.status(401).json({ error: 'Não autenticado.' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT u.id, u.nome, u.email, u.role,
+              COALESCE(u.funcao,
+                CASE
+                  WHEN LOWER(u.role)='gestor'     THEN 'Gestor'
+                  WHEN LOWER(u.role)='manutentor' THEN 'Técnico Eletromecânico'
+                  ELSE 'Operador de CNC'
+                END) AS funcao,
+              COALESCE(u.usuario, split_part(LOWER(u.email),'@',1)) AS usuario,
+              r.id AS role_id,
+              r.nome AS role_nome,
+              r.permissoes
+         FROM usuarios u
+         LEFT JOIN roles r ON u.role_id = r.id
+                           OR LOWER(u.role) = LOWER(r.nome)
+        WHERE LOWER(u.email) = LOWER($1)
+        LIMIT 1`,
+      [email]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const u = rows[0];
+
+    return res.json({
+      id: u.id,
+      nome: u.nome,
+      email: u.email,
+      role: u.role,
+      funcao: u.funcao,
+      usuario: u.usuario,
+      roleId: u.role_id,
+      roleNome: u.role_nome,
+      permissoes: u.permissoes || {}
+    });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 authRouter.post('/auth/change-password', async (req, res) => {
   try {
     const bodyEmail = String(req.body?.email || '').trim().toLowerCase();
@@ -136,5 +209,4 @@ authRouter.post('/auth/change-password', async (req, res) => {
     res.status(500).json({ error: String(e) });
   }
 });
-
 
