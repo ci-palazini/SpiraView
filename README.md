@@ -14,6 +14,9 @@ Welcome to the Manutenção TPM Platform monorepo.
 - **[Manutenção](docs/modules/manutencao.md)**: Chamados, checklists, peças.
 - **[Produção](docs/modules/producao.md)**: Dashboard, uploads, metas.
 - **[Planejamento](docs/modules/planejamento.md)**: Capacidade, reservas.
+- **[Qualidade](docs/modules/qualidade.md)**: Refugos, análises, comparativos.
+- **[Logística](docs/modules/logistica.md)**: KPIs, faturamento, metas.
+- **[PDCA](docs/modules/pdca.md)**: Planos de ação, causas, audit.
 - **[Usuários](docs/modules/usuarios.md)**: Auth, roles, permissões.
 
 ### For AI Agents

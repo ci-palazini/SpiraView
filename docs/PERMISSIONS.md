@@ -137,6 +137,13 @@ const MyComponent = () => {
 | `qualidade_lancamento` | Qualidade | Lançamento de novos refugos | `ver`, `editar` |
 | `qualidade_analitico` | Qualidade | Análise detalhada de custos e tendências | `ver` |
 | `qualidade_desempenho` | Qualidade | Análise de desempenho individual | `ver` |
+| `qualidade_config` | Qualidade | Configurações do módulo (origens, motivos, responsáveis) | `ver`, `editar` |
+
+### Produção (Adicional)
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `producao_colaboradores` | Produção | Gestão de colaboradores e metas individuais | `ver`, `editar` |
 
 ### Logística
 

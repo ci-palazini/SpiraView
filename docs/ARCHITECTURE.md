@@ -1,6 +1,6 @@
 # Arquitetura da Plataforma TPM Manutenção
 
-> **Última atualização**: Janeiro 2026
+> **Última atualização**: Fevereiro 2026
 
 ## 1. Visão Geral
 
@@ -86,6 +86,7 @@ flowchart LR
         usuarios["/usuarios"]
         roles["/roles"]
         health["/health"]
+        notificacoes["/notificacoes"]
     end
     
     subgraph Shared["📦 Shared"]
@@ -109,6 +110,24 @@ flowchart LR
     subgraph Planejamento["📅 Planejamento"]
         capacidade["/planejamento/capacidade"]
     end
+    
+    subgraph Qualidade["✅ Qualidade"]
+        refugos["/qualidade/refugos"]
+        qualAnalytics["/qualidade/analytics"]
+        qualCompare["/qualidade/compare"]
+        qualConfig["/qualidade/config"]
+    end
+    
+    subgraph Logistica["🚚 Logística"]
+        kpis["/logistica/kpis"]
+        logMetas["/logistica/metas"]
+    end
+    
+    subgraph PDCA["🔄 PDCA"]
+        pdcaDash["/pdca/dashboard"]
+        planos["/pdca/planos"]
+        causas["/pdca/causas"]
+    end
 ```
 
 ### Frontend (Features)
@@ -116,12 +135,14 @@ flowchart LR
 | Módulo | Pasta | Descrição |
 |--------|-------|-----------|
 | **Manutenção** | `features/manutencao/` | Chamados, Checklists, Máquinas, Analytics |
-| **Produção** | `features/producao/` | Dashboard, Uploads, Lançamentos |
+| **Produção** | `features/producao/` | Dashboard, Uploads, Lançamentos, Colaboradores |
 | **Planejamento** | `features/planejamento/` | Capacidade, Configurações |
+| **Qualidade** | `features/qualidade/` | Dashboard, Lançamentos, Analítico, Comparativo, Config |
+| **Logística** | `features/logistica/` | Dashboard de logística, KPIs |
+| **PDCA** | `features/pdca/` | Dashboard consolidado, Planos, Causas |
 | **Usuários** | `features/usuarios/` | Gestão de usuários e roles |
-| **Configurações** | `features/configuracoes/` | Settings globais |
+| **Configurações** | `features/configuracoes/` | Notificações, Settings globais |
 | **TV/Kiosk** | `features/tv/` | Dashboards para monitores |
-| **Logística** | `features/logistica/` | Dashboard de logística |
 
 ---
 

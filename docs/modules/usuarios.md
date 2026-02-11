@@ -30,6 +30,14 @@ flowchart LR
 | POST | `/auth/login` | Login com email/senha |
 | POST | `/auth/reset-password` | Resetar senha |
 | GET | `/auth/me` | Dados do usuário logado |
+| POST | `/auth/operator-login` | Login por matrícula (operadores) |
+
+### Health & Events
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/health` | Health check da API |
+| GET | `/events` | Server-Sent Events (SSE) |
 
 ### Usuários (`usuarios.ts`)
 
@@ -51,6 +59,19 @@ flowchart LR
 | POST | `/roles` | `roles: editar` | Criar papel |
 | PUT | `/roles/:id` | `roles: editar` | Atualizar permissões |
 | DELETE | `/roles/:id` | `roles: editar` | Excluir |
+
+### Email (`email.ts`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/email/send` | Envio de emails (notificações) |
+
+### Notificações (`notificacoes_config.ts`)
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| GET | `/notificacoes/config` | `notificacoes_config` (ver) | Listar configurações |
+| PUT | `/notificacoes/config/:tipo` | `notificacoes_config` (editar) | Atualizar destinatários |
 
 ---
 
