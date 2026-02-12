@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import { LOGO_SPIRAX_BASE64 } from './logoBase64';
 
 // ---------- Types ----------

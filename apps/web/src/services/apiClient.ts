@@ -153,6 +153,11 @@ export const http = {
         apiFetch<T>(path, { method: "DELETE", body: opts.data, auth: opts.auth }),
 };
 
+// ===== AUTH =====
+export async function me(): Promise<Record<string, unknown>> {
+    return apiFetch<Record<string, unknown>>('/auth/me');
+}
+
 // ===== CHAMADOS =====
 export async function criarChamado(data: ChamadoCreate, auth: AuthParams = {}): Promise<Chamado> {
     if (!data.maquinaId && !data.maquinaTag && !data.maquinaNome) {

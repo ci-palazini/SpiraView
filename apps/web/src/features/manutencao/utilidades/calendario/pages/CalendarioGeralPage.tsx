@@ -166,7 +166,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     // Modal de confirmação de exclusão
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    const intervalDays = 90;
+    const intervalDays = 365;
 
 
 
