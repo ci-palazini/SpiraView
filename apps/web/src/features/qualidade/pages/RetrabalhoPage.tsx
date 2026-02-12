@@ -5,7 +5,8 @@ import { FiSave, FiUploadCloud, FiFile, FiCheck, FiX, FiEdit2, FiTrash2, FiChevr
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
-import { http } from '../../../services/apiClient';
+import { http, criarNaoConformidade, QualidadeOpcao } from '../../../services/apiClient';
+import { NcReconciliationModal, ActionItem } from '../components/NcReconciliationModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './RetrabalhoPage.module.css';
 
@@ -30,10 +31,7 @@ interface RetrabalhoItem {
     created_at?: string;
 }
 
-interface NcOption {
-    id: string;
-    nome: string;
-}
+
 
 interface SolicitanteOption {
     id: string;
@@ -74,7 +72,7 @@ export default function RetrabalhoPage() {
     const [form, setForm] = useState(INITIAL_FORM);
 
     // Options
-    const [ncList, setNcList] = useState<NcOption[]>([]);
+    const [ncList, setNcList] = useState<QualidadeOpcao[]>([]);
     const [solicitanteList, setSolicitanteList] = useState<SolicitanteOption[]>([]);
 
     // Upload state
@@ -103,6 +101,13 @@ export default function RetrabalhoPage() {
     const [newPdcaTitulo, setNewPdcaTitulo] = useState('');
     const [linkingLoading, setLinkingLoading] = useState(false);
 
+    // Reconciliation State
+    const [pendingUploadItems, setPendingUploadItems] = useState<any[]>([]);
+    const [ncReconciliationData, setNcReconciliationData] = useState<{
+        unknowns: string[];
+        existing: QualidadeOpcao[];
+    } | null>(null);
+
     // ── Effects ────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -119,7 +124,7 @@ export default function RetrabalhoPage() {
     const fetchOptions = async () => {
         try {
             const [ncs, sols] = await Promise.all([
-                http.get<NcOption[]>('/qualidade/nao-conformidades'),
+                http.get<QualidadeOpcao[]>('/qualidade/nao-conformidades'),
                 http.get<SolicitanteOption[]>('/qualidade/solicitantes')
             ]);
             setNcList(Array.isArray(ncs) ? ncs : []);
@@ -308,6 +313,45 @@ export default function RetrabalhoPage() {
         } finally {
             setImporting(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
+            setNcReconciliationData(null); // Close modal
+        }
+    };
+
+    const handleNcReconciliationConfirm = async (actions: Record<string, ActionItem>) => {
+        setNcReconciliationData(null);
+        setImporting(true);
+        const toastId = toast.loading(t('quality.retrabalho.processingAdjustments', 'Processando ajustes...'));
+
+        try {
+            // 1. Create new NCs
+            const newNcs = Object.entries(actions).filter(([_, a]) => a.type === 'create').map(([k]) => k);
+            await Promise.all(newNcs.map(n => criarNaoConformidade(n)));
+
+            // Refresh options
+            fetchOptions();
+
+            // 2. Map items
+            const mappedItems = pendingUploadItems.map(item => {
+                const newItem = { ...item };
+                const nc = item.nao_conformidade;
+
+                if (actions[nc]) {
+                    const action = actions[nc];
+                    if (action.type === 'map' && action.targetValue) {
+                        newItem.nao_conformidade = action.targetValue;
+                    }
+                    // if create, stays as is
+                }
+                return newItem;
+            });
+
+            toast.dismiss(toastId);
+            await processUpload(mappedItems);
+
+        } catch (e) {
+            console.error(e);
+            toast.error(t('quality.retrabalho.createAdjustmentsError', 'Erro ao criar novos itens.'), { id: toastId });
+            setImporting(false);
         }
     };
 
@@ -382,6 +426,21 @@ export default function RetrabalhoPage() {
                 if (items.length === 0) {
                     toast.error(t('quality.retrabalho.invalidFormatError', 'Nenhum registro válido. Verifique se as colunas obrigatórias (Data, Código, Ocorrência, Severidade, Detecção) estão presentes.'));
                     setImporting(false);
+                    return;
+                }
+
+                // VALIDATION FOR RECONCILIATION
+                const uniqueNcs = [...new Set(items.map((i: any) => i.nao_conformidade).filter((x: string) => x))];
+                const unknownNcs = uniqueNcs.filter(u => !ncList.some(k => k.nome === u));
+
+                if (unknownNcs.length > 0) {
+                    setPendingUploadItems(items);
+                    setNcReconciliationData({
+                        unknowns: unknownNcs as string[],
+                        existing: ncList
+                    });
+                    setImporting(false);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
                     return;
                 }
 
@@ -517,6 +576,19 @@ export default function RetrabalhoPage() {
                     </div>
                 }
             />
+
+            {ncReconciliationData && (
+                <NcReconciliationModal
+                    unknowns={ncReconciliationData.unknowns}
+                    existing={ncReconciliationData.existing}
+                    onConfirm={handleNcReconciliationConfirm}
+                    onCancel={() => {
+                        setNcReconciliationData(null);
+                        setImporting(false);
+                        setUploadResult(null);
+                    }}
+                />
+            )}
             <div className={styles.container}>
                 <div className={styles.contentGrid}>
                     {uploadMode ? (
