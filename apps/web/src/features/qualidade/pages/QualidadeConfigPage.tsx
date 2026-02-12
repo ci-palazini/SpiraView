@@ -7,6 +7,8 @@ import {
     listarOrigens, criarOrigem, editarOrigem, getOrigemUsage, deletarOrigem,
     listarMotivos, criarMotivo, editarMotivo, getMotivoUsage, deletarMotivo,
     listarResponsaveisSettings, criarResponsavel, editarResponsavel, getResponsavelUsage, deletarResponsavel,
+    listarNaoConformidades, criarNaoConformidade, editarNaoConformidade, getNaoConformidadeUsage, deletarNaoConformidade,
+    listarSolicitantes, criarSolicitante, editarSolicitante, getSolicitanteUsage, deletarSolicitante,
     QualidadeOpcao
 } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
@@ -155,12 +157,14 @@ export default function QualidadeConfigPage() {
     const [origens, setOrigens] = useState<QualidadeOpcao[]>([]);
     const [motivos, setMotivos] = useState<QualidadeOpcao[]>([]);
     const [responsaveis, setResponsaveis] = useState<QualidadeOpcao[]>([]);
+    const [naoConformidades, setNaoConformidades] = useState<QualidadeOpcao[]>([]);
+    const [solicitantes, setSolicitantes] = useState<QualidadeOpcao[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Estado para modal de exclusão/transferência
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<QualidadeOpcao | null>(null);
-    const [deleteType, setDeleteType] = useState<'responsavel' | 'origem' | 'motivo'>('responsavel');
+    const [deleteType, setDeleteType] = useState<'responsavel' | 'origem' | 'motivo' | 'nao_conformidade' | 'solicitante'>('responsavel');
     const [usageCount, setUsageCount] = useState(0);
     const [transferTargetId, setTransferTargetId] = useState<number | ''>('');
     const [deleting, setDeleting] = useState(false);
@@ -168,10 +172,15 @@ export default function QualidadeConfigPage() {
     const fetchAll = async () => {
         setLoading(true);
         try {
-            const [o, m, r] = await Promise.all([listarOrigens(true), listarMotivos(true), listarResponsaveisSettings(true)]);
+            const [o, m, r, nc, sol] = await Promise.all([
+                listarOrigens(true), listarMotivos(true), listarResponsaveisSettings(true),
+                listarNaoConformidades(true), listarSolicitantes(true)
+            ]);
             setOrigens(o);
             setMotivos(m);
             setResponsaveis(r);
+            setNaoConformidades(nc);
+            setSolicitantes(sol);
         } catch (err) {
             console.error(err);
             toast.error(t('quality.config.loadError', 'Erro ao carregar dados.'));
@@ -244,6 +253,48 @@ export default function QualidadeConfigPage() {
         }
     };
 
+    // ── Retrabalho: Não Conformidades ──
+    const handleAddNaoConformidade = async (name: string) => {
+        try {
+            await criarNaoConformidade(name);
+            toast.success(t('quality.config.ncCreated', 'Não conformidade criada!'));
+            fetchAll();
+        } catch (e) {
+            toast.error(t('quality.config.ncCreateError', 'Erro ao criar não conformidade.'));
+        }
+    };
+
+    const handleUpdateNaoConformidade = async (id: number, nome: string, ativo: boolean) => {
+        try {
+            await editarNaoConformidade(id, { nome, ativo });
+            toast.success(t('quality.config.ncUpdateSuccess', 'Não conformidade atualizada!'));
+            fetchAll();
+        } catch (e) {
+            toast.error(t('quality.config.ncUpdateError', 'Erro ao atualizar não conformidade.'));
+        }
+    };
+
+    // ── Retrabalho: Solicitantes ──
+    const handleAddSolicitante = async (name: string) => {
+        try {
+            await criarSolicitante(name);
+            toast.success(t('quality.config.solCreated', 'Solicitante criado!'));
+            fetchAll();
+        } catch (e) {
+            toast.error(t('quality.config.solCreateError', 'Erro ao criar solicitante.'));
+        }
+    };
+
+    const handleUpdateSolicitante = async (id: number, nome: string, ativo: boolean) => {
+        try {
+            await editarSolicitante(id, { nome, ativo });
+            toast.success(t('quality.config.solUpdateSuccess', 'Solicitante atualizado!'));
+            fetchAll();
+        } catch (e) {
+            toast.error(t('quality.config.solUpdateError', 'Erro ao atualizar solicitante.'));
+        }
+    };
+
     const confirmDelete = async () => {
         if (!itemToDelete) return;
 
@@ -260,6 +311,10 @@ export default function QualidadeConfigPage() {
                 await deletarOrigem(itemToDelete.id, transferTargetId ? Number(transferTargetId) : undefined);
             } else if (deleteType === 'motivo') {
                 await deletarMotivo(itemToDelete.id, transferTargetId ? Number(transferTargetId) : undefined);
+            } else if (deleteType === 'nao_conformidade') {
+                await deletarNaoConformidade(itemToDelete.id, transferTargetId ? Number(transferTargetId) : undefined);
+            } else if (deleteType === 'solicitante') {
+                await deletarSolicitante(itemToDelete.id, transferTargetId ? Number(transferTargetId) : undefined);
             }
 
             toast.success(t('quality.config.deleteSuccess', 'Excluído com sucesso!'));
@@ -275,7 +330,7 @@ export default function QualidadeConfigPage() {
         }
     };
 
-    const checkAndDelete = async (item: QualidadeOpcao, type: 'responsavel' | 'origem' | 'motivo') => {
+    const checkAndDelete = async (item: QualidadeOpcao, type: 'responsavel' | 'origem' | 'motivo' | 'nao_conformidade' | 'solicitante') => {
         try {
             let count = 0;
             if (type === 'responsavel') {
@@ -286,6 +341,12 @@ export default function QualidadeConfigPage() {
                 count = res.count;
             } else if (type === 'motivo') {
                 const res = await getMotivoUsage(item.id);
+                count = res.count;
+            } else if (type === 'nao_conformidade') {
+                const res = await getNaoConformidadeUsage(item.id);
+                count = res.count;
+            } else if (type === 'solicitante') {
+                const res = await getSolicitanteUsage(item.id);
                 count = res.count;
             }
 
@@ -334,6 +395,29 @@ export default function QualidadeConfigPage() {
                         onDelete={(item) => checkAndDelete(item, 'responsavel')}
                     />
                 </div>
+
+                {/* Retrabalho Settings Section */}
+                <h3 style={{ marginTop: '32px', marginBottom: '16px', fontSize: '1.1rem', fontWeight: 700, color: '#475569', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+                    {t('quality.config.retrabalhoSection', '🔧 Retrabalho')}
+                </h3>
+                <div className={styles.grid}>
+                    <ConfigSection
+                        title={t('quality.config.naoConformidades', 'Não Conformidades')}
+                        items={naoConformidades}
+                        loading={loading}
+                        onAdd={handleAddNaoConformidade}
+                        onUpdate={handleUpdateNaoConformidade}
+                        onDelete={(item) => checkAndDelete(item, 'nao_conformidade')}
+                    />
+                    <ConfigSection
+                        title={t('quality.config.solicitantes', 'Solicitantes')}
+                        items={solicitantes}
+                        loading={loading}
+                        onAdd={handleAddSolicitante}
+                        onUpdate={handleUpdateSolicitante}
+                        onDelete={(item) => checkAndDelete(item, 'solicitante')}
+                    />
+                </div>
             </div>
 
             {/* Modal de Exclusão/Transferência */}
@@ -374,7 +458,7 @@ export default function QualidadeConfigPage() {
                                     onChange={(e) => setTransferTargetId(Number(e.target.value))}
                                 >
                                     <option value="">{t('quality.config.selectPlaceholder', 'Selecione...')}</option>
-                                    {(deleteType === 'responsavel' ? responsaveis : deleteType === 'origem' ? origens : motivos)
+                                    {(deleteType === 'responsavel' ? responsaveis : deleteType === 'origem' ? origens : deleteType === 'motivo' ? motivos : deleteType === 'nao_conformidade' ? naoConformidades : solicitantes)
                                         .filter(r => r.id !== itemToDelete.id && r.ativo)
                                         .map(r => (
                                             <option key={r.id} value={r.id}>{r.nome}</option>

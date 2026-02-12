@@ -1831,6 +1831,48 @@ export async function deletarMotivo(id: number, transferToId?: number, auth: Aut
     return http.delete(`/qualidade/motivos/${id}`, { data: { transferToId }, auth });
 }
 
+// ===== QUALIDADE / RETRABALHO CONFIGURAÇÕES =====
+
+export async function listarNaoConformidades(todos = false): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/nao-conformidades', { params: { todos } });
+}
+
+export async function criarNaoConformidade(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/nao-conformidades', { data: { nome }, auth });
+}
+
+export async function editarNaoConformidade(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.put<QualidadeOpcao>(`/qualidade/nao-conformidades/${id}`, { data, auth });
+}
+
+export async function getNaoConformidadeUsage(id: number): Promise<{ count: number }> {
+    return http.get<{ count: number }>(`/qualidade/nao-conformidades/${id}/usage`);
+}
+
+export async function deletarNaoConformidade(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
+    return http.delete(`/qualidade/nao-conformidades/${id}`, { data: { transferToId }, auth });
+}
+
+export async function listarSolicitantes(todos = false): Promise<QualidadeOpcao[]> {
+    return http.get<QualidadeOpcao[]>('/qualidade/solicitantes', { params: { todos } });
+}
+
+export async function criarSolicitante(nome: string, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.post<QualidadeOpcao>('/qualidade/solicitantes', { data: { nome }, auth });
+}
+
+export async function editarSolicitante(id: number, data: { nome?: string; ativo?: boolean }, auth: AuthParams = {}): Promise<QualidadeOpcao> {
+    return http.put<QualidadeOpcao>(`/qualidade/solicitantes/${id}`, { data, auth });
+}
+
+export async function getSolicitanteUsage(id: number): Promise<{ count: number }> {
+    return http.get<{ count: number }>(`/qualidade/solicitantes/${id}/usage`);
+}
+
+export async function deletarSolicitante(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
+    return http.delete(`/qualidade/solicitantes/${id}`, { data: { transferToId }, auth });
+}
+
 // ===== QUALITY ANALYTICS =====
 export interface QualityAnalyticSummary {
     totalCost: number;

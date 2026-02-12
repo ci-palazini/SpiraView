@@ -24,6 +24,7 @@ import {
     FiShield,
     FiSettings,
     FiTv,
+    FiRefreshCw,
 } from 'react-icons/fi';
 import { PiFactoryBold } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -63,6 +64,7 @@ import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage
 // QualidadeAnaliticoPage removed - merged into QualidadeDashboardPage
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
 import QualidadeDesempenhoPage from '../features/qualidade/pages/QualidadeDesempenhoPage';
+import RetrabalhoPage from '../features/qualidade/pages/RetrabalhoPage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
@@ -645,7 +647,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Qualidade - novo departamento */}
             {
-                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho', 'qualidade_comparativo']) && (
+                perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho', 'qualidade_comparativo', 'qualidade_retrabalho']) && (
                     <SidebarGroup id="quality" label={t('layout.sections.quality', 'Qualidade')} icon={FiShield}>
                         {perm.canView('qualidade_dashboard') && (
                             <NavLink
@@ -689,6 +691,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             >
                                 <FiPlusCircle className={styles.navIcon} />
                                 <span>{t('nav.qualityLaunch', 'Lançamento')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('qualidade_retrabalho') && (
+                            <NavLink
+                                to="/qualidade/retrabalho"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiRefreshCw className={styles.navIcon} />
+                                <span>{t('nav.qualityRetrabalho', 'Retrabalho')}</span>
                             </NavLink>
                         )}
                         {perm.canView('qualidade_config') && (
@@ -1052,6 +1065,10 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/qualidade/config"
                         element={canAccessPage('qualidade_config', <QualidadeConfigPage />)}
+                    />
+                    <Route
+                        path="/qualidade/retrabalho"
+                        element={canAccessPage('qualidade_retrabalho', <RetrabalhoPage />)}
                     />
 
                     {/* Rotas Logística */}

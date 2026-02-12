@@ -38,6 +38,7 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'qualidade_desempenho', nome: 'Desempenho Individual', grupo: 'Qualidade' },
     { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
     { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
+    { key: 'qualidade_retrabalho', nome: 'Retrabalho', grupo: 'Qualidade' },
     // Logística
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },

@@ -203,7 +203,7 @@ planosRouter.put('/pdca/planos/:id',
         }
     });
 
-// DELETE /pdca/planos/:id - Excluir plano
+// DELETE /pdca/planos/:id - Excluir plano (cascata: desvincula retrabalho, exclui causas)
 planosRouter.delete('/pdca/planos/:id',
     requirePermission('pdca_planos', 'editar'),
     async (req, res) => {
@@ -218,6 +218,16 @@ planosRouter.delete('/pdca/planos/:id',
             }
             const dadosAnteriores = currentQuery.rows[0];
 
+            // 1. Desvincular registros de retrabalho
+            await pool.query(
+                'UPDATE qualidade_retrabalho SET pdca_plano_id = NULL WHERE pdca_plano_id = $1',
+                [id]
+            );
+
+            // 2. Excluir causas associadas
+            await pool.query('DELETE FROM pdca_causas WHERE plano_id = $1', [id]);
+
+            // 3. Excluir o plano
             await pool.query('DELETE FROM pdca_planos WHERE id = $1', [id]);
 
             await logAudit('plano', id, 'excluido', dadosAnteriores, null, { id: user?.id, email: user?.email });

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { http } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './PdcaPlanosPage.module.css';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Plano {
@@ -66,6 +66,20 @@ export default function PdcaPlanosPage() {
             toast.error(t('pdca.createError', 'Erro ao criar plano'));
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleDeletePlan = async (e: React.MouseEvent, planoId: string, titulo: string) => {
+        e.stopPropagation(); // Prevent row click navigation
+        if (!window.confirm(t('pdca.confirmDelete', `Tem certeza que deseja excluir o plano "${titulo}"? Todas as causas serão excluídas e registros vinculados serão desvinculados.`))) return;
+
+        try {
+            await http.delete(`/pdca/planos/${planoId}`);
+            toast.success(t('pdca.deleteSuccess', 'Plano excluído com sucesso!'));
+            loadPlanos();
+        } catch (err: any) {
+            console.error(err);
+            toast.error(err?.message || t('pdca.deleteError', 'Erro ao excluir plano.'));
         }
     };
 
@@ -139,6 +153,7 @@ export default function PdcaPlanosPage() {
                                     <th>{t('pdca.status', 'Status')}</th>
                                     <th>{t('pdca.causes', 'Causas')}</th>
                                     <th>{t('pdca.createdAt', 'Criado em')}</th>
+                                    <th style={{ width: '60px', textAlign: 'center' }}>{t('common.actions', 'Ações')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -154,6 +169,15 @@ export default function PdcaPlanosPage() {
                                         </td>
                                         <td>{plano.total_causas || 0}</td>
                                         <td className={styles.dateCell}>{formatDate(plano.created_at)}</td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <button
+                                                className={styles.deleteBtn}
+                                                onClick={(e) => handleDeletePlan(e, plano.id, plano.titulo)}
+                                                title={t('pdca.deletePlan', 'Excluir plano')}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

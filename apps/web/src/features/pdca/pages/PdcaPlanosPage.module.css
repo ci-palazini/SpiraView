@@ -345,6 +345,26 @@
     background: linear-gradient(145deg, #e2e8f0, #cbd5e1);
 }
 
+/* Delete Button */
+.deleteBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+    color: #ef4444;
+    background: #fef2f2;
+    transform: scale(1.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {

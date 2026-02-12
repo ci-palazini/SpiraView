@@ -5,6 +5,8 @@ import { settingsRouter } from './settings';
 import { analyticsRouter } from './analytics';
 import { compareRouter } from './compare';
 import { individualRouter } from './individual';
+import { retrabalhoRouter } from './retrabalho';
+import { retrabalhoSettingsRouter } from './retrabalho-settings';
 
 export const qualidadeRouter: Router = Router();
 
@@ -14,4 +16,6 @@ qualidadeRouter.use(settingsRouter);
 qualidadeRouter.use(analyticsRouter);
 qualidadeRouter.use(compareRouter);
 qualidadeRouter.use(individualRouter);
+qualidadeRouter.use(retrabalhoRouter);
+qualidadeRouter.use(retrabalhoSettingsRouter);
 
