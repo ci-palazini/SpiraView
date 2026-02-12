@@ -1,6 +1,6 @@
 // src/App.tsx
 import { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -33,12 +33,11 @@ function readStoredUser(): User | null {
 
 export default function App() {
     const [user, setUser] = useState<User | null>(() => readStoredUser());
-    const location = useLocation();
 
-    // 🔁 Recarrega o user a cada mudança de rota (inclui pós-login via navigate)
-    useEffect(() => {
-        setUser(readStoredUser());
-    }, [location.key]);
+
+    // 🔁 Recarrega o user quando volta de login (evento customizado já cuida disso)
+    // NOTA: removido effect de location.key que causava race condition
+    // ao re-ler dados antigos do localStorage antes do /auth/me responder
 
     // 🔔 Reage imediatamente a login/logout na MESMA aba (evento customizado)
     useEffect(() => {
@@ -49,26 +48,23 @@ export default function App() {
 
     // 🔄 Busca dados atualizados do usuário (permissões) ao carregar
     useEffect(() => {
-        if (!user?.email) return;
+        const storedUser = readStoredUser();
+        if (!storedUser?.email) return;
 
         import('./services/apiClient').then(({ me }) => {
             me()
-                .then((freshUser) => {
-                    // Se o usuário retornado for o mesmo que está logado, atualiza
-                    if (freshUser.email === user.email) {
-                        const newUser = { ...user, ...freshUser };
-                        setUser(newUser);
-                        localStorage.setItem('usuario', JSON.stringify(newUser));
+                .then((freshUser: Record<string, unknown>) => {
+                    if (freshUser.email === storedUser.email) {
+                        const merged = { ...storedUser, ...freshUser };
+                        localStorage.setItem('usuario', JSON.stringify(merged));
+                        setUser(merged as User);
                     }
                 })
                 .catch((err) => {
-                    // Se der erro 401/403, talvez o token tenha expirado ou usuário bloqueado?
-                    // Por enquanto, não desloga forçado para não atrapalhar offline/instabilidade, 
-                    // mas poderia ser feito.
                     console.error('Erro ao validar sessão:', err);
                 });
         });
-    }, [user?.email]); // Roda sempre que o email mudar (login) ou no mount se já tiver email
+    }, []); // Roda somente no mount (F5) — lê localStorage diretamente, sem closure stale
 
     // Multi-aba: se outra aba fizer login/logout (aqui o 'storage' funciona)
     useEffect(() => {
