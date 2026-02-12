@@ -41,6 +41,7 @@ interface AgendamentoApi {
     maquinaNome?: string;
     descricao?: string;
     date?: string;
+    maquina_id?: string;
     data_agendada?: string;
     start?: string;
     end?: string;
@@ -93,13 +94,16 @@ interface DragArgs {
 
 // ---------- Setup ----------
 
-// Helper para garantir que tudo que vai para o JSX Ã© string legÃ­vel
+// Helper para garantir que tudo que vai para o JSX é string legível
 function toPlainText(v: unknown): string {
     if (v == null) return '';
-    if (typeof v === 'string') return v;
 
-    if (Array.isArray(v)) {
-        return v
+    let text = '';
+
+    if (typeof v === 'string') {
+        text = v;
+    } else if (Array.isArray(v)) {
+        text = v
             .map((x) => {
                 if (x == null) return '';
                 if (typeof x === 'string') return x;
@@ -110,19 +114,22 @@ function toPlainText(v: unknown): string {
                 return String(x);
             })
             .filter(Boolean)
-            .join(' â€¢ ');
-    }
-
-    if (typeof v === 'object') {
+            .join(' • '); // bullet correto
+    } else if (typeof v === 'object') {
         const obj = v as Record<string, unknown>;
-        return String(obj.texto ?? obj.item ?? obj.nome ?? obj.label ?? obj.key ?? '');
+        text = String(obj.texto ?? obj.item ?? obj.nome ?? obj.label ?? obj.key ?? '');
+    } else {
+        try {
+            text = String(v);
+        } catch {
+            text = '';
+        }
     }
 
-    try {
-        return String(v);
-    } catch {
-        return '';
-    }
+    // Corrigir artefatos de encoding comuns
+    return text
+        .replace(/â€”/g, '—')
+        .replace(/â€¢/g, '•');
 }
 
 function getContrastColor(hexColor: string): string {
@@ -152,10 +159,11 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     const [checklistTxt, setChecklistTxt] = useState('');
 
     // Templates (para importar checklist)
-    const [templates, setTemplates] = useState<Template[]>([]);
+    // Busca historico para sugerir templates (ultimos 10 de maquinas diferentes)
+    const [historyTemplates, setHistoryTemplates] = useState<Template[]>([]);
     const [selTemplate, setSelTemplate] = useState('');
 
-    // Modal de confirmaÃ§Ã£o de exclusÃ£o
+    // Modal de confirmação de exclusão
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const intervalDays = 90;
@@ -167,7 +175,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
         [i18n.language]
     );
 
-    // SSE para reagir a mudanÃ§as de agendamentos
+    // SSE para reagir a mudanças de agendamentos
     useEffect(() => {
         const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
             if (msg?.topic === 'agendamentos') {
@@ -177,12 +185,52 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
         return () => unsubscribe();
     }, []);
 
-    // Busca mÃ¡quinas
+    // Busca máquinas
     useEffect(() => {
         getMaquinas('', 'manutencao').then((list: Maquina[]) => {
             setMachines(list.sort((a, b) => toPlainText(a.nome).localeCompare(toPlainText(b.nome), 'pt')));
         }).catch(console.error);
     }, []);
+
+    // Templates: Buscar ultimos 100 agendamentos (qualquer status) 
+    // e filtrar os ultimos 10 de maquinas unicas
+    useEffect(() => {
+        listarAgendamentos({ limit: '100', order: 'recent' })
+            .then((list: AgendamentoApi[]) => {
+                const uniqueMachines = new Set<string>();
+                const tpls: Template[] = [];
+
+                for (const ag of list) {
+                    const mId = ag.maquina_id; // Verificar se a API retorna maquina_id ou se precisamos extrair
+                    const mNome = toPlainText(ag.maquina_nome || ag.maquinaNome);
+                    // Se não tivermos ID, usamos o nome como chave
+                    const key = mId || mNome;
+
+                    if (!key) continue;
+
+                    if (!uniqueMachines.has(key)) {
+                        uniqueMachines.add(key);
+
+                        // Validar itens
+                        const itens = ag.itens_checklist || ag.itensChecklist || [];
+                        // Opcional: só adicionar se tiver itens
+                        // if (!Array.isArray(itens) || itens.length === 0) continue;
+
+                        const startStr = ag.start_ts || ag.start || ag.date || '';
+                        tpls.push({
+                            id: ag.id,
+                            maquinaNome: mNome,
+                            date: startStr ? new Date(startStr) : new Date(),
+                            itens: itens,
+                        });
+                    }
+
+                    if (tpls.length >= 10) break;
+                }
+                setHistoryTemplates(tpls);
+            })
+            .catch(console.error);
+    }, [reloadTick]);
 
     // Busca agendamentos
     useEffect(() => {
@@ -221,7 +269,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
 
                     return {
                         id: ag.id,
-                        title: `${toPlainText(ag.maquina_nome || ag.maquinaNome)} â€” ${toPlainText(ag.descricao)}`,
+                        title: `${toPlainText(ag.maquina_nome || ag.maquinaNome)} — ${toPlainText(ag.descricao)}`,
                         start,
                         end,
                         allDay: true,
@@ -238,20 +286,6 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                 });
 
                 setEvents(mapped);
-
-                // Templates = Ãºltimos 5 agendamentos concluÃ­dos
-                const concluidos = mapped
-                    .filter((e) => e.resource.status === 'concluido')
-                    .sort((a, b) => b.start.getTime() - a.start.getTime())
-                    .slice(0, 5);
-                setTemplates(
-                    concluidos.map((e) => ({
-                        id: e.id,
-                        maquinaNome: e.resource.maquinaNome,
-                        date: e.start,
-                        itens: e.resource.itensChecklist,
-                    }))
-                );
             } catch (e) {
                 console.error(e);
                 toast.error(t('calendarioGeral.toasts.loadError'));
@@ -609,7 +643,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
                                 const id = e.target.value;
                                 setSelTemplate(id);
-                                const tpl = templates.find(t => t.id === id);
+                                const tpl = historyTemplates.find(t => t.id === id);
                                 const linhas = (tpl ? (tpl.itens || []) : [])
                                     .map(toPlainText)
                                     .filter(Boolean);
@@ -618,9 +652,9 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                             className={styles.select}
                         >
                             <option value="">{t('calendarioGeral.new.none')}</option>
-                            {templates.map(tpl => (
+                            {historyTemplates.map(tpl => (
                                 <option key={tpl.id} value={tpl.id}>
-                                    {`${tpl.maquinaNome} â€” ${fmtDate.format(tpl.date)}`}
+                                    {`${tpl.maquinaNome} — ${fmtDate.format(tpl.date)}`}
                                 </option>
                             ))}
                         </select>

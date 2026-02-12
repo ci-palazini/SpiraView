@@ -442,7 +442,29 @@
       "corrective": {
         "title": "Register Solution and Close",
         "solutionLabel": "Service Performed / Solution Applied"
-      }
+      },
+      "downloadPdf": "Download PDF Report"
+    },
+    "pdf": {
+      "title": "Maintenance Report",
+      "subtitle": "Preventive Maintenance",
+      "machine": "Machine",
+      "description": "Description",
+      "maintainer": "Maintainer",
+      "maintenanceLeader": "Maintenance Leader",
+      "coordinator": "Coordinator",
+      "openedAt": "Opened at",
+      "concludedAt": "Concluded at",
+      "checklistTitle": "Inspection Checklist",
+      "itemCol": "Item",
+      "resultCol": "Result",
+      "conforme": "Conforming",
+      "naoConforme": "Non-Conforming",
+      "observationsTitle": "Observations",
+      "noObservations": "No observations.",
+      "page": "Page",
+      "of": "of",
+      "generatedAt": "Generated at"
     },
     "photos": {
       "title": "Maintenance Photos",

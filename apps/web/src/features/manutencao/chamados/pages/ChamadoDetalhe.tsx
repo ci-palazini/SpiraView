@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { statusKey } from '../../../../i18n/format';
 import { Button, Select, Card, CardHeader, Badge } from '../../../../shared/components';
 import usePermissions from '../../../../hooks/usePermissions';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, FileDown } from 'lucide-react';
+import { generatePreventiveReport } from '../utils/generatePreventiveReport';
 
 // ---------- Types ----------
 interface User {
@@ -599,6 +600,55 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                 })}</small>
                             </div>
                         )
+                    )}
+
+                    {/* PDF Download button — concluded preventive only */}
+                    {chamado.status === 'Concluido' && isPreventiva && (
+                        <div className={`${styles.detailItem} ${styles.detailItemFull}`} style={{ paddingTop: 8 }}>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    generatePreventiveReport(
+                                        {
+                                            maquina: chamado.maquina,
+                                            descricao: chamado.descricao,
+                                            manutentorNome: chamado.manutentorNome,
+                                            dataAbertura: chamado.dataAbertura,
+                                            dataConclusao: chamado.dataConclusao,
+                                            checklist: checklist.length > 0 ? checklist : (chamado.checklist || []),
+                                            observacoes: chamado.observacoes || [],
+                                        },
+                                        {
+                                            title: t('chamadoDetalhe.pdf.title'),
+                                            subtitle: t('chamadoDetalhe.pdf.subtitle'),
+                                            machine: t('chamadoDetalhe.pdf.machine'),
+                                            description: t('chamadoDetalhe.pdf.description'),
+                                            maintainer: t('chamadoDetalhe.pdf.maintainer'),
+                                            maintenanceLeader: t('chamadoDetalhe.pdf.maintenanceLeader'),
+                                            maintenanceLeaderName: 'Almir Evaristo Da Silva Filho',
+                                            coordinator: t('chamadoDetalhe.pdf.coordinator'),
+                                            openedAt: t('chamadoDetalhe.pdf.openedAt'),
+                                            concludedAt: t('chamadoDetalhe.pdf.concludedAt'),
+                                            checklistTitle: t('chamadoDetalhe.pdf.checklistTitle'),
+                                            itemCol: t('chamadoDetalhe.pdf.itemCol'),
+                                            resultCol: t('chamadoDetalhe.pdf.resultCol'),
+                                            conforme: t('chamadoDetalhe.pdf.conforme'),
+                                            naoConforme: t('chamadoDetalhe.pdf.naoConforme'),
+                                            observationsTitle: t('chamadoDetalhe.pdf.observationsTitle'),
+                                            noObservations: t('chamadoDetalhe.pdf.noObservations'),
+                                            page: t('chamadoDetalhe.pdf.page'),
+                                            of: t('chamadoDetalhe.pdf.of'),
+                                            generatedAt: t('chamadoDetalhe.pdf.generatedAt'),
+                                            coordinatorName: 'Leandro Rocha da Silva',
+                                        },
+                                    );
+                                }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                            >
+                                <FileDown size={18} />
+                                {t('chamadoDetalhe.actions.downloadPdf')}
+                            </Button>
+                        </div>
                     )}
 
                     {!isPreventiva && ['Em Andamento', 'Concluido'].includes(chamado.status) && (

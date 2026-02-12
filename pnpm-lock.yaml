@@ -173,7 +173,7 @@ importers:
         specifier: ^2.4.0
         version: 2.4.1(intl-messageformat@10.7.18)
       jspdf:
-        specifier: ^3.0.2
+        specifier: ^3.0.4
         version: 3.0.4
       jspdf-autotable:
         specifier: ^5.0.2

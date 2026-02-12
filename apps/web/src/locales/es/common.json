@@ -429,7 +429,29 @@
       "corrective": {
         "title": "Registrar solución y concluir",
         "solutionLabel": "Servicio realizado / Solución aplicada"
-      }
+      },
+      "downloadPdf": "Descargar Informe PDF"
+    },
+    "pdf": {
+      "title": "Informe de Mantenimiento",
+      "subtitle": "Mantenimiento Preventivo",
+      "machine": "Máquina",
+      "description": "Descripción",
+      "maintainer": "Mantenedor",
+      "maintenanceLeader": "Líder de Mantenimiento",
+      "coordinator": "Coordinador",
+      "openedAt": "Apertura",
+      "concludedAt": "Conclusión",
+      "checklistTitle": "Checklist de Inspección",
+      "itemCol": "Ítem",
+      "resultCol": "Resultado",
+      "conforme": "Conforme",
+      "naoConforme": "No Conforme",
+      "observationsTitle": "Observaciones",
+      "noObservations": "Sin observaciones.",
+      "page": "Página",
+      "of": "de",
+      "generatedAt": "Generado el"
     },
     "photos": {
       "title": "Fotos del mantenimiento",
