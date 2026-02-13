@@ -65,6 +65,7 @@ import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
 import QualidadeDesempenhoPage from '../features/qualidade/pages/QualidadeDesempenhoPage';
 import RetrabalhoPage from '../features/qualidade/pages/RetrabalhoPage';
+import RetrabalhoAnalisePage from '../features/qualidade/pages/RetrabalhoAnalisePage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
@@ -704,6 +705,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 <span>{t('nav.qualityRetrabalho', 'Retrabalho')}</span>
                             </NavLink>
                         )}
+                        {perm.canView('qualidade_retrabalho') && (
+                            <NavLink
+                                to="/qualidade/analise-retrabalho"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPieChart className={styles.navIcon} />
+                                <span>{t('nav.qualityRetrabalhoAnalise', 'Análise Retrabalho')}</span>
+                            </NavLink>
+                        )}
                         {perm.canView('qualidade_config') && (
                             <NavLink
                                 to="/qualidade/config"
@@ -1069,6 +1081,10 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/qualidade/retrabalho"
                         element={canAccessPage('qualidade_retrabalho', <RetrabalhoPage />)}
+                    />
+                    <Route
+                        path="/qualidade/analise-retrabalho"
+                        element={canAccessPage('qualidade_retrabalho', <RetrabalhoAnalisePage />)}
                     />
 
                     {/* Rotas Logística */}

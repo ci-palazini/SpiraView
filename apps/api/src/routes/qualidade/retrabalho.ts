@@ -425,3 +425,78 @@ retrabalhoRouter.post('/qualidade/retrabalho/upload',
             res.status(500).json({ error: 'Erro interno ao processar upload.' });
         }
     });
+
+// GET /qualidade/retrabalho/analise - Horas agrupadas por causa (4M1D)
+retrabalhoRouter.get('/qualidade/retrabalho/analise',
+    requirePermission('qualidade_retrabalho', 'ver'),
+    async (req, res) => {
+        try {
+            const dataInicio = req.query.dataInicio as string;
+            const dataFim = req.query.dataFim as string;
+            const solicitante = req.query.solicitante as string | string[];
+
+            if (!dataInicio || !dataFim) {
+                return res.status(400).json({ error: 'dataInicio e dataFim são obrigatórios.' });
+            }
+
+            const params: any[] = [dataInicio, dataFim];
+            let where = 'r.data >= $1 AND r.data <= $2';
+
+            if (solicitante) {
+                if (Array.isArray(solicitante)) {
+                    if (solicitante.length > 0) {
+                        params.push(solicitante);
+                        where += ` AND r.solicitante = ANY($${params.length})`;
+                    }
+                } else {
+                    params.push(solicitante);
+                    where += ` AND r.solicitante = $${params.length}`;
+                }
+            }
+
+            // Aggregate hours by causa_provavel
+            const query = `
+                SELECT
+                    COALESCE(r.causa_provavel, 'N/A') as causa,
+                    COUNT(*) as total_registros,
+                    COALESCE(SUM(
+                        CASE
+                            WHEN r.horas_retrabalho IS NOT NULL AND r.horas_retrabalho != '' THEN
+                                EXTRACT(EPOCH FROM r.horas_retrabalho::interval) / 3600.0
+                            ELSE 0
+                        END
+                    ), 0) as total_horas
+                FROM qualidade_retrabalho r
+                WHERE ${where}
+                GROUP BY r.causa_provavel
+                ORDER BY total_horas DESC
+            `;
+
+            const { rows } = await pool.query(query, params);
+
+            // Calculate totals
+            let totalHoras = 0;
+            let totalRegistros = 0;
+            const items = rows.map((row: any) => {
+                const horas = parseFloat(row.total_horas) || 0;
+                const registros = parseInt(row.total_registros) || 0;
+                totalHoras += horas;
+                totalRegistros += registros;
+                return {
+                    causa: row.causa,
+                    totalHoras: Math.round(horas * 100) / 100,
+                    totalRegistros: registros,
+                };
+            });
+
+            res.json({
+                items,
+                totalHoras: Math.round(totalHoras * 100) / 100,
+                totalRegistros,
+                periodo: { inicio: dataInicio, fim: dataFim },
+            });
+        } catch (e: any) {
+            console.error('Erro na análise de retrabalho:', e);
+            res.status(500).json({ error: String(e) });
+        }
+    });
