@@ -14,7 +14,9 @@ import {
     ClipboardList,
     AlertCircle,
     DollarSign,
-    Calendar
+    Calendar,
+    RotateCcw,
+    Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -50,15 +52,20 @@ interface DashboardData {
             origem: string;
         }[];
     };
-    faturamento: {
-        acumuladoMes: number;
-        acumuladoMesAnterior: number;
-        meta: number;
-        percentualMeta: number;
-        mesReferencia: string;
-        mesAnteriorReferencia: string;
-        variacaoMesAnterior: number;
+    retrabalho: {
+        horas: number;
+        horasAnterior: number;
+        variacao: number;
         variacaoPositiva: boolean;
+        ultimosCasos: {
+            id: string;
+            data: string;
+            codigo: string;
+            descricao: string;
+            horas_retrabalho: string;
+            solicitante: string;
+            causa_provavel: string;
+        }[];
     };
     pdca: {
         planosAbertos: number;
@@ -256,32 +263,29 @@ export default function PdcaDashboardPage() {
                                     )}
                                 </div>
 
-                                {/* Faturamento - maior = melhor (acumulado mensal) */}
+                                {/* Retrabalho - menor = melhor */}
                                 <div className={styles.kpiCard}>
                                     <div className={styles.kpiHeader}>
-                                        <div className={`${styles.kpiIcon} ${styles.green}`}>
-                                            <DollarSign size={24} />
+                                        <div className={`${styles.kpiIcon} ${styles.orange}`}>
+                                            <RotateCcw size={24} />
                                         </div>
-                                        <span className={styles.kpiTitle}>{t('pdca.billing', 'Faturamento')}</span>
+                                        <span className={styles.kpiTitle}>{t('pdca.rework', 'Horas de Retrabalho')}</span>
                                     </div>
-                                    <div className={styles.kpiValue}>{formatCurrency(data?.faturamento?.acumuladoMes || 0)}</div>
+                                    <div className={styles.kpiValue}>
+                                        {data?.retrabalho?.horas || 0}h
+                                    </div>
                                     <div className={styles.kpiSubInfo}>
                                         <span className={styles.kpiDetail}>
-                                            <Calendar size={12} />
-                                            {t('pdca.monthlyAccumulated', 'Acumulado')} {data?.faturamento?.mesReferencia}
+                                            <Clock size={12} />
+                                            {t('pdca.totalHours', 'Total no período')}
                                         </span>
-                                        {data?.faturamento?.meta && data.faturamento.meta > 0 && (
-                                            <span className={styles.kpiDetail}>
-                                                {t('pdca.metaProgress', 'Meta')}: {data.faturamento.percentualMeta}%
-                                            </span>
-                                        )}
                                         <span className={styles.kpiComparison}>
-                                            vs {formatCurrency(data?.faturamento?.acumuladoMesAnterior || 0)} ({data?.faturamento?.mesAnteriorReferencia})
+                                            vs {data?.retrabalho?.horasAnterior || 0}h ({days} dias anteriores)
                                         </span>
                                     </div>
                                     {renderVariation(
-                                        data?.faturamento?.variacaoMesAnterior || 0,
-                                        data?.faturamento?.variacaoPositiva ?? true
+                                        data?.retrabalho?.variacao || 0,
+                                        data?.retrabalho?.variacaoPositiva ?? true
                                     )}
                                 </div>
                             </div>
@@ -311,6 +315,34 @@ export default function PdcaDashboardPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Últimos Casos de Retrabalho */}
+                            {data?.retrabalho?.ultimosCasos && data.retrabalho.ultimosCasos.length > 0 && (
+                                <div className={styles.section}>
+                                    <h2 className={styles.sectionTitle}>
+                                        <RotateCcw size={20} />
+                                        {t('pdca.recentRework', 'Últimos Casos de Retrabalho')}
+                                    </h2>
+                                    <div className={styles.casesGrid}>
+                                        {data.retrabalho.ultimosCasos.map((caso, idx) => (
+                                            <div key={idx} className={styles.caseCard}>
+                                                <div className={styles.caseHeader}>
+                                                    <span className={styles.caseNcr}>
+                                                        {caso.codigo || `#${idx + 1}`}
+                                                    </span>
+                                                    <span className={styles.caseCost}>{caso.horas_retrabalho}</span>
+                                                </div>
+                                                <div className={styles.caseDetails}>
+                                                    <span className={styles.caseItem}>{caso.descricao || '-'}</span>
+                                                    <span>{t('pdca.cause', 'Causa')}: {t(`quality.causes.${caso.causa_provavel}`, caso.causa_provavel)}</span>
+                                                    <span>{t('pdca.requester', 'Solicitante')}: {caso.solicitante}</span>
+                                                    <span>{formatDate(caso.data)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Últimos Casos de Refugo - NCR como título */}
                             {data?.qualidade?.ultimosCasos && data.qualidade.ultimosCasos.length > 0 && (

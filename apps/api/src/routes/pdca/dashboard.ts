@@ -123,49 +123,35 @@ dashboardRouter.get('/pdca/dashboard',
                 LIMIT 10
             `);
 
-            // ===== LOGÍSTICA / FATURAMENTO =====
-            // Acumulado do mês atual (sempre mensal, não 7 dias)
-            const mesAtual = new Date().getMonth() + 1;
-            const anoAtual = new Date().getFullYear();
-            const primeiroDiaMes = `${anoAtual}-${String(mesAtual).padStart(2, '0')}-01`;
-
-            // Pegar o último registro do mês (que já é acumulado)
-            const faturamentoQuery = await pool.query(`
+            // ===== RETRABALHO =====
+            // Total horas do período
+            const retrabalhoQuery = await pool.query(`
                 SELECT 
-                    faturado_acumulado,
-                    data
-                FROM logistica_kpis_diario
-                WHERE EXTRACT(MONTH FROM data) = $1 
-                AND EXTRACT(YEAR FROM data) = $2
-                ORDER BY data DESC
-                LIMIT 1
-            `, [mesAtual, anoAtual]);
+                    COALESCE(SUM(EXTRACT(EPOCH FROM horas_retrabalho::interval)/3600), 0) as total_horas
+                FROM qualidade_retrabalho
+                WHERE data >= $1 AND data <= $2
+            `, [formatDate(dataInicio), formatDate(dataFim)]);
 
-            const faturamentoMetaQuery = await pool.query(`
-                SELECT meta_financeira
-                FROM logistica_metas
-                WHERE mes = $1 AND ano = $2
-                LIMIT 1
-            `, [mesAtual, anoAtual]);
+            // Período anterior para comparação
+            const retrabalhoAnteriorQuery = await pool.query(`
+                SELECT 
+                    COALESCE(SUM(EXTRACT(EPOCH FROM horas_retrabalho::interval)/3600), 0) as total_horas
+                FROM qualidade_retrabalho
+                WHERE data >= $1 AND data <= $2
+            `, [formatDate(dataInicioAnterior), formatDate(dataFimAnterior)]);
 
-            // Mês anterior para comparação
-            const mesAnterior = mesAtual === 1 ? 12 : mesAtual - 1;
-            const anoMesAnterior = mesAtual === 1 ? anoAtual - 1 : anoAtual;
+            // Últimos casos de retrabalho
+            const ultimosRetrabalhosQuery = await pool.query(`
+                SELECT *
+                FROM qualidade_retrabalho
+                ORDER BY data DESC, created_at DESC
+                LIMIT 6
+            `);
 
-            const faturamentoAnteriorQuery = await pool.query(`
-                SELECT faturado_acumulado
-                FROM logistica_kpis_diario
-                WHERE EXTRACT(MONTH FROM data) = $1 
-                AND EXTRACT(YEAR FROM data) = $2
-                ORDER BY data DESC
-                LIMIT 1
-            `, [mesAnterior, anoMesAnterior]);
-
-            const faturadoAcumulado = parseFloat(faturamentoQuery.rows[0]?.faturado_acumulado || 0);
-            const metaFaturamento = parseFloat(faturamentoMetaQuery.rows[0]?.meta_financeira || 0);
-            const faturadoMesAnterior = parseFloat(faturamentoAnteriorQuery.rows[0]?.faturado_acumulado || 0);
-            const variacaoFaturamento = faturadoMesAnterior > 0
-                ? ((faturadoAcumulado - faturadoMesAnterior) / faturadoMesAnterior) * 100
+            const horasRetrabalho = parseFloat(retrabalhoQuery.rows[0]?.total_horas || 0);
+            const horasRetrabalhoAnterior = parseFloat(retrabalhoAnteriorQuery.rows[0]?.total_horas || 0);
+            const variacaoRetrabalho = horasRetrabalhoAnterior > 0
+                ? ((horasRetrabalho - horasRetrabalhoAnterior) / horasRetrabalhoAnterior) * 100
                 : 0;
 
             // ===== PDCA =====
@@ -237,15 +223,12 @@ dashboardRouter.get('/pdca/dashboard',
                         origem: r.origem
                     }))
                 },
-                faturamento: {
-                    acumuladoMes: Math.round(faturadoAcumulado * 100) / 100,
-                    acumuladoMesAnterior: Math.round(faturadoMesAnterior * 100) / 100,
-                    meta: Math.round(metaFaturamento * 100) / 100,
-                    percentualMeta: metaFaturamento > 0 ? Math.round((faturadoAcumulado / metaFaturamento) * 1000) / 10 : 0,
-                    mesReferencia: `${String(mesAtual).padStart(2, '0')}/${anoAtual}`,
-                    mesAnteriorReferencia: `${String(mesAnterior).padStart(2, '0')}/${anoMesAnterior}`,
-                    variacaoMesAnterior: Math.round(variacaoFaturamento * 10) / 10,
-                    variacaoPositiva: variacaoFaturamento >= 0
+                retrabalho: {
+                    horas: Math.round(horasRetrabalho * 100) / 100,
+                    horasAnterior: Math.round(horasRetrabalhoAnterior * 100) / 100,
+                    variacao: Math.round(variacaoRetrabalho * 10) / 10,
+                    variacaoPositiva: variacaoRetrabalho <= 0, // Menos retrabalho é melhor
+                    ultimosCasos: ultimosRetrabalhosQuery.rows
                 },
                 pdca: {
                     planosAbertos: parseInt(pdcaQuery.rows[0]?.planos_abertos || 0),
