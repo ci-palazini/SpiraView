@@ -264,7 +264,7 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
 
             rows.push({
                 maquinaId: m.id,
-                maquinaNome: m.nome,
+                maquinaNome: m.nome_producao || m.nome,
                 setor: m.setor,
                 produzido,
                 meta,

@@ -88,6 +88,7 @@ export interface ListaChamadosResponse {
 export interface Maquina {
     id: string;
     nome: string;
+    nome_producao?: string;
     tag?: string;
     setor?: string;
     critico?: boolean;

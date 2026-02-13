@@ -541,6 +541,28 @@ export async function atualizarAliasesProducao(
     return result;
 }
 
+// Atualizar nome de exibição para produção de uma máquina
+export async function atualizarNomeProducao(
+    id: string,
+    nomeProducao: string | null,
+    auth: AuthParams = {}
+): Promise<{ id: string; nome: string; nome_producao: string | null }> {
+    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/nome-producao`, {
+        method: 'PATCH',
+        headers: {
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nomeProducao }),
+    });
+
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(result?.error || 'Erro ao atualizar nome de produção');
+    }
+    return result;
+}
+
 // ===== CHECKLIST DIÁRIO =====
 export async function addChecklistItem(maquinaId: string, item: string, auth: AuthParams): Promise<unknown> {
     const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-add`, {

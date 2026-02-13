@@ -435,7 +435,7 @@ export default function TvDashboardPage() {
 
             rows.push({
                 maquinaId: m.id,
-                maquinaNome: m.nome,
+                maquinaNome: m.nome_producao || m.nome,
                 setor: m.setor,
                 produzido,
                 meta,

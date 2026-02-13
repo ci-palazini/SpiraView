@@ -24,6 +24,7 @@ import {
     listarMaquinas,
     atualizarEscopoMaquina,
     atualizarAliasesProducao,
+    atualizarNomeProducao,
     atualizarMaquinaPai,
     listarMetasProducao,
     criarMetaProducao,
@@ -56,6 +57,7 @@ interface EditState {
     parentId: string;
     isMaquinaMae: boolean;
     exibirFilhosDashboard: boolean;
+    nomeProducao: string;
 }
 
 // --- Helpers ---
@@ -150,6 +152,7 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
             setor: maquina.setor || '',
             meta: metaVigente?.horasMeta ? Number(metaVigente.horasMeta).toFixed(2) : '',
             aliases: maquina.aliases_producao?.join(', ') || '',
+            nomeProducao: maquina.nome_producao || '',
             parentId: maquina.parent_maquina_id || '',
             isMaquinaMae: isMae,
             exibirFilhosDashboard: maquina.exibir_filhos_dashboard ?? true
@@ -206,7 +209,19 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                 }
             }
 
-            // 3. Atualizar aliases
+            // 3. Atualizar nome de produção
+            if (editState.escopoProducao) {
+                const newNomeProd = editState.nomeProducao.trim() || null;
+                const oldNomeProd = maquina.nome_producao || null;
+                if (newNomeProd !== oldNomeProd) {
+                    await atualizarNomeProducao(maquina.id, newNomeProd, {
+                        role: user.role,
+                        email: user.email,
+                    });
+                }
+            }
+
+            // 4. Atualizar aliases
             if (editState.escopoProducao) {
                 const newAliases = editState.aliases
                     .split(/[,\n]/)
@@ -521,6 +536,12 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                                         {m.nome}
                                                         {m.is_maquina_mae && <span title="Máquina Mãe" style={{ marginLeft: 6, fontSize: '0.7em', padding: '2px 6px', borderRadius: 4, background: '#e0e7ff', color: '#4338ca' }}>{t('producao.config.table.mother', 'MÃE')}</span>}
                                                     </span>
+                                                    {m.nome_producao && m.nome_producao !== m.nome && (
+                                                        <span className={styles.machineTag} title={t('producao.config.table.productionName', 'Nome na Produção')}>
+                                                            <FiBox style={{ fontSize: '0.9em', marginRight: 4, verticalAlign: 'middle' }} />
+                                                            {m.nome_producao}
+                                                        </span>
+                                                    )}
                                                     {m.tag && m.tag !== m.nome && (
                                                         <span className={styles.machineTag}>{m.tag}</span>
                                                     )}
@@ -861,6 +882,21 @@ export default function ProducaoConfigPage({ user }: ProducaoConfigPageProps) {
                                     </div>
                                 )}
 
+
+                                <div className={styles.modalField}>
+                                    <label className={styles.modalLabel}>{t('producao.config.modal.productionName', 'Nome para Produção')}</label>
+                                    <input
+                                        type="text"
+                                        className={styles.modalInput}
+                                        placeholder={t('producao.config.modal.productionNamePlaceholder', 'Ex: Nome diferente que a produção usa')}
+                                        value={editState.nomeProducao}
+                                        onChange={(e) => setEditState(prev => prev ? ({ ...prev, nomeProducao: e.target.value }) : null)}
+                                        disabled={saving}
+                                    />
+                                    <span className={styles.helperText}>
+                                        {t('producao.config.modal.productionNameHint', 'Nome alternativo exibido nas telas de produção. Se vazio, usa o nome padrão.')}
+                                    </span>
+                                </div>
 
                                 <div className={styles.modalField}>
                                     <label className={styles.modalLabel}>{t('producao.config.modal.sector', 'Setor/Departamento')}</label>

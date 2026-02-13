@@ -50,7 +50,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, escopo_planejamento, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard
+      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, escopo_planejamento, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, nome_producao
        FROM maquinas
        WHERE ${where}
        ORDER BY nome ASC`,
@@ -86,11 +86,12 @@ maquinasRouter.post("/maquinas", async (req, res) => {
       return res.status(409).json({ error: "Já existe uma máquina com esse nome/tag." });
     }
 
+    const nomeProducaoTrim = req.body?.nomeProducao ? String(req.body.nomeProducao).trim() || null : null;
     const { rows } = await pool.query(
-      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento)
-       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true), COALESCE($8, true), COALESCE($9, false), COALESCE($10, false))
-       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento`,
-      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true, escopoManutencao !== undefined ? !!escopoManutencao : true, escopoProducao !== undefined ? !!escopoProducao : false, escopoPlanejamento !== undefined ? !!escopoPlanejamento : false]
+      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao)
+       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true), COALESCE($8, true), COALESCE($9, false), COALESCE($10, false), $11)
+       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao`,
+      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true, escopoManutencao !== undefined ? !!escopoManutencao : true, escopoProducao !== undefined ? !!escopoProducao : false, escopoPlanejamento !== undefined ? !!escopoPlanejamento : false, nomeProducaoTrim]
     );
 
     // SSE broadcast
@@ -242,6 +243,35 @@ maquinasRouter.patch('/maquinas/:id/aliases-producao', requirePermission('produc
   }
 });
 
+// PATCH /maquinas/:id/nome-producao - Atualizar nome de exibição para produção
+maquinasRouter.patch('/maquinas/:id/nome-producao', requirePermission('producao_config', 'editar'), async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const { nomeProducao } = req.body || {};
+
+    // Aceita string ou null para limpar
+    const valor = typeof nomeProducao === 'string' ? nomeProducao.trim() || null : null;
+
+    const upd = await pool.query(
+      `UPDATE maquinas 
+       SET nome_producao = $2, atualizado_em = NOW()
+       WHERE id = $1::uuid
+       RETURNING id, nome, nome_producao`,
+      [id, valor]
+    );
+
+    if (!upd.rowCount) {
+      return res.status(404).json({ error: 'Máquina não encontrada.' });
+    }
+
+    sseBroadcast({ topic: 'maquinas', action: 'updated', id });
+    res.json(upd.rows[0]);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 maquinasRouter.get('/maquinas/:id', async (req, res) => {
   try {
     const id = String(req.params.id);
@@ -259,6 +289,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
         escopo_manutencao,
         escopo_producao,
         escopo_planejamento,
+        nome_producao,
         COALESCE(checklist_diario, '[]'::jsonb) AS checklist_diario
       FROM maquinas
       WHERE id = $1
