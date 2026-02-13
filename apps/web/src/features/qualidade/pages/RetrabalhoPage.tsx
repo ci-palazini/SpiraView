@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { http, criarNaoConformidade, QualidadeOpcao } from '../../../services/apiClient';
 import { NcReconciliationModal, ActionItem } from '../components/NcReconciliationModal';
 import PageHeader from '../../../shared/components/PageHeader';
+import HelpTooltip from '../../../shared/components/HelpTooltip';
 import styles from './RetrabalhoPage.module.css';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -546,7 +547,22 @@ export default function RetrabalhoPage() {
         );
     };
 
-    // ── Render ──────────────────────────────────────────────────────────────
+    const renderHelpContent = (type: 'occurrence' | 'severity' | 'detection') => (
+        <div style={{ display: 'grid', gap: '8px', textAlign: 'left' }}>
+            {[1, 2, 3, 4, 5].map(n => (
+                <div key={n} style={{ display: 'flex', gap: '6px', fontSize: '0.8rem', alignItems: 'flex-start' }}>
+                    <span style={{
+                        fontWeight: '700',
+                        color: '#3b82f6',
+                        // Robust style: ensure number is visible and aligned
+                        minWidth: '20px',
+                        flexShrink: 0
+                    }}>{n}:</span>
+                    <span style={{ flex: 1, paddingTop: '2px' }}>{t(`quality.retrabalho.help.${type}.level_${n}`)}</span>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <>
@@ -719,19 +735,28 @@ export default function RetrabalhoPage() {
                                 {/* Row 4: O, S, D, Total, Horas */}
                                 <div className={styles.row}>
                                     <div className={styles.field} style={{ minWidth: '100px', flex: 0.5 }}>
-                                        <label className={styles.label} htmlFor="ocorrencia">{t('quality.retrabalho.occurrence', 'Ocorrência')}</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label className={styles.label} htmlFor="ocorrencia" style={{ marginBottom: 0 }}>{t('quality.retrabalho.occurrence', 'Ocorrência')}</label>
+                                            <HelpTooltip content={renderHelpContent('occurrence')} placement="top-left" />
+                                        </div>
                                         <select className={styles.select} id="ocorrencia" name="ocorrencia" value={form.ocorrencia} onChange={handleChange} required>
                                             {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                                         </select>
                                     </div>
                                     <div className={styles.field} style={{ minWidth: '100px', flex: 0.5 }}>
-                                        <label className={styles.label} htmlFor="severidade">{t('quality.retrabalho.severity', 'Severidade')}</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label className={styles.label} htmlFor="severidade" style={{ marginBottom: 0 }}>{t('quality.retrabalho.severity', 'Severidade')}</label>
+                                            <HelpTooltip content={renderHelpContent('severity')} />
+                                        </div>
                                         <select className={styles.select} id="severidade" name="severidade" value={form.severidade} onChange={handleChange} required>
                                             {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                                         </select>
                                     </div>
                                     <div className={styles.field} style={{ minWidth: '100px', flex: 0.5 }}>
-                                        <label className={styles.label} htmlFor="deteccao">{t('quality.retrabalho.detection', 'Detecção')}</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label className={styles.label} htmlFor="deteccao" style={{ marginBottom: 0 }}>{t('quality.retrabalho.detection', 'Detecção')}</label>
+                                            <HelpTooltip content={renderHelpContent('detection')} />
+                                        </div>
                                         <select className={styles.select} id="deteccao" name="deteccao" value={form.deteccao} onChange={handleChange} required>
                                             {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                                         </select>

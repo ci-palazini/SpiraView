@@ -1543,6 +1543,31 @@
       "invalidFormatError": "No valid records found. Verify mandatory columns.",
       "processingAdjustments": "Processing adjustments...",
       "createAdjustmentsError": "Error creating new items."
+    },
+    "retrabalho": {
+      "help": {
+        "occurrence": {
+          "level_1": "Very low: Remote chance, rarely occurs",
+          "level_2": "Low: Once a year",
+          "level_3": "Moderate: Once a semester",
+          "level_4": "High: Once a month",
+          "level_5": "Very high: Once a week"
+        },
+        "severity": {
+          "level_1": "Very low: Effect not detectable in the system",
+          "level_2": "Low: Perceived by the user causing few consequences",
+          "level_3": "Moderate: Failure at a considerable level, affects product performance. User is bothered",
+          "level_4": "High: User totally dissatisfied, product stops working",
+          "level_5": "Very high: Potential safety risk and serious non-compliance problems"
+        },
+        "detection": {
+          "level_1": "Very low: Certainly will be detected",
+          "level_2": "Low: High probability of being detected",
+          "level_3": "Moderate: Probably will be detected",
+          "level_4": "High: Probably will not be detected",
+          "level_5": "Very high: Certainly will not be detected"
+        }
+      }
     }
   },
   "qualityAnalytics": {

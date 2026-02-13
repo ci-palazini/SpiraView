@@ -1620,6 +1620,31 @@
       "invalidFormatError": "Nenhum registro válido encontrado. Verifique se as colunas obrigatórias estão presentes.",
       "processingAdjustments": "Processando ajustes...",
       "createAdjustmentsError": "Erro ao criar novos itens."
+    },
+    "retrabalho": {
+      "help": {
+        "occurrence": {
+          "level_1": "Muito baixa: Chance remota, raramente ocorre",
+          "level_2": "Baixa: 1 vez por ano",
+          "level_3": "Moderada: 1 vez por semestre",
+          "level_4": "Alta: 1 vez por mês",
+          "level_5": "Muito alta: 1 vez por semana"
+        },
+        "severity": {
+          "level_1": "Muito baixa: Efeito não detectável no sistema",
+          "level_2": "Baixa: Percebido pelo usuário causando poucas consequências",
+          "level_3": "Moderada: Falha em um nível considerável, afeta o desempenho do produto. Usuário se incomoda com o problema",
+          "level_4": "Alta: Usuário totalmente insatisfeito, produto deixa de funcionar",
+          "level_5": "Muito alta: Risco potencial de segurança e problemas graves de não-conformidades"
+        },
+        "detection": {
+          "level_1": "Muito baixa: Certamente será detectado",
+          "level_2": "Baixa: Grande probabilidade de ser detectado",
+          "level_3": "Moderada: Provavelmente será detectado",
+          "level_4": "Alta: Provavelmente não será detectado",
+          "level_5": "Muito alta: Certamente não será detectado"
+        }
+      }
     }
   },
   "qualityAnalytics": {

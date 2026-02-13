@@ -1,0 +1,92 @@
+.container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    cursor: help;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.container:hover {
+    color: #3b82f6;
+}
+
+.tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    width: max-content;
+    max-width: 320px;
+    background-color: #1e293b;
+    color: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 50;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+    font-weight: normal;
+    text-align: left;
+}
+
+.container:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.arrow {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+}
+
+/* Adjust if near screen edges - simple fallback */
+@media (max-width: 640px) {
+    .tooltip {
+        left: auto;
+        right: -10px;
+        transform: none;
+        max-width: 250px;
+    }
+
+    .arrow {
+        left: auto;
+        right: 14px;
+        transform: none;
+    }
+}
+
+/* Placements */
+.topLeft {
+    left: 0;
+    transform: none;
+}
+
+.topLeft .arrow {
+    left: 14px;
+    transform: none;
+}
+
+.topRight {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.topRight .arrow {
+    left: auto;
+    right: 14px;
+    transform: none;
+}
