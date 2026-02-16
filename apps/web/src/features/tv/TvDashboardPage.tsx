@@ -249,7 +249,69 @@ export default function TvDashboardPage() {
             ]);
             setMaquinas(maqData as Maquina[]);
             setMetas(metasData);
-            setResumos(resumoData);
+
+            // Lógica de Agregação: Se for Domingo e total < 10h, somar ao Sábado e mudar dataRef
+            let finalResumos = resumoData;
+            let finalRefDate = refDate;
+
+            // Normalizar data para garantir verificação correta do dia da semana
+            const currentDateObj = new Date(refDate.includes('T') ? refDate : refDate + 'T12:00:00');
+            const isSunday = currentDateObj.getDay() === 0;
+
+            if (isSunday) {
+                const totalSunday = resumoData.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+
+                if (totalSunday < 10) {
+                    console.log('TV Dashboard: Domingo com < 10h detectado. Agregando ao Sábado.');
+
+                    // Calcular data do Sábado anterior
+                    const satDateObj = new Date(currentDateObj);
+                    satDateObj.setDate(satDateObj.getDate() - 1);
+                    const satISO = toISO(satDateObj); // YYYY-MM-DD
+
+                    // Buscar dados de Sábado no histórico
+                    // historicoData contém ~14 dias. Normalizar para comparação YYYY-MM-DD
+                    const satData = historicoData.filter(h => {
+                        const hDate = typeof h.dataRef === 'string' && h.dataRef.includes('T')
+                            ? h.dataRef.slice(0, 10)
+                            : h.dataRef;
+                        return hDate === satISO;
+                    });
+
+                    // Criar mapa para fusão
+                    const mergedMap = new Map<string, ProducaoResumoDiario>();
+
+                    // 1. Adicionar dados de Sábado (base)
+                    satData.forEach(item => {
+                        mergedMap.set(item.maquinaId, { ...item, horasDia: Number(item.horasDia) || 0 });
+                    });
+
+                    // 2. Somar dados de Domingo
+                    resumoData.forEach(item => {
+                        const h = Number(item.horasDia) || 0;
+                        if (mergedMap.has(item.maquinaId)) {
+                            const current = mergedMap.get(item.maquinaId)!;
+                            // Somar horas (garantindo número)
+                            const currentHoras = Number(current.horasDia) || 0;
+                            current.horasDia = currentHoras + h;
+
+                            // Manter a hora de atualização mais recente
+                            if (item.ultimaAtualizacaoEm && (!current.ultimaAtualizacaoEm || item.ultimaAtualizacaoEm > current.ultimaAtualizacaoEm)) {
+                                current.ultimaAtualizacaoEm = item.ultimaAtualizacaoEm;
+                            }
+                        } else {
+                            // Se máquina só produziu no domingo, adiciona como se fosse sábado
+                            mergedMap.set(item.maquinaId, { ...item, horasDia: h, dataRef: satISO });
+                        }
+                    });
+
+                    finalResumos = Array.from(mergedMap.values());
+                    finalRefDate = satISO;
+                }
+            }
+
+            setResumos(finalResumos);
+            setDataRef(finalRefDate);
 
             // Salvar dados brutos do histórico (processamento será feito no useMemo com filtro por scope)
             setHistoricoRaw(historicoData);
