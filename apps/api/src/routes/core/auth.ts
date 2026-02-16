@@ -141,7 +141,7 @@ authRouter.post('/auth/login', async (req, res) => {
  */
 authRouter.get('/auth/me', async (req, res) => {
   try {
-    const email = req.user?.email || req.header('x-user-email');
+    const email = req.user?.email;
     if (!email) {
       return res.status(401).json({ error: 'Não autenticado.' });
     }
@@ -192,8 +192,8 @@ authRouter.get('/auth/me', async (req, res) => {
 authRouter.post('/auth/change-password', async (req, res) => {
   try {
     const bodyEmail = String(req.body?.email || '').trim().toLowerCase();
-    const headerEmail = String(req.headers['x-user-email'] || '').trim().toLowerCase();
-    const email = bodyEmail || headerEmail;
+    const userEmail = req.user?.email;
+    const email = bodyEmail || userEmail;
     const senhaAtual = String(req.body?.senhaAtual || '');
     const novaSenha = String(req.body?.novaSenha || '');
 
@@ -204,16 +204,16 @@ authRouter.post('/auth/change-password', async (req, res) => {
       `SELECT id, senha_hash FROM usuarios WHERE LOWER(email)=LOWER($1) LIMIT 1`,
       [email]
     );
-    if (!rows.length) return res.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado.' });
+    if (!rows.length) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
     const u = rows[0];
 
-    // Se jÃ¡ existe senha, exige confirmaÃ§Ã£o da atual
+    // Se já existe senha, exige confirmação da atual
     if (u.senha_hash) {
       const ok = await bcrypt.compare(senhaAtual, u.senha_hash);
-      if (!ok) return res.status(400).json({ error: 'Senha atual invÃ¡lida.' });
+      if (!ok) return res.status(400).json({ error: 'Senha atual inválida.' });
     }
-    // Caso ainda nÃ£o exista senha (migraÃ§Ã£o), permitimos definir sem exigir a atual
+    // Caso ainda não exista senha (migração), permitimos definir sem exigir a atual
 
     const hash = await bcrypt.hash(novaSenha, 10);
     await pool.query(`UPDATE usuarios SET senha_hash=$2 WHERE id=$1`, [u.id, hash]);
