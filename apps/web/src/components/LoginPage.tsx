@@ -99,13 +99,14 @@ export default function LoginPage() {
         }
     };
 
-    const handleOperatorSuccess = (user: { id: string; nome: string; email: string; role: string }) => {
+    const handleOperatorSuccess = (user: { id: string; nome: string; email: string; role: string; token?: string }) => {
         const normalized: StoredUser = {
             id: user.id,
             email: String(user.email).trim().toLowerCase(),
             name: user.nome,
             nome: user.nome,
             role: 'operador',
+            token: user.token,
         };
 
         persistUser(normalized);

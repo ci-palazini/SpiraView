@@ -182,7 +182,7 @@ capacidadeRouter.post(
 
         try {
             const { rows, nomeArquivo } = req.body;
-            const userEmail = req.headers['x-user-email'] as string || null;
+            const userEmail = req.user?.email || null;
 
             if (!Array.isArray(rows) || rows.length === 0) {
                 return res.status(400).json({ error: 'Nenhuma linha enviada' });

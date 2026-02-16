@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import * as jwt from 'jsonwebtoken';
 import { pool } from '../../db';
+import { env } from '../../config/env';
 
 export const operatorAuthRouter: Router = Router();
 
@@ -113,6 +115,19 @@ operatorAuthRouter.post('/auth/operator-login', async (req, res) => {
             return res.status(401).json({ error: 'Matrícula inválida.' });
         }
 
+        // Gera token JWT (mesmo padrão do login normal)
+        const token = jwt.sign(
+            {
+                id: operador.id,
+                email: operador.email,
+                role: operador.role,
+                nome: operador.nome,
+                usuario: operador.usuario,
+            },
+            env.auth.jwtSecret,
+            { expiresIn: '7d' }
+        );
+
         // Retorna dados do operador (mesmo formato do login tradicional)
         return res.json({
             id: operador.id,
@@ -120,7 +135,8 @@ operatorAuthRouter.post('/auth/operator-login', async (req, res) => {
             email: operador.email,
             role: operador.role,
             funcao: operador.funcao,
-            usuario: operador.usuario
+            usuario: operador.usuario,
+            token, // <--- JWT token
         });
 
     } catch (e: any) {

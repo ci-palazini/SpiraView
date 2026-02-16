@@ -462,7 +462,7 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
 export async function deletarMaquina(id: string, auth: AuthParams = {}): Promise<boolean | unknown> {
     const headers = buildAuthHeaders(auth);
 
-    if (!headers['x-user-email']) {
+    if (!headers['Authorization'] && !headers['x-user-email']) {
         const err = new Error('LOGIN_REQUIRED') as Error & { status?: number };
         err.status = 401;
         throw err;
@@ -636,9 +636,8 @@ export async function enviarChecklistDiaria(data: SubmissaoDiariaCreate): Promis
     const res = await fetch(`${BASE}/checklists/daily/submit`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders({ role: 'operador', email: data.operadorEmail }),
             'Content-Type': 'application/json',
-            'x-user-role': 'operador',
-            'x-user-email': data.operadorEmail || '',
         },
         body: JSON.stringify(data),
     });
@@ -740,9 +739,8 @@ export async function iniciarAgendamento(id: string, auth: AuthParams): Promise<
     const res = await fetch(`${BASE}/agendamentos/${id}/iniciar`, {
         method: "POST",
         headers: {
+            ...buildAuthHeaders({ role: auth.role || "manutentor", email: auth.email || auth.criadoPorEmail }),
             "Content-Type": "application/json",
-            "x-user-role": auth.role || "manutentor",
-            "x-user-email": auth.email || auth.criadoPorEmail || ""
         },
         body: JSON.stringify({ criadoPorEmail: auth.criadoPorEmail || auth.email })
     });
@@ -963,9 +961,8 @@ export async function criarCausa(payload: { nome: string }, auth: AuthParams): P
     const r = await fetch(`${BASE}/causas`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders(auth),
             'Content-Type': 'application/json',
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || ''
         },
         body: JSON.stringify(payload)
     });
@@ -977,10 +974,7 @@ export async function criarCausa(payload: { nome: string }, auth: AuthParams): P
 export async function excluirCausa(id: string, auth: AuthParams): Promise<unknown> {
     const r = await fetch(`${BASE}/causas/${encodeURIComponent(id)}`, {
         method: 'DELETE',
-        headers: {
-            'x-user-role': auth?.role || '',
-            'x-user-email': auth?.email || ''
-        }
+        headers: buildAuthHeaders(auth),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j?.error || 'Falha ao excluir causa');
@@ -1090,8 +1084,8 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<{ 
     const r = await fetch(`${BASE}/auth/change-password`, {
         method: 'POST',
         headers: {
+            ...buildAuthHeaders({ email: payload.email }),
             'Content-Type': 'application/json',
-            'x-user-email': payload.email || ''
         },
         body: JSON.stringify(payload)
     });

@@ -8,7 +8,7 @@ import { SelectList, NumericKeypad } from '../shared/components';
 import styles from './OperatorLoginForm.module.css';
 
 interface OperatorLoginFormProps {
-    onSuccess: (user: { id: string; nome: string; email: string; role: string }) => void;
+    onSuccess: (user: { id: string; nome: string; email: string; role: string; token?: string }) => void;
     onBack: () => void;
 }
 
@@ -60,7 +60,8 @@ export default function OperatorLoginForm({ onSuccess, onBack }: OperatorLoginFo
                 id: user.id,
                 nome: user.nome,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                token: user.token,
             });
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Erro no login';
