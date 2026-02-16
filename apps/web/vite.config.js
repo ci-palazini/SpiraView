@@ -47,18 +47,36 @@ export default defineConfig({
               url.host.includes('gstatic.com'),
             handler: 'NetworkOnly'
           },
+          // API calls — NUNCA cachear (evita respostas stale de permissões, dados, etc.)
+          {
+            urlPattern: ({ url, sameOrigin }) =>
+              !sameOrigin ||
+              ['/api/', '/auth/', '/chamados/', '/maquinas/', '/usuarios/',
+                '/agendamentos/', '/pecas/', '/causas/', '/analytics/',
+                '/checklists/', '/events', '/operators/', '/producao/',
+                '/notificacoes/', '/ai/', '/movimentacoes/', '/okrs/',
+                '/departamentos/', '/ideias/', '/audit-log/', '/logistica/',
+                '/refugo/', '/retrabalho/', '/pdca/'].some(p => url.pathname.startsWith(p)),
+            handler: 'NetworkOnly'
+          },
           // paginas HTML navegadas
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
-            options: { cacheName: 'html-pages' }
+            options: {
+              cacheName: 'html-pages',
+              networkTimeoutSeconds: 3
+            }
           },
-          // js/css/workers locais
+          // js/css/workers locais — NetworkFirst para sempre tentar o bundle novo
           {
             urlPattern: ({ request, sameOrigin }) =>
               sameOrigin && ['style', 'script', 'worker'].includes(request.destination),
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'static-assets' }
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'static-assets',
+              networkTimeoutSeconds: 3
+            }
           },
           // imagens
           {

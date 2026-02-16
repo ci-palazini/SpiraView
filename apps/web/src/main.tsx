@@ -16,7 +16,7 @@ ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
         <BrowserRouter>
             <LegacyDomainWarning />
-            <SWUpdateBanner />
+            <SWUpdateBanner autoUpdateOnWeb />
             <App />
         </BrowserRouter>
     </React.StrictMode>

@@ -113,7 +113,7 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
     const { method = "GET", headers = {}, body, auth } = opts;
     const url = `${BASE}${path}`;
     const h: Record<string, string> = { ...buildAuthHeaders(auth), ...headers };
-    const init: RequestInit = { method, headers: h };
+    const init: RequestInit = { method, headers: h, cache: 'no-store' };
 
     if (body !== undefined) {
         if (!("Content-Type" in h)) h["Content-Type"] = "application/json";

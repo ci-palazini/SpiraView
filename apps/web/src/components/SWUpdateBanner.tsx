@@ -18,13 +18,19 @@ interface SWUpdateBannerProps {
 }
 
 export default function SWUpdateBanner({
-    showOnlyInApp = true,
-    autoUpdateOnWeb = false
+    showOnlyInApp = false,
+    autoUpdateOnWeb = true
 }: SWUpdateBannerProps) {
     const { t } = useTranslation();
 
     const { needRefresh, offlineReady, updateServiceWorker } = useRegisterSW({
-        immediate: true
+        immediate: true,
+        onRegisteredSW(_swUrl: string, r: ServiceWorkerRegistration | undefined) {
+            // Verifica atualizações do SW periodicamente (60s)
+            if (r) {
+                setInterval(() => { r.update(); }, 60_000);
+            }
+        }
     });
 
     const [dismissed, setDismissed] = useState(false);
