@@ -329,7 +329,8 @@ export default function TvDashboardPage() {
         }
 
         // Converter para array ordenado
-        return Array.from(byDate.entries())
+        // Converter e preparar para processamento
+        const sortedDays = Array.from(byDate.entries())
             .map(([iso, produzido]) => {
                 const d = new Date(iso + 'T12:00:00');
                 const weekDay = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()];
@@ -341,9 +342,49 @@ export default function TvDashboardPage() {
                     meta: metaTotalDia,
                     pct: metaTotalDia > 0 ? (produzido / metaTotalDia) * 100 : 0,
                     isSaturday: d.getDay() === 6,
+                    dayOfWeek: d.getDay(), // Auxiliar para lógica (0=Dom, 6=Sáb)
                 };
             })
             .sort((a, b) => a.iso.localeCompare(b.iso));
+
+        // Agregar Domingos com < 10h no Sábado anterior
+        const processedDays = [];
+        let pendingSaturdayIndex = -1;
+
+        for (const current of sortedDays) {
+            // Se for Sábado
+            if (current.dayOfWeek === 6) {
+                pendingSaturdayIndex = processedDays.length;
+                processedDays.push({ ...current });
+                continue;
+            }
+
+            // Se for Domingo
+            if (current.dayOfWeek === 0) {
+                // Se existe Sábado anterior pendente E horas < 10
+                if (pendingSaturdayIndex !== -1 && current.produzido < 10) {
+                    // Agregar ao Sábado
+                    const sat = processedDays[pendingSaturdayIndex];
+                    sat.produzido += current.produzido;
+                    // Recalcular porcentagem do sábado
+                    sat.pct = sat.meta > 0 ? (sat.produzido / sat.meta) * 100 : 0;
+
+                    // Resetar (domingo é absorvido e não entra na lista)
+                    pendingSaturdayIndex = -1;
+                } else {
+                    // Domingo normal ou sem sábado prévio
+                    processedDays.push({ ...current });
+                    pendingSaturdayIndex = -1;
+                }
+            } else {
+                // Outros dias
+                processedDays.push({ ...current });
+                // Reseta sábado (dia útil quebra a sequência sáb-dom)
+                pendingSaturdayIndex = -1;
+            }
+        }
+
+        return processedDays;
     }, [maquinas, metas, historicoRaw, scope]);
 
     const childrenByParent = useMemo(() => {
