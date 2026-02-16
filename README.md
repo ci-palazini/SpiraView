@@ -1,6 +1,6 @@
-# Manutenção TPM Platform
+# SpiraView
 
-Welcome to the Manutenção TPM Platform monorepo.
+Welcome to the SpiraView monorepo.
 
 ## 📚 Documentation
 
