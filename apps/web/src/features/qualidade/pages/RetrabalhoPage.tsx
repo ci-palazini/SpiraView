@@ -507,8 +507,8 @@ export default function RetrabalhoPage() {
     const formTotal = calcTotal(Number(form.ocorrencia), Number(form.severidade), Number(form.deteccao));
 
     const getTotalClass = (total: number) => {
-        if (total >= 18) return styles.totalHigh;
-        if (total >= 12) return styles.totalMedium;
+        if (total >= 16) return styles.totalHigh;
+        if (total >= 10) return styles.totalMedium;
         return styles.totalLow;
     };
 
