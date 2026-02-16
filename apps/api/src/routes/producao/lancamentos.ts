@@ -8,12 +8,17 @@ export const lancamentosRouter: Router = Router();
 // Helper: verificar permissão granular inline
 async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
     if (!userId) return false;
-    const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
-        `SELECT r.permissoes FROM usuarios u
-         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+    const { rows } = await pool.query<{ permissoes: Record<string, string>; role_nome: string }>(
+        `SELECT r.permissoes, r.nome as role_nome FROM usuarios u
+         LEFT JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1 LIMIT 1`,
         [userId]
     );
+
+    if (!rows.length) return false;
+
+    const dbRoleName = (rows[0].role_nome || '').toLowerCase();
+    if (dbRoleName === 'admin') return true; // Admin tem acesso total
     const permissions = rows[0]?.permissoes || {};
     const userPerm = permissions[pageKey];
     if (!userPerm || userPerm === 'nenhum') return false;
@@ -120,10 +125,7 @@ lancamentosRouter.get('/producao/lancamentos/:id', async (req, res) => {
 lancamentosRouter.post('/producao/lancamentos', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_upload', 'editar')) {
+        if (!await checkPermission(auth.id, 'producao_upload', 'editar')) {
             return res.status(403).json({ error: 'Sem permissão para lançar produção.' });
         }
 
@@ -186,10 +188,7 @@ lancamentosRouter.post('/producao/lancamentos', async (req, res) => {
 lancamentosRouter.put('/producao/lancamentos/:id', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_upload', 'editar')) {
+        if (!await checkPermission(auth.id, 'producao_upload', 'editar')) {
             return res.status(403).json({ error: 'Sem permissão para editar lançamento.' });
         }
 
@@ -228,10 +227,7 @@ lancamentosRouter.put('/producao/lancamentos/:id', async (req, res) => {
 lancamentosRouter.delete('/producao/lancamentos/:id', async (req, res) => {
     try {
         const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_upload', 'editar')) {
+        if (!await checkPermission(auth.id, 'producao_upload', 'editar')) {
             return res.status(403).json({ error: 'Sem permissão para excluir lançamentos.' });
         }
 

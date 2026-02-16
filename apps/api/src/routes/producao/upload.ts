@@ -280,23 +280,30 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
         const auth = (req as any).user || {};
 
         // Verificação de permissão granular (producao_upload: editar)
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
+        // Verificação de permissão granular (producao_upload: editar)
+        // BLINDAGEM: Não confiar no token para Admin. Buscar no banco.
 
-        if (!isAdmin) {
-            // Buscar permissões do role do usuário
-            const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
-                `SELECT r.permissoes 
-                 FROM usuarios u
-                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
-                 WHERE u.id = $1
-                 LIMIT 1`,
-                [auth.id]
-            );
+        // 1. Buscar roles e permissões do banco
+        const { rows: permRows } = await pool.query<{ permissoes: Record<string, string>; role_nome: string }>(
+            `SELECT r.permissoes, r.nome as role_nome
+             FROM usuarios u
+             LEFT JOIN roles r ON u.role_id = r.id
+             WHERE u.id = $1
+             LIMIT 1`,
+            [auth.id]
+        );
 
-            const permissions = permRows[0]?.permissoes || {};
-            const uploadPerm = permissions['producao_upload'];
+        if (!permRows.length) {
+            return res.status(403).json({ error: 'Usuário/Role não encontrado.' });
+        }
 
+        const dbRoleName = (permRows[0].role_nome || '').toLowerCase();
+        const isDbAdmin = dbRoleName === 'admin';
+        const permissions = permRows[0].permissoes || {};
+        const uploadPerm = permissions['producao_upload'];
+
+        // 2. Se não for Admin no banco, exige permissão explícita
+        if (!isDbAdmin) {
             if (uploadPerm !== 'editar') {
                 return res.status(403).json({ error: 'Sem permissão para upload de produção.' });
             }
