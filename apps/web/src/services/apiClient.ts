@@ -1251,9 +1251,8 @@ export async function criarMetaProducao(payload: { maquinaId: string; dataInicio
     const r = await fetch(`${BASE}/producao/metas`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     });
@@ -1266,9 +1265,8 @@ export async function atualizarMetaProducao(id: string, payload: { dataInicio: s
     const r = await fetch(`${BASE}/producao/metas/${id}`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     });
@@ -1281,8 +1279,7 @@ export async function excluirMetaProducao(id: string, auth: AuthParams): Promise
     const r = await fetch(`${BASE}/producao/metas/${id}`, {
         method: 'DELETE',
         headers: {
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth)
         }
     });
     const data = await r.json().catch(() => ({}));
@@ -1307,9 +1304,8 @@ export async function criarLancamentoProducao(payload: { maquinaId: string; data
     const r = await fetch(`${BASE}/producao/lancamentos`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     });
@@ -1322,8 +1318,7 @@ export async function excluirLancamentoProducao(id: string, auth: AuthParams): P
     const r = await fetch(`${BASE}/producao/lancamentos/${id}`, {
         method: 'DELETE',
         headers: {
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth)
         }
     });
     const data = await r.json().catch(() => ({}));
@@ -1415,9 +1410,8 @@ export async function uploadLancamentosProducao(rows: Record<string, unknown>[],
     const r = await fetch(`${BASE}/producao/lancamentos/upload`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ rows, nomeArquivo })
     });

@@ -279,6 +279,11 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
     try {
         const auth = (req as any).user || {};
 
+        // 0. Verificar se está autenticado
+        if (!auth.id) {
+            return res.status(401).json({ error: 'Não autenticado. Faça login novamente.' });
+        }
+
         // Verificação de permissão granular (producao_upload: editar)
         // Verificação de permissão granular (producao_upload: editar)
         // BLINDAGEM: Não confiar no token para Admin. Buscar no banco.
@@ -294,7 +299,10 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
         );
 
         if (!permRows.length) {
-            return res.status(403).json({ error: 'Usuário/Role não encontrado.' });
+            return res.status(403).json({
+                error: 'Usuário não encontrado ou sem role definida.',
+                details: 'Seu usuário existe no token mas não retornou role do banco.'
+            });
         }
 
         const dbRoleName = (permRows[0].role_nome || '').toLowerCase();
