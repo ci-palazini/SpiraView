@@ -1691,9 +1691,8 @@ export async function uploadCapacidade(rows: Record<string, unknown>[], nomeArqu
     const r = await fetch(`${BASE}/planejamento/capacidade/upload`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth),
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ rows, nomeArquivo })
     });
@@ -1718,8 +1717,7 @@ export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string
     if (uploadId) qs.set('uploadId', uploadId);
     const r = await fetch(`${BASE}/planejamento/capacidade/resumo?${qs}`, {
         headers: {
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth)
         }
     });
     const data = await r.json().catch(() => ({ items: [] }));
@@ -1731,8 +1729,7 @@ export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string
 export async function listarUploadsCapacidade(auth: AuthParams): Promise<CapacidadeUpload[]> {
     const r = await fetch(`${BASE}/planejamento/capacidade/uploads`, {
         headers: {
-            'x-user-role': auth.role || '',
-            'x-user-email': auth.email || ''
+            ...buildAuthHeaders(auth)
         }
     });
     const data = await r.json().catch(() => ({ items: [] }));
