@@ -39,6 +39,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.86.0
         version: 2.87.1
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -60,6 +63,9 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
+      jsonwebtoken:
+        specifier: ^9.0.3
+        version: 9.0.3
       morgan:
         specifier: ^1.10.1
         version: 1.10.1

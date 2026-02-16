@@ -16,6 +16,7 @@ interface StoredUser {
     name?: string;
     nome?: string;
     role: string;
+    token?: string;
 }
 
 function readStoredUser(): StoredUser | null {
@@ -77,6 +78,7 @@ export default function LoginPage() {
                 ...user,
                 email: String(user?.email || identifier).trim().toLowerCase(),
                 role: String(user?.role || '').trim().toLowerCase(),
+                token: user?.token, // <--- Armazena o token
             };
 
             persistUser(normalized);

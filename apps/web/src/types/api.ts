@@ -302,6 +302,7 @@ export interface LoginResponse {
     role: string;
     funcao?: string;
     usuario?: string;
+    token?: string;
 }
 
 export interface ChangePasswordPayload {

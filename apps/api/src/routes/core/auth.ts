@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
 import { pool } from '../../db';
+import { env } from '../../config/env';
 
 export const authRouter: Router = Router();
 
@@ -84,6 +86,18 @@ authRouter.post('/auth/login', async (req, res) => {
     const ok = await bcrypt.compare(senha, u.senha_hash);
     if (!ok) return res.status(401).json({ error: 'Credenciais inválidas.' });
 
+    const token = jwt.sign(
+      {
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        nome: u.nome,
+        usuario: u.usuario,
+      },
+      env.auth.jwtSecret,
+      { expiresIn: '7d' } // Token válido por 7 dias
+    );
+
     return res.json({
       id: u.id,
       nome: u.nome,
@@ -93,7 +107,8 @@ authRouter.post('/auth/login', async (req, res) => {
       usuario: u.usuario,
       roleId: u.role_id,
       roleNome: u.role_nome,
-      permissoes: u.permissoes || {}
+      permissoes: u.permissoes || {},
+      token, // <--- Retorna o token JWT
     });
   } catch (e: any) {
     console.error(e);

@@ -60,6 +60,17 @@ function getLoggedUserEmail(): string {
     return '';
 }
 
+// Tenta obter o token salvo
+function getLoggedUserToken(): string {
+    try {
+        const raw = localStorage.getItem('usuario');
+        if (!raw) return '';
+        const obj = JSON.parse(raw);
+        return obj?.token ? String(obj.token).trim() : '';
+    } catch { }
+    return '';
+}
+
 function getDevEmail(): string {
     try {
         return (localStorage.getItem('devEmail') || '').trim().toLowerCase();
@@ -76,6 +87,13 @@ function buildAuthHeaders(auth: AuthParams = {}): Record<string, string> {
         ''
     ).trim().toLowerCase();
 
+    // Preferência: Se tiver token, usa Bearer
+    const token = getLoggedUserToken();
+    if (token) {
+        h['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Mantém headers antigos para compatibilidade ou fallback
     if (email) h['x-user-email'] = email;
     if (auth?.role) h['x-user-role'] = String(auth.role).trim().toLowerCase();
 
