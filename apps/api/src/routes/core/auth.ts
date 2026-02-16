@@ -122,8 +122,8 @@ authRouter.post('/auth/login', loginLimiter, async (req, res) => {
       token, // <--- Retorna o token JWT
     });
   } catch (e: any) {
-    console.error(e);
-    res.status(500).json({ error: String(e) });
+    console.error('[AUTH LOGIN ERROR]', e);
+    res.status(500).json({ error: 'Erro interno ao processar login.' });
   }
 });
 
@@ -194,8 +194,8 @@ authRouter.get('/auth/me', async (req, res) => {
       permissoes: u.permissoes || {}
     });
   } catch (e: any) {
-    console.error(e);
-    res.status(500).json({ error: String(e) });
+    console.error('[AUTH ME ERROR]', e);
+    res.status(500).json({ error: 'Erro interno ao buscar usuário.' });
   }
 });
 
@@ -256,8 +256,8 @@ authRouter.post('/auth/change-password', async (req, res) => {
 
     res.json({ ok: true });
   } catch (e: any) {
-    console.error(e);
-    res.status(500).json({ error: String(e) });
+    console.error('[AUTH CHANGE-PASSWORD ERROR]', e);
+    res.status(500).json({ error: 'Erro interno ao alterar senha.' });
   }
 });
 

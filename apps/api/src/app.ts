@@ -1,6 +1,7 @@
 // apps/api/src/app.ts
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors, { type CorsOptions } from 'cors';
+import helmet from 'helmet';
 
 import { userFromHeader } from './middlewares/userFromHeader';
 import { env } from './config/env';
@@ -18,17 +19,24 @@ import { pdcaRouter } from './routes/pdca';
 
 export const app: Express = express(); // 👈 evita o TS2742
 
-setupSwagger(app);
+// Security headers (Helmet)
+app.use(helmet());
+
+// Swagger docs — apenas em dev/test
+if (env.nodeEnv !== 'production') {
+  setupSwagger(app);
+}
 
 const ALLOW = [...env.cors.allowedOrigins]; // 👈 clona para array mutável
 
 const corsOptions: CorsOptions = {
-  origin: ALLOW.length ? (ALLOW as (string | RegExp)[]) : true,
+  // Em produção sem CORS_ORIGINS configurado, bloqueia tudo (origin: false)
+  origin: ALLOW.length ? (ALLOW as (string | RegExp)[]) : false,
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(userFromHeader);
 
 // Módulos organizados
@@ -41,3 +49,9 @@ app.use(qualidadeRouter);     // Departamento Qualidade
 app.use(logisticaRouter);     // Departamento Logística
 app.use(pdcaRouter);          // Módulo PDCA
 
+// Global error handler — captura erros não tratados
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[GLOBAL ERROR]', new Date().toISOString(), err.stack || err.message);
+  res.status(500).json({ error: 'Erro interno do servidor.' });
+});

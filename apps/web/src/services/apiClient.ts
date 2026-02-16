@@ -177,31 +177,17 @@ export async function criarChamado(data: ChamadoCreate, auth: AuthParams = {}): 
     if (data.checklistItemKey) body.checklistItemKey = String(data.checklistItemKey).trim();
     if (data.item) body.item = String(data.item).trim();
 
-    const res = await fetch(`${BASE}/chamados`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders({ role: auth.role || 'operador', email: auth.email }),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(result?.error || `Falha ao criar chamado (${res.status})`);
-    return result as Chamado;
+    return http.post<Chamado>('/chamados', { data: body, auth });
 }
 
 export async function listarChamadosPorCriador(email: string, page = 1, pageSize = 50): Promise<ListaChamadosResponse> {
-    const res = await fetch(
-        `${BASE}/chamados?criadoPorEmail=${encodeURIComponent(email)}&page=${page}&pageSize=${pageSize}`
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || `Erro ao listar chamados (${res.status})`);
-    return data as ListaChamadosResponse;
+    return http.get<ListaChamadosResponse>('/chamados', {
+        params: { criadoPorEmail: email, page, pageSize },
+    });
 }
 
 export async function listarChamados(params: ListaChamadosParams = {}): Promise<ListaChamadosResponse> {
-    const p: Record<string, string> = {};
+    const p: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(params)) {
         if (v === undefined || v === null || v === '') continue;
         if (v instanceof Date) {
@@ -211,13 +197,7 @@ export async function listarChamados(params: ListaChamadosParams = {}): Promise<
         }
     }
 
-    const u = new URL(`${BASE}/chamados`);
-    Object.entries(p).forEach(([k, v]) => u.searchParams.set(k, v));
-
-    const res = await fetch(u.toString());
-    const ct = res.headers.get('content-type') || '';
-    const data = ct.includes('application/json') ? await res.json() : { error: await res.text() };
-    if (!res.ok) throw new Error(data?.error || `Erro ao listar chamados (${res.status})`);
+    const data = await http.get<any>('/chamados', { params: p });
 
     const items: Chamado[] = Array.isArray(data) ? data
         : Array.isArray(data?.items) ? data.items
@@ -238,41 +218,18 @@ export async function getChamado(id: string, auth: AuthParams = {}): Promise<Cha
 }
 
 export async function listarChamadosPorMaquina(maquinaId: string, opts: { status?: string } = {}): Promise<Chamado[]> {
-    const u = new URL(`${BASE}/chamados`);
-    u.searchParams.set('maquinaId', maquinaId);
-    if (opts.status) u.searchParams.set('status', opts.status);
-    const r = await fetch(u);
-    const j = await r.json();
-    if (!r.ok) throw new Error(j?.error || 'Falha ao listar chamados');
-    return j.items || j;
+    const data = await http.get<{ items?: Chamado[] } | Chamado[]>('/chamados', {
+        params: { maquinaId, status: opts.status },
+    });
+    return (data as { items?: Chamado[] })?.items || (data as Chamado[]);
 }
 
 export async function atribuirChamado(id: string, auth: AuthParams & { manutentorEmail: string }): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}/atribuir`, {
-        method: "POST",
-        headers: {
-            ...buildAuthHeaders(auth),
-            "Content-Type": "application/json",
-            // override if specific email passed in body is different (not for auth header though)
-        },
-        body: JSON.stringify({ manutentorEmail: auth.manutentorEmail })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao atribuir (${res.status})`);
-    return data;
+    return http.post(`/chamados/${id}/atribuir`, { data: { manutentorEmail: auth.manutentorEmail }, auth });
 }
 
 export async function removerAtribuicao(id: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/chamados/${id}/atribuir`, {
-        method: 'DELETE',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Erro ao remover atribuição (${r.status})`);
-    return data;
+    return http.delete(`/chamados/${id}/atribuir`, { auth });
 }
 
 export async function assumirChamado(id: string, auth: AuthParams = {}): Promise<unknown> {
@@ -284,74 +241,27 @@ export async function atualizarStatusChamado(id: string, status: string, auth: A
 }
 
 export async function atenderChamado(id: string, auth: AuthParams = {}): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}/atender`, {
-        method: "POST",
-        headers: {
-            ...buildAuthHeaders({ ...auth, role: auth.role || "manutentor" }),
-            "Content-Type": "application/json",
-        }
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao atender (${res.status})`);
-    return data;
+    return http.post(`/chamados/${id}/atender`, { data: {}, auth });
 }
 
 export async function adicionarObservacao(id: string, opts: { texto: string } & AuthParams): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}/observacoes`, {
-        method: "POST",
-        headers: {
-            ...buildAuthHeaders({ role: opts.role, email: opts.email }),
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ texto: opts.texto })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao salvar observação (${res.status})`);
-    return data;
+    return http.post(`/chamados/${id}/observacoes`, { data: { texto: opts.texto }, auth: opts });
 }
 
 export async function concluirChamado(id: string, payload: ConcluirChamadoPayload, auth: AuthParams): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}/concluir`, {
-        method: "POST",
-        headers: {
-            ...buildAuthHeaders(auth),
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao concluir (${res.status})`);
-    return data;
+    return http.post(`/chamados/${id}/concluir`, { data: payload, auth });
 }
 
 export async function deletarChamado(id: string, auth: AuthParams): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}`, {
-        method: "DELETE",
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao excluir (${res.status})`);
-    return data;
+    return http.delete(`/chamados/${id}`, { auth });
 }
 
 
 
 // ===== FOTOS =====
 export async function listarFotosChamado(id: string, auth: AuthParams = {}): Promise<Foto[]> {
-    const res = await fetch(`${BASE}/chamados/${encodeURIComponent(id)}/fotos`, {
-        headers: buildAuthHeaders(auth),
-    });
-
-    const ct = res.headers.get("content-type") || "";
-    const data = ct.includes("application/json")
-        ? await res.json().catch(() => [])
-        : { error: await res.text().catch(() => "") };
-
-    if (!res.ok) {
-        throw new Error(data?.error || `Erro ao listar fotos do chamado (${res.status})`);
-    }
-
-    return Array.isArray(data) ? data : data.items || [];
+    const data = await http.get<{ items?: Foto[] } | Foto[]>(`/chamados/${encodeURIComponent(id)}/fotos`, { auth });
+    return Array.isArray(data) ? data : (data as { items?: Foto[] })?.items || [];
 }
 
 export async function uploadFotoChamado(id: string, file: File | Blob, auth: AuthParams = {}): Promise<Foto> {
@@ -385,43 +295,24 @@ export async function uploadFotoChamado(id: string, file: File | Blob, auth: Aut
 
 // ===== MÁQUINAS =====
 export async function getMaquinas(q = "", escopo?: 'manutencao' | 'producao'): Promise<Maquina[]> {
-    const params = new URLSearchParams();
-    if (q) params.set('q', q);
-    if (escopo) params.set('escopo', escopo);
-    const qs = params.toString();
-    const url = qs ? `${BASE}/maquinas?${qs}` : `${BASE}/maquinas`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Erro ao buscar máquinas: ${res.status}`);
-    return res.json();
+    return http.get<Maquina[]>('/maquinas', {
+        params: { q: q || undefined, escopo },
+    });
 }
 
 export async function listarMaquinas(params: Record<string, unknown> = {}): Promise<Maquina[]> {
-    const qs = new URLSearchParams(
-        Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v]) => [k, String(v)])
-    ).toString();
-
-    const res = await fetch(`${BASE}/maquinas${qs ? `?${qs}` : ''}`);
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-        throw new Error(data?.error || `Erro ao listar máquinas (${res.status})`);
-    }
-    return Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+    const data = await http.get<{ items?: Maquina[] } | Maquina[]>('/maquinas', { params });
+    return Array.isArray((data as { items?: Maquina[] })?.items)
+        ? (data as { items: Maquina[] }).items
+        : (Array.isArray(data) ? data as Maquina[] : []);
 }
 
 export async function getMaquina(id: string): Promise<Maquina> {
-    const res = await fetch(`${BASE}/maquinas/${id}`);
-    const ct = res.headers.get("content-type") || "";
-    const data = ct.includes("application/json") ? await res.json() : { error: await res.text() };
-    if (!res.ok) throw new Error(data?.error || `Erro ao buscar máquina (${res.status})`);
-    return data as Maquina;
+    return http.get<Maquina>(`/maquinas/${id}`);
 }
 
 export async function obterMaquina(id: string): Promise<Maquina> {
-    const r = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Erro ao obter máquina (${r.status})`);
-    return data as Maquina;
+    return http.get<Maquina>(`/maquinas/${encodeURIComponent(id)}`);
 }
 
 export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): Promise<Maquina> {
@@ -443,59 +334,15 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
 }
 
 export async function deletarMaquina(id: string, auth: AuthParams = {}): Promise<boolean | unknown> {
-    const headers = buildAuthHeaders(auth);
-
-    if (!headers['Authorization']) {
-        const err = new Error('LOGIN_REQUIRED') as Error & { status?: number };
-        err.status = 401;
-        throw err;
-    }
-
-    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers,
-    });
-
-    if (res.status === 204) return true;
-
-    const ct = res.headers.get('content-type') || '';
-    const data = ct.includes('application/json')
-        ? await res.json().catch(() => ({}))
-        : await res.text().catch(() => '');
-
-    if (!res.ok) {
-        const err = new Error(
-            data?.error || (typeof data === 'string' ? data : `Erro ao excluir máquina (${res.status})`)
-        ) as Error & { status?: number };
-        err.status = res.status;
-        throw err;
-    }
-    return data || true;
+    return http.delete(`/maquinas/${encodeURIComponent(id)}`, { auth });
 }
 
 export async function renomearMaquina(id: string, data: { nome: string; syncTag?: boolean }, auth: AuthParams = {}): Promise<Maquina> {
-    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/nome`, {
+    return apiFetch<Maquina>(`/maquinas/${encodeURIComponent(id)}/nome`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nome: data.nome, syncTag: data.syncTag ?? true }),
+        body: { nome: data.nome, syncTag: data.syncTag ?? true },
+        auth,
     });
-
-    const ct = res.headers.get('content-type') || '';
-    const result = ct.includes('application/json')
-        ? await res.json().catch(() => ({}))
-        : await res.text().catch(() => '');
-
-    if (!res.ok) {
-        const err = new Error(
-            result?.error || (typeof result === 'string' ? result : `Erro ao renomear máquina (${res.status})`)
-        ) as Error & { status?: number };
-        err.status = res.status;
-        throw err;
-    }
-    return result as Maquina;
 }
 
 // Atualizar máquina mãe
@@ -504,20 +351,11 @@ export async function atualizarMaquinaPai(
     parentId: string | null,
     auth: AuthParams = {}
 ): Promise<{ id: string; nome: string; parent_maquina_id?: string }> {
-    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/parent`, {
+    return apiFetch(`/maquinas/${encodeURIComponent(id)}/parent`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ parentId }),
+        body: { parentId },
+        auth,
     });
-
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) {
-        throw new Error(result?.error || 'Erro ao atualizar máquina mãe');
-    }
-    return result;
 }
 
 // Atualizar aliases de produção de uma máquina
@@ -526,20 +364,11 @@ export async function atualizarAliasesProducao(
     aliases: string[],
     auth: AuthParams = {}
 ): Promise<{ id: string; nome: string; aliases_producao: string[] }> {
-    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/aliases-producao`, {
+    return apiFetch(`/maquinas/${encodeURIComponent(id)}/aliases-producao`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ aliases }),
+        body: { aliases },
+        auth,
     });
-
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) {
-        throw new Error(result?.error || 'Erro ao atualizar aliases');
-    }
-    return result;
 }
 
 // Atualizar nome de exibição para produção de uma máquina
@@ -548,112 +377,48 @@ export async function atualizarNomeProducao(
     nomeProducao: string | null,
     auth: AuthParams = {}
 ): Promise<{ id: string; nome: string; nome_producao: string | null }> {
-    const res = await fetch(`${BASE}/maquinas/${encodeURIComponent(id)}/nome-producao`, {
+    return apiFetch(`/maquinas/${encodeURIComponent(id)}/nome-producao`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nomeProducao }),
+        body: { nomeProducao },
+        auth,
     });
-
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) {
-        throw new Error(result?.error || 'Erro ao atualizar nome de produção');
-    }
-    return result;
 }
 
 // ===== CHECKLIST DIÁRIO =====
 export async function addChecklistItem(maquinaId: string, item: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-add`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ item })
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao adicionar item');
-    return j;
+    return http.post(`/maquinas/${maquinaId}/checklist-add`, { data: { item }, auth });
 }
 
 export async function removeChecklistItem(maquinaId: string, item: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-remove`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ item })
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao remover item');
-    return j;
+    return http.post(`/maquinas/${maquinaId}/checklist-remove`, { data: { item }, auth });
 }
 
 export async function getChecklistDiario(maquinaId: string): Promise<ChecklistDiarioItem[]> {
-    const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-diario`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Erro ao buscar checklist diário (${r.status})`);
-    const items = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
-    return items;
+    const data = await http.get<{ items?: ChecklistDiarioItem[] } | ChecklistDiarioItem[]>(
+        `/maquinas/${maquinaId}/checklist-diario`
+    );
+    return Array.isArray((data as { items?: ChecklistDiarioItem[] })?.items)
+        ? (data as { items: ChecklistDiarioItem[] }).items
+        : (Array.isArray(data) ? data as ChecklistDiarioItem[] : []);
 }
 
 export async function reorderChecklistItems(maquinaId: string, items: string[], auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/maquinas/${maquinaId}/checklist-reorder`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items })
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao reordenar itens');
-    return j;
+    return http.post(`/maquinas/${maquinaId}/checklist-reorder`, { data: { items }, auth });
 }
 
 export async function enviarChecklistDiaria(data: SubmissaoDiariaCreate): Promise<unknown> {
-    const res = await fetch(`${BASE}/checklists/daily/submit`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders({ role: 'operador', email: data.operadorEmail }),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(result?.error || `Falha ao enviar checklist diário (${res.status})`);
-    return result;
+    return http.post('/checklists/daily/submit', { data });
 }
 
 export async function listarSubmissoesDiarias(params: { operadorEmail?: string; date?: string; maquinaId?: string; turno?: string }): Promise<Submissao[]> {
-    const qs = new URLSearchParams();
-    if (params.operadorEmail) qs.set('operadorEmail', params.operadorEmail);
-    if (params.date) qs.set('date', params.date);
-    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
-    if (params.turno) qs.set('turno', params.turno);
-
-    const r = await fetch(`${BASE}/checklists/daily/submissoes?${qs.toString()}`);
-    const data = await r.json().catch(() => ({}));
-
-    if (!r.ok) {
-        throw new Error(data?.error || `Erro ao listar submissões diárias (${r.status})`);
-    }
-    return Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+    const data = await http.get<{ items?: Submissao[] } | Submissao[]>('/checklists/daily/submissoes', { params });
+    return Array.isArray((data as { items?: Submissao[] })?.items)
+        ? (data as { items: Submissao[] }).items
+        : (Array.isArray(data) ? data as Submissao[] : []);
 }
 
 export async function registrarSubmissaoDiaria(data: SubmissaoDiariaCreate): Promise<unknown> {
-    const r = await fetch(`${BASE}/checklists/daily/submissoes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    const result = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(result?.error || `Erro ao registrar submissão (${r.status})`);
-    return result;
+    return http.post('/checklists/daily/submissoes', { data });
 }
 
 export interface ChecklistOverviewRangeItem {
@@ -690,13 +455,7 @@ export async function getChecklistOverview(date: string): Promise<ChecklistOverv
 
 // ===== AGENDAMENTOS =====
 export async function listarAgendamentos(params: Record<string, unknown> = {}): Promise<Agendamento[]> {
-    const qs = new URLSearchParams(
-        Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => [k, String(v)])
-    ).toString();
-    const res = await fetch(`${BASE}/agendamentos?${qs}`);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || `Erro ao listar agendamentos (${res.status})`);
-    return data;
+    return http.get<Agendamento[]>('/agendamentos', { params });
 }
 
 export async function criarAgendamento(data: AgendamentoCreate, auth: AuthParams = {}): Promise<Agendamento> {
@@ -719,17 +478,10 @@ export async function excluirAgendamento(id: string, auth: AuthParams = {}): Pro
 }
 
 export async function iniciarAgendamento(id: string, auth: AuthParams): Promise<{ ok: boolean; chamadoId?: string }> {
-    const res = await fetch(`${BASE}/agendamentos/${id}/iniciar`, {
-        method: "POST",
-        headers: {
-            ...buildAuthHeaders({ role: auth.role || "manutentor", email: auth.email || auth.criadoPorEmail }),
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ criadoPorEmail: auth.criadoPorEmail || auth.email })
+    return http.post(`/agendamentos/${id}/iniciar`, {
+        data: { criadoPorEmail: auth.criadoPorEmail || auth.email },
+        auth,
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || `Erro ao iniciar (${res.status})`);
-    return data;
 }
 
 // ===== USUÁRIOS =====
@@ -740,41 +492,21 @@ export async function listarUsuarios(opts: { role?: string } = {}, auth: AuthPar
 
 export async function listarManutentores(auth: AuthParams = {}): Promise<Usuario[]> {
     // Inclui tanto manutentores quanto líderes de manutenção
-    const roles = encodeURIComponent('manutentor,Líder de Manutenção');
-    const res = await fetch(`${BASE}/usuarios?roles=${roles}`, {
-        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor industrial' })
+    const data = await http.get<{ items?: Usuario[] } | Usuario[]>('/usuarios', {
+        params: { roles: 'manutentor,Líder de Manutenção' },
+        auth,
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao listar manutentores (${res.status})`);
-    return Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+    return Array.isArray((data as { items?: Usuario[] })?.items)
+        ? (data as { items: Usuario[] }).items
+        : (Array.isArray(data) ? data as Usuario[] : []);
 }
 
 export async function criarUsuario(data: UsuarioCreate, auth: AuthParams = {}): Promise<Usuario> {
-    const r = await fetch(`${BASE}/usuarios`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
-    const json = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(json?.error || `Falha ao criar usuário (${r.status})`);
-    return json as Usuario;
+    return http.post<Usuario>('/usuarios', { data, auth });
 }
 
 export async function atualizarUsuario(id: string, data: Partial<UsuarioCreate>, auth: AuthParams = {}): Promise<Usuario> {
-    const r = await fetch(`${BASE}/usuarios/${id}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
-    const json = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(json?.error || `Falha ao atualizar usuário (${r.status})`);
-    return json as Usuario;
+    return http.put<Usuario>(`/usuarios/${id}`, { data, auth });
 }
 
 // ===== NOTIFICAÇÕES =====
@@ -794,13 +526,7 @@ export async function removerNotificacaoConfig(evento: string, usuarioId: string
 }
 
 export async function excluirUsuario(id: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/usuarios/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: buildAuthHeaders(auth)
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao excluir usuário');
-    return j;
+    return http.delete(`/usuarios/${encodeURIComponent(id)}`, { auth });
 }
 
 export interface EstatisticasUsuario {
@@ -822,73 +548,29 @@ export interface EstatisticasUsuario {
 }
 
 export async function obterEstatisticasUsuario(id: string, auth: AuthParams = {}): Promise<EstatisticasUsuario> {
-    const r = await fetch(`${BASE}/usuarios/${id}/estatisticas`, {
-        headers: buildAuthHeaders({ ...auth, role: auth.role || 'gestor' })
-    });
-    const json = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(json?.error || `Falha ao obter estatísticas (${r.status})`);
-    return json as EstatisticasUsuario;
+    return http.get<EstatisticasUsuario>(`/usuarios/${id}/estatisticas`, { auth });
 }
 
 // ===== PEÇAS / ESTOQUE =====
 export async function listarPecas(): Promise<Peca[]> {
-    const r = await fetch(`${BASE}/pecas`);
-    const ct = r.headers.get('content-type') || '';
-    const j = ct.includes('application/json') ? await r.json() : { error: await r.text() };
-    if (!r.ok) throw new Error(j?.error || 'Falha ao listar peças');
-    return j.items || j;
+    const data = await http.get<{ items?: Peca[] } | Peca[]>('/pecas');
+    return (data as { items?: Peca[] })?.items || (data as Peca[]);
 }
 
 export async function criarPeca(payload: PecaCreate, auth: AuthParams): Promise<Peca> {
-    const r = await fetch(`${BASE}/pecas`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao criar peça');
-    return j as Peca;
+    return http.post<Peca>('/pecas', { data: payload, auth });
 }
 
 export async function atualizarPeca(id: string, payload: Partial<PecaCreate>, auth: AuthParams): Promise<Peca> {
-    const r = await fetch(`${BASE}/pecas/${encodeURIComponent(id)}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao atualizar peça');
-    return j as Peca;
+    return http.put<Peca>(`/pecas/${encodeURIComponent(id)}`, { data: payload, auth });
 }
 
 export async function excluirPeca(id: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/pecas/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: buildAuthHeaders(auth),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao excluir peça');
-    return j;
+    return http.delete(`/pecas/${encodeURIComponent(id)}`, { auth });
 }
 
 export async function registrarMovimentacao(pecaId: string, mov: Movimentacao, auth: AuthParams = {}): Promise<unknown> {
-    const r = await fetch(`${BASE}/pecas/${encodeURIComponent(pecaId)}/movimentacoes`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(mov)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha ao registrar movimentação (${r.status})`);
-    return data;
+    return http.post(`/pecas/${encodeURIComponent(pecaId)}/movimentacoes`, { data: mov, auth });
 }
 
 // Tipo para movimentação no histórico
@@ -914,26 +596,14 @@ export async function listarMovimentacoes(params: {
     dataFim?: string;
     limit?: number;
 } = {}): Promise<MovimentacaoHistorico[]> {
-    const qs = new URLSearchParams();
-    if (params.pecaId) qs.set('pecaId', params.pecaId);
-    if (params.tipo) qs.set('tipo', params.tipo);
-    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
-    if (params.dataFim) qs.set('dataFim', params.dataFim);
-    if (params.limit) qs.set('limit', String(params.limit));
-
-    const r = await fetch(`${BASE}/movimentacoes?${qs.toString()}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha ao listar movimentações (${r.status})`);
+    const data = await http.get<{ items?: MovimentacaoHistorico[] }>('/movimentacoes', { params });
     return data.items || [];
 }
 
 // ===== CAUSAS =====
 export async function listarCausas(): Promise<Causa[]> {
-    const r = await fetch(`${BASE}/causas`);
-    const ct = r.headers.get('content-type') || '';
-    const j = ct.includes('application/json') ? await r.json() : { error: await r.text() };
-    if (!r.ok) throw new Error(j?.error || `Falha ao listar causas (${r.status})`);
-    return j.items ?? j;
+    const data = await http.get<{ items?: Causa[] } | Causa[]>('/causas');
+    return (data as { items?: Causa[] })?.items ?? (data as Causa[]);
 }
 
 export async function listarCausasRaiz(): Promise<Causa[]> {
@@ -941,44 +611,16 @@ export async function listarCausasRaiz(): Promise<Causa[]> {
 }
 
 export async function criarCausa(payload: { nome: string }, auth: AuthParams): Promise<Causa> {
-    const r = await fetch(`${BASE}/causas`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao criar causa');
-    return j as Causa;
+    return http.post<Causa>('/causas', { data: payload, auth });
 }
 
 export async function excluirCausa(id: string, auth: AuthParams): Promise<unknown> {
-    const r = await fetch(`${BASE}/causas/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: buildAuthHeaders(auth),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j?.error || 'Falha ao excluir causa');
-    return j;
+    return http.delete(`/causas/${encodeURIComponent(id)}`, { auth });
 }
 
 // ===== ANALYTICS =====
 export async function listarParetoCausas(params: { from?: string; to?: string; maquinaId?: string } = {}, auth?: AuthParams): Promise<ParetoResponse> {
-    const qs = new URLSearchParams();
-    if (params.from) qs.set("from", params.from);
-    if (params.to) qs.set("to", params.to);
-    if (params.maquinaId) qs.set("maquinaId", params.maquinaId);
-
-    const url = `${BASE}/analytics/pareto-causas${qs.toString() ? `?${qs}` : ""}`;
-    const res = await fetch(url, { headers: buildAuthHeaders(auth) });
-
-    if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || `Falha ao listar pareto (HTTP ${res.status})`);
-    }
-    return res.json();
+    return http.get<ParetoResponse>('/analytics/pareto-causas', { params, auth });
 }
 
 // ===== AI =====
@@ -986,95 +628,48 @@ export async function aiChatSql(opts: { question: string; noCache?: boolean }, a
     if (!opts.question || !String(opts.question).trim()) {
         throw new Error('question é obrigatório');
     }
-
-    const res = await fetch(`${BASE}/ai/chat/sql`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ question: opts.question, noCache: !!opts.noCache })
+    return http.post<AiChatSqlResponse>('/ai/chat/sql', {
+        data: { question: opts.question, noCache: !!opts.noCache },
+        auth,
     });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro ao executar SQL (${res.status})`);
-    return data as AiChatSqlResponse;
 }
 
 export async function aiTextSearch(opts: { q: string; limit?: number }, auth: AuthParams = {}): Promise<AiTextSearchResponse> {
     if (!opts.q || !String(opts.q).trim()) {
         throw new Error('q é obrigatório');
     }
-
-    const res = await fetch(`${BASE}/ai/chat/text`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ q: opts.q, limit: opts.limit ?? 20 })
+    return http.post<AiTextSearchResponse>('/ai/chat/text', {
+        data: { q: opts.q, limit: opts.limit ?? 20 },
+        auth,
     });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Erro no FTS (${res.status})`);
-    return data as AiTextSearchResponse;
 }
 
 // ===== CHECKLIST PREVENTIVA =====
 export async function enviarChecklistPreventiva(chamadoId: string, data: { respostas: Record<string, unknown> }): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${chamadoId}/checklist/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-    const ct = res.headers.get("content-type") || "";
-    const result = ct.includes("application/json") ? await res.json() : { error: await res.text() };
-    if (!res.ok) throw new Error(result?.error || `Erro ao enviar checklist (${res.status})`);
-    return result;
+    return http.post(`/chamados/${chamadoId}/checklist/submit`, { data });
 }
 
 export async function atualizarChecklistChamado(id: string, checklist: unknown, auth: AuthParams = {}): Promise<unknown> {
-    const res = await fetch(`${BASE}/chamados/${id}/checklist`, {
+    return apiFetch(`/chamados/${id}/checklist`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders({ role: auth.role || "manutentor", email: auth.email }),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+        body: {
             checklist,
             userEmail: auth.email || getLoggedUserEmail() || ""
-        }),
+        },
+        auth,
     });
-    const ct = res.headers.get('content-type') || '';
-    const data = ct.includes('application/json') ? await res.json() : { error: await res.text() };
-    if (!res.ok) throw new Error(data?.error || `Erro ao salvar checklist (${res.status})`);
-    return data;
 }
 
 // ===== AUTH =====
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-    const r = await fetch(`${BASE}/auth/login`, {
+    return apiFetch<LoginResponse>('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: payload.userOrEmail, senha: payload.senha })
+        body: { identifier: payload.userOrEmail, senha: payload.senha },
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha no login (${r.status})`);
-    return data as LoginResponse;
 }
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<{ ok: boolean }> {
-    const r = await fetch(`${BASE}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders({ email: payload.email }),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha ao alterar senha (${r.status})`);
-    return data as { ok: boolean };
+    return http.post<{ ok: boolean }>('/auth/change-password', { data: payload });
 }
 
 // ===== OPERATOR AUTH =====
@@ -1084,21 +679,17 @@ export interface OperadorListItem {
 }
 
 export async function listarOperadoresAtivos(): Promise<OperadorListItem[]> {
-    const r = await fetch(`${BASE}/operators/active`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha ao listar operadores (${r.status})`);
-    return Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+    const data = await http.get<{ items?: OperadorListItem[] } | OperadorListItem[]>('/operators/active');
+    return Array.isArray((data as { items?: OperadorListItem[] })?.items)
+        ? (data as { items: OperadorListItem[] }).items
+        : (Array.isArray(data) ? data as OperadorListItem[] : []);
 }
 
 export async function loginOperador(operadorId: string, matricula: string): Promise<LoginResponse> {
-    const r = await fetch(`${BASE}/auth/operator-login`, {
+    return apiFetch<LoginResponse>('/auth/operator-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operadorId, matricula })
+        body: { operadorId, matricula },
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || `Falha no login de operador (${r.status})`);
-    return data as LoginResponse;
 }
 
 // ===== SSE =====
@@ -1215,124 +806,50 @@ export interface ProducaoUpload {
 
 // Metas
 export async function listarMetasProducao(params: { maquinaId?: string; vigente?: boolean } = {}): Promise<ProducaoMeta[]> {
-    const qs = new URLSearchParams();
-    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
-    if (params.vigente) qs.set('vigente', 'true');
-    const r = await fetch(`${BASE}/producao/metas?${qs}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar metas');
+    const data = await http.get<{ items?: ProducaoMeta[] }>('/producao/metas', { params });
     return data.items || [];
 }
 
 export async function criarMetaProducao(payload: { maquinaId: string; dataInicio: string; dataFim?: string; horasMeta: number }, auth: AuthParams): Promise<ProducaoMeta> {
-    const r = await fetch(`${BASE}/producao/metas`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao criar meta');
-    return data;
+    return http.post<ProducaoMeta>('/producao/metas', { data: payload, auth });
 }
 
 export async function atualizarMetaProducao(id: string, payload: { dataInicio: string; dataFim?: string; horasMeta: number }, auth: AuthParams): Promise<{ ok: boolean }> {
-    const r = await fetch(`${BASE}/producao/metas/${id}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar meta');
-    return data;
+    return http.put<{ ok: boolean }>(`/producao/metas/${id}`, { data: payload, auth });
 }
 
 export async function excluirMetaProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
-    const r = await fetch(`${BASE}/producao/metas/${id}`, {
-        method: 'DELETE',
-        headers: {
-            ...buildAuthHeaders(auth)
-        }
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir meta');
-    return data;
+    return http.delete<{ ok: boolean }>(`/producao/metas/${id}`, { auth });
 }
 
 // Lançamentos
 export async function listarLancamentosProducao(params: { maquinaId?: string; dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoLancamento[]> {
-    const qs = new URLSearchParams();
-    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
-    if (params.dataRef) qs.set('dataRef', params.dataRef);
-    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
-    if (params.dataFim) qs.set('dataFim', params.dataFim);
-    const r = await fetch(`${BASE}/producao/lancamentos?${qs}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar lançamentos');
+    const data = await http.get<{ items?: ProducaoLancamento[] }>('/producao/lancamentos', { params });
     return data.items || [];
 }
 
 export async function criarLancamentoProducao(payload: { maquinaId: string; dataRef: string; turno?: string; horasRealizadas: number; observacao?: string }, auth: AuthParams): Promise<ProducaoLancamento> {
-    const r = await fetch(`${BASE}/producao/lancamentos`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao criar lançamento');
-    return data;
+    return http.post<ProducaoLancamento>('/producao/lancamentos', { data: payload, auth });
 }
 
 export async function excluirLancamentoProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
-    const r = await fetch(`${BASE}/producao/lancamentos/${id}`, {
-        method: 'DELETE',
-        headers: {
-            ...buildAuthHeaders(auth)
-        }
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir lançamento');
-    return data;
+    return http.delete<{ ok: boolean }>(`/producao/lancamentos/${id}`, { auth });
 }
 
 // Rendimento
 export async function listarRendimentoProducao(params: { maquinaId?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoRendimento[]> {
-    const qs = new URLSearchParams();
-    if (params.maquinaId) qs.set('maquinaId', params.maquinaId);
-    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
-    if (params.dataFim) qs.set('dataFim', params.dataFim);
-    const r = await fetch(`${BASE}/producao/rendimento?${qs}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar rendimento');
+    const data = await http.get<{ items?: ProducaoRendimento[] }>('/producao/rendimento', { params });
     return data.items || [];
 }
 
 export async function listarResumoDiarioProducao(params: { dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoResumoDiario[]> {
-    const qs = new URLSearchParams();
-    if (params.dataRef) qs.set('dataRef', params.dataRef);
-    if (params.dataInicio) qs.set('dataInicio', params.dataInicio);
-    if (params.dataFim) qs.set('dataFim', params.dataFim);
-    const r = await fetch(`${BASE}/producao/resumo-diario?${qs}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar resumo');
+    const data = await http.get<{ items?: ProducaoResumoDiario[] }>('/producao/resumo-diario', { params });
     return data.items || [];
 }
 
 // Uploads
 export async function listarUploadsProducao(params: { dataRef?: string } = {}): Promise<ProducaoUpload[]> {
-    const qs = new URLSearchParams();
-    if (params.dataRef) qs.set('dataRef', params.dataRef);
-    const r = await fetch(`${BASE}/producao/uploads?${qs}`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar uploads');
+    const data = await http.get<{ items?: ProducaoUpload[] }>('/producao/uploads', { params });
     return data.items || [];
 }
 
@@ -1355,13 +872,7 @@ export async function listarHistoricoUploadsProducao(params: { dataRef?: string;
     total: number;
     nota: string;
 }> {
-    const qs = new URLSearchParams();
-    if (params.dataRef) qs.set('dataRef', params.dataRef);
-    if (params.limite) qs.set('limite', String(params.limite));
-    const r = await fetch(`${BASE}/producao/uploads/historico?${qs}`);
-    const data = await r.json().catch(() => ({ items: [], total: 0, nota: '' }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar histórico');
-    return data;
+    return http.get('/producao/uploads/historico', { params });
 }
 
 export interface UltimoUpload {
@@ -1372,9 +883,7 @@ export interface UltimoUpload {
 }
 
 export async function buscarUltimoUploadProducao(): Promise<UltimoUpload | null> {
-    const r = await fetch(`${BASE}/producao/uploads/ultimo`);
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar último upload');
+    const data = await http.get<{ upload?: UltimoUpload }>('/producao/uploads/ultimo');
     return data.upload || null;
 }
 
@@ -1384,17 +893,7 @@ export async function uploadLancamentosProducao(rows: Record<string, unknown>[],
     erros: Array<{ linha: number; erro: string }>;
     resumo: { totalLinhas: number; linhasValidas: number; linhasComErro: number; datasProcessadas: number };
 }> {
-    const r = await fetch(`${BASE}/producao/lancamentos/upload`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ rows, nomeArquivo })
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao fazer upload');
-    return data;
+    return http.post('/producao/lancamentos/upload', { data: { rows, nomeArquivo }, auth });
 }
 
 // Escopos de máquina
@@ -1410,17 +909,11 @@ export async function atualizarEscopoMaquina(
     },
     auth: AuthParams
 ): Promise<Maquina> {
-    const r = await fetch(`${BASE}/maquinas/${id}/escopo`, {
+    return apiFetch<Maquina>(`/maquinas/${id}/escopo`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
+        body: payload,
+        auth,
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar escopo');
-    return data;
 }
 
 // ===== FUNCIONÁRIOS IMETAS =====
@@ -1433,38 +926,19 @@ export interface FuncionarioMeta {
 }
 
 export async function fetchFuncionariosMeta(): Promise<FuncionarioMeta[]> {
-    const r = await fetch(`${BASE}/producao/metas/funcionarios`);
-    const data = await r.json().catch(() => []);
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar metas');
-    return data;
+    return http.get<FuncionarioMeta[]>('/producao/metas/funcionarios');
 }
 
 export async function fetchFuncionariosDia(dataISO: string): Promise<any[]> {
-    const r = await fetch(`${BASE}/producao/indicadores/funcionarios/dia?data=${dataISO}`);
-    const data = await r.json().catch(() => []);
-    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar produção dia');
-    return data;
+    return http.get<any[]>('/producao/indicadores/funcionarios/dia', { params: { data: dataISO } });
 }
 
 export async function fetchFuncionariosMes(anoMesISO: string): Promise<any[]> {
-    const r = await fetch(`${BASE}/producao/indicadores/funcionarios/mes?anoMes=${anoMesISO}`);
-    const data = await r.json().catch(() => []);
-    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar produção mês');
-    return data;
+    return http.get<any[]>('/producao/indicadores/funcionarios/mes', { params: { anoMes: anoMesISO } });
 }
 
 export async function upsertFuncionarioMeta(payload: FuncionarioMeta, auth: AuthParams = {}): Promise<unknown> {
-    const r = await fetch(`${BASE}/producao/metas/funcionarios`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao salvar meta');
-    return data;
+    return http.post('/producao/metas/funcionarios', { data: payload, auth });
 }
 
 // Detalhe de um upload de produção
@@ -1497,12 +971,7 @@ export interface ProducaoUploadDetalhe {
 }
 
 export async function buscarDetalheUploadProducao(uploadId: string): Promise<ProducaoUploadDetalhe> {
-    const r = await fetch(`${BASE}/producao/uploads/${uploadId}`, {
-        headers: { 'Content-Type': 'application/json' }
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar detalhes do upload');
-    return data;
+    return http.get<ProducaoUploadDetalhe>(`/producao/uploads/${uploadId}`);
 }
 
 
@@ -1540,85 +1009,40 @@ export interface RoleUpdate {
 
 // Listar todas as páginas disponíveis para permissões
 export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<PaginaPermissao[]> {
-    const r = await fetch(`${BASE}/roles/pages`, {
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar páginas');
+    const data = await http.get<{ items?: PaginaPermissao[] }>('/roles/pages', { auth });
     return data.items || [];
 }
 
 // Listar todos os roles (requer permissão roles: ver)
 export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
-    const r = await fetch(`${BASE}/roles`, {
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
+    const data = await http.get<{ items?: Role[] }>('/roles', { auth });
     return data.items || [];
 }
 
 // Listar roles para dropdowns (não requer permissão especial)
 export async function listarRolesOptions(auth: AuthParams = {}): Promise<{ id: string; nome: string }[]> {
-    const r = await fetch(`${BASE}/roles/options`, {
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar níveis de acesso');
+    const data = await http.get<{ items?: { id: string; nome: string }[] }>('/roles/options', { auth });
     return data.items || [];
 }
 
 // Obter role por ID
 export async function buscarRole(id: string, auth: AuthParams = {}): Promise<Role> {
-    const r = await fetch(`${BASE}/roles/${id}`, {
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao buscar nível de acesso');
-    return data;
+    return http.get<Role>(`/roles/${id}`, { auth });
 }
 
 // Criar novo role
 export async function criarRole(payload: RoleCreate, auth: AuthParams = {}): Promise<Role> {
-    const r = await fetch(`${BASE}/roles`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao criar nível de acesso');
-    return data;
+    return http.post<Role>('/roles', { data: payload, auth });
 }
 
 // Atualizar role
 export async function atualizarRole(id: string, payload: RoleUpdate, auth: AuthParams = {}): Promise<Role> {
-    const r = await fetch(`${BASE}/roles/${id}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar nível de acesso');
-    return data;
+    return http.put<Role>(`/roles/${id}`, { data: payload, auth });
 }
 
 // Excluir role
 export async function excluirRole(id: string, auth: AuthParams = {}): Promise<void> {
-    const r = await fetch(`${BASE}/roles/${id}`, {
-        method: 'DELETE',
-        headers: {
-            ...buildAuthHeaders({ ...auth, role: auth.role || 'gestor' }),
-            'Content-Type': 'application/json',
-        }
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao excluir nível de acesso');
+    await http.delete(`/roles/${id}`, { auth });
 }
 
 // ===== PLANEJAMENTO - CAPACIDADE =====
@@ -1665,17 +1089,7 @@ export interface CentroTrabalho {
 
 // Upload de reserva de capacidade
 export async function uploadCapacidade(rows: Record<string, unknown>[], nomeArquivo: string, auth: AuthParams): Promise<CapacidadeUploadResult> {
-    const r = await fetch(`${BASE}/planejamento/capacidade/upload`, {
-        method: 'POST',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ rows, nomeArquivo })
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao fazer upload');
-    return data;
+    return http.post<CapacidadeUploadResult>('/planejamento/capacidade/upload', { data: { rows, nomeArquivo }, auth });
 }
 
 // Listar resumo de capacidade por centro de trabalho
@@ -1690,27 +1104,15 @@ export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string
         currentDate: string;
     };
 }> {
-    const qs = new URLSearchParams();
-    if (uploadId) qs.set('uploadId', uploadId);
-    const r = await fetch(`${BASE}/planejamento/capacidade/resumo?${qs}`, {
-        headers: {
-            ...buildAuthHeaders(auth)
-        }
+    return http.get('/planejamento/capacidade/resumo', {
+        params: uploadId ? { uploadId } : {},
+        auth,
     });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar resumo');
-    return data;
 }
 
 // Listar uploads de capacidade
 export async function listarUploadsCapacidade(auth: AuthParams): Promise<CapacidadeUpload[]> {
-    const r = await fetch(`${BASE}/planejamento/capacidade/uploads`, {
-        headers: {
-            ...buildAuthHeaders(auth)
-        }
-    });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar uploads');
+    const data = await http.get<{ items?: CapacidadeUpload[] }>('/planejamento/capacidade/uploads', { auth });
     return data.items || [];
 }
 
@@ -1726,11 +1128,7 @@ export interface MaquinaPlanejamento {
 
 // Listar máquinas com escopo planejamento
 export async function listarMaquinasPlanejamento(auth: AuthParams): Promise<MaquinaPlanejamento[]> {
-    const r = await fetch(`${BASE}/planejamento/capacidade/maquinas`, {
-        headers: buildAuthHeaders(auth)
-    });
-    const data = await r.json().catch(() => ({ items: [] }));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao listar máquinas');
+    const data = await http.get<{ items?: MaquinaPlanejamento[] }>('/planejamento/capacidade/maquinas', { auth });
     return data.items || [];
 }
 
@@ -1740,17 +1138,11 @@ export async function atualizarMaquinaPlanejamento(
     payload: { capacidadeHoras?: number; aliasesPlanejamento?: string[]; escopoPlanejamento?: boolean },
     auth: AuthParams
 ): Promise<MaquinaPlanejamento> {
-    const r = await fetch(`${BASE}/planejamento/capacidade/maquinas/${id}`, {
+    return apiFetch<MaquinaPlanejamento>(`/planejamento/capacidade/maquinas/${id}`, {
         method: 'PATCH',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
+        body: payload,
+        auth,
     });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data?.error || 'Erro ao atualizar máquina');
-    return data;
 }
 
 // ===== QUALIDADE / REFUGOS =====
@@ -1967,29 +1359,9 @@ export async function getLogisticaKpis(mes: number, ano: number, auth: AuthParam
 }
 
 export async function saveLogisticaKpi(data: string, payload: Partial<LogisticaKpi>, auth: AuthParams = {}): Promise<LogisticaKpi> {
-    const res = await fetch(`${BASE}/logistica/kpis/${data}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error || `Erro ao salvar KPI (${res.status})`);
-    return json as LogisticaKpi;
+    return http.put<LogisticaKpi>(`/logistica/kpis/${data}`, { data: payload, auth });
 }
 
 export async function saveLogisticaMeta(mes: number, ano: number, meta_financeira: number, auth: AuthParams = {}): Promise<LogisticaMeta> {
-    const res = await fetch(`${BASE}/logistica/metas/${mes}/${ano}`, {
-        method: 'PUT',
-        headers: {
-            ...buildAuthHeaders(auth),
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ meta_financeira })
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error || `Erro ao salvar Meta (${res.status})`);
-    return json as LogisticaMeta;
+    return http.put<LogisticaMeta>(`/logistica/metas/${mes}/${ano}`, { data: { meta_financeira }, auth });
 }

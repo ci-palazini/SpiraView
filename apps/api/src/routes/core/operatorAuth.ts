@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { pool } from '../../db';
 import { env } from '../../config/env';
 
@@ -67,7 +68,15 @@ operatorAuthRouter.get('/operators/active', async (req, res) => {
  * Login simplificado para operadores usando matrícula
  * Body: { operadorId: string, matricula: string }
  */
-operatorAuthRouter.post('/auth/operator-login', async (req, res) => {
+const operatorLoginLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: 5, // Máximo 5 tentativas por IP/minuto (matrícula tem só 4 dígitos)
+    message: { error: 'Muitas tentativas de login. Tente novamente em 1 minuto.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+operatorAuthRouter.post('/auth/operator-login', operatorLoginLimiter, async (req, res) => {
     try {
         const operadorId = String(req.body?.operadorId || '').trim();
         const matricula = String(req.body?.matricula || '').trim();
