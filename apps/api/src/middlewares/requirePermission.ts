@@ -1,3 +1,4 @@
+//apps/api/src/middlewares/requirePermission.ts
 import type { RequestHandler } from "express";
 import { pool } from "../db";
 
@@ -50,18 +51,12 @@ export function requirePermission(
             }
 
             // Admin tem acesso total - bypass
-            const userRole = (user.role || "").toLowerCase();
-            if (userRole === "admin") {
-                req.permissions = {}; // Permissões não são necessárias
-                req.isAdmin = true;
-                return next();
-            }
-
-            // Busca as permissões do role do usuário
-            const { rows } = await pool.query<{ permissoes: UserPermissions }>(
-                `SELECT r.permissoes 
+            // Admin tem acesso total - bypass
+            // Busca permissões E o nome da role diretamente do banco (fonte da verdade)
+            const { rows } = await pool.query<{ permissoes: UserPermissions; role_nome: string }>(
+                `SELECT r.permissoes, r.nome as role_nome
          FROM usuarios u
-         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1
          LIMIT 1`,
                 [user.id]
@@ -71,10 +66,13 @@ export function requirePermission(
                 return res.status(403).json({ error: "ROLE_NAO_ENCONTRADO" });
             }
 
+            const dbRoleName = (rows[0].role_nome || "").toLowerCase();
+            const isRoleAdmin = dbRoleName === 'admin';
+
             const permissions = rows[0].permissoes || {};
             const userPerm = permissions[pageKey];
 
-            if (!hasPermission(userPerm, level)) {
+            if (!isRoleAdmin && !hasPermission(userPerm, level)) {
                 return res.status(403).json({
                     error: "PERMISSAO_NEGADA",
                     message: `Permissão '${level}' necessária para '${pageKey}'`
@@ -83,6 +81,7 @@ export function requirePermission(
 
             // Anexa permissões ao request para uso posterior
             req.permissions = permissions;
+            req.isAdmin = isRoleAdmin;
 
             next();
         } catch (error) {
@@ -108,17 +107,12 @@ export function requireAnyPermission(
             }
 
             // Admin tem acesso total - bypass
-            const userRole = (user.role || "").toLowerCase();
-            if (userRole === "admin") {
-                req.permissions = {};
-                req.isAdmin = true;
-                return next();
-            }
-
-            const { rows } = await pool.query<{ permissoes: UserPermissions }>(
-                `SELECT r.permissoes 
+            // Admin tem acesso total - bypass
+            // Busca permissões E o nome da role diretamente do banco (fonte da verdade)
+            const { rows } = await pool.query<{ permissoes: UserPermissions; role_nome: string }>(
+                `SELECT r.permissoes, r.nome as role_nome
          FROM usuarios u
-         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1
          LIMIT 1`,
                 [user.id]
@@ -128,10 +122,13 @@ export function requireAnyPermission(
                 return res.status(403).json({ error: "ROLE_NAO_ENCONTRADO" });
             }
 
+            const dbRoleName = (rows[0].role_nome || "").toLowerCase();
+            const isRoleAdmin = dbRoleName === 'admin';
+
             const permissions = rows[0].permissoes || {};
             const hasAny = pageKeys.some(key => hasPermission(permissions[key], level));
 
-            if (!hasAny) {
+            if (!isRoleAdmin && !hasAny) {
                 return res.status(403).json({
                     error: "PERMISSAO_NEGADA",
                     message: `Permissão '${level}' necessária para um de: ${pageKeys.join(", ")}`
@@ -139,6 +136,7 @@ export function requireAnyPermission(
             }
 
             req.permissions = permissions;
+            req.isAdmin = isRoleAdmin;
 
             next();
         } catch (error) {

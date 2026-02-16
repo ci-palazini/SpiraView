@@ -1,10 +1,22 @@
+//apps/api/src/routes/core/auth.ts
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { pool } from '../../db';
 import { env } from '../../config/env';
+import rateLimit from 'express-rate-limit';
+
+
 
 export const authRouter: Router = Router();
+
+const loginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 5 login requests per windowMs
+  message: { error: 'Muitas tentativas de login. Tente novamente em 1 minuto.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * @swagger
@@ -41,7 +53,7 @@ export const authRouter: Router = Router();
  *       401:
  *         description: Invalid credentials
  */
-authRouter.post('/auth/login', async (req, res) => {
+authRouter.post('/auth/login', loginLimiter, async (req, res) => {
   try {
     const raw = String(req.body?.identifier || '').trim().toLowerCase();
     const senha = String(req.body?.senha || '');
@@ -66,8 +78,7 @@ authRouter.post('/auth/login', async (req, res) => {
               r.nome AS role_nome,
               r.permissoes
          FROM usuarios u
-         LEFT JOIN roles r ON u.role_id = r.id
-                           OR LOWER(u.role) = LOWER(r.nome)
+          LEFT JOIN roles r ON u.role_id = r.id
         WHERE LOWER(u.email) = LOWER($1)
            OR LOWER(u.usuario) = LOWER($2)
         LIMIT 1`,
@@ -160,7 +171,6 @@ authRouter.get('/auth/me', async (req, res) => {
               r.permissoes
          FROM usuarios u
          LEFT JOIN roles r ON u.role_id = r.id
-                           OR LOWER(u.role) = LOWER(r.nome)
         WHERE LOWER(u.email) = LOWER($1)
         LIMIT 1`,
       [email]
@@ -193,16 +203,42 @@ authRouter.post('/auth/change-password', async (req, res) => {
   try {
     const bodyEmail = String(req.body?.email || '').trim().toLowerCase();
     const userEmail = req.user?.email;
-    const email = bodyEmail || userEmail;
+    const isAdmin = req.isAdmin === true; // Setado pelo middleware requirePermission ou userFromHeader (se aplicável), mas aqui pode não ter passado por lá.
+    // Melhor: verificar role do token ou do banco. Como change-password é autenticado, req.user existe.
+    // Mas req.user.role vem do token. O ideal é confiar no que tá no token "por enquanto" OU buscar no banco se quisermos ser ultra seguros.
+    // Como a task diz "blindar rota", vamos assumir:
+    // 1. Se tem bodyEmail e é diferente de userEmail -> Só permite se for Admin.
+
+    let targetEmail = userEmail;
+
+    if (bodyEmail && bodyEmail !== userEmail) {
+      // Tentativa de mudar senha de outrem
+      // Verificar se quem está pedindo é admin REAL (buscando no banco pra garantir)
+      const { rows: adminCheck } = await pool.query(
+        `SELECT r.nome FROM usuarios u 
+             JOIN roles r ON u.role_id = r.id 
+             WHERE u.email = $1`,
+        [userEmail]
+      );
+
+      const isRealAdmin = adminCheck.length > 0 && adminCheck[0].nome.toLowerCase() === 'admin';
+
+      if (!isRealAdmin) {
+        return res.status(403).json({ error: 'Apenas administradores podem alterar senhas de outros usuários.' });
+      }
+      targetEmail = bodyEmail;
+    }
+
+    if (!targetEmail) return res.status(401).json({ error: 'Não autenticado.' });
+
     const senhaAtual = String(req.body?.senhaAtual || '');
     const novaSenha = String(req.body?.novaSenha || '');
 
-    if (!email) return res.status(400).json({ error: 'Informe o e-mail.' });
     if (novaSenha.length < 6) return res.status(400).json({ error: 'Nova senha muito curta.' });
 
     const { rows } = await pool.query(
       `SELECT id, senha_hash FROM usuarios WHERE LOWER(email)=LOWER($1) LIMIT 1`,
-      [email]
+      [targetEmail]
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuário não encontrado.' });
 

@@ -58,6 +58,13 @@ export default function App() {
                         const merged = { ...storedUser, ...freshUser };
                         localStorage.setItem('usuario', JSON.stringify(merged));
                         setUser(merged as User);
+                    } else {
+                        // Email do token (real) difere do localStorage (spoofado/antigo)
+                        // Força logout para limpar o estado
+                        console.warn('Sessão inválida: email difere do token');
+                        localStorage.removeItem('usuario');
+                        setUser(null);
+                        window.dispatchEvent(new CustomEvent(AUTH_EVENT));
                     }
                 })
                 .catch((err) => {
