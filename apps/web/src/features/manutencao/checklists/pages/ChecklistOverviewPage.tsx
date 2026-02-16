@@ -107,12 +107,17 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 }));
 
                 setItems(
-                    mappedItems.sort((a, b) =>
-                        String(a.nome || '').localeCompare(
+                    mappedItems.sort((a, b) => {
+                        // 1. Sort by hasChecklist (true first)
+                        if (a.hasChecklist && !b.hasChecklist) return -1;
+                        if (!a.hasChecklist && b.hasChecklist) return 1;
+
+                        // 2. Sort by name
+                        return String(a.nome || '').localeCompare(
                             String(b.nome || ''),
                             'pt-BR'
-                        )
-                    )
+                        );
+                    })
                 );
             } catch (e) {
                 console.error(e);
