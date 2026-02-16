@@ -71,31 +71,14 @@ function getLoggedUserToken(): string {
     return '';
 }
 
-function getDevEmail(): string {
-    try {
-        return (localStorage.getItem('devEmail') || '').trim().toLowerCase();
-    } catch { }
-    return '';
-}
 
 function buildAuthHeaders(auth: AuthParams = {}): Record<string, string> {
     const h: Record<string, string> = { 'Accept': 'application/json' };
-    const email = String(
-        auth?.email ||
-        getDevEmail() ||
-        getLoggedUserEmail() ||
-        ''
-    ).trim().toLowerCase();
 
-    // Preferência: Se tiver token, usa Bearer
     const token = getLoggedUserToken();
     if (token) {
         h['Authorization'] = `Bearer ${token}`;
     }
-
-    // Mantém headers antigos para compatibilidade ou fallback
-    if (email) h['x-user-email'] = email;
-    if (auth?.role) h['x-user-role'] = String(auth.role).trim().toLowerCase();
 
     return h;
 }
@@ -462,7 +445,7 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
 export async function deletarMaquina(id: string, auth: AuthParams = {}): Promise<boolean | unknown> {
     const headers = buildAuthHeaders(auth);
 
-    if (!headers['Authorization'] && !headers['x-user-email']) {
+    if (!headers['Authorization']) {
         const err = new Error('LOGIN_REQUIRED') as Error & { status?: number };
         err.status = 401;
         throw err;

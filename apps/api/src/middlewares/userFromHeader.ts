@@ -48,9 +48,6 @@ export async function userFromHeader(req: Request, res: Response, next: NextFunc
       }
     }
 
-    // REMOVIDO: Fallback inseguro de x-user-email
-    // O sistema agora exige Token JWT ou Token de Automação.
-
     req.user = undefined;
     return next();
   } catch (error) {
