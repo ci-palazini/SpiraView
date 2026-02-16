@@ -62,6 +62,14 @@ export default function App() {
                 })
                 .catch((err) => {
                     console.error('Erro ao validar sessão:', err);
+                    // Se falhar validação (token inválido/expirado), desloga
+                    // Verificamos se foi erro de auth
+                    const msg = String(err).toLowerCase();
+                    if (msg.includes('401') || msg.includes('403') || msg.includes('não autenticado')) {
+                        localStorage.removeItem('usuario');
+                        setUser(null);
+                        window.dispatchEvent(new CustomEvent(AUTH_EVENT));
+                    }
                 });
         });
     }, []); // Roda somente no mount (F5) — lê localStorage diretamente, sem closure stale
