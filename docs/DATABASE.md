@@ -138,6 +138,21 @@ Submissões de checklists diários.
 | `respostas` | JSONB | Respostas do checklist |
 | `created_at` | TIMESTAMP | Data/hora da submissão |
 
+#### `checklist_pendencias`
+Controle de checklists não realizados e suas justificativas.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `maquina_id` | UUID | FK → maquinas.id |
+| `data_ref` | DATE | Data do checklist pendente |
+| `turno` | VARCHAR | 1º, 2º |
+| `status` | VARCHAR | PENDENTE, JUSTIFICADO |
+| `justificativa` | TEXT | Motivo da não realização |
+| `justificado_por_id` | UUID | FK → usuarios.id |
+| `justificado_em` | TIMESTAMPTZ | Quando foi justificado |
+| `created_at` | TIMESTAMPTZ | Data de criação |
+
 #### `pecas`
 Cadastro de peças de reposição.
 

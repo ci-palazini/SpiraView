@@ -111,6 +111,7 @@ const MyComponent = () => {
 | `chamados_abertos` | Manutenção | Todos os chamados (visão gerencial) | `ver`, `editar` |
 | `pecas` | Manutenção | Gestão de peças de reposição | `ver`, `editar` |
 | `checklists` | Manutenção | Checklists diários | `ver`, `editar` |
+| `checklists_pendencias` | Manutenção | Justificativa de pendências de checklist | `ver`, `editar` |
 
 ### Produção
 

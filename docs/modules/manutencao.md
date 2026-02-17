@@ -54,6 +54,9 @@ flowchart LR
 | POST | `/checklists` | Submeter checklist de início de turno |
 | GET | `/checklists/overview` | Visão geral de submissões |
 | GET | `/checklists/maquina/:id` | Checklists por máquina |
+| GET | `/checklists/pendencias` | `checklists_pendencias: ver` | Listar pendências |
+| POST | `/checklists/pendencias/justificar` | `checklists_pendencias: editar` | Justificar pendência |
+| GET | `/checklists/pendencias/historico` | `checklists_pendencias: ver` | Histórico de justificativas |
 
 ### Peças (`pecas.ts`)
 
@@ -93,6 +96,7 @@ flowchart LR
 |--------|---------|-----------|
 | **Início de Turno** | `InicioTurnoPage.tsx` | Wizard do operador |
 | **Overview** | `ChecklistOverview.tsx` | Dashboard de submissões |
+| **Justificativa** | `JustificativaChecklistPage.tsx` | Gerenciamento de pendências |
 
 ---
 
