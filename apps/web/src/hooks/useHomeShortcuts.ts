@@ -273,7 +273,7 @@ const DEFAULT_SHORTCUT_IDS = [
 ];
 
 const STORAGE_KEY = 'home_shortcuts_selection';
-const MAX_SHORTCUTS = 8;
+const MAX_SHORTCUTS = 12;
 
 interface PermissionsHook {
     canView: (key: string) => boolean;
@@ -307,6 +307,18 @@ export function useHomeShortcuts(perm: PermissionsHook, isPt: boolean) {
         } catch { /* ignore */ }
         return DEFAULT_SHORTCUT_IDS;
     });
+
+    // Remover atalhos que não estão mais disponíveis (permissões alteradas)
+    useEffect(() => {
+        if (availableShortcuts.length === 0) return;
+
+        const availableIds = new Set(availableShortcuts.map((s) => s.id));
+        setSelectedIds((prev) => {
+            const newSelection = prev.filter((id) => availableIds.has(id));
+            if (newSelection.length === prev.length) return prev;
+            return newSelection;
+        });
+    }, [availableShortcuts]);
 
     // Salvar no localStorage quando mudar
     useEffect(() => {
