@@ -411,22 +411,23 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                                 required
                             />
 
-                            <div className={styles.modalActions}>
-                                <button
-                                    type="button"
-                                    className={styles.modalSecondaryButton}
-                                    onClick={() => setIsEditOpen(false)}
-                                >
-                                    {t('common.cancel')}
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={savingEdit}
-                                    className={styles.modalPrimaryButton}
-                                >
-                                    {savingEdit ? t('common.saving') : t('common.save')}
-                                </button>
-                            </div>
+                        </div>
+                        <div className={styles.modalActions}>
+                            <button
+                                type="button"
+                                className={styles.modalSecondaryButton}
+                                onClick={() => setIsEditOpen(false)}
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={savingEdit}
+                                className={styles.modalPrimaryButton}
+                            >
+                                {savingEdit ? t('common.saving') : t('common.save')}
+                            </button>
+                        </div>
                     </form>
                 </Modal>
 
