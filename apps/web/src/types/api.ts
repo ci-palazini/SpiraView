@@ -18,7 +18,6 @@ export interface Chamado {
     maquinaNome?: string;
     maquina_nome?: string;
     maquinaId?: string;
-    maquinaTag?: string;
     tipo?: ChamadoTipo | string;
     status?: ChamadoStatus | string;
     descricao?: string;
@@ -37,7 +36,6 @@ export interface Chamado {
 }
 
 export interface ChamadoCreate {
-    maquinaTag?: string;
     maquinaNome?: string;
     maquinaId?: string;
     descricao: string;
@@ -89,9 +87,7 @@ export interface Maquina {
     id: string;
     nome: string;
     nome_producao?: string;
-    tag?: string;
     setor?: string;
-    critico?: boolean;
     escopo_manutencao?: boolean;
     escopo_producao?: boolean;
     escopo_planejamento?: boolean;
@@ -108,9 +104,7 @@ export interface Maquina {
 
 export interface MaquinaCreate {
     nome: string;
-    tag?: string;
     setor?: string;
-    critico?: boolean;
     parentId?: string;
     isMaquinaMae?: boolean;
     exibirFilhosDashboard?: boolean;

@@ -365,7 +365,7 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
 
         // 2. Buscar máquinas com escopo_producao (incluindo aliases)
         const { rows: maquinas } = await pool.query(
-            `SELECT id, nome, tag, aliases_producao FROM maquinas WHERE escopo_producao = TRUE`
+            `SELECT id, nome, aliases_producao FROM maquinas WHERE escopo_producao = TRUE`
         );
 
         // Mapeamento por alias/nome/tag normalizado
@@ -397,14 +397,7 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
                 }
             }
 
-            // 3. Registra variantes da tag (menor prioridade)
-            if (m.tag) {
-                for (const v of keyVariants(m.tag)) {
-                    if (!maqByKey.has(v)) {
-                        maqByKey.set(v, maqInfo);
-                    }
-                }
-            }
+
         }
 
         // 3. Processar linhas

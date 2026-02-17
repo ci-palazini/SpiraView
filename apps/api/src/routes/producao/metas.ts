@@ -47,7 +47,6 @@ metasRouter.get('/producao/metas', async (req, res) => {
                 pm.id,
                 pm.maquina_id AS "maquinaId",
                 m.nome AS "maquinaNome",
-                m.tag AS "maquinaTag",
                 pm.data_inicio AS "dataInicio",
                 pm.data_fim AS "dataFim",
                 pm.horas_meta AS "horasMeta",

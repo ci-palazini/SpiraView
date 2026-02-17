@@ -275,7 +275,6 @@ lancamentosRouter.get('/producao/rendimento', async (req, res) => {
             `SELECT
         maquina_id AS "maquinaId",
         maquina_nome AS "maquinaNome",
-        maquina_tag AS "maquinaTag",
         maquina_setor AS "maquinaSetor",
         data_ref AS "dataRef",
         turno,
@@ -327,7 +326,6 @@ lancamentosRouter.get('/producao/resumo-diario', async (req, res) => {
             `SELECT
                 pl.maquina_id AS "maquinaId",
                 m.nome AS "maquinaNome",
-                m.tag AS "maquinaTag",
                 pl.data_ref AS "dataRef",
                 SUM(pl.horas_realizadas) AS "horasDia",
                 COALESCE((
@@ -342,7 +340,7 @@ lancamentosRouter.get('/producao/resumo-diario', async (req, res) => {
             FROM producao_lancamentos pl
             JOIN maquinas m ON m.id = pl.maquina_id
             WHERE ${where.replace(/data_ref/g, 'pl.data_ref')}
-            GROUP BY pl.maquina_id, m.nome, m.tag, pl.data_ref
+            GROUP BY pl.maquina_id, m.nome, pl.data_ref
             ORDER BY pl.data_ref DESC, m.nome ASC`,
             params
         );

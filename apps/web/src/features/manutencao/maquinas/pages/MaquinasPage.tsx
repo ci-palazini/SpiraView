@@ -30,7 +30,6 @@ export interface MaquinasPageProps {
 interface Maquina {
     id: string;
     nome: string;
-    tag?: string;
 }
 
 interface MaquinaComStatus extends Maquina {
@@ -78,7 +77,6 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
     // modal: editar
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editNome, setEditNome] = useState('');
-    const [editSyncTag, setEditSyncTag] = useState(true);
     const [savingEdit, setSavingEdit] = useState(false);
 
     useEffect(() => {
@@ -206,7 +204,6 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
         e.stopPropagation();
         setAlvo(maquina);
         setEditNome(maquina.nome);
-        setEditSyncTag(true);
         setIsEditOpen(true);
         setOpenMenuId(null);
     };
@@ -225,7 +222,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
         try {
             const atualizado: Maquina = await renomearMaquina(
                 alvo.id,
-                { nome: novoNome, syncTag: editSyncTag },
+                { nome: novoNome },
                 { role: user?.role, email: user?.email }
             );
             setMaquinas((prev) => {
@@ -244,7 +241,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
             const status = (err as { status?: number })?.status;
             let msg = t('maquinas.toasts.renameError') || 'Erro ao renomear.';
             if (status === 409)
-                msg = t('maquinas.toasts.renameDuplicated') || 'JÃ¡ existe uma mÃ¡quina com esse nome/tag.';
+                msg = t('maquinas.toasts.renameDuplicated') || 'JÃ¡ existe uma mÃ¡quina com esse nome.';
             toast.error(msg);
             console.error(err);
         } finally {
@@ -413,33 +410,23 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                                 className={styles.modalInput}
                                 required
                             />
-                        </div>
 
-                        <label className={styles.modalCheckboxRow}>
-                            <input
-                                type="checkbox"
-                                checked={editSyncTag}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setEditSyncTag(e.target.checked)}
-                            />
-                            {t('maquinas.edit.syncTag')}
-                        </label>
-
-                        <div className={styles.modalActions}>
-                            <button
-                                type="button"
-                                className={styles.modalSecondaryButton}
-                                onClick={() => setIsEditOpen(false)}
-                            >
-                                {t('common.cancel')}
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={savingEdit}
-                                className={styles.modalPrimaryButton}
-                            >
-                                {savingEdit ? t('common.saving') : t('common.save')}
-                            </button>
-                        </div>
+                            <div className={styles.modalActions}>
+                                <button
+                                    type="button"
+                                    className={styles.modalSecondaryButton}
+                                    onClick={() => setIsEditOpen(false)}
+                                >
+                                    {t('common.cancel')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={savingEdit}
+                                    className={styles.modalPrimaryButton}
+                                >
+                                    {savingEdit ? t('common.saving') : t('common.save')}
+                                </button>
+                            </div>
                     </form>
                 </Modal>
 

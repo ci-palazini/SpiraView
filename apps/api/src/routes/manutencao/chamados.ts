@@ -58,7 +58,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
   try {
     const status = req.query.status as string | undefined;
     const tipo = req.query.tipo as string | undefined;
-    const maquinaTag = req.query.maquinaTag as string | undefined;
+    const maquinaNome = (req.query.maquinaTag || req.query.maquinaNome) as string | undefined; // Fallback para manter compatibilidade
     const maquinaId = req.query.maquinaId as string | undefined;
     const criadoPorEmail = req.query.criadoPorEmail as string | undefined;
     const manutentorEmail = req.query.manutentorEmail as string | undefined;
@@ -90,9 +90,9 @@ chamadosRouter.get("/chamados", async (req, res) => {
       where.push(`LOWER(c.tipo) = LOWER($${params.length})`);
     }
 
-    if (maquinaTag) {
-      params.push(maquinaTag);
-      where.push(`m.tag = $${params.length}`);
+    if (maquinaNome) {
+      params.push(maquinaNome);
+      where.push(`m.nome = $${params.length}`);
     }
 
     if (maquinaId) {
@@ -275,7 +275,7 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
     const obs = await pool.query(
       `
       SELECT
-        COALESCE(o.texto, o.mensagem, '')            AS texto,
+        o.texto                                       AS texto,
         to_char(o.criado_em,'YYYY-MM-DD HH24:MI')     AS criado_em,
         COALESCE(o.autor_nome, u.nome, 'Sistema')     AS autor
       FROM public.chamado_observacoes o
@@ -451,20 +451,21 @@ chamadosRouter.post(
       const autorNome = user?.name ? String(user.name).trim()
         : user?.email ? String(user.email).trim()
           : null;
+      const autorEmail = user?.email ? String(user.email).trim() : null;
 
       const { rows } = await pool.query(
         `INSERT INTO public.chamado_observacoes
-           (chamado_id, autor_id, autor_nome, texto, criado_em)
-         VALUES ($1, $2, $3, $4, NOW())
+           (chamado_id, autor_id, autor_nome, autor_email, texto, criado_em)
+         VALUES ($1, $2, $3, $4, $5, NOW())
          RETURNING id, texto, criado_em`,
-        [chamadoId, autorId, autorNome, texto]
+        [chamadoId, autorId, autorNome, autorEmail, texto]
       );
 
       const observacao = rows[0];
 
       const { rows: lista } = await pool.query(
         `SELECT
-           COALESCE(o.texto, o.mensagem, '')          AS texto,
+           o.texto                                    AS texto,
            to_char(o.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em,
            COALESCE(o.autor_nome, u.nome, 'Sistema')  AS autor
          FROM public.chamado_observacoes o

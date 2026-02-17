@@ -4,7 +4,6 @@ export interface ProducaoMeta {
     id: string;
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     dataInicio: string;
     dataFim?: string;
     horasMeta: number;
@@ -16,7 +15,6 @@ export interface ProducaoLancamento {
     id: string;
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     dataRef: string;
     turno?: '1º' | '2º';
     horasRealizadas: number;
@@ -29,7 +27,6 @@ export interface ProducaoLancamento {
 export interface ProducaoRendimento {
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     maquinaSetor?: string;
     dataRef: string;
     turno?: string;
@@ -44,7 +41,6 @@ export interface ProducaoRendimento {
 export interface ProducaoResumoDiario {
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     dataRef: string;
     horasDia: number;
     metaDia: number;
@@ -68,9 +64,7 @@ export interface ProducaoUpload {
 export interface MaquinaProducao {
     id: string;
     nome: string;
-    tag?: string;
     setor?: string;
-    critico?: boolean;
     escopo_manutencao: boolean;
     escopo_producao: boolean;
 }

@@ -39,7 +39,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
 
     if (q) {
       params.push(`%${q}%`);
-      where += ` AND (nome ILIKE $${params.length} OR tag ILIKE $${params.length})`;
+      where += ` AND (nome ILIKE $${params.length})`;
     }
 
     // Filtro por escopo
@@ -50,7 +50,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `SELECT id, nome, tag, setor, critico, escopo_manutencao, escopo_producao, escopo_planejamento, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, nome_producao
+      `SELECT id, nome, setor, escopo_manutencao, escopo_producao, escopo_planejamento, aliases_producao, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, nome_producao
        FROM maquinas
        WHERE ${where}
        ORDER BY nome ASC`,
@@ -67,9 +67,8 @@ maquinasRouter.get("/maquinas", async (req, res) => {
 // Criar máquina
 maquinasRouter.post("/maquinas", async (req, res) => {
   try {
-    const { nome, tag, setor, critico, parentId, isMaquinaMae, exibirFilhosDashboard, escopoManutencao, escopoProducao, escopoPlanejamento } = req.body ?? {};
+    const { nome, setor, parentId, isMaquinaMae, exibirFilhosDashboard, escopoManutencao, escopoProducao, escopoPlanejamento } = req.body ?? {};
     const nomeTrim = String(nome || "").trim();
-    const tagTrim = String(tag || nomeTrim).trim();
 
     if (!nomeTrim || nomeTrim.length < 2) {
       return res.status(400).json({ error: "Nome da máquina é obrigatório." });
@@ -78,20 +77,20 @@ maquinasRouter.post("/maquinas", async (req, res) => {
     // Evita duplicado (mesmo sem UNIQUE no banco)
     const dup = await pool.query(
       `SELECT id FROM maquinas
-        WHERE lower(nome) = lower($1) OR lower(tag) = lower($2)
+        WHERE lower(nome) = lower($1)
         LIMIT 1`,
-      [nomeTrim, tagTrim]
+      [nomeTrim]
     );
     if ((dup.rowCount ?? 0) > 0) {
-      return res.status(409).json({ error: "Já existe uma máquina com esse nome/tag." });
+      return res.status(409).json({ error: "Já existe uma máquina com esse nome." });
     }
 
     const nomeProducaoTrim = req.body?.nomeProducao ? String(req.body.nomeProducao).trim() || null : null;
     const { rows } = await pool.query(
-      `INSERT INTO maquinas (nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao)
-       VALUES ($1, $2, $3, COALESCE($4, false), $5, COALESCE($6, false), COALESCE($7, true), COALESCE($8, true), COALESCE($9, false), COALESCE($10, false), $11)
-       RETURNING id, nome, tag, setor, critico, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao`,
-      [nomeTrim, tagTrim, setor ?? null, !!critico, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true, escopoManutencao !== undefined ? !!escopoManutencao : true, escopoProducao !== undefined ? !!escopoProducao : false, escopoPlanejamento !== undefined ? !!escopoPlanejamento : false, nomeProducaoTrim]
+      `INSERT INTO maquinas (nome, setor, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao)
+       VALUES ($1, $2, $3, COALESCE($4, false), COALESCE($5, true), COALESCE($6, true), COALESCE($7, false), COALESCE($8, false), $9)
+       RETURNING id, nome, setor, parent_maquina_id, is_maquina_mae, exibir_filhos_dashboard, escopo_manutencao, escopo_producao, escopo_planejamento, nome_producao`,
+      [nomeTrim, setor ?? null, parentId || null, !!isMaquinaMae, exibirFilhosDashboard !== undefined ? !!exibirFilhosDashboard : true, escopoManutencao !== undefined ? !!escopoManutencao : true, escopoProducao !== undefined ? !!escopoProducao : false, escopoPlanejamento !== undefined ? !!escopoPlanejamento : false, nomeProducaoTrim]
     );
 
     // SSE broadcast
@@ -102,7 +101,7 @@ maquinasRouter.post("/maquinas", async (req, res) => {
     console.error(e);
     // Se você tiver UNIQUE no banco, pode cair aqui:
     if (e?.code === "23505") {
-      return res.status(409).json({ error: "Já existe uma máquina com esse nome/tag." });
+      return res.status(409).json({ error: "Já existe uma máquina com esse nome." });
     }
     res.status(500).json({ error: String(e) });
   }
@@ -283,9 +282,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
       SELECT
         id,
         nome,
-        tag,
         setor,
-        critico,
         escopo_manutencao,
         escopo_producao,
         escopo_planejamento,
@@ -424,7 +421,6 @@ maquinasRouter.patch(
   async (req, res) => {
     const id = String(req.params.id || '').trim();
     const novoNome = String(req.body?.nome ?? '').trim();
-    const syncTag = Boolean(req.body?.syncTag ?? true);
 
     if (!id) return res.status(400).json({ error: 'ID_OBRIGATORIO' });
     if (!novoNome) return res.status(400).json({ error: 'NOME_OBRIGATORIO' });
@@ -432,39 +428,34 @@ maquinasRouter.patch(
     try {
       // 0) Existe?
       const cur = await pool.query(
-        `SELECT id, nome, tag FROM public.maquinas WHERE id = $1::uuid`,
+        `SELECT id, nome FROM public.maquinas WHERE id = $1::uuid`,
         [id]
       );
       if (!cur.rowCount) return res.status(404).json({ error: 'MAQUINA_NAO_ENCONTRADA' });
 
-      // 1) Duplicidade (nome sempre; tag só se syncTag = true)
-      const alvoTag = syncTag ? novoNome : null;
+      // 1) Duplicidade (nome sempre)
       const dup = await pool.query(
         `
         SELECT 1
           FROM public.maquinas
-         WHERE id <> $3::uuid
-           AND (
-                lower(nome) = lower($1::text)
-             OR ($2::text IS NOT NULL AND lower(tag) = lower($2::text))
-           )
+         WHERE id <> $2::uuid
+           AND lower(nome) = lower($1::text)
          LIMIT 1
         `,
-        [novoNome, alvoTag, id]
+        [novoNome, id]
       );
       if (dup.rowCount) return res.status(409).json({ error: 'MAQUINA_DUPLICADA' });
 
-      // 2) UPDATE com casts explícitos
+      // 2) UPDATE
       const upd = await pool.query(
         `
         UPDATE public.maquinas
            SET nome = $2::text,
-               tag  = CASE WHEN $3::boolean THEN $2::text ELSE tag END,
                atualizado_em = now()
          WHERE id = $1::uuid
-         RETURNING id, nome, tag, setor, critico
+         RETURNING id, nome, setor, critico
         `,
-        [id, novoNome, syncTag]
+        [id, novoNome]
       );
 
       try { sseBroadcast({ topic: 'maquinas', action: 'updated', id }); } catch { }
