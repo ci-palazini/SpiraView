@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
@@ -8,8 +8,10 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
 import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoPage';
-import TvMenuPage from './features/tv/TvMenuPage';
-import TvDashboardPage from './features/tv/TvDashboardPage';
+
+// Lazy load TV pages
+const TvMenuPage = lazy(() => import('./features/tv/TvMenuPage'));
+const TvDashboardPage = lazy(() => import('./features/tv/TvDashboardPage'));
 
 const AUTH_EVENT = 'auth-user-changed';
 
@@ -97,8 +99,16 @@ export default function App() {
             <Toaster position="top-right" />
             <Routes>
                 {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
-                <Route path="/tv" element={<TvMenuPage />} />
-                <Route path="/tv/:scope" element={<TvDashboardPage />} />
+                <Route path="/tv" element={
+                    <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
+                        <TvMenuPage />
+                    </Suspense>
+                } />
+                <Route path="/tv/:scope" element={
+                    <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
+                        <TvDashboardPage />
+                    </Suspense>
+                } />
 
 
                 {!user && <Route path="/*" element={<LoginPage />} />}

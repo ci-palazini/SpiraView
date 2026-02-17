@@ -20,7 +20,7 @@ pool.on("error", (err) => {
 const TIMEZONE = process.env.DB_TIMEZONE || "America/Sao_Paulo";
 pool.on("connect", async (client) => {
   try {
-    await client.query('SET TIME ZONE $1', [TIMEZONE]);
+    await client.query("SELECT set_config('timezone', $1, false)", [TIMEZONE]);
   } catch (e) {
     console.error("Failed to SET TIME ZONE on connection:", e);
   }
