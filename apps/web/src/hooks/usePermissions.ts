@@ -4,6 +4,7 @@ import type { NivelPermissao } from '../services/apiClient';
 
 export interface UserWithPermissions {
     role?: string;
+    roleNome?: string;
     email?: string;
     permissoes?: Record<string, NivelPermissao>;
 }

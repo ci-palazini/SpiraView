@@ -902,7 +902,7 @@ uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
             const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
                 `SELECT r.permissoes 
                  FROM usuarios u
-                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+                 JOIN roles r ON u.role_id = r.id
                  WHERE u.id = $1
                  LIMIT 1`,
                 [auth.id]

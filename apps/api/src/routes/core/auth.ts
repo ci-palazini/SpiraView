@@ -65,13 +65,9 @@ authRouter.post('/auth/login', loginLimiter, async (req, res) => {
     const usuario = raw.includes('@') ? raw.split('@')[0] : raw;
 
     const { rows } = await pool.query(
-      `SELECT u.id, u.nome, u.email, u.role,
-              COALESCE(u.funcao,
-                CASE
-                  WHEN LOWER(u.role)='gestor'     THEN 'Gestor'
-                  WHEN LOWER(u.role)='manutentor' THEN 'Técnico Eletromecânico'
-                  ELSE 'Operador de CNC'
-                END) AS funcao,
+      `SELECT u.id, u.nome, u.email,
+              COALESCE(r.nome, 'Operador') AS role,
+              COALESCE(u.funcao, 'Colaborador') AS funcao,
               COALESCE(u.usuario, split_part(LOWER(u.email),'@',1)) AS usuario,
               u.senha_hash,
               r.id AS role_id,
@@ -158,13 +154,9 @@ authRouter.get('/auth/me', async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `SELECT u.id, u.nome, u.email, u.role,
-              COALESCE(u.funcao,
-                CASE
-                  WHEN LOWER(u.role)='gestor'     THEN 'Gestor'
-                  WHEN LOWER(u.role)='manutentor' THEN 'Técnico Eletromecânico'
-                  ELSE 'Operador de CNC'
-                END) AS funcao,
+      `SELECT u.id, u.nome, u.email,
+              COALESCE(r.nome, 'Operador') AS role,
+              COALESCE(u.funcao, 'Colaborador') AS funcao,
               COALESCE(u.usuario, split_part(LOWER(u.email),'@',1)) AS usuario,
               r.id AS role_id,
               r.nome AS role_nome,

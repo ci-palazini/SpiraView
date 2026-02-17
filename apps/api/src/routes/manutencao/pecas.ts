@@ -9,7 +9,7 @@ async function checkPermission(userId: string, pageKey: string, level: 'ver' | '
   if (!userId) return false;
   const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
     `SELECT r.permissoes FROM usuarios u
-         JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+         JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1 LIMIT 1`,
     [userId]
   );

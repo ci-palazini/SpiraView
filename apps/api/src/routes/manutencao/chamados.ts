@@ -586,7 +586,7 @@ async function checkPermission(userId: string, pageKey: string, level: 'ver' | '
   if (!userId) return false;
   const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
     `SELECT r.permissoes FROM usuarios u
-       JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+       JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1 LIMIT 1`,
     [userId]
   );
@@ -650,7 +650,7 @@ chamadosRouter.post(
         .map((v) => String(v));
 
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
-      const isGestorLike = (user.role || '').toLowerCase() === "gestor industrial" || user.role === "admin" || hasGestao;
+      const isGestorLike = (user.role || '').toLowerCase() === "admin" || hasGestao;
 
       if (!isGestorLike && !associados.includes(String(user.id))) {
         return res.status(403).json({ error: "PERMISSAO_NEGADA" });

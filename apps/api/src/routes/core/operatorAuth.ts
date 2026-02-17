@@ -34,7 +34,7 @@ operatorAuthRouter.get('/operators/active', async (req, res) => {
             const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
                 `SELECT r.permissoes 
                  FROM usuarios u
-                 JOIN roles r ON u.role_id = r.id OR LOWER(u.role) = LOWER(r.nome)
+                 JOIN roles r ON u.role_id = r.id
                  WHERE u.id = $1
                  LIMIT 1`,
                 [user.id]
@@ -49,11 +49,12 @@ operatorAuthRouter.get('/operators/active', async (req, res) => {
         }
 
         const { rows } = await pool.query(
-            `SELECT id, nome
-       FROM usuarios
-       WHERE LOWER(role) = 'operador'
-         AND ativo = true
-       ORDER BY nome ASC`
+            `SELECT u.id, u.nome
+       FROM usuarios u
+       LEFT JOIN roles r ON u.role_id = r.id
+       WHERE LOWER(r.nome) = 'operador'
+         AND u.ativo = true
+       ORDER BY u.nome ASC`
         );
 
         res.json({ items: rows });
@@ -92,17 +93,18 @@ operatorAuthRouter.post('/auth/operator-login', operatorLoginLimiter, async (req
         // Busca operador pelo ID
         const { rows } = await pool.query(
             `SELECT 
-         id, 
-         nome, 
-         email, 
-         role,
-         matricula,
-         COALESCE(funcao, 'Operador de CNC') AS funcao,
-         COALESCE(usuario, split_part(LOWER(email), '@', 1)) AS usuario
-       FROM usuarios
-       WHERE id = $1
-         AND LOWER(role) = 'operador'
-         AND ativo = true
+         u.id, 
+         u.nome, 
+         u.email, 
+         COALESCE(r.nome, 'Operador') AS role,
+         u.matricula,
+         COALESCE(u.funcao, 'Operador de CNC') AS funcao,
+         COALESCE(u.usuario, split_part(LOWER(u.email), '@', 1)) AS usuario
+       FROM usuarios u
+       LEFT JOIN roles r ON u.role_id = r.id
+       WHERE u.id = $1
+         AND LOWER(r.nome) = 'operador'
+         AND u.ativo = true
        LIMIT 1`,
             [operadorId]
         );

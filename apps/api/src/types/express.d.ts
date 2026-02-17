@@ -7,7 +7,7 @@ declare global {
       email?: string;
       nome?: string | null;
       name?: string | null;
-      role?: 'operador' | 'manutentor' | 'gestor' | 'admin' | string;
+      role?: string;
       locale?: string;
       [k: string]: unknown;
     }
@@ -16,4 +16,4 @@ declare global {
     }
   }
 }
-export {};
+export { };

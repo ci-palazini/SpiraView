@@ -55,46 +55,45 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
     const where: string[] = [];
     const params: any[] = [];
 
-    // Filtro por role(s)
+    // Filtro por role(s) — usa r.nome (da tabela roles) via JOIN
     if (rolesArray.length > 0) {
       // Múltiplos roles via parâmetro 'roles'
       const placeholders = rolesArray.map((_, i) => `LOWER($${params.length + i + 1})`).join(', ');
       params.push(...rolesArray);
-      where.push(`LOWER(role) IN (${placeholders})`);
+      where.push(`LOWER(r.nome) IN (${placeholders})`);
     } else if (role && role !== 'all' && role !== 'todos') {
       // Role único via parâmetro 'role'
       params.push(role);
-      where.push(`LOWER(role) = LOWER($${params.length})`);
+      where.push(`LOWER(r.nome) = LOWER($${params.length})`);
     }
 
-    // por padrÃ£o, sÃ³ ativos
+    // por padrão, só ativos
     if (!includeInactive) {
-      where.push(`ativo = true`);
+      where.push(`u.ativo = true`);
     }
 
     const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const { rows } = await pool.query(
       `SELECT
-         id,
-         nome,
-         usuario,
-         email,
-         email_real,
-         role,
+         u.id,
+         u.nome,
+         u.usuario,
+         u.email,
+         u.email_real,
+         r.nome AS role,
+         u.role_id,
          COALESCE(
-           funcao,
-           CASE
-             WHEN LOWER(role) = 'gestor'     THEN 'Gestor'
-             WHEN LOWER(role) = 'manutentor' THEN 'Técnico Eletromecânico'
-             ELSE 'Operador de CNC'
-           END
+           u.funcao,
+           r.nome,
+           'Colaborador'
          ) AS funcao,
-         ativo,
-         matricula
-       FROM usuarios
+         u.ativo,
+         u.matricula
+       FROM usuarios u
+       LEFT JOIN roles r ON u.role_id = r.id
        ${whereSQL}
-       ORDER BY nome ASC`,
+       ORDER BY u.nome ASC`,
       params
     );
 
@@ -169,12 +168,19 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async 
       senha_hash = await bcrypt.hash(senha.trim(), 10);
     }
 
+    // Buscar role_id a partir do nome do role
+    const { rows: roleRows } = await pool.query(
+      `SELECT id FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
+      [role]
+    );
+    const roleId = roleRows[0]?.id || null;
+
     // Inserção
     const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, usuario, email, email_real, role, funcao, senha_hash, matricula)
+      `INSERT INTO usuarios (nome, usuario, email, email_real, role_id, funcao, senha_hash, matricula)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING id, nome, usuario, email, email_real, role, funcao, matricula`,
-      [nome, usuario, email, email_real, role, funcao, senha_hash, matricula]
+       RETURNING id, nome, usuario, email, email_real, role_id, funcao, matricula`,
+      [nome, usuario, email, email_real, roleId, funcao, senha_hash, matricula]
     );
 
     res.status(201).json(rows[0]);
@@ -211,7 +217,16 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
     if (usuario !== undefined) add('usuario', usuario);
     if (email !== undefined) add('email', email);
     if (email_real !== undefined) add('email_real', email_real);
-    if (role !== undefined) add('role', role);
+    if (role !== undefined) {
+      // Buscar role_id a partir do nome do role
+      const { rows: roleRows } = await pool.query(
+        `SELECT id FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
+        [role]
+      );
+      if (roleRows[0]?.id) {
+        add('role_id', roleRows[0].id);
+      }
+    }
     if (role !== undefined && funcao === undefined) {
       funcao = roleToFuncao(role);
     }
@@ -231,7 +246,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
     const { rows } = await pool.query(
       `UPDATE usuarios SET ${sets.join(', ')}
         WHERE id=$${params.length}
-      RETURNING id, nome, usuario, email, role, funcao, matricula`,
+      RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
       params
     );
 
@@ -277,9 +292,12 @@ usuariosRouter.get('/usuarios/:id/estatisticas', requirePermission('usuarios', '
   try {
     const id = String(req.params.id);
 
-    // Busca dados do usuário
+    // Busca dados do usuário com role via JOIN
     const userResult = await pool.query(
-      `SELECT id, nome, role, matricula FROM usuarios WHERE id = $1`,
+      `SELECT u.id, u.nome, r.nome AS role, u.matricula
+       FROM usuarios u
+       LEFT JOIN roles r ON u.role_id = r.id
+       WHERE u.id = $1`,
       [id]
     );
     if (!userResult.rows.length) {
