@@ -295,6 +295,7 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
   }
 });
 
+
 // GET /checklists/overview/range - Retorna status consolidado para um intervalo de datas
 // Usado na exportação Excel
 checklistsRouter.get('/checklists/overview/range', async (req, res) => {
@@ -361,4 +362,89 @@ checklistsRouter.get('/checklists/overview/range', async (req, res) => {
     res.status(500).json({ error: String(e) });
   }
 });
+
+
+// GET /checklists/pendencias - Lista itens pendentes de justificativa
+checklistsRouter.get('/checklists/pendencias', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        p.id,
+        p.maquina_id,
+        m.nome as maquina_nome,
+        to_char(p.data_ref, 'YYYY-MM-DD') as data_ref,
+        p.turno,
+        p.status
+      FROM checklist_pendencias p
+      JOIN maquinas m ON m.id = p.maquina_id
+      WHERE p.status = 'PENDENTE'
+      ORDER BY p.data_ref DESC, p.turno, m.nome
+    `);
+    res.json(rows);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// POST /checklists/pendencias/justificar - Justifica um ou mais itens
+checklistsRouter.post('/checklists/pendencias/justificar', async (req, res) => {
+  try {
+    const user = (req as any).user;
+    if (!user?.id) return res.status(401).json({ error: 'Nao autorizado' });
+
+    const { ids, justificativa } = req.body; // ids: string[]
+
+    if (!Array.isArray(ids) || ids.length === 0 || !justificativa) {
+      return res.status(400).json({ error: 'Informe ids[] e justificativa.' });
+    }
+
+    await pool.query(
+      `UPDATE checklist_pendencias
+       SET 
+         status = 'JUSTIFICADO',
+         justificativa = $2,
+         justificado_por_id = $3,
+         justificado_em = NOW(),
+         updated_at = NOW()
+       WHERE id = ANY($1::uuid[])`,
+      [ids, justificativa, user.id]
+    );
+
+    res.json({ ok: true });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// GET /checklists/pendencias/historico - Histórico de justificativas
+checklistsRouter.get('/checklists/pendencias/historico', async (req, res) => {
+  try {
+    const limit = Number(req.query.limit || 50);
+    const { rows } = await pool.query(`
+      SELECT 
+        p.id,
+        m.nome as maquina_nome,
+        to_char(p.data_ref, 'YYYY-MM-DD') as data_ref,
+        p.turno,
+        p.status,
+        p.justificativa,
+        to_char(p.justificado_em, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as justificado_em,
+        u.nome as justificado_por_nome
+      FROM checklist_pendencias p
+      JOIN maquinas m ON m.id = p.maquina_id
+      LEFT JOIN usuarios u ON u.id = p.justificado_por_id
+      WHERE p.status = 'JUSTIFICADO'
+      ORDER BY p.justificado_em DESC
+      LIMIT $1
+    `, [limit]);
+
+    res.json(rows);
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 

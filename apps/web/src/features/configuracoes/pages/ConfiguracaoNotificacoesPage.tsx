@@ -14,6 +14,13 @@ import { FiTrash2, FiPlus, FiMail } from 'react-icons/fi';
 import Skeleton from '@mui/material/Skeleton';
 import { useTranslation } from 'react-i18next';
 
+// Available events
+const EVENTOS = [
+    { value: 'NOVO_CHAMADO', label: 'Novo Chamado Aberto', description: 'Recebe email quando um novo chamado manutentor é aberto.' },
+    { value: 'checklist_pendente_turno1', label: 'Checklist Pendente - 1º Turno', description: 'Recebe email com lista de máquinas sem checklist no 1º turno (dia anterior).' },
+    { value: 'checklist_pendente_turno2', label: 'Checklist Pendente - 2º Turno', description: 'Recebe email com lista de máquinas sem checklist no 2º turno (dia anterior).' },
+];
+
 export interface ConfiguracaoNotificacoesPageProps {
     user: { email?: string; role?: string };
 }
@@ -24,8 +31,7 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
     const [configUsers, setConfigUsers] = useState<NotificacaoConfigUser[]>([]);
     const [allUsers, setAllUsers] = useState<Usuario[]>([]);
 
-    // Only one event type for now
-    const EVENTO = 'NOVO_CHAMADO';
+    const [selectedEvento, setSelectedEvento] = useState(EVENTOS[0].value);
 
     // Form
     const [selectedUserId, setSelectedUserId] = useState('');
@@ -36,18 +42,18 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
             setLoading(true);
             const auth = { email: user?.email, role: user?.role };
             const [configs, users] = await Promise.all([
-                listarNotificacoesConfig(EVENTO, auth),
+                listarNotificacoesConfig(selectedEvento, auth),
                 listarUsuarios({}, auth) // List all users to populate dropdown
             ]);
             setConfigUsers(configs);
-            setAllUsers(users);
+            setAllUsers(users); // Could be optimized to load only once, but ok for now
         } catch (e) {
             console.error(e);
             toast.error('Erro ao carregar configurações');
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, selectedEvento]);
 
     useEffect(() => {
         loadData();
@@ -62,7 +68,7 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
         try {
             setAdding(true);
             const auth = { email: user?.email, role: user?.role };
-            await adicionarNotificacaoConfig(EVENTO, selectedUserId, auth);
+            await adicionarNotificacaoConfig(selectedEvento, selectedUserId, auth);
             toast.success('Usuário adicionado com sucesso!');
             setSelectedUserId('');
             loadData();
@@ -91,6 +97,8 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
         !configUsers.some(c => c.usuario_id === u.id)
     ).sort((a, b) => a.nome.localeCompare(b.nome));
 
+    const currentEvent = EVENTOS.find(e => e.value === selectedEvento) || EVENTOS[0];
+
     return (
         <>
             <PageHeader
@@ -99,13 +107,27 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
             />
 
             <div className={styles.container}>
+
+                <div className={styles.filterSection} style={{ marginBottom: '20px', backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <Select
+                        id="evento-select"
+                        label="Tipo de Notificação"
+                        value={selectedEvento}
+                        onChange={(e) => setSelectedEvento(e.target.value)}
+                    >
+                        {EVENTOS.map(ev => (
+                            <option key={ev.value} value={ev.value}>{ev.label}</option>
+                        ))}
+                    </Select>
+                </div>
+
                 <div className={styles.card}>
                     <div className={styles.cardHeader}>
                         <h3>
                             <FiMail className={styles.icon} />
-                            Evento: Novo Chamado Aberto
+                            Evento: {currentEvent.label}
                         </h3>
-                        <p>Os usuários abaixo receberão um email sempre que um novo chamado for aberto.</p>
+                        <p>{currentEvent.description}</p>
                     </div>
 
                     <div className={styles.addSection}>

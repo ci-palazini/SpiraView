@@ -69,6 +69,7 @@ import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/Config
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';
 import PdcaPlanoDetailPage from '../features/pdca/pages/PdcaPlanoDetailPage';
+import JustificativaChecklistPage from '../features/manutencao/checklists/pages/JustificativaChecklistPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -482,15 +483,26 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     )}
 
                     {perm.canView('checklists_diarios') && (
-                        <NavLink
-                            to="/checklists-diarios"
-                            className={({ isActive }) =>
-                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                            }
-                        >
-                            <FiCheckSquare className={styles.navIcon} />
-                            <span>{t('nav.dailyChecklists', 'Checklists diários')}</span>
-                        </NavLink>
+                        <>
+                            <NavLink
+                                to="/checklists-diarios"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiCheckSquare className={styles.navIcon} />
+                                <span>{t('nav.dailyChecklists', 'Checklists diários')}</span>
+                            </NavLink>
+                            <NavLink
+                                to="/checklists-pendencias"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiAlertCircle className={styles.navIcon} />
+                                <span>{t('nav.checklistPendencies', 'Justificativas')}</span>
+                            </NavLink>
+                        </>
                     )}
 
                     {perm.canView('historico_chamados') && (
@@ -1010,6 +1022,10 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/checklists-diarios"
                         element={canAccessPage('checklists_diarios', <ChecklistOverviewPage user={user} />)}
+                    />
+                    <Route
+                        path="/checklists-pendencias"
+                        element={canAccessPage('checklists_diarios', <JustificativaChecklistPage />)}
                     />
 
                     <Route

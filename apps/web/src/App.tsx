@@ -12,6 +12,7 @@ import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoP
 // Lazy load TV pages
 const TvMenuPage = lazy(() => import('./features/tv/TvMenuPage'));
 const TvDashboardPage = lazy(() => import('./features/tv/TvDashboardPage'));
+const JustificativaChecklistPage = lazy(() => import('./features/manutencao/checklists/pages/JustificativaChecklistPage'));
 
 const AUTH_EVENT = 'auth-user-changed';
 
@@ -123,7 +124,13 @@ export default function App() {
                 )}
 
                 {user && role !== 'operador' && (
-                    <Route path="/*" element={<MainLayout user={user} />} />
+                    <Route path="/*" element={<MainLayout user={user} />}>
+                        {/* Nested routes inside MainLayout if needed, but current structure seems to have MainLayout handling routing internally or via children? 
+                            Wait, MainLayout in this app seems to NOT have <Outlet /> but rather use its own internal routing or the App links to it.
+                            Actually, looking at MainLayout.tsx, it has `Routes` inside? NO.
+                            Let me check MainLayout.tsx content again.
+                        */}
+                    </Route>
                 )}
             </Routes>
         </DndProvider>
