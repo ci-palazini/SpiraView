@@ -364,8 +364,12 @@ checklistsRouter.get('/checklists/overview/range', async (req, res) => {
 });
 
 
+import { requirePermission } from '../../middlewares/requirePermission';
+
+// ... (existing imports)
+
 // GET /checklists/pendencias - Lista itens pendentes de justificativa
-checklistsRouter.get('/checklists/pendencias', async (req, res) => {
+checklistsRouter.get('/checklists/pendencias', requirePermission('checklists_pendencias', 'ver'), async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
@@ -388,7 +392,7 @@ checklistsRouter.get('/checklists/pendencias', async (req, res) => {
 });
 
 // POST /checklists/pendencias/justificar - Justifica um ou mais itens
-checklistsRouter.post('/checklists/pendencias/justificar', async (req, res) => {
+checklistsRouter.post('/checklists/pendencias/justificar', requirePermission('checklists_pendencias', 'editar'), async (req, res) => {
   try {
     const user = (req as any).user;
     if (!user?.id) return res.status(401).json({ error: 'Nao autorizado' });
@@ -419,7 +423,7 @@ checklistsRouter.post('/checklists/pendencias/justificar', async (req, res) => {
 });
 
 // GET /checklists/pendencias/historico - Histórico de justificativas
-checklistsRouter.get('/checklists/pendencias/historico', async (req, res) => {
+checklistsRouter.get('/checklists/pendencias/historico', requirePermission('checklists_pendencias', 'ver'), async (req, res) => {
   try {
     const limit = Number(req.query.limit || 50);
     const { rows } = await pool.query(`

@@ -21,6 +21,7 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'estoque', nome: 'Estoque', grupo: 'Manutenção' },
     { key: 'movimentacoes', nome: 'Movimentações', grupo: 'Manutenção' },
     { key: 'checklists_diarios', nome: 'Checklists Diários', grupo: 'Manutenção' },
+    { key: 'checklists_pendencias', nome: 'Justificativa de Pendências', grupo: 'Manutenção' },
     { key: 'analise_falhas', nome: 'Análise de Falhas', grupo: 'Analytics' },
     { key: 'causas_raiz', nome: 'Causas Raiz', grupo: 'Analytics' },
     // Produção
