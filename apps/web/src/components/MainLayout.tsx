@@ -46,7 +46,6 @@ import HistoricoMovimentacoesPage from '../features/manutencao/utilidades/estoqu
 import MeusChamados from '../features/manutencao/chamados/pages/MeusChamados';
 import AbrirChamadoManutentor from '../features/manutencao/chamados/pages/AbrirChamadoManutentor';
 import LanguageMenu from './LanguageMenu';
-// import PziniChatBot removido
 import ChecklistOverviewPage from '../features/manutencao/checklists/pages/ChecklistOverviewPage';
 import ChamadosAbertosPage from '../features/manutencao/chamados/pages/ChamadosAbertosPage';
 import ProducaoUploadPage from '../features/producao/pages/ProducaoUploadPage';
@@ -61,7 +60,6 @@ import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfi
 import RefugoFormPage from '../features/qualidade/pages/RefugoFormPage';
 import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboardPage';
 import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
-// QualidadeAnaliticoPage removed - merged into QualidadeDashboardPage
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
 import QualidadeDesempenhoPage from '../features/qualidade/pages/QualidadeDesempenhoPage';
 import RetrabalhoPage from '../features/qualidade/pages/RetrabalhoPage';
@@ -173,6 +171,12 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     }, [(user as { nome?: string })?.nome, user?.email]);
 
     const refreshOpenCalls = async () => {
+        // Otimização: Só busca se tiver permissão de ver máquinas (onde o badge aparece)
+        if (!perm.canView('maquinas')) {
+            setHasOpenCalls(false);
+            return;
+        }
+
         try {
             const a = await listarChamados({ status: 'Aberto', pageSize: 1 });
             const e = await listarChamados({ status: 'Em Andamento', pageSize: 1 });
@@ -181,6 +185,12 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     };
 
     const refreshSoonDue = async () => {
+        // Otimização: Só busca se tiver permissão de ver calendário
+        if (!perm.canView('calendario')) {
+            setHasSoonDue(false);
+            return;
+        }
+
         try {
             const now = new Date();
             const from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
