@@ -136,7 +136,151 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
             ]);
             setMaquinas(maqData as Maquina[]);
             setMetas(metasData);
-            setResumos(resumoData);
+
+            // Lógica de Agregação em Cascata (Domingo -> Sábado -> Sexta)
+            // Idêntica ao TvDashboardPage para consistência
+            let finalResumos = resumoData;
+            let finalRefDate = dataRef;
+
+            // Helper para agregar dias
+            const aggregateDays = async (
+                sourceData: ProducaoResumoDiario[],
+                targetDateISO: string
+            ) => {
+                // Buscar dados do dia alvo sob demanda
+                const targetResumo = await listarResumoDiarioProducao({ dataRef: targetDateISO });
+
+                // Criar mapa para fusão
+                const mergedMap = new Map<string, ProducaoResumoDiario>();
+
+                // 1. Adicionar dados do alvo (base)
+                targetResumo.forEach(item => {
+                    mergedMap.set(item.maquinaId, { ...item, horasDia: Number(item.horasDia) || 0 });
+                });
+
+                // 2. Somar dados da origem
+                sourceData.forEach(item => {
+                    const h = Number(item.horasDia) || 0;
+                    if (mergedMap.has(item.maquinaId)) {
+                        const current = mergedMap.get(item.maquinaId)!;
+                        const currentHoras = Number(current.horasDia) || 0;
+                        current.horasDia = currentHoras + h;
+
+                        if (item.ultimaAtualizacaoEm && (!current.ultimaAtualizacaoEm || item.ultimaAtualizacaoEm > current.ultimaAtualizacaoEm)) {
+                            current.ultimaAtualizacaoEm = item.ultimaAtualizacaoEm;
+                        }
+                    } else {
+                        mergedMap.set(item.maquinaId, { ...item, horasDia: h, dataRef: targetDateISO });
+                    }
+                });
+
+                return Array.from(mergedMap.values());
+            };
+
+            // 1. Verificar Domingo -> Sábado
+            let currentRefObj = new Date(finalRefDate.includes('T') ? finalRefDate : finalRefDate + 'T12:00:00');
+            let aggregated = false;
+            let targetDateLabel = '';
+
+            // Lógica "Olhar para Trás" (Backward Aggregation)
+            // Se estou vendo Domingo e é < 10h -> Mostra Sábado (com Domingo somado)
+            if (currentRefObj.getDay() === 0) { // Domingo
+                const totalSunday = finalResumos.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+                if (totalSunday < 10) {
+                    console.log('Produção Dashboard: Domingo < 10h. Agregando ao Sábado.');
+
+                    const satDateObj = new Date(currentRefObj);
+                    satDateObj.setDate(satDateObj.getDate() - 1);
+                    const satISO = toISO(satDateObj);
+
+                    finalResumos = await aggregateDays(finalResumos, satISO);
+                    finalRefDate = satISO;
+                    // Não atualizar dataRef para evitar reload, apenas notificar
+                    aggregated = true;
+                    targetDateLabel = 'Sábado';
+                }
+            }
+
+            // Se estou vendo Sábado (ou Sábado resultante do Domingo) e é < 10h -> Mostra Sexta (com Sábado somado)
+            currentRefObj = new Date(finalRefDate.includes('T') ? finalRefDate : finalRefDate + 'T12:00:00');
+            if (currentRefObj.getDay() === 6) { // Sábado
+                const totalSaturday = finalResumos.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+                if (totalSaturday < 10) {
+                    console.log('Produção Dashboard: Sábado < 10h. Agregando à Sexta.');
+
+                    const friDateObj = new Date(currentRefObj);
+                    friDateObj.setDate(friDateObj.getDate() - 1);
+                    const friISO = toISO(friDateObj);
+
+                    finalResumos = await aggregateDays(finalResumos, friISO);
+                    finalRefDate = friISO;
+                    aggregated = true;
+                    targetDateLabel = 'Sexta-feira';
+                }
+            }
+
+            // Lógica "Olhar para Frente" (Forward Aggregation)
+            // Se estou vendo Sexta -> Verificar se Sábado (e Domingo) devem ser somados aqui
+            currentRefObj = new Date(finalRefDate.includes('T') ? finalRefDate : finalRefDate + 'T12:00:00');
+            if (currentRefObj.getDay() === 5) { // Sexta
+                // 1. Verificar Sábado seguinte
+                const satDateObj = new Date(currentRefObj);
+                satDateObj.setDate(satDateObj.getDate() + 1);
+                const satISO = toISO(satDateObj);
+
+                // Buscar resumo de sábado (raw)
+                const satResumo = await listarResumoDiarioProducao({ dataRef: satISO });
+                let totalSat = satResumo.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+
+                // 2. Verificar Domingo seguinte (para somar ao Sábado se necessário)
+                const sunDateObj = new Date(satDateObj);
+                sunDateObj.setDate(sunDateObj.getDate() + 1);
+                const sunISO = toISO(sunDateObj);
+
+                const sunResumo = await listarResumoDiarioProducao({ dataRef: sunISO });
+                const totalSun = sunResumo.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+
+                // Se Domingo < 10h, soma ao Sábado
+                let effectiveSatResumo = satResumo;
+                if (totalSun < 10 && totalSun > 0) {
+                    // Mesclar Domingo no Sábado (apenas em memória para verificação)
+                    // Reutilizando aggregateDays logic logicamente (mas aqui invertido: source=Sun, target=Sat)
+                    // Mas aggregateDays espera source=Current, target=Target.
+                    // Aqui queremos somar Sun EM Sat.
+
+                    // Simplificação: Apenas somar horas totais para a decisão
+                    totalSat += totalSun;
+                    // E concatenar arrays para fusão final
+                    effectiveSatResumo = [...satResumo, ...sunResumo];
+                }
+
+                // Se Sábado (com Domingo) < 10h e > 0 -> Soma na Sexta
+                if (totalSat < 10 && totalSat > 0) {
+                    console.log('Produção Dashboard: Visualizando Sexta. Sábado seguinte < 10h detectado. Agregando.');
+
+                    // A função aggregateDays espera (sourceData, targetDateISO).
+                    // sourceData aqui é o Sábado (+ Domingo).
+                    // targetDateISO é a Sexta (finalRefDate).
+                    // Mas aggregateDays busca o target (Sexta) internamente.
+                    // Então passamos effectiveSatResumo como source.
+
+                    finalResumos = await aggregateDays(effectiveSatResumo, finalRefDate);
+
+                    aggregated = true;
+                    targetDateLabel = 'Sexta + Fim de Semana';
+                }
+            }
+
+            if (aggregated) {
+                toast.success(`Visualizando produção agregada com ${targetDateLabel} devido ao baixo volume (< 10h) na data selecionada.`, {
+                    id: 'aggregated-toast',
+                    duration: 5000
+                });
+            } else {
+                toast.dismiss('aggregated-toast');
+            }
+
+            setResumos(finalResumos);
         } catch (err) {
             console.error(err);
             toast.error(t('common.error', 'Erro ao carregar dados'));
