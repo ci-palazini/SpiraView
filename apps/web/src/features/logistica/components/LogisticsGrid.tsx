@@ -46,6 +46,7 @@ interface DayModalData {
 interface SuggestedFields {
     faturado_acumulado: boolean;
     exportacao_acumulado: boolean;
+    devolucoes_dia: boolean;
     total_linhas: boolean;
     linhas_atraso: boolean;
     backlog_atraso: boolean;
@@ -68,6 +69,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
     const [suggestedFields, setSuggestedFields] = useState<SuggestedFields>({
         faturado_acumulado: false,
         exportacao_acumulado: false,
+        devolucoes_dia: false,
         total_linhas: false,
         linhas_atraso: false,
         backlog_atraso: false,
@@ -332,6 +334,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
         const isSuggested: SuggestedFields = {
             faturado_acumulado: !Number(kpi?.faturado_acumulado) && !!Number(suggestedData.faturado_acumulado),
             exportacao_acumulado: !Number(kpi?.exportacao_acumulado) && !!Number(suggestedData.exportacao_acumulado),
+            devolucoes_dia: !Number(kpi?.devolucoes_dia) && !!Number(suggestedData.devolucoes_dia),
             total_linhas: !Number(kpi?.total_linhas) && !!Number(suggestedData.total_linhas),
             linhas_atraso: !Number(kpi?.linhas_atraso) && !!Number(suggestedData.linhas_atraso),
             backlog_atraso: !Number(kpi?.backlog_atraso) && !!Number(suggestedData.backlog_atraso),
@@ -345,7 +348,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
             // Campo a campo: se estiver vazio/zero no dia atual, preencher com sugestão do dia anterior
             faturado_acumulado: Number(kpi?.faturado_acumulado) || Number(suggestedData.faturado_acumulado) || 0,
             exportacao_acumulado: Number(kpi?.exportacao_acumulado) || Number(suggestedData.exportacao_acumulado) || 0,
-            devolucoes_dia: Number(kpi?.devolucoes_dia || 0), // Devoluções sempre zeradas (específico do dia)
+            devolucoes_dia: Number(kpi?.devolucoes_dia) || Number(suggestedData.devolucoes_dia) || 0,
             total_linhas: Number(kpi?.total_linhas) || Number(suggestedData.total_linhas) || 0,
             linhas_atraso: Number(kpi?.linhas_atraso) || Number(suggestedData.linhas_atraso) || 0,
             backlog_atraso: Number(kpi?.backlog_atraso) || Number(suggestedData.backlog_atraso) || 0,
@@ -1116,10 +1119,13 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                                     {t('logistics.modal.returns')}
                                 </div>
                                 <div className={styles.modalInputGroup}>
-                                    <label className={styles.modalInputLabel}>{t('logistics.modal.returnsDay')}</label>
+                                    <label className={styles.modalInputLabel}>
+                                        {t('logistics.modal.returnsDay')}
+                                        {suggestedFields.devolucoes_dia && <span className={styles.suggestionBadge}><FiZap />{t('logistics.modal.suggested')}</span>}
+                                    </label>
                                     <input
                                         type="number"
-                                        className={styles.modalInput}
+                                        className={`${styles.modalInput} ${suggestedFields.devolucoes_dia ? styles.modalInputSuggested : ''}`}
                                         value={modalData.devolucoes_dia || ''}
                                         onChange={(e) => setModalData({ ...modalData, devolucoes_dia: parseFloat(e.target.value) || 0 })}
                                     />
