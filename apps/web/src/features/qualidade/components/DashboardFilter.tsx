@@ -9,7 +9,7 @@ import { MultiSelect } from '../../../shared/components';
 export type Period = 'current_year' | 'current_month' | 'last_month' | 'current_week' | 'custom';
 
 interface Props {
-    onChange: (period: Period, start?: string, end?: string, tipo?: string, origem?: string | string[], responsavel?: string | string[]) => void;
+    onChange: (period: Period, start?: string, end?: string, tipo?: string, tipoLancamento?: string, origem?: string | string[], responsavel?: string | string[]) => void;
     hideOriginType?: boolean;
 }
 
@@ -17,6 +17,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
     const { t } = useTranslation();
     const [period, setPeriod] = useState<Period>('current_month');
     const [tipo, setTipo] = useState('');
+    const [tipoLancamento, setTipoLancamento] = useState('');
     const [origem, setOrigem] = useState<string[]>([]);
     const [responsavel, setResponsavel] = useState<string[]>([]);
     const [origensList, setOrigensList] = useState<QualidadeOpcao[]>([]);
@@ -25,7 +26,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
     const [customEnd, setCustomEnd] = useState('');
 
     useEffect(() => {
-        applyFilter(period, tipo, origem, responsavel);
+        applyFilter(period, tipo, tipoLancamento, origem, responsavel);
         fetchResponsaveis();
     }, []); // Run once on mount
 
@@ -43,7 +44,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
                 const validOrigens = origem.filter(o => data.find((d: QualidadeOpcao) => d.nome === o));
                 if (validOrigens.length !== origem.length) {
                     setOrigem(validOrigens);
-                    applyFilter(period, tipo, validOrigens, responsavel, customStart, customEnd);
+                    applyFilter(period, tipo, tipoLancamento, validOrigens, responsavel, customStart, customEnd);
                 }
             }
         } catch (err) {
@@ -60,7 +61,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
         }
     };
 
-    const applyFilter = (p: Period, tOrigem?: string, oEspecifica?: string | string[], respEspecifico?: string | string[], cStart?: string, cEnd?: string) => {
+    const applyFilter = (p: Period, tOrigem?: string, tLancamento?: string, oEspecifica?: string | string[], respEspecifico?: string | string[], cStart?: string, cEnd?: string) => {
         const now = new Date();
         let start = '';
         let end = '';
@@ -92,7 +93,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
         }
 
         if (p !== 'custom' || (start && end)) {
-            onChange(p, start, end, tOrigem, oEspecifica, respEspecifico);
+            onChange(p, start, end, tOrigem, tLancamento, oEspecifica, respEspecifico);
         }
     };
 
@@ -100,7 +101,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
         const p = e.target.value as Period;
         setPeriod(p);
         if (p !== 'custom') {
-            applyFilter(p, tipo, origem, responsavel);
+            applyFilter(p, tipo, tipoLancamento, origem, responsavel);
         }
     };
 
@@ -108,19 +109,25 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
         const tVal = e.target.value;
         setTipo(tVal);
         // Origem filtering is handled by the useEffect and fetchOrigens
-        applyFilter(period, tVal, origem, responsavel, customStart, customEnd);
+        applyFilter(period, tVal, tipoLancamento, origem, responsavel, customStart, customEnd);
+    };
+
+    const handleTipoLancamentoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const tVal = e.target.value;
+        setTipoLancamento(tVal);
+        applyFilter(period, tipo, tVal, origem, responsavel, customStart, customEnd);
     };
 
     const handleOrigemChange = (val: (string | number)[]) => {
         const newOrigem = val as string[];
         setOrigem(newOrigem);
-        applyFilter(period, tipo, newOrigem, responsavel, customStart, customEnd);
+        applyFilter(period, tipo, tipoLancamento, newOrigem, responsavel, customStart, customEnd);
     };
 
     const handleResponsavelChange = (val: (string | number)[]) => {
         const newResponsavel = val as string[];
         setResponsavel(newResponsavel);
-        applyFilter(period, tipo, origem, newResponsavel, customStart, customEnd);
+        applyFilter(period, tipo, tipoLancamento, origem, newResponsavel, customStart, customEnd);
     };
 
     return (
@@ -146,6 +153,15 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
                     </select>
                 </div>
             )}
+
+            <div className={styles.filterGroup}>
+                <label>{t('nav.tipoLancamento', 'Tipo de Dados')}:</label>
+                <select value={tipoLancamento} onChange={handleTipoLancamentoChange} className={styles.select}>
+                    <option value="">{t('nav.todos', 'Todos')}</option>
+                    <option value="REFUGO">{t('nav.refugo', 'Refugo')}</option>
+                    <option value="QUARENTENA">{t('nav.quarentena', 'Quarentena')}</option>
+                </select>
+            </div>
 
             <div className={styles.filterGroup}>
                 <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
@@ -178,7 +194,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
                         value={customStart}
                         onChange={(e) => {
                             setCustomStart(e.target.value);
-                            if (e.target.value && customEnd) applyFilter('custom', tipo, origem, responsavel, e.target.value, customEnd);
+                            if (e.target.value && customEnd) applyFilter('custom', tipo, tipoLancamento, origem, responsavel, e.target.value, customEnd);
                         }}
                         className={styles.input}
                     />
@@ -188,7 +204,7 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
                         value={customEnd}
                         onChange={(e) => {
                             setCustomEnd(e.target.value);
-                            if (customStart && e.target.value) applyFilter('custom', tipo, origem, responsavel, customStart, e.target.value);
+                            if (customStart && e.target.value) applyFilter('custom', tipo, tipoLancamento, origem, responsavel, customStart, e.target.value);
                         }}
                         className={styles.input}
                     />

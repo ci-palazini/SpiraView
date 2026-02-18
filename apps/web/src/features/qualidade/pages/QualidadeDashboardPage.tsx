@@ -51,23 +51,26 @@ export default function QualidadeDashboardPage() {
         responsavel?: string | string[];
         origem?: string | string[];
         tipo?: string;
+        tipoLancamento?: string;
     }>({});
 
     // Current filter state for drill-down context
     const [currentFilter, setCurrentFilter] = useState<{
         tipo?: string;
+        tipoLancamento?: string;
         origem?: string | string[];
         responsavel?: string | string[];
     }>({});
 
     // Initialize with correct dates for "Current Month" to avoid loading "All Time" data first
-    const [filter, setFilter] = useState<{ period: Period, start?: string, end?: string, tipo?: string, origem?: string | string[], responsavel?: string | string[] }>(() => {
+    const [filter, setFilter] = useState<{ period: Period, start?: string, end?: string, tipo?: string, tipoLancamento?: string, origem?: string | string[], responsavel?: string | string[] }>(() => {
         const now = new Date();
         return {
             period: 'current_month',
             start: format(startOfMonth(now), 'yyyy-MM-dd'),
             end: format(endOfMonth(now), 'yyyy-MM-dd'),
             tipo: '',
+            tipoLancamento: '',
             origem: [],
             responsavel: []
         };
@@ -76,10 +79,10 @@ export default function QualidadeDashboardPage() {
     const requestId = useRef(0);
 
     useEffect(() => {
-        loadData(filter.start, filter.end, filter.tipo, filter.origem, filter.responsavel);
+        loadData(filter.start, filter.end, filter.tipo, filter.tipoLancamento, filter.origem, filter.responsavel);
     }, [filter]);
 
-    const loadData = async (start?: string, end?: string, tipo?: string, origem?: string | string[], responsavel?: string | string[]) => {
+    const loadData = async (start?: string, end?: string, tipo?: string, tipoLancamento?: string, origem?: string | string[], responsavel?: string | string[]) => {
         const currentId = ++requestId.current;
         setLoading(true);
         try {
@@ -87,6 +90,7 @@ export default function QualidadeDashboardPage() {
             if (start) params.append('dataInicio', start);
             if (end) params.append('dataFim', end);
             if (tipo) params.append('tipo', tipo);
+            if (tipoLancamento) params.append('tipoLancamento', tipoLancamento);
             if (origem) {
                 if (Array.isArray(origem)) {
                     origem.forEach(o => params.append('origem', o));
@@ -107,7 +111,7 @@ export default function QualidadeDashboardPage() {
             // Only update if this is still the most recent request
             if (currentId === requestId.current) {
                 setData(res);
-                setCurrentFilter({ tipo, origem, responsavel });
+                setCurrentFilter({ tipo, tipoLancamento, origem, responsavel });
             }
         } catch (err) {
             console.error(err);
@@ -118,12 +122,12 @@ export default function QualidadeDashboardPage() {
         }
     };
 
-    const handleFilterChange = (period: Period, start?: string, end?: string, tipo?: string, origem?: string | string[], responsavel?: string | string[]) => {
+    const handleFilterChange = (period: Period, start?: string, end?: string, tipo?: string, tipoLancamento?: string, origem?: string | string[], responsavel?: string | string[]) => {
         // Avoid double fetch if values are fundamentally the same
-        if (filter.period === period && filter.start === start && filter.end === end && filter.tipo === tipo &&
+        if (filter.period === period && filter.start === start && filter.end === end && filter.tipo === tipo && filter.tipoLancamento === tipoLancamento &&
             JSON.stringify(filter.origem) === JSON.stringify(origem) &&
             JSON.stringify(filter.responsavel) === JSON.stringify(responsavel)) return;
-        setFilter({ period, start, end, tipo, origem, responsavel });
+        setFilter({ period, start, end, tipo, tipoLancamento, origem, responsavel });
     };
 
     // Drill-down handlers
@@ -131,6 +135,7 @@ export default function QualidadeDashboardPage() {
         setDrillDownTitle(`${t('qualityAnalytics.responsible', 'Responsável')}: ${responsavelNome}`);
         setDrillDownFilters({
             tipo: currentFilter.tipo,
+            tipoLancamento: currentFilter.tipoLancamento,
             origem: currentFilter.origem,
             responsavel: responsavelNome
         });
@@ -142,6 +147,7 @@ export default function QualidadeDashboardPage() {
         setDrillDownFilters({
             origem: origemNome,
             tipo: currentFilter.tipo,
+            tipoLancamento: currentFilter.tipoLancamento,
             responsavel: currentFilter.responsavel
         });
         setDrillDownOpen(true);
