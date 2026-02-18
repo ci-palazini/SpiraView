@@ -250,63 +250,80 @@ export default function TvDashboardPage() {
             setMaquinas(maqData as Maquina[]);
             setMetas(metasData);
 
-            // Lógica de Agregação: Se for Domingo e total < 10h, somar ao Sábado e mudar dataRef
+            // Lógica de Agregação em Cascata (Domingo -> Sábado -> Sexta)
             let finalResumos = resumoData;
             let finalRefDate = refDate;
 
-            // Normalizar data para garantir verificação correta do dia da semana
-            const currentDateObj = new Date(refDate.includes('T') ? refDate : refDate + 'T12:00:00');
-            const isSunday = currentDateObj.getDay() === 0;
+            // Helper para agregar dias
+            const aggregateDays = (
+                sourceData: ProducaoResumoDiario[],
+                targetDateISO: string,
+                targetHistory: ProducaoResumoDiario[]
+            ) => {
+                // Buscar dados do dia alvo no histórico
+                const targetDayData = targetHistory.filter(h => {
+                    const hDate = typeof h.dataRef === 'string' && h.dataRef.includes('T')
+                        ? h.dataRef.slice(0, 10)
+                        : h.dataRef;
+                    return hDate === targetDateISO;
+                });
 
-            if (isSunday) {
-                const totalSunday = resumoData.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+                // Criar mapa para fusão
+                const mergedMap = new Map<string, ProducaoResumoDiario>();
 
-                if (totalSunday < 10) {
-                    console.log('TV Dashboard: Domingo com < 10h detectado. Agregando ao Sábado.');
+                // 1. Adicionar dados do alvo (base)
+                targetDayData.forEach(item => {
+                    mergedMap.set(item.maquinaId, { ...item, horasDia: Number(item.horasDia) || 0 });
+                });
 
-                    // Calcular data do Sábado anterior
-                    const satDateObj = new Date(currentDateObj);
-                    satDateObj.setDate(satDateObj.getDate() - 1);
-                    const satISO = toISO(satDateObj); // YYYY-MM-DD
+                // 2. Somar dados da origem
+                sourceData.forEach(item => {
+                    const h = Number(item.horasDia) || 0;
+                    if (mergedMap.has(item.maquinaId)) {
+                        const current = mergedMap.get(item.maquinaId)!;
+                        const currentHoras = Number(current.horasDia) || 0;
+                        current.horasDia = currentHoras + h;
 
-                    // Buscar dados de Sábado no histórico
-                    // historicoData contém ~14 dias. Normalizar para comparação YYYY-MM-DD
-                    const satData = historicoData.filter(h => {
-                        const hDate = typeof h.dataRef === 'string' && h.dataRef.includes('T')
-                            ? h.dataRef.slice(0, 10)
-                            : h.dataRef;
-                        return hDate === satISO;
-                    });
-
-                    // Criar mapa para fusão
-                    const mergedMap = new Map<string, ProducaoResumoDiario>();
-
-                    // 1. Adicionar dados de Sábado (base)
-                    satData.forEach(item => {
-                        mergedMap.set(item.maquinaId, { ...item, horasDia: Number(item.horasDia) || 0 });
-                    });
-
-                    // 2. Somar dados de Domingo
-                    resumoData.forEach(item => {
-                        const h = Number(item.horasDia) || 0;
-                        if (mergedMap.has(item.maquinaId)) {
-                            const current = mergedMap.get(item.maquinaId)!;
-                            // Somar horas (garantindo número)
-                            const currentHoras = Number(current.horasDia) || 0;
-                            current.horasDia = currentHoras + h;
-
-                            // Manter a hora de atualização mais recente
-                            if (item.ultimaAtualizacaoEm && (!current.ultimaAtualizacaoEm || item.ultimaAtualizacaoEm > current.ultimaAtualizacaoEm)) {
-                                current.ultimaAtualizacaoEm = item.ultimaAtualizacaoEm;
-                            }
-                        } else {
-                            // Se máquina só produziu no domingo, adiciona como se fosse sábado
-                            mergedMap.set(item.maquinaId, { ...item, horasDia: h, dataRef: satISO });
+                        if (item.ultimaAtualizacaoEm && (!current.ultimaAtualizacaoEm || item.ultimaAtualizacaoEm > current.ultimaAtualizacaoEm)) {
+                            current.ultimaAtualizacaoEm = item.ultimaAtualizacaoEm;
                         }
-                    });
+                    } else {
+                        mergedMap.set(item.maquinaId, { ...item, horasDia: h, dataRef: targetDateISO });
+                    }
+                });
 
-                    finalResumos = Array.from(mergedMap.values());
+                return Array.from(mergedMap.values());
+            };
+
+            // 1. Verificar Domingo -> Sábado
+            let currentRefObj = new Date(finalRefDate.includes('T') ? finalRefDate : finalRefDate + 'T12:00:00');
+            if (currentRefObj.getDay() === 0) { // Domingo
+                const totalSunday = finalResumos.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+                if (totalSunday < 10) {
+                    console.log('TV Dashboard: Domingo < 10h. Agregando ao Sábado.');
+
+                    const satDateObj = new Date(currentRefObj);
+                    satDateObj.setDate(satDateObj.getDate() - 1);
+                    const satISO = toISO(satDateObj);
+
+                    finalResumos = aggregateDays(finalResumos, satISO, historicoData);
                     finalRefDate = satISO;
+                }
+            }
+
+            // 2. Verificar Sábado -> Sexta (pode ser o Sábado original ou o resultado da fusão do Domingo)
+            currentRefObj = new Date(finalRefDate.includes('T') ? finalRefDate : finalRefDate + 'T12:00:00');
+            if (currentRefObj.getDay() === 6) { // Sábado
+                const totalSaturday = finalResumos.reduce((acc, r) => acc + (Number(r.horasDia) || 0), 0);
+                if (totalSaturday < 10) {
+                    console.log('TV Dashboard: Sábado < 10h. Agregando à Sexta.');
+
+                    const friDateObj = new Date(currentRefObj);
+                    friDateObj.setDate(friDateObj.getDate() - 1);
+                    const friISO = toISO(friDateObj);
+
+                    finalResumos = aggregateDays(finalResumos, friISO, historicoData);
+                    finalRefDate = friISO;
                 }
             }
 
@@ -409,40 +426,64 @@ export default function TvDashboardPage() {
             })
             .sort((a, b) => a.iso.localeCompare(b.iso));
 
-        // Agregar Domingos com < 10h no Sábado anterior
+        // Agregar Domingos com < 10h no Sábado (ou Sexta)
+        // E Sábados com < 10h na Sexta
         const processedDays = [];
+        let pendingFridayIndex = -1;
         let pendingSaturdayIndex = -1;
 
         for (const current of sortedDays) {
+            // Se for Sexta
+            if (current.dayOfWeek === 5) {
+                pendingFridayIndex = processedDays.length;
+                pendingSaturdayIndex = -1; // Resetar
+                processedDays.push({ ...current });
+                continue;
+            }
+
             // Se for Sábado
             if (current.dayOfWeek === 6) {
-                pendingSaturdayIndex = processedDays.length;
-                processedDays.push({ ...current });
+                // Se existe Sexta anterior E horas < 10
+                if (pendingFridayIndex !== -1 && current.produzido < 10) {
+                    // Agregar à Sexta
+                    const fri = processedDays[pendingFridayIndex];
+                    fri.produzido += current.produzido;
+                    fri.pct = fri.meta > 0 ? (fri.produzido / fri.meta) * 100 : 0;
+
+                    // Sábado foi absorvido.
+                    // Para o Domingo, a "referência de sábado" passa a ser a sexta combinada
+                    pendingSaturdayIndex = pendingFridayIndex;
+                } else {
+                    // Sábado normal
+                    pendingSaturdayIndex = processedDays.length;
+                    processedDays.push({ ...current });
+                    pendingFridayIndex = -1; // Sexta já passou, não agrega mais
+                }
                 continue;
             }
 
             // Se for Domingo
             if (current.dayOfWeek === 0) {
-                // Se existe Sábado anterior pendente E horas < 10
+                // Se existe Sábado (ou Sexta combinada) anterior pendente E horas < 10
                 if (pendingSaturdayIndex !== -1 && current.produzido < 10) {
-                    // Agregar ao Sábado
-                    const sat = processedDays[pendingSaturdayIndex];
-                    sat.produzido += current.produzido;
-                    // Recalcular porcentagem do sábado
-                    sat.pct = sat.meta > 0 ? (sat.produzido / sat.meta) * 100 : 0;
+                    // Agregar
+                    const target = processedDays[pendingSaturdayIndex];
+                    target.produzido += current.produzido;
+                    target.pct = target.meta > 0 ? (target.produzido / target.meta) * 100 : 0;
 
-                    // Resetar (domingo é absorvido e não entra na lista)
+                    // Resetar (domingo é absorvido)
                     pendingSaturdayIndex = -1;
                 } else {
-                    // Domingo normal ou sem sábado prévio
+                    // Domingo normal entrou
                     processedDays.push({ ...current });
                     pendingSaturdayIndex = -1;
+                    pendingFridayIndex = -1;
                 }
             } else {
                 // Outros dias
                 processedDays.push({ ...current });
-                // Reseta sábado (dia útil quebra a sequência sáb-dom)
                 pendingSaturdayIndex = -1;
+                pendingFridayIndex = -1;
             }
         }
 
