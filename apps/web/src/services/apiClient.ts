@@ -161,8 +161,8 @@ export async function me(): Promise<Record<string, unknown>> {
 
 // ===== CHAMADOS =====
 export async function criarChamado(data: ChamadoCreate, auth: AuthParams = {}): Promise<Chamado> {
-    if (!data.maquinaId && !data.maquinaTag && !data.maquinaNome) {
-        throw new Error('Informe maquinaId, maquinaTag ou maquinaNome.');
+    if (!data.maquinaId && !data.maquinaNome) {
+        throw new Error('Informe maquinaId ou maquinaNome.');
     }
 
     const body: Record<string, unknown> = {
@@ -171,7 +171,6 @@ export async function criarChamado(data: ChamadoCreate, auth: AuthParams = {}): 
     };
 
     if (data.maquinaId) body.maquinaId = String(data.maquinaId);
-    if (data.maquinaTag) body.maquinaTag = String(data.maquinaTag).trim();
     if (data.maquinaNome) body.maquinaNome = String(data.maquinaNome).trim();
     if (data.manutentorEmail) body.manutentorEmail = String(data.manutentorEmail).trim().toLowerCase();
     if (data.checklistItemKey) body.checklistItemKey = String(data.checklistItemKey).trim();
@@ -319,9 +318,7 @@ export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): 
     return http.post<Maquina>(`/maquinas`, {
         data: {
             nome: data.nome,
-            tag: data.tag ?? data.nome,
             setor: data.setor ?? null,
-            critico: !!data.critico,
             parentId: data.parentId || null,
             isMaquinaMae: !!data.isMaquinaMae,
             exibirFilhosDashboard: !!data.exibirFilhosDashboard,
@@ -742,7 +739,6 @@ export interface ProducaoMeta {
     id: string;
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     dataInicio: string;
     dataFim?: string;
     horasMeta: number;
@@ -754,7 +750,7 @@ export interface ProducaoLancamento {
     id: string;
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
+
     dataRef: string;
     turno?: '1º' | '2º';
     horasRealizadas: number;
@@ -767,7 +763,6 @@ export interface ProducaoLancamento {
 export interface ProducaoRendimento {
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
     maquinaSetor?: string;
     dataRef: string;
     turno?: string;
@@ -782,7 +777,7 @@ export interface ProducaoRendimento {
 export interface ProducaoResumoDiario {
     maquinaId: string;
     maquinaNome: string;
-    maquinaTag?: string;
+
     dataRef: string;
     horasDia: number;
     metaDia: number;
@@ -946,6 +941,7 @@ export interface ProducaoLancamentoDetalhe {
     id: string;
     maquinaId: string;
     maquinaNome: string;
+    maquinaNomeProducao?: string | null;
     maquinaTag: string | null;
     dataRef: string;
     turno: string | null;
@@ -959,6 +955,7 @@ export interface ProducaoUploadDetalhe {
     porMaquina: Array<{
         maquinaId: string;
         maquinaNome: string;
+        maquinaNomeProducao?: string | null;
         maquinaTag: string | null;
         total: number;
         lancamentos: ProducaoLancamentoDetalhe[];

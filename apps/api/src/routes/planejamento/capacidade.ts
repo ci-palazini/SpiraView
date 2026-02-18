@@ -24,7 +24,6 @@ interface ResumoCapacidade {
 interface MaquinaCache {
     id: string;
     nome: string;
-    tag: string;
     aliases: string[];
     capacidade: number;
 }
@@ -112,7 +111,7 @@ function findColumn(row: Record<string, unknown>, ...possibleNames: string[]): u
 
 async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
     const { rows } = await pool.query(`
-        SELECT id, nome, tag, COALESCE(aliases_planejamento, '{}') as aliases, COALESCE(capacidade_horas, 0) as capacidade
+        SELECT id, nome, COALESCE(aliases_planejamento, '{}') as aliases, COALESCE(capacidade_horas, 0) as capacidade
         FROM maquinas
         WHERE escopo_planejamento = TRUE
     `);
@@ -123,7 +122,6 @@ async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
         const maq: MaquinaCache = {
             id: m.id,
             nome: m.nome || '',
-            tag: m.tag || '',
             aliases: m.aliases || [],
             capacidade: parseFloat(m.capacidade) || 0,
         };
@@ -131,10 +129,7 @@ async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
         // Index by lowercase nome
         cache.set(maq.nome.toLowerCase(), maq);
 
-        // Index by lowercase tag (if different)
-        if (maq.tag && maq.tag.toLowerCase() !== maq.nome.toLowerCase()) {
-            cache.set(maq.tag.toLowerCase(), maq);
-        }
+
 
         // Index by each alias
         for (const alias of maq.aliases) {
@@ -601,7 +596,7 @@ capacidadeRouter.get(
         try {
             const { rows } = await pool.query(`
                 SELECT 
-                    id, nome, tag,
+                    id, nome,
                     COALESCE(capacidade_horas, 0) AS "capacidadeHoras",
                     COALESCE(aliases_planejamento, '{}') AS "aliasesPlanejamento",
                     escopo_planejamento AS "escopoPlanejamento"

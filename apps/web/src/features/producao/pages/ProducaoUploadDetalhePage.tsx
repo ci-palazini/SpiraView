@@ -170,7 +170,6 @@ export default function ProducaoUploadDetalhePage() {
                             <thead>
                                 <tr>
                                     <th>{t('producao.upload.details.columns.machine', 'Máquina')}</th>
-                                    <th>{t('producao.upload.details.columns.tag', 'Tag')}</th>
                                     <th style={{ textAlign: 'right' }}>{t('producao.upload.details.columns.hours', 'Horas')}</th>
                                     <th style={{ textAlign: 'center' }}>{t('producao.upload.details.columns.shift', 'Turno(s)')}</th>
                                 </tr>
@@ -178,21 +177,20 @@ export default function ProducaoUploadDetalhePage() {
                             <tbody>
                                 {porMaquina.map((m) => (
                                     <tr key={m.maquinaId}>
-                                        <td style={{ fontWeight: 500 }}>{m.maquinaNome}</td>
-                                        <td style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                                            {m.maquinaTag || '—'}
+                                        <td style={{ fontWeight: 500 }}>
+                                            {m.maquinaNomeProducao || m.maquinaNome}
                                         </td>
+
                                         <td style={{ textAlign: 'right', fontWeight: 500 }}>
                                             {Number(m.total).toFixed(2)}h
                                         </td>
                                         <td style={{ textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                                            {m.lancamentos.map(l => l.turno || 'único').join(', ')}
+                                            {Array.from(new Set(m.lancamentos.map(l => l.turno || 'único'))).join(', ')}
                                         </td>
                                     </tr>
                                 ))}
                                 {/* Linha de total */}
                                 <tr style={{ background: '#f1f5f9', fontWeight: 600 }}>
-                                    <td colSpan={2}>{t('producao.upload.details.totalLabel', 'TOTAL')}</td>
                                     <td style={{ textAlign: 'right' }}>
                                         {Number(resumo.totalHoras).toFixed(2)}h
                                     </td>

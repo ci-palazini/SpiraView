@@ -11,7 +11,6 @@ import { usePermissions } from "../../../../hooks/usePermissions";
 interface Maquina {
     id: string;
     nome?: string;
-    tag?: string;
 }
 
 interface MaquinaSugestao {
@@ -55,8 +54,7 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
     const sugestoesMaquinas = useMemo<MaquinaSugestao[]>(() => {
         const itens = maquinas.map((m) => {
             const nome = m?.nome ?? m?.id ?? "";
-            const tag = m?.tag ? ` (${m.tag})` : "";
-            return { label: `${nome}${tag}`, value: String(m?.id ?? "") };
+            return { label: nome, value: String(m?.id ?? "") };
         });
         return itens.sort((a, b) => a.label.localeCompare(b.label, "pt"));
     }, [maquinas]);
@@ -101,7 +99,6 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
             const payload = {
                 maquinaId: String(selectedMachineId),
                 maquinaNome: maquinaSel?.nome || undefined,
-                maquinaTag: maquinaSel?.tag || undefined,
                 tipo: "corretiva" as const,
                 descricao: descricao.trim(),
                 status: assume ? "Em Andamento" : "Aberto",

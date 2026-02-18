@@ -836,7 +836,7 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
                 l.id,
                 l.maquina_id AS "maquinaId",
                 m.nome AS "maquinaNome",
-                m.tag AS "maquinaTag",
+                m.nome_producao AS "maquinaNomeProducao",
                 l.data_ref AS "dataRef",
                 l.turno,
                 l.horas_realizadas AS "horasRealizadas",
@@ -849,7 +849,7 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
         );
 
         // Agrupar por máquina para exibição
-        const porMaquina = new Map<string, { maquinaId: string; maquinaNome: string; maquinaTag: string | null; total: number; lancamentos: typeof lancamentos }>();
+        const porMaquina = new Map<string, { maquinaId: string; maquinaNome: string; maquinaNomeProducao?: string; total: number; lancamentos: typeof lancamentos }>();
 
         for (const l of lancamentos) {
             const key = l.maquinaId;
@@ -857,7 +857,7 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
                 porMaquina.set(key, {
                     maquinaId: l.maquinaId,
                     maquinaNome: l.maquinaNome || 'Desconhecida',
-                    maquinaTag: l.maquinaTag,
+                    maquinaNomeProducao: l.maquinaNomeProducao || undefined,
                     total: 0,
                     lancamentos: [],
                 });
