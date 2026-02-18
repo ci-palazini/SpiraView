@@ -113,6 +113,64 @@
 /* ---------- Form & list ---------- */
 .formGroup {
   margin-bottom: 24px;
+  position: relative; /* Para posicionar o alerta se necessário */
+}
+
+.shiftAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shiftAlertIcon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.shiftAlertContent {
+  flex: 1;
+}
+
+.shiftAlertTitle {
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+}
+
+.shiftAlertText {
+  color: #b45309;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.shiftAlertClose {
+  background: transparent;
+  border: none;
+  color: #b45309;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.shiftAlertClose:hover {
+  background-color: rgba(180, 83, 9, 0.1);
 }
 
 .formGroup>label {

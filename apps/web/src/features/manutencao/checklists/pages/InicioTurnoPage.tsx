@@ -13,6 +13,8 @@ import {
     ClipboardCheck,
     User,
     Send,
+    Clock,
+    X
 } from 'lucide-react';
 
 // API jÃ¡ existentes
@@ -135,6 +137,9 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     const [salvando, setSalvando] = useState(false);
     const [itensBloqueados, setItensBloqueados] = useState<Set<string>>(new Set());
     const [jaEnviouEsta, setJaEnviouEsta] = useState(false);
+
+    // Novo estado para o alerta
+    const [showAlertTurno, setShowAlertTurno] = useState(true);
 
     // Carrega mÃ¡quinas e jÃ¡ marca "enviada hoje" (do backend)
     useEffect(() => {
@@ -296,6 +301,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     // Sair (limpa sessÃ£o)
     const handleLogout = () => {
         try { localStorage.removeItem('usuario'); } catch { /* ignore */ }
+        window.dispatchEvent(new Event('auth-user-changed'));
         navigate('/login', { replace: true });
     };
 
@@ -344,6 +350,23 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                             <option value="turno2">{t('inicioTurno.shifts.shift2', 'Turno 2')}</option>
                         </select>
                     </div>
+
+                    {showAlertTurno && (
+                        <div className={styles.shiftAlert}>
+                            <div className={styles.shiftAlertIcon}>
+                                <Clock size={20} />
+                            </div>
+                            <div className={styles.shiftAlertContent}>
+                                <p className={styles.shiftAlertTitle}>{t('inicioTurno.alert.checkShiftTitle', 'Confirme seu turno!')}</p>
+                                <p className={styles.shiftAlertText}>
+                                    {t('inicioTurno.alert.checkShiftText', 'O sistema selecionou automaticamente o turno com base no horário. Verifique se está correto antes de prosseguir.')}
+                                </p>
+                            </div>
+                            <button className={styles.shiftAlertClose} onClick={() => setShowAlertTurno(false)}>
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
 
                     <div className={styles.formGroup}>
                         <label>{t('inicioTurno.fields.machinesLabel', 'MÃ¡quinas do seu turno')}</label>
