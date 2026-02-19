@@ -582,8 +582,23 @@ maquinasRouter.delete('/maquinas/:id', requirePermission('maquinas', 'editar'), 
     const r = await pool.query('DELETE FROM public.maquinas WHERE id = $1::uuid', [id]);
     if (r.rowCount === 0) return res.status(404).json({ error: 'Máquina não encontrada.' });
     return res.status(204).end();
-  } catch (e) {
+  } catch (e: any) {
     console.error('DELETE /maquinas/:id', e);
+    if (e?.code === '23503') {
+      const detail = e.detail || '';
+      let msg = 'Não é possível excluir esta máquina pois ela possui registros vinculados.';
+
+      if (detail.includes('checklist_submissoes') || detail.includes('fk_subs_maquina')) msg = 'Esta máquina possui checklists preenchidos.';
+      else if (detail.includes('checklist_pendencias')) msg = 'Esta máquina possui pendências de checklist (tente novamente após aplicar a migração de cascade).';
+      else if (detail.includes('chamados') || detail.includes('fk_chamados_maquina')) msg = 'Esta máquina possui chamados de manutenção.';
+      else if (detail.includes('agendamentos_preventivos')) msg = 'Esta máquina possui agendamentos preventivos.';
+      else if (detail.includes('planejamento_reservas')) msg = 'Esta máquina possui reservas no planejamento.';
+      else if (detail.includes('producao_metas')) msg = 'Esta máquina possui metas de produção definidas.';
+      else if (detail.includes('producao_lancamentos')) msg = 'Esta máquina possui lançamentos de produção.';
+      else if (detail.includes('maquinas_parent_maquina_id_fkey')) msg = 'Esta máquina possui máquinas filhas vinculadas via hierarquia.';
+
+      return res.status(409).json({ error: msg });
+    }
     return res.status(500).json({ error: 'Erro interno ao excluir máquina.' });
   }
 });
