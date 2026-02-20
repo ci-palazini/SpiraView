@@ -27,6 +27,7 @@ import toast from 'react-hot-toast';
 import { http } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
 import { usePermissions } from '../../../hooks/usePermissions';
+import { useUsuario } from '../../../contexts/UserContext';
 import styles from './RetrabalhoAnalisePage.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -76,7 +77,7 @@ function formatHours(h: number): string {
 
 export default function RetrabalhoAnalisePage() {
     const { t, i18n } = useTranslation();
-    const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+    const user = useUsuario();
     const { canView } = usePermissions(user);
     const dateFnsLocale = i18n.language.startsWith('pt') ? pt : enUS;
 

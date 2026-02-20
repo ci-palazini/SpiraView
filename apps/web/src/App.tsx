@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import UserContext from './contexts/UserContext';
 
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
@@ -97,42 +98,44 @@ export default function App() {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <Toaster position="top-right" />
-            <Routes>
-                {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
-                <Route path="/tv" element={
-                    <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
-                        <TvMenuPage />
-                    </Suspense>
-                } />
-                <Route path="/tv/:scope" element={
-                    <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
-                        <TvDashboardPage />
-                    </Suspense>
-                } />
+            <UserContext.Provider value={user}>
+                <Toaster position="top-right" />
+                <Routes>
+                    {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
+                    <Route path="/tv" element={
+                        <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
+                            <TvMenuPage />
+                        </Suspense>
+                    } />
+                    <Route path="/tv/:scope" element={
+                        <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
+                            <TvDashboardPage />
+                        </Suspense>
+                    } />
 
 
-                {!user && <Route path="/*" element={<LoginPage />} />}
+                    {!user && <Route path="/*" element={<LoginPage />} />}
 
-                {user && role === 'operador' && (
-                    <>
-                        {/* Wizard fora do layout */}
-                        <Route path="/inicio-turno" element={<InicioTurnoPage user={user} />} />
-                        {/* App "normal" com sidebar etc. */}
-                        <Route path="/*" element={<MainLayout user={user} />} />
-                    </>
-                )}
+                    {user && role === 'operador' && (
+                        <>
+                            {/* Wizard fora do layout */}
+                            <Route path="/inicio-turno" element={<InicioTurnoPage user={user} />} />
+                            {/* App "normal" com sidebar etc. */}
+                            <Route path="/*" element={<MainLayout user={user} />} />
+                        </>
+                    )}
 
-                {user && role !== 'operador' && (
-                    <Route path="/*" element={<MainLayout user={user} />}>
-                        {/* Nested routes inside MainLayout if needed, but current structure seems to have MainLayout handling routing internally or via children? 
+                    {user && role !== 'operador' && (
+                        <Route path="/*" element={<MainLayout user={user} />}>
+                            {/* Nested routes inside MainLayout if needed, but current structure seems to have MainLayout handling routing internally or via children? 
                             Wait, MainLayout in this app seems to NOT have <Outlet /> but rather use its own internal routing or the App links to it.
                             Actually, looking at MainLayout.tsx, it has `Routes` inside? NO.
                             Let me check MainLayout.tsx content again.
                         */}
-                    </Route>
-                )}
-            </Routes>
+                        </Route>
+                    )}
+                </Routes>
+            </UserContext.Provider>
         </DndProvider>
     );
 }

@@ -16,6 +16,7 @@ import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '@mui/material/Skeleton';
 import usePermissions from '../../../../hooks/usePermissions';
+import { useUsuario } from '../../../../contexts/UserContext';
 
 // ---------- Types ----------
 interface User {
@@ -42,21 +43,12 @@ interface Chamado {
     maquina?: string;
 }
 
-// ---------- Helpers ----------
-function getStoredUser(): User | null {
-    try {
-        return JSON.parse(localStorage.getItem('usuario') || 'null');
-    } catch {
-        return null;
-    }
-}
-
 // ---------- Component ----------
 const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
     const { t } = useTranslation();
-
-    // se vier pelo MainLayout, usa a prop; senÃ£o, cai no localStorage (compatibilidade)
-    const user = userProp || getStoredUser();
+    const ctxUser = useUsuario();
+    // se vier pelo MainLayout, usa a prop; senão, cai no contexto
+    const user = userProp || ctxUser;
     const perm = usePermissions(user);
     const canEditMaquinas = perm.canEdit('maquinas');
 

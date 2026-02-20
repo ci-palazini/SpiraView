@@ -25,6 +25,7 @@ import {
     QualidadeOpcao
 } from '../../../services/apiClient';
 import { usePermissions } from '../../../hooks/usePermissions';
+import { useUsuario } from '../../../contexts/UserContext';
 import styles from './QualidadeComparativoPage.module.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -33,7 +34,7 @@ type CompareMode = 'periods' | 'origins' | 'responsibles';
 
 export default function QualidadeComparativoPage() {
     const { t } = useTranslation();
-    const user = JSON.parse(localStorage.getItem('usuario') || 'null');
+    const user = useUsuario();
     const { canView } = usePermissions(user);
 
     const [loading, setLoading] = useState(false);
