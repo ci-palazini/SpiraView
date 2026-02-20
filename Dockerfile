@@ -30,7 +30,7 @@ COPY packages/shared/package.json ./packages/shared/package.json
 
 # Install ALL dependencies (including dev for build)
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 # Copy application code
 COPY . .
@@ -40,9 +40,6 @@ RUN pnpm --filter @spiraview/shared build
 
 # Build api
 RUN pnpm --filter @spiraview/api build
-
-# Remove devDependencies to reduce final image size
-RUN pnpm prune --prod
 
 # Final stage for app image
 FROM base
