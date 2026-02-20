@@ -205,8 +205,7 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
         c.descricao,
         c.problema_reportado,
         c.causa,
-        COALESCE(c.solucao, c.servico_realizado) AS solucao,
-        COALESCE(c.servico_realizado, c.solucao) AS servico_realizado,
+        c.solucao,
 
         -- Datas
         to_char(c.criado_em,    'YYYY-MM-DD HH24:MI') AS criado_em,
@@ -710,7 +709,7 @@ chamadosRouter.post(
                  checklist            = COALESCE($3::jsonb, checklist),
                  causa                = COALESCE($4::text, causa),
                  solucao              = COALESCE($5::text, solucao),
-                 servico_realizado    = COALESCE($5::text, servico_realizado),
+
                  concluido_por_id     = $6,
                  concluido_por_email  = $7,
                  concluido_por_nome   = $8,
