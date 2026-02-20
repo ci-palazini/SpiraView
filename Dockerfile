@@ -16,7 +16,9 @@ RUN corepack enable
 
 FROM base AS build
 
-RUN apt-get update -qq && \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-lib,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
 # Copy workspace configuration
@@ -27,7 +29,8 @@ COPY apps/api/package.json ./apps/api/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 
 # Install ALL dependencies (including dev for build)
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # Copy application code
 COPY . .
