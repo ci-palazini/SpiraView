@@ -30,9 +30,9 @@ if (env.nodeEnv !== 'production') {
 const ALLOW = [...env.cors.allowedOrigins]; // 👈 clona para array mutável
 
 const corsOptions: CorsOptions = {
-  // Sem CORS_ORIGINS configurado, libera todas as origens (sem credentials)
-  origin: ALLOW.length ? (ALLOW as (string | RegExp)[]) : '*',
-  credentials: ALLOW.length ? true : false,
+  // Em produção sem CORS_ORIGINS configurado, bloqueia tudo (origin: false)
+  origin: ALLOW.length ? (ALLOW as (string | RegExp)[]) : false,
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
