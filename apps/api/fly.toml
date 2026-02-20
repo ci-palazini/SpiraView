@@ -1,4 +1,4 @@
-app = "tpm-fullstack"
+app = "spiraview"
 primary_region = "gru"
 
 [build]
