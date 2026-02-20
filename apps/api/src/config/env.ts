@@ -34,7 +34,7 @@ const rawEnvSchema = z
 
 type RawEnv = z.infer<typeof rawEnvSchema>;
 
-export type Env = {
+type Env = {
   nodeEnv: RawEnv["NODE_ENV"];
   server: { port: number };
   cors: { allowedOrigins: readonly string[] };
@@ -155,7 +155,7 @@ function freezeEnv(env: Env): DeepReadonly<Env> {
   });
 }
 
-export function loadEnv(overrides?: Partial<NodeJS.ProcessEnv>): ReadonlyEnv {
+function loadEnv(overrides?: Partial<NodeJS.ProcessEnv>): ReadonlyEnv {
   if (!overrides && cachedEnv) {
     return cachedEnv;
   }

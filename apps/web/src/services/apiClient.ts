@@ -231,14 +231,6 @@ export async function removerAtribuicao(id: string, auth: AuthParams): Promise<u
     return http.delete(`/chamados/${id}/atribuir`, { auth });
 }
 
-export async function assumirChamado(id: string, auth: AuthParams = {}): Promise<unknown> {
-    return http.post(`/chamados/${id}/assumir`, { data: {}, auth });
-}
-
-export async function atualizarStatusChamado(id: string, status: string, auth: AuthParams = {}): Promise<unknown> {
-    return http.post(`/chamados/${id}/status`, { data: { status }, auth });
-}
-
 export async function atenderChamado(id: string, auth: AuthParams = {}): Promise<unknown> {
     return http.post(`/chamados/${id}/atender`, { data: {}, auth });
 }
@@ -308,10 +300,6 @@ export async function listarMaquinas(params: Record<string, unknown> = {}): Prom
 
 export async function getMaquina(id: string): Promise<Maquina> {
     return http.get<Maquina>(`/maquinas/${id}`);
-}
-
-export async function obterMaquina(id: string): Promise<Maquina> {
-    return http.get<Maquina>(`/maquinas/${encodeURIComponent(id)}`);
 }
 
 export async function criarMaquina(data: MaquinaCreate, auth: AuthParams = {}): Promise<Maquina> {
@@ -390,15 +378,6 @@ export async function removeChecklistItem(maquinaId: string, item: string, auth:
     return http.post(`/maquinas/${maquinaId}/checklist-remove`, { data: { item }, auth });
 }
 
-export async function getChecklistDiario(maquinaId: string): Promise<ChecklistDiarioItem[]> {
-    const data = await http.get<{ items?: ChecklistDiarioItem[] } | ChecklistDiarioItem[]>(
-        `/maquinas/${maquinaId}/checklist-diario`
-    );
-    return Array.isArray((data as { items?: ChecklistDiarioItem[] })?.items)
-        ? (data as { items: ChecklistDiarioItem[] }).items
-        : (Array.isArray(data) ? data as ChecklistDiarioItem[] : []);
-}
-
 export async function reorderChecklistItems(maquinaId: string, items: string[], auth: AuthParams): Promise<unknown> {
     return http.post(`/maquinas/${maquinaId}/checklist-reorder`, { data: { items }, auth });
 }
@@ -414,11 +393,7 @@ export async function listarSubmissoesDiarias(params: { operadorEmail?: string; 
         : (Array.isArray(data) ? data as Submissao[] : []);
 }
 
-export async function registrarSubmissaoDiaria(data: SubmissaoDiariaCreate): Promise<unknown> {
-    return http.post('/checklists/daily/submissoes', { data });
-}
-
-export interface ChecklistOverviewRangeItem {
+interface ChecklistOverviewRangeItem {
     id: string; // machine id
     nome: string;
     hasChecklist: boolean;
@@ -434,7 +409,7 @@ export async function getChecklistOverviewRange(start: string, end: string): Pro
     return r.items || [];
 }
 
-export interface ChecklistOverviewItem {
+interface ChecklistOverviewItem {
     id: string; // machine id
     nome: string;
     hasChecklist: boolean;
@@ -620,32 +595,7 @@ export async function listarParetoCausas(params: { from?: string; to?: string; m
     return http.get<ParetoResponse>('/analytics/pareto-causas', { params, auth });
 }
 
-// ===== AI =====
-export async function aiChatSql(opts: { question: string; noCache?: boolean }, auth: AuthParams = {}): Promise<AiChatSqlResponse> {
-    if (!opts.question || !String(opts.question).trim()) {
-        throw new Error('question é obrigatório');
-    }
-    return http.post<AiChatSqlResponse>('/ai/chat/sql', {
-        data: { question: opts.question, noCache: !!opts.noCache },
-        auth,
-    });
-}
-
-export async function aiTextSearch(opts: { q: string; limit?: number }, auth: AuthParams = {}): Promise<AiTextSearchResponse> {
-    if (!opts.q || !String(opts.q).trim()) {
-        throw new Error('q é obrigatório');
-    }
-    return http.post<AiTextSearchResponse>('/ai/chat/text', {
-        data: { q: opts.q, limit: opts.limit ?? 20 },
-        auth,
-    });
-}
-
 // ===== CHECKLIST PREVENTIVA =====
-export async function enviarChecklistPreventiva(chamadoId: string, data: { respostas: Record<string, unknown> }): Promise<unknown> {
-    return http.post(`/chamados/${chamadoId}/checklist/submit`, { data });
-}
-
 export async function atualizarChecklistChamado(id: string, checklist: unknown, auth: AuthParams = {}): Promise<unknown> {
     return apiFetch(`/chamados/${id}/checklist`, {
         method: 'PATCH',
@@ -746,34 +696,6 @@ export interface ProducaoMeta {
     atualizadoEm: string;
 }
 
-export interface ProducaoLancamento {
-    id: string;
-    maquinaId: string;
-    maquinaNome: string;
-
-    dataRef: string;
-    turno?: '1º' | '2º';
-    horasRealizadas: number;
-    observacao?: string;
-    lancadoPorNome?: string;
-    uploadId?: string;
-    criadoEm: string;
-}
-
-export interface ProducaoRendimento {
-    maquinaId: string;
-    maquinaNome: string;
-    maquinaSetor?: string;
-    dataRef: string;
-    turno?: string;
-    horasRealizadas: number;
-    horasMeta: number;
-    percentualAtingido?: number;
-    statusMeta: 'sem_meta' | 'atingido' | 'parcial' | 'abaixo';
-    lancadoPorNome?: string;
-    criadoEm: string;
-}
-
 export interface ProducaoResumoDiario {
     maquinaId: string;
     maquinaNome: string;
@@ -809,34 +731,9 @@ export async function criarMetaProducao(payload: { maquinaId: string; dataInicio
     return http.post<ProducaoMeta>('/producao/metas', { data: payload, auth });
 }
 
-export async function atualizarMetaProducao(id: string, payload: { dataInicio: string; dataFim?: string; horasMeta: number }, auth: AuthParams): Promise<{ ok: boolean }> {
-    return http.put<{ ok: boolean }>(`/producao/metas/${id}`, { data: payload, auth });
-}
-
-export async function excluirMetaProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
-    return http.delete<{ ok: boolean }>(`/producao/metas/${id}`, { auth });
-}
-
 // Lançamentos
-export async function listarLancamentosProducao(params: { maquinaId?: string; dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoLancamento[]> {
-    const data = await http.get<{ items?: ProducaoLancamento[] }>('/producao/lancamentos', { params });
-    return data.items || [];
-}
-
-export async function criarLancamentoProducao(payload: { maquinaId: string; dataRef: string; turno?: string; horasRealizadas: number; observacao?: string }, auth: AuthParams): Promise<ProducaoLancamento> {
-    return http.post<ProducaoLancamento>('/producao/lancamentos', { data: payload, auth });
-}
-
-export async function excluirLancamentoProducao(id: string, auth: AuthParams): Promise<{ ok: boolean }> {
-    return http.delete<{ ok: boolean }>(`/producao/lancamentos/${id}`, { auth });
-}
 
 // Rendimento
-export async function listarRendimentoProducao(params: { maquinaId?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoRendimento[]> {
-    const data = await http.get<{ items?: ProducaoRendimento[] }>('/producao/rendimento', { params });
-    return data.items || [];
-}
-
 export async function listarResumoDiarioProducao(params: { dataRef?: string; dataInicio?: string; dataFim?: string } = {}): Promise<ProducaoResumoDiario[]> {
     const data = await http.get<{ items?: ProducaoResumoDiario[] }>('/producao/resumo-diario', { params });
     return data.items || [];
@@ -992,13 +889,13 @@ export interface PaginaPermissao {
     grupo: string;
 }
 
-export interface RoleCreate {
+interface RoleCreate {
     nome: string;
     descricao?: string;
     permissoes: Record<string, NivelPermissao>;
 }
 
-export interface RoleUpdate {
+interface RoleUpdate {
     nome: string;
     descricao?: string;
     permissoes: Record<string, NivelPermissao>;
@@ -1020,11 +917,6 @@ export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
 export async function listarRolesOptions(auth: AuthParams = {}): Promise<{ id: string; nome: string }[]> {
     const data = await http.get<{ items?: { id: string; nome: string }[] }>('/roles/options', { auth });
     return data.items || [];
-}
-
-// Obter role por ID
-export async function buscarRole(id: string, auth: AuthParams = {}): Promise<Role> {
-    return http.get<Role>(`/roles/${id}`, { auth });
 }
 
 // Criar novo role
@@ -1074,14 +966,6 @@ export interface CapacidadeUpload {
     ativo: boolean;
     uploadPorEmail: string | null;
     criadoEm: string;
-}
-
-export interface CentroTrabalho {
-    id: string;
-    centroTrabalho: string;
-    capacidadeHoras: number;
-    criadoEm?: string;
-    atualizadoEm?: string;
 }
 
 // Upload de reserva de capacidade
@@ -1146,18 +1030,6 @@ export async function atualizarMaquinaPlanejamento(
 export async function listarRefugos(params: { page?: number; limit?: number; dataInicio?: string; dataFim?: string; origem?: string | string[]; responsavel?: string | string[]; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: any[]; meta: any }> {
     const res = await http.get<{ items: any[]; meta: any }>(`/qualidade/refugos`, { params, auth });
     return res;
-}
-
-export async function criarRefugo(data: any, auth: AuthParams = {}): Promise<{ id: number; ok: boolean }> {
-    return http.post<{ id: number; ok: boolean }>('/qualidade/refugos', { data, auth });
-}
-
-export async function editarRefugo(id: number, data: any, auth: AuthParams = {}): Promise<{ ok: boolean }> {
-    return http.put<{ ok: boolean }>(`/qualidade/refugos/${id}`, { data, auth });
-}
-
-export async function excluirRefugo(id: number, auth: AuthParams = {}): Promise<{ ok: boolean }> {
-    return http.delete<{ ok: boolean }>(`/qualidade/refugos/${id}`, { auth });
 }
 
 // ===== QUALIDADE / CONFIGURAÇÕES =====
@@ -1268,42 +1140,6 @@ export async function getSolicitanteUsage(id: number): Promise<{ count: number }
 
 export async function deletarSolicitante(id: number, transferToId?: number, auth: AuthParams = {}): Promise<unknown> {
     return http.delete(`/qualidade/solicitantes/${id}`, { data: { transferToId }, auth });
-}
-
-// ===== QUALITY ANALYTICS =====
-export interface QualityAnalyticSummary {
-    totalCost: number;
-    costLastMonth: number;
-    costLastYear: number;
-    topResponsible: { name: string; cost: number }[];
-    topOrigins: { name: string; cost: number }[];
-}
-
-export interface QualityAnalyticTrend {
-    period: string;
-    cost: number;
-}
-
-export interface QualityAnalyticDetail {
-    name: string;
-    totalCost: number;
-    count: number;
-    lastOccurrence: string;
-}
-
-export async function getQualityAnalyticsSummary(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<QualityAnalyticSummary> {
-    const res = await http.get<QualityAnalyticSummary>(`/qualidade/analytics/summary`, { params, auth });
-    return res;
-}
-
-export async function getQualityAnalyticsTrends(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ trends: QualityAnalyticTrend[] }> {
-    const res = await http.get<{ trends: QualityAnalyticTrend[] }>(`/qualidade/analytics/trends`, { params, auth });
-    return res;
-}
-
-export async function getQualityAnalyticsDetails(params: { dataInicio?: string; dataFim?: string; origem?: string; responsavel?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: QualityAnalyticDetail[]; originItems: QualityAnalyticDetail[] }> {
-    const res = await http.get<{ items: QualityAnalyticDetail[]; originItems: QualityAnalyticDetail[] }>(`/qualidade/analytics/details`, { params, auth });
-    return res;
 }
 
 export async function listarResponsaveis(params: { dataInicio?: string; dataFim?: string; origem?: string; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<string[]> {

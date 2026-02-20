@@ -10,14 +10,7 @@
     "format": "pnpm -r format",
     "update-schema": "node apps/api/scripts/update-schema.js"
   },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "pg": "^8.16.3",
-    "zod": "^4.1.12"
-  },
   "devDependencies": {
-    "@types/moment": "^2.11.29",
-    "@types/node": "^24.5.2",
-    "@types/react-big-calendar": "^1.16.3"
+    "@types/node": "^24.5.2"
   }
 }

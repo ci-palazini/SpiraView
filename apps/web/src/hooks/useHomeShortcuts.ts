@@ -33,7 +33,7 @@ export interface ShortcutDefinition {
 // Lista completa de todos os atalhos disponíveis
 // IMPORTANTE: A ordem dos itens aqui deve seguir a mesma ordem da sidebar (MainLayout.tsx)
 // EXCEÇÃO: 'usuarios' e 'perfil' devem SEMPRE ficar no final desta lista
-export const ALL_SHORTCUTS: ShortcutDefinition[] = [
+const ALL_SHORTCUTS: ShortcutDefinition[] = [
     // ============================================================
     // MANUTENÇÃO (seguindo ordem da sidebar)
     // ============================================================
@@ -280,7 +280,7 @@ interface PermissionsHook {
     canViewAny: (keys: string[]) => boolean;
 }
 
-export function useHomeShortcuts(perm: PermissionsHook, isPt: boolean) {
+function useHomeShortcuts(perm: PermissionsHook, isPt: boolean) {
     // Atalhos disponíveis (filtrados por permissão e idioma)
     const availableShortcuts = useMemo(() => {
         return ALL_SHORTCUTS.filter((shortcut) => {

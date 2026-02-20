@@ -2,18 +2,18 @@ import { jsPDF } from 'jspdf';
 import { LOGO_SPIRAX_BASE64 } from './logoBase64';
 
 // ---------- Types ----------
-export interface ReportChecklistItem {
+interface ReportChecklistItem {
     item: string;
     resposta: 'sim' | 'nao';
 }
 
-export interface ReportObservacao {
+interface ReportObservacao {
     autor: string;
     data: string | null;
     texto: string;
 }
 
-export interface PreventiveReportData {
+interface PreventiveReportData {
     maquina: string;
     descricao: string;
     manutentorNome: string;

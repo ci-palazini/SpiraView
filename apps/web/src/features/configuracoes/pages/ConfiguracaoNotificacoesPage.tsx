@@ -21,7 +21,7 @@ const EVENTOS = [
     { value: 'checklist_pendente_turno2', label: 'Checklist Pendente - 2º Turno', description: 'Recebe email com lista de máquinas sem checklist no 2º turno (dia anterior).' },
 ];
 
-export interface ConfiguracaoNotificacoesPageProps {
+interface ConfiguracaoNotificacoesPageProps {
     user: { email?: string; role?: string };
 }
 

@@ -47,7 +47,7 @@ const BADGE_BY_SK: Record<string, string> = {
     closed: 'concluido'
 };
 
-export interface MeusChamadosProps {
+interface MeusChamadosProps {
     user: User;
 }
 

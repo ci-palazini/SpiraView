@@ -26,7 +26,7 @@ import toast from 'react-hot-toast';
 
 import { http } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
-import { usePermissions } from '../../../hooks/usePermissions';
+import usePermissions from '../../../hooks/usePermissions';
 import { useUsuario } from '../../../contexts/UserContext';
 import styles from './RetrabalhoAnalisePage.module.css';
 

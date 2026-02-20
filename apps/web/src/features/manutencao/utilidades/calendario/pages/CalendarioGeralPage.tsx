@@ -26,7 +26,7 @@ interface User {
     email?: string;
 }
 
-export interface CalendarioGeralPageProps {
+interface CalendarioGeralPageProps {
     user: User;
 }
 

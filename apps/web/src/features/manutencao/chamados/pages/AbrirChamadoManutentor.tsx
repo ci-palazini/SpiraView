@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { getMaquinas, criarChamado } from "../../../../services/apiClient";
 import styles from "./AbrirChamadoManutentor.module.css";
 import type { User } from "../../../../App";
-import { usePermissions } from "../../../../hooks/usePermissions";
+import usePermissions from "../../../../hooks/usePermissions";
 
 interface Maquina {
     id: string;
@@ -18,7 +18,7 @@ interface MaquinaSugestao {
     value: string;
 }
 
-export interface AbrirChamadoManutentorProps {
+interface AbrirChamadoManutentorProps {
     user: User;
 }
 

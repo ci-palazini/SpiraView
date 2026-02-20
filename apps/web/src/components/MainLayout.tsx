@@ -76,7 +76,7 @@ import { useTranslation } from 'react-i18next';
 import type { User } from '../App';
 
 import { listarChamados, listarAgendamentos, connectSSE } from '../services/apiClient';
-import { usePermissions } from '../hooks/usePermissions';
+import usePermissions from '../hooks/usePermissions';
 
 type UserRole = 'operador' | 'manutentor' | 'gestor' | 'gestor industrial' | '';
 

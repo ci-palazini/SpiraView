@@ -24,7 +24,7 @@ interface User {
     email?: string;
 }
 
-export interface RolesPageProps {
+interface RolesPageProps {
     user: User;
 }
 

@@ -41,6 +41,9 @@ RUN pnpm --filter @spiraview/shared build
 # Build api
 RUN pnpm --filter @spiraview/api build
 
+# Remove devDependencies to reduce final image size
+RUN pnpm prune --prod
+
 # Final stage for app image
 FROM base
 

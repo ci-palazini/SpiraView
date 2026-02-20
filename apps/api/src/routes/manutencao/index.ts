@@ -18,12 +18,3 @@ manutencaoRouter.use(causasRouter);
 manutencaoRouter.use(chamadosRouter);
 manutencaoRouter.use(checklistsRouter);
 manutencaoRouter.use(pecasRouter);
-
-// Re-export individual routers for direct access if needed
-export { agendamentosRouter } from './agendamentos';
-export { analyticsRouter } from './analytics';
-
-export { causasRouter } from './causas';
-export { chamadosRouter } from './chamados';
-export { checklistsRouter } from './checklists';
-export { pecasRouter } from './pecas';

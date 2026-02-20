@@ -21,11 +21,3 @@ coreRouter.use(healthRouter);
 coreRouter.use(eventsRouter);
 coreRouter.use('/email', emailRouter);
 coreRouter.use('/notificacoes', notificacoesConfigRouter);
-
-// Re-export individual routers for direct access if needed
-export { authRouter } from './auth';
-export { operatorAuthRouter } from './operatorAuth';
-export { usuariosRouter } from './usuarios';
-export { default as rolesRouter } from './roles';
-export { healthRouter } from './health';
-export { eventsRouter } from './events';

@@ -28,7 +28,7 @@ interface User {
     email?: string;
 }
 
-export interface CausasRaizPageProps {
+interface CausasRaizPageProps {
     user: User;
 }
 

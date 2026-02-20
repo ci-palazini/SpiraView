@@ -24,7 +24,7 @@ interface User {
     email?: string;
 }
 
-export interface MaquinasPageProps {
+interface MaquinasPageProps {
     user?: User;
 }
 

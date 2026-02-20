@@ -24,7 +24,7 @@ import {
     QualityComparisonResponse,
     QualidadeOpcao
 } from '../../../services/apiClient';
-import { usePermissions } from '../../../hooks/usePermissions';
+import usePermissions from '../../../hooks/usePermissions';
 import { useUsuario } from '../../../contexts/UserContext';
 import styles from './QualidadeComparativoPage.module.css';
 

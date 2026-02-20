@@ -31,7 +31,7 @@ interface User {
     nome?: string;
 }
 
-export interface InicioTurnoPageProps {
+interface InicioTurnoPageProps {
     user: User;
 }
 

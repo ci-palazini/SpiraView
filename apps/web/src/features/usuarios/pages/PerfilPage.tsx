@@ -13,7 +13,7 @@ interface UserData {
     funcao?: string;
 }
 
-export interface PerfilPageProps {
+interface PerfilPageProps {
     user: UserData;
 }
 

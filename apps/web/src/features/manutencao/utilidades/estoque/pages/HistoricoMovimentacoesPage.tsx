@@ -16,7 +16,7 @@ interface User {
     email?: string;
 }
 
-export interface HistoricoMovimentacoesPageProps {
+interface HistoricoMovimentacoesPageProps {
     user: User;
 }
 

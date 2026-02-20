@@ -23,7 +23,7 @@ interface User {
     email?: string;
 }
 
-export interface EstoquePageProps {
+interface EstoquePageProps {
     user: User;
 }
 

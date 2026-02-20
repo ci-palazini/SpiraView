@@ -23,7 +23,7 @@ interface User {
     email?: string;
 }
 
-export interface GerirUtilizadoresPageProps {
+interface GerirUtilizadoresPageProps {
     user: User;
 }
 

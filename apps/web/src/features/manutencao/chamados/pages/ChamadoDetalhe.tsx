@@ -27,7 +27,7 @@ interface User {
     role?: string;
 }
 
-export interface ChamadoDetalheProps {
+interface ChamadoDetalheProps {
     user: User;
 }
 

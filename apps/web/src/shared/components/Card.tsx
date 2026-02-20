@@ -66,6 +66,6 @@ export interface CardFooterProps {
     children: ReactNode;
 }
 
-export function CardFooter({ children }: CardFooterProps) {
+function CardFooter({ children }: CardFooterProps) {
     return <div className={styles.footer}>{children}</div>;
 }

@@ -24,7 +24,7 @@ interface User {
     email?: string;
 }
 
-export interface ChecklistOverviewPageProps {
+interface ChecklistOverviewPageProps {
     user: User;
 }
 

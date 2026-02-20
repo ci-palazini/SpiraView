@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import type { NivelPermissao } from '../services/apiClient';
 
-export interface UserWithPermissions {
+interface UserWithPermissions {
     role?: string;
     roleNome?: string;
     email?: string;
@@ -15,7 +15,7 @@ export interface UserWithPermissions {
  * @param user - Objeto do usuário com permissões
  * @returns Funções utilitárias para verificar permissões
  */
-export function usePermissions(user: UserWithPermissions | null | undefined) {
+function usePermissions(user: UserWithPermissions | null | undefined) {
     return useMemo(() => {
         const permissions = user?.permissoes || {};
         const role = (user?.role || '').toLowerCase();

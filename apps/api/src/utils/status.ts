@@ -6,7 +6,7 @@ export const CHAMADO_STATUS = {
   CANCELADO: 'Cancelado',
 } as const;
 
-export type ChamadoStatus = typeof CHAMADO_STATUS[keyof typeof CHAMADO_STATUS];
+type ChamadoStatus = typeof CHAMADO_STATUS[keyof typeof CHAMADO_STATUS];
 
 export const AGENDAMENTO_STATUS = {
   AGENDADO: 'agendado',
@@ -15,7 +15,7 @@ export const AGENDAMENTO_STATUS = {
   CANCELADO: 'cancelado',
 } as const;
 
-export type AgendamentoStatus = typeof AGENDAMENTO_STATUS[keyof typeof AGENDAMENTO_STATUS];
+type AgendamentoStatus = typeof AGENDAMENTO_STATUS[keyof typeof AGENDAMENTO_STATUS];
 
 function normalizeBase(value?: string | null): string {
   return String(value ?? '')
@@ -62,7 +62,7 @@ export function normalizeAgendamentoStatus(value?: string | null): AgendamentoSt
 /* -------- Helpers úteis (opcional) -------- */
 
 /** Map chave i18n para badge/classes “aberto|em_andamento|concluido|cancelado”. */
-export const CHAMADO_STATUS_KEY: Record<ChamadoStatus, 'aberto' | 'em_andamento' | 'concluido' | 'cancelado'> = {
+const CHAMADO_STATUS_KEY: Record<ChamadoStatus, 'aberto' | 'em_andamento' | 'concluido' | 'cancelado'> = {
   [CHAMADO_STATUS.ABERTO]: 'aberto',
   [CHAMADO_STATUS.EM_ANDAMENTO]: 'em_andamento',
   [CHAMADO_STATUS.CONCLUIDO]: 'concluido',
@@ -70,12 +70,12 @@ export const CHAMADO_STATUS_KEY: Record<ChamadoStatus, 'aberto' | 'em_andamento'
 };
 
 /** Retorna a key i18n/badge a partir de qualquer string solta. */
-export function chamadoStatusKey(value?: string | null) {
+function chamadoStatusKey(value?: string | null) {
   return CHAMADO_STATUS_KEY[normalizeChamadoStatus(value)];
 }
 
 // Quais contam como "ativos" (para criação/listagens padrão)
-export const CHAMADOS_ATIVOS: ChamadoStatus[] = [
+const CHAMADOS_ATIVOS: ChamadoStatus[] = [
   CHAMADO_STATUS.ABERTO,
   CHAMADO_STATUS.EM_ANDAMENTO,
 ];

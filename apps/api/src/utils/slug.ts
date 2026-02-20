@@ -1,11 +1,11 @@
-export type SlugOptions = {
+type SlugOptions = {
   trimWhitespace?: boolean;
   edgePattern?: RegExp;
 };
 
 const DEFAULT_EDGE_PATTERN = /^_+|_+$/g;
 
-export function toSlug(input: string, options: SlugOptions = {}): string {
+function toSlug(input: string, options: SlugOptions = {}): string {
   const { trimWhitespace = true, edgePattern = DEFAULT_EDGE_PATTERN } = options;
   let value = String(input ?? "");
 
@@ -23,4 +23,4 @@ export function toSlug(input: string, options: SlugOptions = {}): string {
 
 export const slugify = (input: string): string => toSlug(input, { edgePattern: /^_|_$/g });
 
-export const slugifyItem = (input: string): string => toSlug(input);
+const slugifyItem = (input: string): string => toSlug(input);
