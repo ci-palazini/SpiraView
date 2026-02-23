@@ -8,12 +8,12 @@ const rolesRouter: RouterType = Router();
 
 // Lista de páginas disponíveis com seus grupos
 const PAGINAS_DISPONIVEIS = [
-    // Manutenção
+    // Geral
     { key: 'inicio', nome: 'Início / Dashboard', grupo: 'Geral' },
+    // Manutenção
     { key: 'chamados_abertos', nome: 'Chamados em Aberto', grupo: 'Manutenção' },
     { key: 'historico_chamados', nome: 'Histórico de Chamados', grupo: 'Manutenção' },
     { key: 'meus_chamados', nome: 'Meus Chamados', grupo: 'Manutenção' },
-    { key: 'abrir_chamado', nome: 'Abrir Chamado', grupo: 'Manutenção' },
     { key: 'abrir_chamado', nome: 'Abrir Chamado', grupo: 'Manutenção' },
     { key: 'chamados_gestao', nome: 'Atribuir / Gerenciar Chamados', grupo: 'Manutenção' },
     { key: 'maquinas', nome: 'Máquinas', grupo: 'Manutenção' },
@@ -42,10 +42,11 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'qualidade_retrabalho', nome: 'Retrabalho', grupo: 'Qualidade' },
     // Logística
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
-    { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
     // PDCA
     { key: 'pdca_dashboard', nome: 'Dashboard PDCA', grupo: 'PDCA' },
     { key: 'pdca_planos', nome: 'Planos de Ação', grupo: 'PDCA' },
+    // Melhoria Contínua
+    { key: 'melhoria_continua', nome: 'Kaizens & Kamishibai', grupo: 'Melhoria Contínua' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },

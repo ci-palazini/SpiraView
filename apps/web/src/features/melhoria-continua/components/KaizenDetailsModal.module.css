@@ -1,0 +1,151 @@
+/* src/features/melhoria-continua/components/KaizenDetailsModal.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 8px;
+}
+
+.imageHeader {
+    width: 100%;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #1e293b;
+}
+
+.badgeRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.statusBadge,
+.machineBadge,
+.dateBadge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.statusBadge {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.machineBadge {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.dateBadge {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.sections {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.sectionBox {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 14px;
+    border-radius: 10px;
+}
+
+.sectionBox h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sectionBox p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #334155;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnSuccess,
+.btnHistory {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, #1e40af, #1d4ed8);
+    color: white;
+}
+
+.btnPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+}
+
+.btnSecondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btnSecondary:hover {
+    background: #e2e8f0;
+}
+
+.btnSuccess {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+}
+
+.btnSuccess:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}

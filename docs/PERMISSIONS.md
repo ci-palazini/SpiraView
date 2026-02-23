@@ -160,6 +160,12 @@ const MyComponent = () => {
 | `pdca_dashboard` | PDCA | Dashboard consolidado do PDCA | `ver` |
 | `pdca_planos` | PDCA | Gestão de planos de ação e causas | `ver`, `editar` |
 
+### Melhoria Contínua
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `melhoria_continua` | Melhoria Contínua | Módulo Kaizen e Kamishibai (CRUD) | `ver`, `editar` |
+
 ---
 
 ## Role Templates (Exemplo)

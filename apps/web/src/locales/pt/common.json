@@ -33,7 +33,9 @@
     "quarentenaAbbr": "Qua",
     "refugoAbbr": "Ref",
     "todos": "Todos",
-    "tipoLancamento": "Tipo de Dados"
+    "tipoLancamento": "Tipo de Dados",
+    "kaizensDashboard": "Dashboard Kaizen",
+    "kamishibaiHistory": "Auditorias (Histórico)"
   },
   "logistics": {
     "dashboardTitle": "Painel de Logística",
@@ -988,7 +990,8 @@
       "production": "Produção",
       "planejamento": "Planejamento",
       "quality": "Qualidade",
-      "logistics": "Logística"
+      "logistics": "Logística",
+      "melhoriaContinua": "Melhoria Contínua"
     }
   },
   "dashboard": {
@@ -1777,5 +1780,15 @@
     "maintenance": "Manutenção",
     "quality": "Qualidade",
     "logistics": "Logística"
+  },
+  "melhoriaContinua": {
+    "kaizens": {
+      "title": "Kaizens & Kamishibai",
+      "subtitle": "Gestão de Melhoria Contínua e Auditorias Visuais"
+    },
+    "history": {
+      "title": "Histórico de Auditorias",
+      "subtitle": "Evolução semanal do Kamishibai"
+    }
   }
 }

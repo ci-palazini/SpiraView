@@ -35,6 +35,12 @@ import type {
     LogisticaKpi,
     LogisticaMeta,
     LogisticaDashboardData,
+    Kaizen,
+    KaizenCreate,
+    KamishibaiPergunta,
+    KamishibaiAudit,
+    PerformAuditPayload,
+    KamishibaiDashboardData
 } from '../types/api';
 
 // ===== BASE =====
@@ -1202,4 +1208,88 @@ export async function saveLogisticaKpi(data: string, payload: Partial<LogisticaK
 
 export async function saveLogisticaMeta(mes: number, ano: number, meta_financeira: number, auth: AuthParams = {}): Promise<LogisticaMeta> {
     return http.put<LogisticaMeta>(`/logistica/metas/${mes}/${ano}`, { data: { meta_financeira }, auth });
+}
+
+// ---------- Melhoria Contínua - Kaizen ----------
+export async function listarKaizens(
+    params: { maquinaId?: string; status?: string; page?: number; limit?: number } = {},
+    auth: AuthParams = {}
+): Promise<{ data: Kaizen[]; meta: { total: number; page: number; limit: number } }> {
+    return http.get('/melhoria-continua/kaizens', { params, auth });
+}
+
+export async function getKaizen(id: string, auth: AuthParams = {}): Promise<Kaizen> {
+    return http.get<Kaizen>(`/melhoria-continua/kaizens/${id}`, { auth });
+}
+
+export async function criarKaizen(data: KaizenCreate, auth: AuthParams = {}): Promise<Kaizen> {
+    return http.post<Kaizen>('/melhoria-continua/kaizens', { data, auth });
+}
+
+export async function atualizarKaizen(id: string, data: Partial<KaizenCreate>, auth: AuthParams = {}): Promise<Kaizen> {
+    return http.put<Kaizen>(`/melhoria-continua/kaizens/${id}`, { data, auth });
+}
+
+export async function deletarKaizen(id: string, auth: AuthParams = {}): Promise<void> {
+    return http.delete(`/melhoria-continua/kaizens/${id}`, { auth });
+}
+
+export async function uploadKaizenThumbnail(id: string, file: File, auth: AuthParams = {}): Promise<{ thumbnail_url: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const headers = buildAuthHeaders(auth);
+
+    const BASE = (import.meta.env?.VITE_API_URL || import.meta.env?.VITE_API_BASE || "http://localhost:3000").replace(/\/+$/, "");
+    const res = await fetch(`${BASE}/melhoria-continua/kaizens/${id}/thumbnail`, {
+        method: "POST",
+        headers,
+        body: formData,
+    });
+
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+    }
+    return res.json();
+}
+
+// ---------- Melhoria Contínua - Kamishibai ----------
+export async function getKamishibaiPerguntas(kaizenId: string, auth: AuthParams = {}): Promise<KamishibaiPergunta[]> {
+    const res = await http.get<KamishibaiPergunta[]>(`/melhoria-continua/kamishibai/${kaizenId}/perguntas`, { auth });
+    return res || [];
+}
+
+export async function configKamishibaiPerguntas(
+    kaizenId: string,
+    perguntas: { texto_pergunta: string; ordem?: number }[],
+    auth: AuthParams = {}
+): Promise<KamishibaiPergunta[]> {
+    const res = await http.post<KamishibaiPergunta[]>(`/melhoria-continua/kamishibai/${kaizenId}/perguntas`, { data: perguntas, auth });
+    return res || [];
+}
+
+export async function realizarAuditoriaKamishibai(
+    kaizenId: string,
+    payload: PerformAuditPayload,
+    auth: AuthParams = {}
+): Promise<KamishibaiAudit> {
+    return http.post<KamishibaiAudit>(`/melhoria-continua/kamishibai/auditoria`, { data: payload, auth });
+}
+
+export async function getKamishibaiDashboard(auth: AuthParams = {}): Promise<KamishibaiDashboardData> {
+    const res = await http.get<any>('/melhoria-continua/kamishibai/dashboard', { auth });
+    if (res?.resumo) {
+        return {
+            totalOK: res.resumo.conforme || 0,
+            totalNOK: res.resumo.nao_conforme || 0,
+            totalPendente: res.resumo.pendente || 0,
+        };
+    }
+    return { totalOK: 0, totalNOK: 0, totalPendente: 0 };
+}
+
+export async function getKamishibaiHistorico(kaizenId?: string, auth: AuthParams = {}): Promise<any[]> {
+    const url = kaizenId ? `/melhoria-continua/kamishibai/historico/${kaizenId}` : '/melhoria-continua/kamishibai/historico';
+    const res = await http.get<any[]>(url, { auth });
+    return res || [];
 }

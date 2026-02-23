@@ -88,6 +88,7 @@ export interface Maquina {
     nome: string;
     nome_producao?: string;
     setor?: string;
+    tag?: string;
     escopo_manutencao?: boolean;
     escopo_producao?: boolean;
     escopo_planejamento?: boolean;
@@ -104,6 +105,7 @@ export interface Maquina {
 
 export interface MaquinaCreate {
     nome: string;
+    tag?: string;
     setor?: string;
     parentId?: string;
     isMaquinaMae?: boolean;
@@ -369,4 +371,81 @@ export interface NotificacaoConfigUser {
     nome: string;
     email: string;
     email_real?: string;
+}
+
+// ---------- Melhoria Contínua ----------
+export interface Kaizen {
+    id: string;
+    titulo: string;
+    maquina_id?: string;
+    maquina_nome?: string;
+    status: 'planejado' | 'em_andamento' | 'concluido' | 'padronizado' | string;
+    problema_antes?: string;
+    solucao_depois?: string;
+    ganhos?: string;
+    data_implementacao?: string;
+    thumbnail_url?: string;
+    criado_por?: string;
+    criado_em?: string;
+    atualizado_em?: string;
+
+    // Virtual fields for frontend projection
+    kamishibaiStatus?: 'OK' | 'NOK' | 'Pendente';
+    ultimaAuditoria?: KamishibaiAudit;
+}
+
+export interface KaizenCreate {
+    titulo: string;
+    maquina_id?: string;
+    status?: string;
+    problema_antes?: string;
+    solucao_depois?: string;
+    ganhos?: string;
+    data_implementacao?: string;
+    thumbnail_url?: string;
+}
+
+export interface KamishibaiPergunta {
+    id: string;
+    kaizen_id: string;
+    texto_pergunta: string;
+    ordem?: number;
+    ativo?: boolean;
+    criado_em?: string;
+}
+
+export interface KamishibaiAudit {
+    id: string;
+    kaizen_id: string;
+    auditor_id: string;
+    auditor_nome?: string;
+    data_auditoria: string;
+    status: 'conforme' | 'nao_conforme' | string;
+    observacoes?: string;
+    respostas?: KamishibaiResposta[];
+}
+
+export interface KamishibaiResposta {
+    id: string;
+    auditoria_id: string;
+    pergunta_id: string;
+    is_conforme: boolean;
+    observacao?: string;
+}
+
+export interface PerformAuditPayload {
+    kaizen_id: string;
+    status: 'conforme' | 'nao_conforme';
+    observacoes?: string;
+    respostas: {
+        pergunta_id: string;
+        is_conforme: boolean;
+        observacao?: string;
+    }[];
+}
+
+export interface KamishibaiDashboardData {
+    totalOK: number;
+    totalNOK: number;
+    totalPendente: number;
 }

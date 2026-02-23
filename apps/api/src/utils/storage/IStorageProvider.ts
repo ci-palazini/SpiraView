@@ -6,18 +6,17 @@ export interface IStorageProvider {
      * @param mimeType Mime type of the file
      * @returns The path (key) of the uploaded file
      */
-    uploadFile(path: string, file: Buffer, mimeType: string): Promise<string>;
+    uploadFile(path: string, file: Buffer, mimeType: string, bucketOverride?: string): Promise<string>;
 
     /**
-     * Generates a signed URL for reading the file.
+     * Returns a permanent public URL for the file (requires public bucket).
      * @param path Full path/key for the file
-     * @param expiresInSeconds Expiration time in seconds (default: 3600)
      */
-    getSignedUrl(path: string, expiresInSeconds?: number): Promise<string>;
+    getPublicUrl(path: string, bucketOverride?: string): string;
 
     /**
      * Deletes a file from the storage.
      * @param path Full path/key for the file
      */
-    deleteFile(path: string): Promise<void>;
+    deleteFile(path: string, bucketOverride?: string): Promise<void>;
 }

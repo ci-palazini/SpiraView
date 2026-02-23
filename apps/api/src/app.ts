@@ -14,6 +14,7 @@ import { manutencaoRouter } from './routes/manutencao';
 import { producaoRouter } from './routes/producao';
 import { planejamentoRouter } from './routes/planejamento';
 import { qualidadeRouter } from './routes/qualidade';
+import { melhoriaContinuaRouter } from './routes/melhoria-continua';
 import { logisticaRouter } from './routes/logistica';
 import { pdcaRouter } from './routes/pdca';
 
@@ -49,6 +50,7 @@ app.use(planejamentoRouter);  // Departamento Planejamento
 app.use(qualidadeRouter);     // Departamento Qualidade
 app.use(logisticaRouter);     // Departamento Logística
 app.use(pdcaRouter);          // Módulo PDCA
+app.use('/melhoria-continua', melhoriaContinuaRouter); // Melhoria Contínua
 
 // Global error handler — captura erros não tratados
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -128,6 +128,11 @@ flowchart LR
         planos["/pdca/planos"]
         causas["/pdca/causas"]
     end
+    
+    subgraph MelhoriaContinua["🚀 Melhoria Contínua"]
+        kaizens["/melhoria-continua/kaizens"]
+        kamishibai["/melhoria-continua/kamishibai"]
+    end
 ```
 
 ### Frontend (Features)
@@ -140,6 +145,7 @@ flowchart LR
 | **Qualidade** | `features/qualidade/` | Dashboard, Lançamentos, Analítico, Comparativo, Config |
 | **Logística** | `features/logistica/` | Dashboard de logística, KPIs |
 | **PDCA** | `features/pdca/` | Dashboard consolidado, Planos, Causas |
+| **Melhoria Contínua** | `features/melhoria-continua/` | Kaizens, Checklists Kamishibai, Gestão visual e Histórico |
 | **Usuários** | `features/usuarios/` | Gestão de usuários e roles |
 | **Configurações** | `features/configuracoes/` | Notificações, Settings globais |
 | **TV/Kiosk** | `features/tv/` | Dashboards para monitores |

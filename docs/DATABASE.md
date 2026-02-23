@@ -33,6 +33,12 @@ erDiagram
     pdca_planos ||--o{ pdca_causas : "causas raiz"
     pdca_planos ||--o{ pdca_audit_log : "histórico"
     pdca_causas ||--o{ pdca_audit_log : "histórico"
+    
+    maquinas ||--o{ kaizens : "tem melhorias"
+    usuarios ||--o{ kaizens : "cria/implementa"
+    kaizens ||--o{ kamishibai_perguntas : "possui checklist"
+    kaizens ||--o{ kamishibai_auditorias : "auditado via"
+    kamishibai_auditorias ||--o{ kamishibai_respostas : "respostas da auditoria"
 ```
 
 ---
@@ -424,6 +430,61 @@ Histórico de alterações.
 | `usuario_id` | UUID | FK → usuarios.id |
 | `usuario_email` | VARCHAR(255) | Email |
 | `created_at` | TIMESTAMPTZ | Data |
+
+---
+
+### Melhoria Contínua (Kaizen / Kamishibai)
+
+#### `kaizens`
+Registro de painéis de melhoria contínua e status atual.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `titulo` | VARCHAR | Título do Kaizen |
+| `maquina_id` | UUID | FK → maquinas.id |
+| `status` | VARCHAR | planejado, em_andamento, concluido, padronizado |
+| `problema_antes` | TEXT | Descrição do estado anterior |
+| `solucao_depois` | TEXT | Descrição da solução |
+| `ganhos` | TEXT | Impacto gerado |
+| `data_implementacao` | DATE | Data de término da implementação |
+| `thumbnail_url` | VARCHAR | URL da imagem do Kaizen |
+| `criado_por` | UUID | FK → usuarios.id |
+| `criado_em` | TIMESTAMPTZ | Data de criação |
+
+#### `kamishibai_perguntas`
+Checklist dinâmico de sustentação do padrão para cada Kaizen.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `kaizen_id` | UUID | FK → kaizens.id |
+| `texto_pergunta` | TEXT | A pergunta da auditoria |
+| `ordem` | INTEGER | Posição no formulário |
+| `ativo` | BOOLEAN | Se a pergunta ainda é avaliada |
+
+#### `kamishibai_auditorias`
+Cabeçalho de cada ciclo de auditoria visual de um Kaizen.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `kaizen_id` | UUID | FK → kaizens.id |
+| `auditor_id` | UUID | FK → usuarios.id |
+| `data_auditoria` | TIMESTAMPTZ | Quando ocorreu |
+| `status` | VARCHAR | conforme, nao_conforme |
+| `observacoes` | TEXT | Notas gerais |
+
+#### `kamishibai_respostas`
+Respostas granulares da auditoria.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `auditoria_id` | UUID | FK → kamishibai_auditorias.id |
+| `pergunta_id` | UUID | FK → kamishibai_perguntas.id |
+| `is_conforme` | BOOLEAN | Ok / Nok |
+| `observacao` | TEXT | Comentário individual do item |
 
 ---
 

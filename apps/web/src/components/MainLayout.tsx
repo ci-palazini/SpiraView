@@ -25,6 +25,7 @@ import {
     FiSettings,
     FiTv,
     FiRefreshCw,
+    FiTrendingUp
 } from 'react-icons/fi';
 import { PiFactoryBold } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -70,6 +71,8 @@ import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';
 import PdcaPlanoDetailPage from '../features/pdca/pages/PdcaPlanoDetailPage';
 import JustificativaChecklistPage from '../features/manutencao/checklists/pages/JustificativaChecklistPage';
+import KaizenDashboardPage from '../features/melhoria-continua/pages/KaizenDashboardPage';
+import KamishibaiHistoryPage from '../features/melhoria-continua/pages/KamishibaiHistoryPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -111,7 +114,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false, pdca: false };
+        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false, pdca: false, melhoriaContinua: false };
         try {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
             if (saved) {
@@ -241,6 +244,10 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             targetGroup = 'quality';
         } else if (path.startsWith('/logistica')) {
             targetGroup = 'logistics';
+        } else if (path.startsWith('/pdca')) {
+            targetGroup = 'pdca';
+        } else if (path.startsWith('/melhoria-continua')) {
+            targetGroup = 'melhoriaContinua';
         } else if (
             path.startsWith('/maquinas') ||
             path.startsWith('/historico') ||
@@ -803,6 +810,36 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 )
             }
 
+            {/* Melhoria Contínua */}
+            {
+                perm.canViewAny(['melhoria_continua']) && (
+                    <SidebarGroup id="melhoriaContinua" label={t('layout.sections.melhoriaContinua', 'Melhoria Contínua')} icon={FiTrendingUp}>
+                        {perm.canView('melhoria_continua') && (
+                            <NavLink
+                                to="/melhoria-continua/kaizens"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <LuLayoutDashboard className={styles.navIcon} />
+                                <span>{t('nav.kaizensDashboard', 'Dashboard Kaizen')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('melhoria_continua') && (
+                            <NavLink
+                                to="/melhoria-continua/historico-kamishibai"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiFileText className={styles.navIcon} />
+                                <span>{t('nav.kamishibaiHistory', 'Auditorias (Histórico)')}</span>
+                            </NavLink>
+                        )}
+                    </SidebarGroup>
+                )
+            }
+
             {/* Configurações - usa permissões granulares */}
             {
                 perm.canViewAny(['usuarios', 'roles', 'notificacoes_config']) && (
@@ -1132,6 +1169,16 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/pdca/planos/:planoId"
                         element={canAccessPage('pdca_planos', <PdcaPlanoDetailPage />)}
+                    />
+
+                    {/* Rotas Melhoria Contínua */}
+                    <Route
+                        path="/melhoria-continua/kaizens"
+                        element={canAccessPage('melhoria_continua', <KaizenDashboardPage user={user} />)}
+                    />
+                    <Route
+                        path="/melhoria-continua/historico-kamishibai"
+                        element={canAccessPage('melhoria_continua', <KamishibaiHistoryPage />)}
                     />
 
                 </Routes>

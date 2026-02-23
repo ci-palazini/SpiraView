@@ -397,15 +397,9 @@ chamadosRouter.get(
         [chamadoId]
       );
 
-      // gera signed URLs para exibição no front
-      const items = await Promise.all(
-        rows.map(async (row) => {
-          let url: string | null = null;
-          try {
-            url = await storageProvider.getSignedUrl(row.storage_path);
-          } catch (e) {
-            console.error("[chamados/:id/fotos] erro ao gerar signed URL", e);
-          }
+      // constrói URLs públicas para exibição no front
+      const items = rows.map((row) => {
+          const url = storageProvider.getPublicUrl(row.storage_path);
           return {
             id: row.id,
             url,
@@ -416,7 +410,6 @@ chamadosRouter.get(
             autorNome: row.autor_nome,
           };
         })
-      );
 
       return res.json(items);
     } catch (e: any) {
@@ -850,16 +843,9 @@ chamadosRouter.post(
 
       const foto = inserted[0];
 
-      let signedUrl: string | null = null;
-      try {
-        signedUrl = await storageProvider.getSignedUrl(foto.storage_path);
-      } catch (e) {
-        console.error("[chamados/:id/fotos] erro signed URL após insert", e);
-      }
-
       const payload = {
         id: foto.id,
-        url: signedUrl,
+        url: storageProvider.getPublicUrl(foto.storage_path),
         caminho: foto.storage_path,
         mimeType: foto.mime_type,
         tamanhoBytes: foto.tamanho_bytes,

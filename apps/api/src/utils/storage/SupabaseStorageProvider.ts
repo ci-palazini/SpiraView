@@ -5,6 +5,7 @@ import { StorageError } from "./StorageError";
 export class SupabaseStorageProvider implements IStorageProvider {
     private supabase: SupabaseClient | null = null;
     private bucket: string;
+    private url: string;
 
     constructor(
         url: string | undefined,
@@ -12,6 +13,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
         bucket: string
     ) {
         this.bucket = bucket;
+        this.url = url || "";
 
         if (url && key) {
             this.supabase = createClient(url, key, {
@@ -32,9 +34,9 @@ export class SupabaseStorageProvider implements IStorageProvider {
         return this.supabase;
     }
 
-    async uploadFile(path: string, file: Buffer, mimeType: string): Promise<string> {
+    async uploadFile(path: string, file: Buffer, mimeType: string, bucketOverride?: string): Promise<string> {
         const { error } = await this.getClient().storage
-            .from(this.bucket)
+            .from(bucketOverride || this.bucket)
             .upload(path, file, {
                 cacheControl: "3600",
                 contentType: mimeType || "application/octet-stream",
@@ -49,9 +51,13 @@ export class SupabaseStorageProvider implements IStorageProvider {
         return path;
     }
 
-    async getSignedUrl(path: string, expiresInSeconds = 3600): Promise<string> {
+    getPublicUrl(path: string, bucketOverride?: string): string {
+        return `${this.url}/storage/v1/object/public/${bucketOverride || this.bucket}/${path}`;
+    }
+
+    async getSignedUrl(path: string, expiresInSeconds = 3600, bucketOverride?: string): Promise<string> {
         const { data, error } = await this.getClient().storage
-            .from(this.bucket)
+            .from(bucketOverride || this.bucket)
             .createSignedUrl(path, expiresInSeconds);
 
         if (error || !data?.signedUrl) {
@@ -62,9 +68,9 @@ export class SupabaseStorageProvider implements IStorageProvider {
         return data.signedUrl;
     }
 
-    async deleteFile(path: string): Promise<void> {
+    async deleteFile(path: string, bucketOverride?: string): Promise<void> {
         const { error } = await this.getClient().storage
-            .from(this.bucket)
+            .from(bucketOverride || this.bucket)
             .remove([path]);
 
         if (error) {

@@ -33,7 +33,9 @@
     "quarentenaAbbr": "Qrt",
     "refugoAbbr": "Scr",
     "todos": "All",
-    "tipoLancamento": "Data Type"
+    "tipoLancamento": "Data Type",
+    "kaizensDashboard": "Kaizen Dashboard",
+    "kamishibaiHistory": "Audits (History)"
   },
   "status": {
     "open": "Open",
@@ -904,7 +906,8 @@
       "production": "Production",
       "planejamento": "Planning",
       "quality": "Quality",
-      "logistics": "Logistics"
+      "logistics": "Logistics",
+      "melhoriaContinua": "Continuous Improvement"
     }
   },
   "dashboard": {
@@ -1780,5 +1783,15 @@
     "maintenance": "Maintenance",
     "quality": "Quality",
     "logistics": "Logistics"
+  },
+  "melhoriaContinua": {
+    "kaizens": {
+      "title": "Kaizens & Kamishibai",
+      "subtitle": "Continuous Improvement Management and Visual Audits"
+    },
+    "history": {
+      "title": "Audit History",
+      "subtitle": "Weekly Kamishibai evolution"
+    }
   }
 }

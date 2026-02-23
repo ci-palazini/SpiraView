@@ -17,6 +17,7 @@ Welcome to the SpiraView monorepo.
 - **[Qualidade](docs/modules/qualidade.md)**: Refugos, análises, comparativos.
 - **[Logística](docs/modules/logistica.md)**: KPIs, faturamento, metas.
 - **[PDCA](docs/modules/pdca.md)**: Planos de ação, causas, audit.
+- **[Melhoria Contínua](docs/modules/melhoria_continua.md)**: Kaizens, Kamishibai, auditorias visuais.
 - **[Usuários](docs/modules/usuarios.md)**: Auth, roles, permissões.
 
 ### For AI Agents
