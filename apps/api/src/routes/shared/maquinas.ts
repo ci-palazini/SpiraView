@@ -3,6 +3,7 @@ import { pool } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { userFromHeader } from '../../middlewares/userFromHeader';
+import { logger } from '../../logger';
 
 export const maquinasRouter: Router = Router();
 
@@ -98,7 +99,7 @@ maquinasRouter.post("/maquinas", async (req, res) => {
 
     res.status(201).json(rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     // Se você tiver UNIQUE no banco, pode cair aqui:
     if (e?.code === "23505") {
       return res.status(409).json({ error: "Já existe uma máquina com esse nome." });
@@ -135,7 +136,7 @@ maquinasRouter.patch('/maquinas/:id/parent', requirePermission('maquinas', 'edit
     sseBroadcast({ topic: 'maquinas', action: 'updated', id });
     res.json(upd.rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -206,7 +207,7 @@ maquinasRouter.patch('/maquinas/:id/escopo', requirePermission('maquinas', 'edit
     sseBroadcast({ topic: 'maquinas', action: 'updated', id });
     res.json(upd.rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -237,7 +238,7 @@ maquinasRouter.patch('/maquinas/:id/aliases-producao', requirePermission('produc
     sseBroadcast({ topic: 'maquinas', action: 'updated', id });
     res.json(upd.rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -266,7 +267,7 @@ maquinasRouter.patch('/maquinas/:id/nome-producao', requirePermission('producao_
     sseBroadcast({ topic: 'maquinas', action: 'updated', id });
     res.json(upd.rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -410,7 +411,7 @@ maquinasRouter.get('/maquinas/:id', async (req, res) => {
       itensComChamadoAberto,             // keys de itens com chamado preditivo aberto
     });
   } catch (e) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -505,7 +506,7 @@ maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
     res.json({ checklistDiario: rows[0].checklist_diario });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -534,7 +535,7 @@ maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
     res.json({ checklistDiario: rows[0].checklist_diario });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -565,7 +566,7 @@ maquinasRouter.post('/maquinas/:id/checklist-reorder', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Máquina não encontrada.' });
     res.json({ checklistDiario: rows[0].checklist_diario });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -583,7 +584,7 @@ maquinasRouter.delete('/maquinas/:id', requirePermission('maquinas', 'editar'), 
     if (r.rowCount === 0) return res.status(404).json({ error: 'Máquina não encontrada.' });
     return res.status(204).end();
   } catch (e: any) {
-    console.error('DELETE /maquinas/:id', e);
+    logger.error({ err: e }, 'DELETE /maquinas/:id');
     if (e?.code === '23503') {
       const detail = e.detail || '';
       let msg = 'Não é possível excluir esta máquina pois ela possui registros vinculados.';

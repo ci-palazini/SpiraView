@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const retrabalhoSettingsRouter: Router = Router();
 
@@ -19,7 +20,7 @@ retrabalhoSettingsRouter.get('/qualidade/nao-conformidades', async (req, res) =>
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -38,7 +39,7 @@ retrabalhoSettingsRouter.post('/qualidade/nao-conformidades',
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             if (e.code === '23505') {
                 return res.status(400).json({ error: 'Não conformidade já existe.' });
             }
@@ -101,7 +102,7 @@ retrabalhoSettingsRouter.put('/qualidade/nao-conformidades/:id',
             res.json(rows[0]);
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -124,7 +125,7 @@ retrabalhoSettingsRouter.get('/qualidade/nao-conformidades/:id/usage', async (re
         );
         res.json({ count: Number(countRows[0].count) });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -183,7 +184,7 @@ retrabalhoSettingsRouter.delete('/qualidade/nao-conformidades/:id',
             res.json({ ok: true, transferred: count });
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -206,7 +207,7 @@ retrabalhoSettingsRouter.get('/qualidade/solicitantes', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -225,7 +226,7 @@ retrabalhoSettingsRouter.post('/qualidade/solicitantes',
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             if (e.code === '23505') {
                 return res.status(400).json({ error: 'Solicitante já existe.' });
             }
@@ -288,7 +289,7 @@ retrabalhoSettingsRouter.put('/qualidade/solicitantes/:id',
             res.json(rows[0]);
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -311,7 +312,7 @@ retrabalhoSettingsRouter.get('/qualidade/solicitantes/:id/usage', async (req, re
         );
         res.json({ count: Number(countRows[0].count) });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -370,7 +371,7 @@ retrabalhoSettingsRouter.delete('/qualidade/solicitantes/:id',
             res.json({ ok: true, transferred: count });
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();

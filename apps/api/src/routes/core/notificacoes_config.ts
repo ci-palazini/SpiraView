@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 const notificacoesConfigRouter: Router = Router();
 
@@ -31,7 +32,7 @@ notificacoesConfigRouter.get('/config/:evento', requirePermission('notificacoes_
         );
         res.json(result.rows);
     } catch (error: any) {
-        console.error('Erro ao listar notificacoes_config:', error);
+        logger.error({ err: error }, 'Erro ao listar notificacoes_config:');
         res.status(500).json({ error: 'Erro interno ao listar configurações.' });
     }
 });
@@ -66,7 +67,7 @@ notificacoesConfigRouter.post('/config', requirePermission('notificacoes_config'
 
         res.status(201).json(result.rows[0]);
     } catch (error: any) {
-        console.error('Erro ao criar notificacoes_config:', error);
+        logger.error({ err: error }, 'Erro ao criar notificacoes_config:');
         res.status(500).json({ error: 'Erro interno ao salvar configuração.' });
     }
 });
@@ -89,7 +90,7 @@ notificacoesConfigRouter.delete('/config/:evento/:usuarioId', requirePermission(
         );
         res.status(204).send();
     } catch (error: any) {
-        console.error('Erro ao excluir notificacoes_config:', error);
+        logger.error({ err: error }, 'Erro ao excluir notificacoes_config:');
         res.status(500).json({ error: 'Erro interno ao remover configuração.' });
     }
 });

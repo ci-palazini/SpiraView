@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
+import { logger } from '../../logger';
 
 export const pecasRouter: Router = Router();
 
@@ -36,11 +37,11 @@ pecasRouter.post('/pecas', async (req, res) => {
       categoria = null,
       estoqueMinimo = 0,
       localizacao = null,
-      estoqueAtual = 0, // opcional (normalmente comeÃ§amos em 0)
+      estoqueAtual = 0, // opcional (normalmente começamos em 0)
     } = req.body || {};
 
-    if (!codigo || !nome) return res.status(400).json({ error: 'Informe cÃ³digo e nome.' });
-    if (estoqueMinimo < 0 || estoqueAtual < 0) return res.status(400).json({ error: 'Estoque nÃ£o pode ser negativo.' });
+    if (!codigo || !nome) return res.status(400).json({ error: 'Informe código e nome.' });
+    if (estoqueMinimo < 0 || estoqueAtual < 0) return res.status(400).json({ error: 'Estoque não pode ser negativo.' });
 
     const insert = await pool.query(
       `INSERT INTO pecas (codigo, nome, categoria, estoque_minimo, localizacao, estoque_atual)
@@ -58,9 +59,9 @@ pecasRouter.post('/pecas', async (req, res) => {
     res.status(201).json(insert.rows[0]);
   } catch (e: any) {
     if (String(e?.message || '').includes('pecas_codigo_key')) {
-      return res.status(409).json({ error: 'JÃ¡ existe uma peÃ§a com esse cÃ³digo.' });
+      return res.status(409).json({ error: 'já existe uma peça com esse código.' });
     }
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -85,8 +86,8 @@ pecasRouter.put('/pecas/:id', async (req, res) => {
       localizacao = null
     } = req.body || {};
 
-    if (!codigo || !nome) return res.status(400).json({ error: 'Informe cÃ³digo e nome.' });
-    if (estoqueMinimo < 0) return res.status(400).json({ error: 'Estoque mÃ­nimo invÃ¡lido.' });
+    if (!codigo || !nome) return res.status(400).json({ error: 'Informe código e nome.' });
+    if (estoqueMinimo < 0) return res.status(400).json({ error: 'Estoque mÃ­nimo inválido.' });
 
     const upd = await pool.query(
       `UPDATE pecas
@@ -99,20 +100,20 @@ pecasRouter.put('/pecas/:id', async (req, res) => {
       [id, codigo, nome, categoria, estoqueMinimo, localizacao]
     );
 
-    if (!upd.rowCount) return res.status(404).json({ error: 'PeÃ§a nÃ£o encontrada.' });
+    if (!upd.rowCount) return res.status(404).json({ error: 'Peça não encontrada.' });
 
     sseBroadcast({ topic: 'pecas', action: 'updated', id });
     res.json(upd.rows[0]);
   } catch (e: any) {
     if (String(e?.message || '').includes('pecas_codigo_key')) {
-      return res.status(409).json({ error: 'JÃ¡ existe uma peÃ§a com esse cÃ³digo.' });
+      return res.status(409).json({ error: 'já existe uma peça com esse código.' });
     }
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
 
-// Lista de peÃ§as (para a EstoquePage)
+// Lista de peças (para a EstoquePage)
 pecasRouter.get('/pecas', async (_req, res) => {
   try {
     const { rows } = await pool.query(
@@ -129,7 +130,7 @@ pecasRouter.get('/pecas', async (_req, res) => {
     );
     res.json({ items: rows });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -148,18 +149,18 @@ pecasRouter.delete('/pecas/:id', async (req, res) => {
     const id = String(req.params.id);
     const r = await pool.query('DELETE FROM pecas WHERE id = $1', [id]);
     if (r.rowCount === 0) {
-      return res.status(404).json({ error: 'PeÃ§a nÃ£o encontrada.' });
+      return res.status(404).json({ error: 'Peça não encontrada.' });
     }
 
     sseBroadcast({ topic: 'pecas', action: 'deleted', id });
     res.json({ ok: true });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
 
-// Lista de chamados com filtros opcionais (tipo, status, PerÃ­odo e mÃ¡quina)
+// Lista de chamados com filtros opcionais (tipo, status, PerÃ­odo e máquina)
 
 pecasRouter.post('/pecas/:id/movimentacoes', async (req, res) => {
   try {
@@ -217,7 +218,7 @@ pecasRouter.post('/pecas/:id/movimentacoes', async (req, res) => {
 
     res.json({ ok: true, movimentacaoId, peca });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -277,7 +278,7 @@ pecasRouter.get('/movimentacoes', async (req, res) => {
 
     res.json({ items: rows });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });

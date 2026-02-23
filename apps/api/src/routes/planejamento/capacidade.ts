@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import type { Router as RouterType } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 const capacidadeRouter: RouterType = Router();
 
@@ -360,7 +361,7 @@ capacidadeRouter.post(
                 client.release();
             }
         } catch (err: any) {
-            console.error('Erro no upload de capacidade:', err);
+            logger.error({ err: err }, 'Erro no upload de capacidade:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -391,7 +392,7 @@ capacidadeRouter.get(
 
             res.json({ upload: rows[0] });
         } catch (err: any) {
-            console.error('Erro ao buscar último upload TV:', err);
+            logger.error({ err: err }, 'Erro ao buscar último upload TV:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -460,7 +461,7 @@ capacidadeRouter.get(
                 }
             });
         } catch (err: any) {
-            console.error('Erro ao buscar resumo TV:', err);
+            logger.error({ err: err }, 'Erro ao buscar resumo TV:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -548,7 +549,7 @@ capacidadeRouter.get(
                 }
             });
         } catch (err: any) {
-            console.error('Erro ao buscar resumo:', err);
+            logger.error({ err: err }, 'Erro ao buscar resumo:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -579,7 +580,7 @@ capacidadeRouter.get(
             `);
             res.json({ items: rows });
         } catch (err: any) {
-            console.error('Erro ao listar uploads:', err);
+            logger.error({ err: err }, 'Erro ao listar uploads:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -606,7 +607,7 @@ capacidadeRouter.get(
             `);
             res.json({ items: rows });
         } catch (err: any) {
-            console.error('Erro ao listar máquinas:', err);
+            logger.error({ err: err }, 'Erro ao listar máquinas:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }
@@ -666,7 +667,7 @@ capacidadeRouter.patch(
 
             res.json(rows[0]);
         } catch (err: any) {
-            console.error('Erro ao atualizar máquina:', err);
+            logger.error({ err: err }, 'Erro ao atualizar máquina:');
             res.status(500).json({ error: err.message || 'Erro interno' });
         }
     }

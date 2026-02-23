@@ -1,4 +1,5 @@
 import { app } from './app';
+import { logger } from './logger';
 import { initScheduler } from './services/scheduler';
 
 const PORT = Number(process.env.PORT || 3000);
@@ -8,5 +9,5 @@ const HOST = '0.0.0.0';
 initScheduler();
 
 app.listen(PORT, HOST, () => {
-  console.log(`API rodando em http://${HOST}:${PORT}`);
+  logger.info({ port: PORT, host: HOST }, 'API iniciada');
 });

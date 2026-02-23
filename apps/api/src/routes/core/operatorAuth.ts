@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { pool } from '../../db';
 import { env } from '../../config/env';
+import { logger } from '../../logger';
 
 export const operatorAuthRouter: Router = Router();
 
@@ -59,7 +60,7 @@ operatorAuthRouter.get('/operators/active', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error('GET /operators/active error:', e);
+        logger.error({ err: e }, 'GET /operators/active error:');
         res.status(500).json({ error: 'Erro ao listar operadores.' });
     }
 });
@@ -151,7 +152,7 @@ operatorAuthRouter.post('/auth/operator-login', operatorLoginLimiter, async (req
         });
 
     } catch (e: any) {
-        console.error('POST /auth/operator-login error:', e);
+        logger.error({ err: e }, 'POST /auth/operator-login error:');
         res.status(500).json({ error: 'Erro ao autenticar operador.' });
     }
 });

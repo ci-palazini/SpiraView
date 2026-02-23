@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool, withTx } from '../../db';
+import { logger } from '../../logger';
 
 export const uploadRouter: Router = Router();
 
@@ -156,7 +157,7 @@ uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
         });
 
     } catch (error: any) {
-        console.error('Erro no upload de qualidade:', error);
+        logger.error({ err: error }, 'Erro no upload de qualidade:');
         res.status(500).json({ error: 'Erro interno ao processar upload.' });
     }
 });

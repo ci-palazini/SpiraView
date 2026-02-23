@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const refugosRouter: Router = Router();
 
@@ -91,7 +92,7 @@ refugosRouter.get('/qualidade/refugos',
                 }
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -135,7 +136,7 @@ refugosRouter.post('/qualidade/refugos',
 
             res.status(201).json({ id: insert.rows[0].id, ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -184,7 +185,7 @@ refugosRouter.put('/qualidade/refugos/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -203,7 +204,7 @@ refugosRouter.delete('/qualidade/refugos/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -388,7 +389,7 @@ refugosRouter.get('/qualidade/dashboard',
                 }))
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });

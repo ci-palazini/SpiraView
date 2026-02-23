@@ -1,8 +1,10 @@
 // src/routes/roles.ts
 import { Router, Request, Response } from 'express';
 import type { Router as RouterType } from 'express';
-import { pool } from '../../db';
+import { pool, withTx } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
+import { logAudit } from '../../utils/audit';
 
 const rolesRouter: RouterType = Router();
 
@@ -68,7 +70,7 @@ rolesRouter.get('/options', async (_req: Request, res: Response) => {
         `);
         res.json({ items: rows });
     } catch (e: any) {
-        console.error('Erro ao listar roles (options):', e);
+        logger.error({ err: e }, 'Erro ao listar roles (options):');
         res.status(500).json({ error: 'Erro ao listar níveis de acesso' });
     }
 });
@@ -118,7 +120,7 @@ rolesRouter.get('/', requirePermission('roles', 'ver'), async (_req: Request, re
         `);
         res.json({ items: rows });
     } catch (e: any) {
-        console.error('Erro ao listar roles:', e);
+        logger.error({ err: e }, 'Erro ao listar roles:');
         res.status(500).json({ error: 'Erro ao listar níveis de acesso' });
     }
 });
@@ -146,7 +148,7 @@ rolesRouter.get('/:id', requirePermission('roles', 'ver'), async (req: Request, 
 
         res.json(rows[0]);
     } catch (e: any) {
-        console.error('Erro ao buscar role:', e);
+        logger.error({ err: e }, 'Erro ao buscar role:');
         res.status(500).json({ error: 'Erro ao buscar nível de acesso' });
     }
 });
@@ -197,21 +199,32 @@ rolesRouter.post('/', requirePermission('roles', 'editar'), async (req: Request,
             return res.status(400).json({ error: 'Já existe um nível de acesso com esse nome' });
         }
 
-        const { rows } = await pool.query(`
-            INSERT INTO roles (nome, descricao, permissoes, is_system)
-            VALUES ($1, $2, $3, FALSE)
-            RETURNING 
-                id,
-                nome,
-                descricao,
-                permissoes,
-                is_system AS "isSystem",
-                criado_em AS "criadoEm"
-        `, [nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
+        const novoRole = await withTx(async (client) => {
+            const { rows } = await client.query(`
+                INSERT INTO roles (nome, descricao, permissoes, is_system)
+                VALUES ($1, $2, $3, FALSE)
+                RETURNING 
+                    id,
+                    nome,
+                    descricao,
+                    permissoes,
+                    is_system AS "isSystem",
+                    criado_em AS "criadoEm"
+            `, [nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
 
-        res.status(201).json(rows[0]);
+            await logAudit(client, {
+                tabela: 'roles', registroId: rows[0].id, acao: 'CREATE',
+                dadosNovos: rows[0],
+                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
+                ip: req.ip,
+            });
+
+            return rows[0];
+        });
+
+        res.status(201).json(novoRole);
     } catch (e: any) {
-        console.error('Erro ao criar role:', e);
+        logger.error({ err: e }, 'Erro ao criar role:');
         res.status(500).json({ error: 'Erro ao criar nível de acesso' });
     }
 });
@@ -243,26 +256,40 @@ rolesRouter.put('/:id', requirePermission('roles', 'editar'), async (req: Reques
             return res.status(400).json({ error: 'Já existe outro nível de acesso com esse nome' });
         }
 
-        const { rows } = await pool.query(`
-            UPDATE roles
-            SET nome = $2,
-                descricao = $3,
-                permissoes = $4,
-                atualizado_em = NOW()
-            WHERE id = $1
-            RETURNING 
-                id,
-                nome,
-                descricao,
-                permissoes,
-                is_system AS "isSystem",
-                criado_em AS "criadoEm",
-                atualizado_em AS "atualizadoEm"
-        `, [id, nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
+        const roleAtualizado = await withTx(async (client) => {
+            // Fetch dados anteriores para o audit log
+            const { rows: antes } = await client.query('SELECT nome, descricao, permissoes FROM roles WHERE id = $1', [id]);
 
-        res.json(rows[0]);
+            const { rows } = await client.query(`
+                UPDATE roles
+                SET nome = $2,
+                    descricao = $3,
+                    permissoes = $4,
+                    atualizado_em = NOW()
+                WHERE id = $1
+                RETURNING 
+                    id,
+                    nome,
+                    descricao,
+                    permissoes,
+                    is_system AS "isSystem",
+                    criado_em AS "criadoEm",
+                    atualizado_em AS "atualizadoEm"
+            `, [id, nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
+
+            await logAudit(client, {
+                tabela: 'roles', registroId: id, acao: 'UPDATE',
+                dadosAnteriores: antes[0] ?? null, dadosNovos: rows[0],
+                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
+                ip: req.ip,
+            });
+
+            return rows[0];
+        });
+
+        res.json(roleAtualizado);
     } catch (e: any) {
-        console.error('Erro ao atualizar role:', e);
+        logger.error({ err: e }, 'Erro ao atualizar role:');
         res.status(500).json({ error: 'Erro ao atualizar nível de acesso' });
     }
 });
@@ -294,10 +321,19 @@ rolesRouter.delete('/:id', requirePermission('roles', 'editar'), async (req: Req
             });
         }
 
-        await pool.query('DELETE FROM roles WHERE id = $1', [id]);
+        await withTx(async (client) => {
+            await logAudit(client, {
+                tabela: 'roles', registroId: id, acao: 'DELETE',
+                dadosAnteriores: { nome: check.rows[0].nome },
+                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
+                ip: req.ip,
+            });
+            await client.query('DELETE FROM roles WHERE id = $1', [id]);
+        });
+
         res.json({ success: true });
     } catch (e: any) {
-        console.error('Erro ao excluir role:', e);
+        logger.error({ err: e }, 'Erro ao excluir role:');
         res.status(500).json({ error: 'Erro ao excluir nível de acesso' });
     }
 });

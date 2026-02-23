@@ -2,6 +2,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 import { env } from './config/env';
+import { logger } from './logger';
 
 const options: swaggerJsdoc.Options = {
     definition: {
@@ -50,6 +51,6 @@ const specs = swaggerJsdoc(options);
 export const setupSwagger = (app: Express) => {
     if (process.env.NODE_ENV !== 'production') {
         app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
-        console.log(`📄 Swagger docs available at http://localhost:${env.server.port || 3000}/api/docs`);
+        logger.info(`Swagger docs: http://localhost:${env.server.port || 3000}/api/docs`);
     }
 };

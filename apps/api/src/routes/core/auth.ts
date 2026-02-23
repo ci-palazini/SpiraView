@@ -5,6 +5,8 @@ import * as jwt from 'jsonwebtoken';
 import { pool } from '../../db';
 import { env } from '../../config/env';
 import rateLimit from 'express-rate-limit';
+import { logger } from '../../logger';
+import { logAudit } from '../../utils/audit';
 
 
 
@@ -100,10 +102,25 @@ authRouter.post('/auth/login', loginLimiter, async (req, res) => {
         role: u.role,
         nome: u.nome,
         usuario: u.usuario,
+        // Inclui permissões no token para evitar DB query em cada request autenticado
+        permissoes: u.permissoes || {},
       },
       env.auth.jwtSecret,
       { expiresIn: '7d' } // Token válido por 7 dias
     );
+
+    // Audit: registra login bem-sucedido (fire-and-forget, sem bloquear resposta)
+    pool.connect().then(async (client) => {
+      try {
+        await logAudit(client, {
+          tabela: 'usuarios', registroId: u.id, acao: 'LOGIN',
+          dadosNovos: { email: u.email },
+          usuarioId: u.id, usuarioNome: u.nome, ip: req.ip,
+        });
+      } finally {
+        client.release();
+      }
+    }).catch((err) => logger.warn({ err }, 'Falha ao registrar audit de login'));
 
     return res.json({
       id: u.id,
@@ -118,7 +135,7 @@ authRouter.post('/auth/login', loginLimiter, async (req, res) => {
       token, // <--- Retorna o token JWT
     });
   } catch (e: any) {
-    console.error('[AUTH LOGIN ERROR]', e);
+    logger.error({ err: e }, '[AUTH LOGIN ERROR]');
     res.status(500).json({ error: 'Erro interno ao processar login.' });
   }
 });
@@ -186,7 +203,7 @@ authRouter.get('/auth/me', async (req, res) => {
       permissoes: u.permissoes || {}
     });
   } catch (e: any) {
-    console.error('[AUTH ME ERROR]', e);
+    logger.error({ err: e }, '[AUTH ME ERROR]');
     res.status(500).json({ error: 'Erro interno ao buscar usuário.' });
   }
 });
@@ -248,7 +265,7 @@ authRouter.post('/auth/change-password', async (req, res) => {
 
     res.json({ ok: true });
   } catch (e: any) {
-    console.error('[AUTH CHANGE-PASSWORD ERROR]', e);
+    logger.error({ err: e }, '[AUTH CHANGE-PASSWORD ERROR]');
     res.status(500).json({ error: 'Erro interno ao alterar senha.' });
   }
 });

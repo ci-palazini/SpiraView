@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../db';
+import { logger } from '../../logger';
 
 export const causasRouter: Router = Router();
 
@@ -29,7 +30,7 @@ causasRouter.get('/causas', async (_req, res) => {
     // 👇 devolve o array direto
     res.json(rows);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -57,7 +58,7 @@ causasRouter.post('/causas', async (req, res) => {
     );
     res.status(201).json(ins.rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -79,7 +80,7 @@ causasRouter.delete('/causas/:id', async (req, res) => {
 
     res.json({ ok: true });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });

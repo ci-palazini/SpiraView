@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const dashboardRouter: Router = Router();
 
@@ -238,7 +239,7 @@ dashboardRouter.get('/pdca/dashboard',
                 }
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -260,7 +261,7 @@ dashboardRouter.get('/pdca/audit/:entidade/:id',
 
             res.json(query.rows);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });

@@ -1,6 +1,7 @@
 // src/db.ts
 import { Pool, PoolClient } from "pg";
 import { env } from "./config/env";
+import { logger } from "./logger";
 
 export const pool = new Pool({
   connectionString: env.database.connectionString,
@@ -13,7 +14,7 @@ export const pool = new Pool({
 
 // Captura erros inesperados de conexões idle no pool
 pool.on("error", (err) => {
-  console.error("[POOL ERROR] Unexpected error on idle client:", err.message);
+  logger.error({ err }, "[POOL ERROR] Unexpected error on idle client");
 });
 
 // fixa o fuso horário em cada conexão do pool
@@ -22,7 +23,7 @@ pool.on("connect", async (client) => {
   try {
     await client.query("SELECT set_config('timezone', $1, false)", [TIMEZONE]);
   } catch (e) {
-    console.error("Failed to SET TIME ZONE on connection:", e);
+    logger.error({ err: e }, "Failed to SET TIME ZONE on connection");
   }
 });
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const analyticsRouter: Router = Router();
 
@@ -121,7 +122,7 @@ analyticsRouter.get('/qualidade/analytics/responsaveis',
                 items: query.rows.map(r => r.responsavel_nome)
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }
@@ -201,7 +202,7 @@ analyticsRouter.get('/qualidade/analytics/summary',
             });
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }
@@ -235,7 +236,7 @@ analyticsRouter.get('/qualidade/analytics/trends',
             });
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }
@@ -296,7 +297,7 @@ analyticsRouter.get('/qualidade/analytics/details',
             });
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }

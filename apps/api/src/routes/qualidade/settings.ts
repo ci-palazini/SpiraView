@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const settingsRouter: Router = Router();
 
@@ -27,7 +28,7 @@ settingsRouter.get('/qualidade/origens', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -46,7 +47,7 @@ settingsRouter.post('/qualidade/origens',
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             if (e.code === '23505') { // Unique violation
                 return res.status(400).json({ error: 'Origem já existe.' });
             }
@@ -115,7 +116,7 @@ settingsRouter.put('/qualidade/origens/:id',
             res.json(rows[0]);
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -140,7 +141,7 @@ settingsRouter.get('/qualidade/origens/:id/usage', async (req, res) => {
         );
         res.json({ count: Number(countRows[0].count) });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -202,7 +203,7 @@ settingsRouter.delete('/qualidade/origens/:id',
             res.json({ ok: true, transferred: count });
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -226,7 +227,7 @@ settingsRouter.get('/qualidade/motivos', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -245,7 +246,7 @@ settingsRouter.post('/qualidade/motivos',
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             if (e.code === '23505') {
                 return res.status(400).json({ error: 'Motivo já existe.' });
             }
@@ -310,7 +311,7 @@ settingsRouter.put('/qualidade/motivos/:id',
             res.json(rows[0]);
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -335,7 +336,7 @@ settingsRouter.get('/qualidade/motivos/:id/usage', async (req, res) => {
         );
         res.json({ count: Number(countRows[0].count) });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -397,7 +398,7 @@ settingsRouter.delete('/qualidade/motivos/:id',
             res.json({ ok: true, transferred: count });
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -421,7 +422,7 @@ settingsRouter.get('/qualidade/responsaveis', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -440,7 +441,7 @@ settingsRouter.post('/qualidade/responsaveis',
             );
             res.status(201).json(rows[0]);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             if (e.code === '23505') {
                 return res.status(400).json({ error: 'Responsável já existe.' });
             }
@@ -505,7 +506,7 @@ settingsRouter.put('/qualidade/responsaveis/:id',
             res.json(rows[0]);
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -537,7 +538,7 @@ settingsRouter.get('/qualidade/responsaveis/:id/usage', async (req, res) => {
 
         res.json({ count: Number(countRows[0].count) });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -609,7 +610,7 @@ settingsRouter.delete('/qualidade/responsaveis/:id',
             res.json({ ok: true, transferred: count });
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -637,7 +638,7 @@ settingsRouter.get('/qualidade/fix-trigger', async (req, res) => {
         `);
         res.json({ ok: true, message: 'Trigger fixed' });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });

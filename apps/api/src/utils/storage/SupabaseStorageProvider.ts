@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IStorageProvider } from "./IStorageProvider";
 import { StorageError } from "./StorageError";
+import { logger } from "../../logger";
 
 export class SupabaseStorageProvider implements IStorageProvider {
     private supabase: SupabaseClient | null = null;
@@ -21,9 +22,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
                 global: { headers: { "X-Client-Info": "manutencao-api" } },
             });
         } else {
-            console.warn(
-                "[SupabaseStorageProvider] SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY not configured. Storage will fail."
-            );
+            logger.warn("[SupabaseStorageProvider] SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY not configured. Storage will fail.");
         }
     }
 
@@ -44,7 +43,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
             });
 
         if (error) {
-            console.error("[Storage] Upload failed", { path, error });
+            logger.error({ err: error, path }, "[Storage] Upload failed");
             throw new StorageError("UPLOAD_FAILED", error);
         }
 
@@ -61,7 +60,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
             .createSignedUrl(path, expiresInSeconds);
 
         if (error || !data?.signedUrl) {
-            console.error("[Storage] GetSignedUrl failed", { path, error });
+            logger.error({ err: error, path }, "[Storage] GetSignedUrl failed");
             throw new StorageError("FAILED_TO_CREATE_SIGNED_URL", error);
         }
 
@@ -74,10 +73,10 @@ export class SupabaseStorageProvider implements IStorageProvider {
             .remove([path]);
 
         if (error) {
-            console.error("[Storage] Delete failed", { path, error });
+            logger.error({ err: error, path }, "[Storage] Delete failed");
             throw new StorageError("DELETE_FAILED", error);
         }
 
-        console.info(`[Storage] Deleted file: ${path}`);
+        logger.info({ path }, "[Storage] Deleted file");
     }
 }

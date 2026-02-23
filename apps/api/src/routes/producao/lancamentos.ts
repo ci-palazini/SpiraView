@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
+import { logger } from '../../logger';
 
 export const lancamentosRouter: Router = Router();
 
@@ -77,7 +78,7 @@ lancamentosRouter.get('/producao/lancamentos', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -114,7 +115,7 @@ lancamentosRouter.get('/producao/lancamentos/:id', async (req, res) => {
 
         res.json(rows[0]);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -177,7 +178,7 @@ lancamentosRouter.post('/producao/lancamentos', async (req, res) => {
         if (String(e?.message || '').includes('uq_producao_lanc_maquina_data_turno')) {
             return res.status(409).json({ error: 'Já existe um lançamento para esta máquina/data/turno.' });
         }
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -216,7 +217,7 @@ lancamentosRouter.put('/producao/lancamentos/:id', async (req, res) => {
         sseBroadcast({ topic: 'producao_lancamentos', action: 'updated', id });
         res.json({ id, ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -239,7 +240,7 @@ lancamentosRouter.delete('/producao/lancamentos/:id', async (req, res) => {
         sseBroadcast({ topic: 'producao_lancamentos', action: 'deleted', id });
         res.json({ ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -290,7 +291,7 @@ lancamentosRouter.get('/producao/rendimento', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -345,7 +346,7 @@ lancamentosRouter.get('/producao/resumo-diario', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });

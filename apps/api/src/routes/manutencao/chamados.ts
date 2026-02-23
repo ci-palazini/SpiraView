@@ -13,6 +13,7 @@ import {
 import multer from "multer";
 import { storageProvider } from "../../utils/storage";
 import { TicketCreatedNotification } from "../../services/notifications/TicketCreated";
+import { logger } from '../../logger';
 
 export const chamadosRouter: Router = Router();
 
@@ -175,7 +176,7 @@ chamadosRouter.get("/chamados", async (req, res) => {
 
     res.json({ items, page, pageSize, total, hasNext: offset + items.length < total });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -287,7 +288,7 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
 
     res.json({ ...chamado, observacoes: obs.rows });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -363,7 +364,7 @@ chamadosRouter.delete(
 
       return res.json({ ok: true, message: "Chamado excluído com sucesso." });
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -413,7 +414,7 @@ chamadosRouter.get(
 
       return res.json(items);
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -865,7 +866,7 @@ chamadosRouter.post(
 
       return res.status(201).json(payload);
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -935,7 +936,7 @@ chamadosRouter.patch(
 
       return res.json({ ok: true });
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -1116,7 +1117,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
     return res.status(201).json(rows[0]);
 
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     return res.status(500).json({ error: String(e) });
   }
 });
@@ -1221,7 +1222,7 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
 
     res.json(rows[0]);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -1299,7 +1300,7 @@ chamadosRouter.post(
       try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -1351,7 +1352,7 @@ chamadosRouter.delete(
       try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }
@@ -1404,7 +1405,7 @@ chamadosRouter.post(
       try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
       return res.json(rows[0]);
     } catch (e: any) {
-      console.error(e);
+      logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
     }
   }

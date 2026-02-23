@@ -1,5 +1,6 @@
 
 import { Router } from 'express';
+import { logger } from '../../logger';
 
 const router = Router();
 
@@ -43,14 +44,14 @@ router.post('/send', async (req, res) => {
         const resText = await response.text();
 
         if (!response.ok) {
-            console.error('[EmailProxy] MS Forms Failed:', response.status, resText);
+            logger.error({ err: response.status, resText }, '[EmailProxy] MS Forms Failed:');
             return res.status(response.status).json({ error: "Upstream Error", details: resText });
         }
 
         return res.json({ success: true, status: response.status, data: resText });
 
     } catch (error) {
-        console.error('[EmailProxy] POST Error:', error);
+        logger.error({ err: error }, '[EmailProxy] POST Error:');
         return res.status(500).json({ error: String(error) });
     }
 });

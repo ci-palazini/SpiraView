@@ -4,6 +4,7 @@ import * as jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { pool } from "../db";
 import { DEFAULT_ROLE, normalizeRole } from "../auth/roles";
+import { logger } from "../logger";
 
 type DbUserRow = {
   id: string | null;   // UUID no banco
@@ -40,10 +41,11 @@ export async function userFromHeader(req: Request, res: Response, next: NextFunc
           nome: decoded.nome,
           name: decoded.nome, // alias
           role: normalizeRole(decoded.role),
+          permissoes: decoded.permissoes ?? undefined,
         };
         return next();
       } catch (err) {
-        console.warn("JWT verification failed:", err);
+        logger.warn({ err }, "JWT verification failed");
         // Fallthrough: token invalid, so user is undefined
       }
     }
@@ -51,7 +53,7 @@ export async function userFromHeader(req: Request, res: Response, next: NextFunc
     req.user = undefined;
     return next();
   } catch (error) {
-    console.error("userFromHeader", error);
+    logger.error({ err: error }, "userFromHeader middleware failed");
     return next(error instanceof Error ? error : new Error("userFromHeader middleware failed"));
   }
 }

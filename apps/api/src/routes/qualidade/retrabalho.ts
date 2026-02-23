@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const retrabalhoRouter: Router = Router();
 
@@ -121,7 +122,7 @@ retrabalhoRouter.get('/qualidade/retrabalho',
                 }
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -182,7 +183,7 @@ retrabalhoRouter.post('/qualidade/retrabalho',
 
             res.status(201).json({ id: insert.rows[0].id, ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -252,7 +253,7 @@ retrabalhoRouter.put('/qualidade/retrabalho/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -271,7 +272,7 @@ retrabalhoRouter.delete('/qualidade/retrabalho/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -421,7 +422,7 @@ retrabalhoRouter.post('/qualidade/retrabalho/upload',
                 summary: resultados
             });
         } catch (error: any) {
-            console.error('Erro no upload de retrabalho:', error);
+            logger.error({ err: error }, 'Erro no upload de retrabalho:');
             res.status(500).json({ error: 'Erro interno ao processar upload.' });
         }
     });
@@ -496,7 +497,7 @@ retrabalhoRouter.get('/qualidade/retrabalho/analise',
                 periodo: { inicio: dataInicio, fim: dataFim },
             });
         } catch (e: any) {
-            console.error('Erro na análise de retrabalho:', e);
+            logger.error({ err: e }, 'Erro na análise de retrabalho:');
             res.status(500).json({ error: String(e) });
         }
     });

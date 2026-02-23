@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const individualRouter: Router = Router();
 
@@ -113,7 +114,7 @@ individualRouter.get('/qualidade/individual/metrics',
             res.json({ items: formatted });
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }

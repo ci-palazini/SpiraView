@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const planosRouter: Router = Router();
 
@@ -94,7 +95,7 @@ planosRouter.get('/pdca/planos',
                 }
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -128,7 +129,7 @@ planosRouter.get('/pdca/planos/:id',
                 causas: causasQuery.rows
             });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -158,7 +159,7 @@ planosRouter.post('/pdca/planos',
 
             res.status(201).json(plano);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -198,7 +199,7 @@ planosRouter.put('/pdca/planos/:id',
 
             res.json(plano);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -234,7 +235,7 @@ planosRouter.delete('/pdca/planos/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });

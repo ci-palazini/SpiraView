@@ -1,5 +1,6 @@
 import { pool } from '../../db';
 import { sendEmailViaMSForms } from '../msFormsSender';
+import { logger } from '../../logger';
 
 export const TicketCreatedNotification = {
     /**
@@ -7,7 +8,7 @@ export const TicketCreatedNotification = {
      */
     async handle(chamado: any) {
         try {
-            console.log(`[TicketCreated] Buscando inscritos para 'NOVO_CHAMADO'...`);
+            logger.info(`[TicketCreated] Buscando inscritos para 'NOVO_CHAMADO'...`);
             // 1. Buscar inscritos
             const { rows: recipients } = await pool.query(
                 `SELECT u.email, u.nome, u.email_real 
@@ -16,10 +17,10 @@ export const TicketCreatedNotification = {
                  WHERE nc.evento = 'NOVO_CHAMADO'`
             );
 
-            console.log(`[TicketCreated] Encontrados ${recipients.length} destinatários.`);
+            logger.info(`[TicketCreated] Encontrados ${recipients.length} destinatários.`);
 
             if (recipients.length === 0) {
-                console.log('[TicketCreated] Abortando: Ninguém inscrito.');
+                logger.info('[TicketCreated] Abortando: Ninguém inscrito.');
                 return;
             }
 
@@ -32,10 +33,10 @@ export const TicketCreatedNotification = {
             };
             const envSubmitUrl = process.env.MS_FORMS_SUBMIT_URL;
 
-            console.log(`[TicketCreated] Config ENV: FormID=${formId ? 'OK' : 'MISSING'}, SubmitURL=${envSubmitUrl ? 'OK' : 'MISSING'}`);
+            logger.info(`[TicketCreated] Config ENV: FormID=${formId ? 'OK' : 'MISSING'}, SubmitURL=${envSubmitUrl ? 'OK' : 'MISSING'}`);
 
             if (!formId || !fieldIds.to || !fieldIds.subject || !fieldIds.body) {
-                console.error('[TicketCreated] Configuração de MS Forms incompleta no .env');
+                logger.error('[TicketCreated] Configuração de MS Forms incompleta no .env');
                 return;
             }
 
@@ -49,7 +50,7 @@ export const TicketCreatedNotification = {
             const promessas = recipients.map(async (user) => {
                 const emailDestino = user.email_real || user.email;
                 if (!emailDestino || !emailDestino.includes('@')) {
-                    console.log(`[TicketCreated] Usuário ${user.nome} sem email válido.`);
+                    logger.info(`[TicketCreated] Usuário ${user.nome} sem email válido.`);
                     return;
                 }
 
@@ -145,7 +146,7 @@ export const TicketCreatedNotification = {
 `.trim();
 
                 try {
-                    console.log(`[TicketCreated] Enviando para ${emailDestino}...`);
+                    logger.info(`[TicketCreated] Enviando para ${emailDestino}...`);
                     await sendEmailViaMSForms(
                         { to: emailDestino, subject, body },
                         {
@@ -154,16 +155,16 @@ export const TicketCreatedNotification = {
                             submitUrl: envSubmitUrl
                         }
                     );
-                    console.log(`[TicketCreated] SUCESSO: Enviado para ${emailDestino}`);
+                    logger.info(`[TicketCreated] SUCESSO: Enviado para ${emailDestino}`);
                 } catch (err) {
-                    console.error(`[TicketCreated] ERRO ao enviar para ${emailDestino}:`, err);
+                    logger.error({ err, emailDestino }, '[TicketCreated] ERRO ao enviar email');
                 }
             });
 
             await Promise.all(promessas);
 
         } catch (error) {
-            console.error('[TicketCreated] Erro CRÍTICO ao processar TicketCreatedNotification', error);
+            logger.error({ err: error }, '[TicketCreated] Erro CRÍTICO ao processar TicketCreatedNotification');
         }
     }
 };

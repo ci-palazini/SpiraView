@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const kpisRouter: Router = Router();
 
@@ -53,7 +54,7 @@ kpisRouter.get('/logistica/kpis',
             });
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }
@@ -138,7 +139,7 @@ kpisRouter.put('/logistica/kpis/:data',
 
         } catch (e: any) {
             await client.query('ROLLBACK');
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         } finally {
             client.release();
@@ -180,7 +181,7 @@ kpisRouter.put('/logistica/metas/:mes/:ano',
             res.json(result.rows[0]);
 
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     }

@@ -1,11 +1,21 @@
 //apps/api/src/middlewares/requirePermission.ts
 import type { RequestHandler, Request, Response } from "express";
 import { pool } from "../db";
+import { logger } from "../logger";
 
 type PermissionLevel = "nenhum" | "ver" | "editar";
 
 interface UserPermissions {
     [pageKey: string]: PermissionLevel;
+}
+
+// Cache em memória para status ativo do usuário — evita DB hit em cada request autenticado
+const ACTIVE_CACHE_TTL_MS = 60_000; // 60 segundos
+const activeCache = new Map<string, { ativo: boolean; ts: number }>();
+
+/** Invalida o cache de status ativo para um usuário (chamar ao desativar) */
+export function invalidateUserActiveCache(userId: string): void {
+    activeCache.delete(userId);
 }
 
 declare global {
@@ -43,7 +53,36 @@ async function loadUserPermissions(req: Request, res: Response): Promise<{ isRol
         return null;
     }
 
-    // Busca permissões e o nome da role diretamente do banco (fonte da verdade)
+    // Usa permissões do JWT quando disponíveis (evita DB query por request)
+    if (user.permissoes !== undefined) {
+        const permissions = user.permissoes as UserPermissions;
+        const roleName = (user.role ?? "").toLowerCase();
+
+        // Verifica se o usuário ainda está ativo — cache de 60s para evitar DB hit por request
+        const cacheKey = user.id!;
+        const cached = activeCache.get(cacheKey);
+        const now = Date.now();
+        let isActive: boolean;
+
+        if (cached && now - cached.ts < ACTIVE_CACHE_TTL_MS) {
+            isActive = cached.ativo;
+        } else {
+            const { rows: activeCheck } = await pool.query<{ ativo: boolean }>(
+                `SELECT ativo FROM usuarios WHERE id = $1 LIMIT 1`, [user.id]
+            );
+            isActive = activeCheck.length > 0 && activeCheck[0].ativo;
+            activeCache.set(cacheKey, { ativo: isActive, ts: now });
+        }
+
+        if (!isActive) {
+            res.status(401).json({ error: "USUARIO_INATIVO" });
+            return null;
+        }
+
+        return { isRoleAdmin: roleName === 'admin', permissions };
+    }
+
+    // Fallback: tokens antigos sem permissoes no payload → busca no banco
     const { rows } = await pool.query<{ permissoes: UserPermissions; role_nome: string }>(
         `SELECT r.permissoes, r.nome as role_nome
          FROM usuarios u
@@ -106,7 +145,7 @@ export function requirePermission(
 
             next();
         } catch (error) {
-            console.error("Erro ao verificar permissão:", error);
+            logger.error({ err: error }, "Erro ao verificar permissão");
             return res.status(500).json({ error: "ERRO_VERIFICACAO_PERMISSAO" });
         }
     };
@@ -149,7 +188,7 @@ export function requireAnyPermission(
 
             next();
         } catch (error) {
-            console.error("Erro ao verificar permissão:", error);
+            logger.error({ err: error }, "Erro ao verificar permissão");
             return res.status(500).json({ error: "ERRO_VERIFICACAO_PERMISSAO" });
         }
     };

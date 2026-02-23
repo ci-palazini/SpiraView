@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { pool } from '../../db';
+import { pool, withTx } from '../../db';
 import { roleToFuncao } from '../../utils/roles';
-import { requirePermission, requireAnyPermission } from '../../middlewares/requirePermission';
+import { requirePermission, requireAnyPermission, invalidateUserActiveCache } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
+import { logAudit } from '../../utils/audit';
 
 export const usuariosRouter: Router = Router();
 
@@ -99,7 +101,7 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
 
     res.json({ items: rows });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -154,10 +156,10 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async 
     matricula = matricula !== undefined ? String(matricula).trim() : null;
 
     if (!nome || !usuario || !email || !role) {
-      return res.status(400).json({ error: 'Campos obrigatÃ³rios: nome, usuario, email, role.' });
+      return res.status(400).json({ error: 'Campos obrigatórios: nome, usuario, email, role.' });
     }
 
-    // FunÃ§Ã£o padrÃ£o baseada no role (se nÃ£o vier)
+    // Função padrão baseada no role (se não vier)
     if (!funcao) {
       funcao = roleToFuncao(role);
     }
@@ -175,21 +177,29 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async 
     );
     const roleId = roleRows[0]?.id || null;
 
-    // Inserção
-    const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, usuario, email, email_real, role_id, funcao, senha_hash, matricula)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING id, nome, usuario, email, email_real, role_id, funcao, matricula`,
-      [nome, usuario, email, email_real, roleId, funcao, senha_hash, matricula]
-    );
+    // Inserção com audit log
+    const novoUsuario = await withTx(async (client) => {
+      const { rows } = await client.query(
+        `INSERT INTO usuarios (nome, usuario, email, email_real, role_id, funcao, senha_hash, matricula)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         RETURNING id, nome, usuario, email, email_real, role_id, funcao, matricula`,
+        [nome, usuario, email, email_real, roleId, funcao, senha_hash, matricula]
+      );
+      await logAudit(client, {
+        tabela: 'usuarios', registroId: rows[0].id, acao: 'CREATE',
+        dadosNovos: { nome: rows[0].nome, usuario: rows[0].usuario, email: rows[0].email, role_id: rows[0].role_id },
+        usuarioId: req.user?.id, usuarioNome: req.user?.nome, ip: req.ip,
+      });
+      return rows[0];
+    });
 
-    res.status(201).json(rows[0]);
+    res.status(201).json(novoUsuario);
   } catch (e: any) {
     // conflitos de unique (usuario/email)
     if (String(e?.code) === '23505') {
-      return res.status(409).json({ error: 'UsuÃ¡rio ou e-mail jÃ¡ existente.' });
+      return res.status(409).json({ error: 'Usuário ou e-mail já existente.' });
     }
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -208,7 +218,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
     funcao = funcao !== undefined ? String(funcao).trim() : undefined;
     matricula = matricula !== undefined ? String(matricula).trim() : undefined;
 
-    // Monta SET dinÃ¢mico
+    // Monta SET dinâmico
     const sets: string[] = [];
     const params: any[] = [];
     const add = (sql: string, v: any) => { params.push(v); sets.push(`${sql}=$${params.length}`); };
@@ -243,20 +253,29 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
     if (!sets.length) return res.status(400).json({ error: 'Nada para atualizar.' });
 
     params.push(id);
-    const { rows } = await pool.query(
-      `UPDATE usuarios SET ${sets.join(', ')}
-        WHERE id=$${params.length}
-      RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
-      params
-    );
+    const usuarioAtualizado = await withTx(async (client) => {
+      const { rows } = await client.query(
+        `UPDATE usuarios SET ${sets.join(', ')}
+          WHERE id=$${params.length}
+        RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
+        params
+      );
+      if (!rows.length) return null;
+      await logAudit(client, {
+        tabela: 'usuarios', registroId: id, acao: 'UPDATE',
+        dadosNovos: { nome: rows[0].nome, usuario: rows[0].usuario, email: rows[0].email, role_id: rows[0].role_id },
+        usuarioId: req.user?.id, usuarioNome: req.user?.nome, ip: req.ip,
+      });
+      return rows[0];
+    });
 
-    if (!rows.length) return res.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado.' });
-    res.json(rows[0]);
+    if (!usuarioAtualizado) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    res.json(usuarioAtualizado);
   } catch (e: any) {
     if (String(e?.code) === '23505') {
-      return res.status(409).json({ error: 'UsuÃ¡rio ou e-mail jÃ¡ existente.' });
+      return res.status(409).json({ error: 'Usuário ou e-mail já existente.' });
     }
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -267,22 +286,34 @@ usuariosRouter.delete('/usuarios/:id', requirePermission('usuarios', 'editar'), 
     const id = String(req.params.id);
     const ts = Date.now(); // sufixo para evitar conflito de unique
 
-    const upd = await pool.query(
-      `UPDATE usuarios
-          SET ativo   = false,
-              email   = CASE WHEN email   IS NOT NULL THEN email   || '.inactive.' || $2 ELSE email   END,
-              usuario = CASE WHEN usuario IS NOT NULL THEN usuario || '.inactive.' || $2 ELSE usuario END
-        WHERE id = $1 AND ativo = true
-        RETURNING id`,
-      [id, ts]
-    );
+    const { rowCount } = await withTx(async (client) => {
+      const upd = await client.query(
+        `UPDATE usuarios
+            SET ativo   = false,
+                email   = CASE WHEN email   IS NOT NULL THEN email   || '.inactive.' || $2 ELSE email   END,
+                usuario = CASE WHEN usuario IS NOT NULL THEN usuario || '.inactive.' || $2 ELSE usuario END
+          WHERE id = $1 AND ativo = true
+          RETURNING id`,
+        [id, ts]
+      );
+      if (upd.rowCount) {
+        await logAudit(client, {
+          tabela: 'usuarios', registroId: id, acao: 'DELETE',
+          dadosNovos: { ativo: false },
+          usuarioId: req.user?.id, usuarioNome: req.user?.nome, ip: req.ip,
+        });
+      }
+      return upd;
+    });
 
-    if (!upd.rowCount) {
-      return res.status(404).json({ error: 'UsuÃ¡rio nÃ£o encontrado ou jÃ¡ inativo.' });
+    if (!rowCount) {
+      return res.status(404).json({ error: 'Usuário não encontrado ou já inativo.' });
     }
+    // Invalida o cache de active para o usuário desativado
+    invalidateUserActiveCache(id);
     res.json({ ok: true, id });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -416,7 +447,7 @@ usuariosRouter.get('/usuarios/:id/estatisticas', requirePermission('usuarios', '
     });
 
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });

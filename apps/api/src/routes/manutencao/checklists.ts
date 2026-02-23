@@ -160,7 +160,7 @@ checklistsRouter.post('/checklists/daily/submit', async (req, res) => {
 
     res.json({ ok: true, chamados_gerados: gerados });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -209,7 +209,7 @@ checklistsRouter.get('/checklists/daily/submissoes', async (req, res) => {
 
     res.json({ items: rows });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -290,7 +290,7 @@ checklistsRouter.get('/checklists/overview', async (req, res) => {
 
     res.json({ items });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -358,13 +358,14 @@ checklistsRouter.get('/checklists/overview/range', async (req, res) => {
 
     res.json({ items });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
 
 
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 // ... (existing imports)
 
@@ -386,7 +387,7 @@ checklistsRouter.get('/checklists/pendencias', requirePermission('checklists_pen
     `);
     res.json(rows);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -417,7 +418,7 @@ checklistsRouter.post('/checklists/pendencias/justificar', requirePermission('ch
 
     res.json({ ok: true });
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });
@@ -446,7 +447,7 @@ checklistsRouter.get('/checklists/pendencias/historico', requirePermission('chec
 
     res.json(rows);
   } catch (e: any) {
-    console.error(e);
+    logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
   }
 });

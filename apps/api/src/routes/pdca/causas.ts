@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const causasRouter: Router = Router();
 
@@ -69,7 +70,7 @@ causasRouter.post('/pdca/planos/:planoId/causas',
 
             res.status(201).json(causa);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -140,7 +141,7 @@ causasRouter.put('/pdca/causas/:id',
 
             res.json(causa);
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });
@@ -169,7 +170,7 @@ causasRouter.delete('/pdca/causas/:id',
 
             res.json({ ok: true });
         } catch (e: any) {
-            console.error(e);
+            logger.error({ err: e }, 'Erro na rota');
             res.status(500).json({ error: String(e) });
         }
     });

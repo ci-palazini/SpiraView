@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const compareRouter: Router = Router();
 
@@ -198,7 +199,7 @@ compareRouter.get('/qualidade/analytics/compare',
             });
 
         } catch (e: any) {
-            console.error('[compare]', e);
+            logger.error({ err: e }, '[compare]');
             res.status(500).json({ error: String(e) });
         }
     }

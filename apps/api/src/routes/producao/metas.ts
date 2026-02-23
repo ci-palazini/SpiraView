@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../db';
+import { logger } from '../../logger';
 
 export const metasRouter: Router = Router();
 
@@ -61,7 +62,7 @@ metasRouter.get('/producao/metas', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -108,7 +109,7 @@ metasRouter.post('/producao/metas', async (req, res) => {
 
         res.status(201).json({ id: rows[0].id, ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -148,7 +149,7 @@ metasRouter.put('/producao/metas/:id', async (req, res) => {
 
         res.json({ ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -173,7 +174,7 @@ metasRouter.delete('/producao/metas/:id', async (req, res) => {
 
         res.json({ ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -199,7 +200,7 @@ metasRouter.get('/producao/metas/funcionarios', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -244,7 +245,7 @@ metasRouter.post('/producao/metas/funcionarios', async (req, res) => {
 
         res.json({ ok: true, id: rows[0].id });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -273,7 +274,7 @@ metasRouter.get('/producao/indicadores/funcionarios/dia', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -308,7 +309,7 @@ metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
         );
         res.json(rows);
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });

@@ -1,7 +1,8 @@
 // apps/api/src/routes/producao/upload.ts
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
+import { logger } from '../../logger';
 
 export const uploadRouter: Router = Router();
 
@@ -110,7 +111,7 @@ async function cleanupOldInactiveUploads(): Promise<number> {
         }
         return count;
     } catch (e) {
-        console.error('[Cleanup] Erro ao limpar uploads antigos:', e);
+        logger.error({ err: e }, '[Cleanup] Erro ao limpar uploads antigos:');
         return 0;
     }
 }
@@ -275,7 +276,7 @@ interface RowError {
  *       200:
  *         description: Upload processed
  */
-uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
+uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '100mb' }), async (req, res) => {
     try {
         const auth = (req as any).user || {};
 
@@ -662,7 +663,7 @@ uploadRouter.post('/producao/lancamentos/upload', async (req, res) => {
             },
         });
     } catch (e: any) {
-        console.error('Erro no upload de produção:', e);
+        logger.error({ err: e }, 'Erro no upload de produção:');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -719,7 +720,7 @@ uploadRouter.get('/producao/uploads', async (req, res) => {
 
         res.json({ items: rows });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -745,7 +746,7 @@ uploadRouter.get('/producao/uploads/ultimo', async (_req, res) => {
 
         res.json({ upload: rows[0] });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -796,7 +797,7 @@ uploadRouter.get('/producao/uploads/historico', async (req, res) => {
         if (e.code === '42P01') {
             return res.json({ items: [], total: 0, nota: 'Tabela de histórico ainda não criada' });
         }
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -878,7 +879,7 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
             },
         });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
@@ -938,7 +939,7 @@ uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
         sseBroadcast({ topic: 'producao_uploads', action: 'activated', id });
         res.json({ ok: true });
     } catch (e: any) {
-        console.error(e);
+        logger.error({ err: e }, 'Erro na rota');
         res.status(500).json({ error: String(e) });
     }
 });
