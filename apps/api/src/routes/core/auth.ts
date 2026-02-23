@@ -2,11 +2,24 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import { pool } from '../../db';
 import { env } from '../../config/env';
 import rateLimit from 'express-rate-limit';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
+import { validateBody } from '../../middlewares/validateBody';
+
+const loginSchema = z.object({
+  identifier: z.string().min(1, 'Informe usuário ou e-mail.').max(254),
+  senha: z.string().min(6, 'Senha muito curta.').max(128),
+});
+
+const changePasswordSchema = z.object({
+  email: z.string().email().max(254).optional(),
+  senhaAtual: z.string().max(128).optional().default(''),
+  novaSenha: z.string().min(6, 'Nova senha muito curta.').max(128),
+});
 
 
 
@@ -55,13 +68,10 @@ const loginLimiter = rateLimit({
  *       401:
  *         description: Invalid credentials
  */
-authRouter.post('/auth/login', loginLimiter, async (req, res) => {
+authRouter.post('/auth/login', loginLimiter, validateBody(loginSchema), async (req, res) => {
   try {
-    const raw = String(req.body?.identifier || '').trim().toLowerCase();
-    const senha = String(req.body?.senha || '');
-
-    if (!raw) return res.status(400).json({ error: 'Informe Usuário ou e-mail.' });
-    if (senha.length < 6) return res.status(400).json({ error: 'Senha muito curta.' });
+    const raw = req.body.identifier.trim().toLowerCase();
+    const senha = req.body.senha;
 
     // aceita "usuario" ou "email"
     const usuario = raw.includes('@') ? raw.split('@')[0] : raw;
@@ -208,9 +218,9 @@ authRouter.get('/auth/me', async (req, res) => {
   }
 });
 
-authRouter.post('/auth/change-password', async (req, res) => {
+authRouter.post('/auth/change-password', validateBody(changePasswordSchema), async (req, res) => {
   try {
-    const bodyEmail = String(req.body?.email || '').trim().toLowerCase();
+    const bodyEmail = req.body.email ? String(req.body.email).trim().toLowerCase() : '';
     const userEmail = req.user?.email;
     const isAdmin = req.isAdmin === true; // Setado pelo middleware requirePermission ou userFromHeader (se aplicável), mas aqui pode não ter passado por lá.
     // Melhor: verificar role do token ou do banco. Como change-password é autenticado, req.user existe.
@@ -240,10 +250,10 @@ authRouter.post('/auth/change-password', async (req, res) => {
 
     if (!targetEmail) return res.status(401).json({ error: 'Não autenticado.' });
 
-    const senhaAtual = String(req.body?.senhaAtual || '');
-    const novaSenha = String(req.body?.novaSenha || '');
+    const senhaAtual = String(req.body.senhaAtual || '');
+    const novaSenha = String(req.body.novaSenha);
 
-    if (novaSenha.length < 6) return res.status(400).json({ error: 'Nova senha muito curta.' });
+    // novaSenha min-length already enforced by schema
 
     const { rows } = await pool.query(
       `SELECT id, senha_hash FROM usuarios WHERE LOWER(email)=LOWER($1) LIMIT 1`,

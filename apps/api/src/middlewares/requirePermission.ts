@@ -30,8 +30,9 @@ declare global {
 
 /**
  * Verifica se o nível de permissão do usuário é suficiente
+ * @internal também exportada para testes unitários
  */
-function hasPermission(
+export function hasPermission(
     userPerm: PermissionLevel | undefined,
     requiredLevel: "ver" | "editar"
 ): boolean {

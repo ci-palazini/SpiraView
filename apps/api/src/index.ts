@@ -1,3 +1,5 @@
+// Sentry MUST be imported before everything else for auto-instrumentation to work
+import './instrument';
 import { app } from './app';
 import { logger } from './logger';
 import { initScheduler } from './services/scheduler';

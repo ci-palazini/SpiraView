@@ -1,10 +1,35 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import { z } from 'zod';
 import { pool, withTx } from '../../db';
 import { roleToFuncao } from '../../utils/roles';
 import { requirePermission, requireAnyPermission, invalidateUserActiveCache } from '../../middlewares/requirePermission';
+import { validateBody } from '../../middlewares/validateBody';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
+
+const createUsuarioSchema = z.object({
+  nome: z.string().min(1, 'Nome obrigatório.').max(120).trim(),
+  usuario: z.string().min(1, 'Usuário obrigatório.').max(60).trim().toLowerCase(),
+  email: z.string().email('E-mail inválido.').max(254).trim().toLowerCase(),
+  email_real: z.string().email().max(254).optional().nullable(),
+  role: z.string().min(1, 'Role obrigatório.').max(60).trim().toLowerCase(),
+  funcao: z.string().max(80).optional().default(''),
+  senha: z.string().min(6).max(128).optional(),
+  matricula: z.string().max(40).optional().nullable(),
+});
+
+const updateUsuarioSchema = z.object({
+  nome: z.string().min(1).max(120).trim().optional(),
+  usuario: z.string().min(1).max(60).trim().toLowerCase().optional(),
+  email: z.string().email().max(254).trim().toLowerCase().optional(),
+  email_real: z.string().email().max(254).nullable().optional(),
+  role: z.string().min(1).max(60).trim().toLowerCase().optional(),
+  funcao: z.string().max(80).optional(),
+  senha: z.string().min(6).max(128).optional(),
+  matricula: z.string().max(40).nullable().optional(),
+  ativo: z.boolean().optional(),
+});
 
 export const usuariosRouter: Router = Router();
 
@@ -144,25 +169,10 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
  *         $ref: '#/components/schemas/Error'
  */
 // POST /usuarios - criar usuário (requer editar)
-usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async (req, res) => {
+usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), validateBody(createUsuarioSchema), async (req, res) => {
   try {
-    let { nome, usuario, email, email_real, role, funcao, senha, matricula } = req.body || {};
-    nome = String(nome || '').trim();
-    usuario = String(usuario || '').trim().toLowerCase();
-    email = String(email || '').trim().toLowerCase();
-    email_real = email_real ? String(email_real).trim().toLowerCase() : null;
-    role = String(role || '').trim().toLowerCase();
-    funcao = String(funcao || '').trim();
-    matricula = matricula !== undefined ? String(matricula).trim() : null;
-
-    if (!nome || !usuario || !email || !role) {
-      return res.status(400).json({ error: 'Campos obrigatórios: nome, usuario, email, role.' });
-    }
-
-    // Função padrão baseada no role (se não vier)
-    if (!funcao) {
-      funcao = roleToFuncao(role);
-    }
+    const { nome, usuario, email, email_real, role, funcao: funcaoRaw, senha, matricula } = req.body;
+    const funcao = funcaoRaw || roleToFuncao(role);
 
     // senha_hash (opcional)
     let senha_hash: string | null = null;
@@ -205,23 +215,16 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), async 
 });
 
 // PUT /usuarios/:id - atualizar usuário (requer editar)
-usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), async (req, res) => {
+usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), validateBody(updateUsuarioSchema), async (req, res) => {
   try {
     const id = String(req.params.id);
 
-    let { nome, usuario, email, email_real, role, funcao, senha, matricula } = req.body || {};
-    nome = nome !== undefined ? String(nome).trim() : undefined;
-    usuario = usuario !== undefined ? String(usuario).trim().toLowerCase() : undefined;
-    email = email !== undefined ? String(email).trim().toLowerCase() : undefined;
-    email_real = email_real !== undefined ? (email_real ? String(email_real).trim().toLowerCase() : null) : undefined;
-    role = role !== undefined ? String(role).trim().toLowerCase() : undefined;
-    funcao = funcao !== undefined ? String(funcao).trim() : undefined;
-    matricula = matricula !== undefined ? String(matricula).trim() : undefined;
+    const { nome, usuario, email, email_real, role, funcao: funcaoRaw, senha, matricula, ativo } = req.body;
 
     // Monta SET dinâmico
     const sets: string[] = [];
-    const params: any[] = [];
-    const add = (sql: string, v: any) => { params.push(v); sets.push(`${sql}=$${params.length}`); };
+    const params: unknown[] = [];
+    const add = (sql: string, v: unknown) => { params.push(v); sets.push(`${sql}=$${params.length}`); };
 
     if (nome !== undefined) add('nome', nome);
     if (usuario !== undefined) add('usuario', usuario);
@@ -237,16 +240,17 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), asy
         add('role_id', roleRows[0].id);
       }
     }
+    let funcao = funcaoRaw;
     if (role !== undefined && funcao === undefined) {
       funcao = roleToFuncao(role);
     }
     if (funcao !== undefined) add('funcao', funcao);
     if (matricula !== undefined) add('matricula', matricula);
+    if (ativo !== undefined) add('ativo', ativo);
 
-    // Reset de senha se informado
+    // Reset de senha se informado (min-length enforced by schema)
     if (typeof senha === 'string') {
-      if (senha.trim().length < 6) return res.status(400).json({ error: 'Senha muito curta.' });
-      const hash = await bcrypt.hash(senha.trim(), 10);
+      const hash = await bcrypt.hash(senha, 10);
       add('senha_hash', hash);
     }
 

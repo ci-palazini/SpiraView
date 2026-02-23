@@ -3,6 +3,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors, { type CorsOptions } from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import * as Sentry from '@sentry/node';
 import { logger } from './logger';
 
 import { userFromHeader } from './middlewares/userFromHeader';
@@ -72,3 +73,6 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   req.log.error({ err }, '[GLOBAL ERROR]');
   res.status(500).json({ error: 'Erro interno do servidor.' });
 });
+
+// Sentry error handler — deve ser o ÚLTIMO middleware
+Sentry.setupExpressErrorHandler(app);

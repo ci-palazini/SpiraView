@@ -29,6 +29,7 @@ const rawEnvSchema = z
     AUTH_STRICT: z.string().optional(),
     AUTOMATION_API_TOKEN: z.string().optional(),
     JWT_SECRET: z.string().min(1),
+    SENTRY_DSN: z.string().url().optional(),
   })
   .transform(v => ({ ...v, PGPOOL_IDLE_TIMEOUT: v.PGPOOL_IDLE_TIMEOUT ?? 30_000 }));
 
@@ -46,6 +47,7 @@ type Env = {
   };
   auth: { strict: boolean; jwtSecret: string };
   automation: { apiToken: string | undefined };
+  sentry: { dsn: string | undefined };
 };
 
 function ensureDotenvLoaded(): void {
@@ -140,6 +142,7 @@ function toEnv(raw: RawEnv): Env {
       jwtSecret: raw.JWT_SECRET,
     },
     automation: { apiToken: raw.AUTOMATION_API_TOKEN },
+    sentry: { dsn: raw.SENTRY_DSN },
   };
 
   return env;
