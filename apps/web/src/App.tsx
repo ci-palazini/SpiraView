@@ -5,6 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import UserContext from './contexts/UserContext';
+import { MaintenanceProvider, useMaintenance } from './contexts/MaintenanceContext';
+import MaintenanceScreen from './components/MaintenanceScreen';
 
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayout';
@@ -33,6 +35,48 @@ function readStoredUser(): User | null {
     } catch {
         return null;
     }
+}
+
+function AppContent({ user, role }: { user: User | null; role: string }) {
+    const { isMaintenance } = useMaintenance();
+
+    if (isMaintenance) {
+        return <MaintenanceScreen />;
+    }
+
+    return (
+        <Routes>
+            {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
+            <Route path="/tv" element={
+                <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
+                    <TvMenuPage />
+                </Suspense>
+            } />
+            <Route path="/tv/:scope" element={
+                <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
+                    <TvDashboardPage />
+                </Suspense>
+            } />
+
+
+            {!user && <Route path="/*" element={<LoginPage />} />}
+
+            {user && role === 'operador' && (
+                <>
+                    {/* Wizard fora do layout */}
+                    <Route path="/inicio-turno" element={<InicioTurnoPage user={user} />} />
+                    {/* App "normal" com sidebar etc. */}
+                    <Route path="/*" element={<MainLayout user={user} />} />
+                </>
+            )}
+
+            {user && role !== 'operador' && (
+                <Route path="/*" element={<MainLayout user={user} />}>
+                    {/* Nested routes inside MainLayout se houver */}
+                </Route>
+            )}
+        </Routes>
+    );
 }
 
 export default function App() {
@@ -98,44 +142,12 @@ export default function App() {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <UserContext.Provider value={user}>
-                <Toaster position="top-right" />
-                <Routes>
-                    {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
-                    <Route path="/tv" element={
-                        <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
-                            <TvMenuPage />
-                        </Suspense>
-                    } />
-                    <Route path="/tv/:scope" element={
-                        <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
-                            <TvDashboardPage />
-                        </Suspense>
-                    } />
-
-
-                    {!user && <Route path="/*" element={<LoginPage />} />}
-
-                    {user && role === 'operador' && (
-                        <>
-                            {/* Wizard fora do layout */}
-                            <Route path="/inicio-turno" element={<InicioTurnoPage user={user} />} />
-                            {/* App "normal" com sidebar etc. */}
-                            <Route path="/*" element={<MainLayout user={user} />} />
-                        </>
-                    )}
-
-                    {user && role !== 'operador' && (
-                        <Route path="/*" element={<MainLayout user={user} />}>
-                            {/* Nested routes inside MainLayout if needed, but current structure seems to have MainLayout handling routing internally or via children? 
-                            Wait, MainLayout in this app seems to NOT have <Outlet /> but rather use its own internal routing or the App links to it.
-                            Actually, looking at MainLayout.tsx, it has `Routes` inside? NO.
-                            Let me check MainLayout.tsx content again.
-                        */}
-                        </Route>
-                    )}
-                </Routes>
-            </UserContext.Provider>
+            <MaintenanceProvider>
+                <UserContext.Provider value={user}>
+                    <Toaster position="top-right" />
+                    <AppContent user={user} role={role} />
+                </UserContext.Provider>
+            </MaintenanceProvider>
         </DndProvider>
     );
 }

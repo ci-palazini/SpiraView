@@ -136,6 +136,11 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
     const payload = isJson ? await res.json().catch(() => null) : await res.text();
 
     if (!res.ok) {
+        if (res.status === 503) {
+            console.warn('API Unavailable (503) - Entrando em Modo Manutenção');
+            window.dispatchEvent(new CustomEvent('api-maintenance'));
+        }
+
         const msg = isJson ? (payload?.error || payload?.message || res.statusText) : res.statusText;
         throw new Error(msg || `HTTP ${res.status}`);
     }
