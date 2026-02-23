@@ -558,7 +558,7 @@ export default function TvDashboardPage() {
                     produzido += horasFilho;
                     meta += metasByMaquina.get(f.id) || 0;
                     if (horasFilho > 0) {
-                        filhosData.push({ codigo: f.nome, produzido: horasFilho });
+                        filhosData.push({ codigo: f.nome_producao || f.nome, produzido: horasFilho });
                     }
                 }
                 // Top 5 ordenados por produção
