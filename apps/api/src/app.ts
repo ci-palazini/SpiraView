@@ -36,6 +36,19 @@ app.use(pinoHttp({
     if (res.statusCode >= 400) return 'warn';
     return 'info';
   },
+  // Serializa apenas os campos relevantes — evita dump de todos os headers
+  serializers: {
+    req(req) {
+      return {
+        method: req.method,
+        url: req.url,
+        remoteAddress: req.remoteAddress,
+      };
+    },
+    res(res) {
+      return { statusCode: res.statusCode };
+    },
+  },
 }));
 
 // Swagger docs — apenas em dev/test

@@ -435,7 +435,13 @@
       "startFail": "無法開始維護。",
       "rescheduleFail": "重新排程失敗。",
       "deleted": "排程刪除成功！",
-      "deleteFail": "刪除排程失敗。"
+      "deleteFail": "刪除排程失敗。",
+      "loadError": "載入排程失敗。",
+      "selectMachine": "請選擇一台機器。",
+      "createError": "建立排程失敗。",
+      "started": "維護已成功開始！",
+      "startError": "無法開始維護。",
+      "deleteError": "刪除排程失敗。"
     },
     "new": {
       "title": "排程維護",

@@ -23,4 +23,7 @@ if (dsn) {
       return event;
     },
   });
+} else if (process.env.NODE_ENV === 'production') {
+  // Só avisa em produção — em dev sem DSN é normal não ter Sentry
+  console.warn('[Sentry] SENTRY_DSN não definido — monitoramento desativado.');
 }

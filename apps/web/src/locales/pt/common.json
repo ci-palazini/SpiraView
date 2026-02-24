@@ -646,7 +646,13 @@
       "startFail": "Falha ao iniciar manutenção.",
       "rescheduleFail": "Falha ao reagendar.",
       "deleted": "Agendamento excluído com sucesso!",
-      "deleteFail": "Falha ao excluir agendamento."
+      "deleteFail": "Falha ao excluir agendamento.",
+      "loadError": "Falha ao carregar agendamentos.",
+      "selectMachine": "Selecione uma máquina.",
+      "createError": "Falha ao criar agendamento.",
+      "started": "Manutenção iniciada com sucesso!",
+      "startError": "Falha ao iniciar manutenção.",
+      "deleteError": "Falha ao excluir agendamento."
     },
     "new": {
       "title": "Agendar Manutenção",

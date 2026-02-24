@@ -435,7 +435,13 @@
       "startFail": "Avvio manutenzione non riuscito.",
       "rescheduleFail": "Ripianificazione non riuscita.",
       "deleted": "Pianificazione eliminata con successo!",
-      "deleteFail": "Impossibile eliminare la pianificazione."
+      "deleteFail": "Impossibile eliminare la pianificazione.",
+      "loadError": "Impossibile caricare le pianificazioni.",
+      "selectMachine": "Seleziona una macchina.",
+      "createError": "Impossibile creare la pianificazione.",
+      "started": "Manutenzione avviata con successo!",
+      "startError": "Avvio manutenzione non riuscito.",
+      "deleteError": "Impossibile eliminare la pianificazione."
     },
     "new": {
       "title": "Pianifica manutenzione",

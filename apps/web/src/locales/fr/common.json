@@ -435,7 +435,13 @@
       "startFail": "Échec du démarrage de la maintenance.",
       "rescheduleFail": "Échec du replanification.",
       "deleted": "Planification supprimée avec succès !",
-      "deleteFail": "Échec de la suppression de la planification."
+      "deleteFail": "Échec de la suppression de la planification.",
+      "loadError": "Échec du chargement des planifications.",
+      "selectMachine": "Veuillez sélectionner une machine.",
+      "createError": "Échec de la création de la planification.",
+      "started": "Maintenance démarrée avec succès !",
+      "startError": "Échec du démarrage de la maintenance.",
+      "deleteError": "Échec de la suppression de la planification."
     },
     "new": {
       "title": "Planifier une maintenance",

@@ -435,7 +435,13 @@
       "startFail": "유지보수를 시작할 수 없습니다.",
       "rescheduleFail": "재일정에 실패했습니다.",
       "deleted": "일정이 삭제되었습니다!",
-      "deleteFail": "일정을 삭제할 수 없습니다."
+      "deleteFail": "일정을 삭제할 수 없습니다.",
+      "loadError": "일정을 불러올 수 없습니다.",
+      "selectMachine": "기계를 선택해 주세요.",
+      "createError": "일정을 생성할 수 없습니다.",
+      "started": "유지보수가 시작되었습니다!",
+      "startError": "유지보수를 시작할 수 없습니다.",
+      "deleteError": "일정을 삭제할 수 없습니다."
     },
     "new": {
       "title": "유지보수 일정 등록",

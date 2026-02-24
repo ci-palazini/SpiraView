@@ -435,7 +435,13 @@
       "startFail": "Wartung konnte nicht gestartet werden.",
       "rescheduleFail": "Neuterminierung fehlgeschlagen.",
       "deleted": "Planung erfolgreich gelöscht!",
-      "deleteFail": "Planung konnte nicht gelöscht werden."
+      "deleteFail": "Planung konnte nicht gelöscht werden.",
+      "loadError": "Planungen konnten nicht geladen werden.",
+      "selectMachine": "Bitte eine Maschine auswählen.",
+      "createError": "Planung konnte nicht erstellt werden.",
+      "started": "Wartung erfolgreich gestartet!",
+      "startError": "Wartung konnte nicht gestartet werden.",
+      "deleteError": "Planung konnte nicht gelöscht werden."
     },
     "new": {
       "title": "Wartung planen",

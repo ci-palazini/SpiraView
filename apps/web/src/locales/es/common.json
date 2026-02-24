@@ -552,7 +552,13 @@
       "startFail": "Fallo al iniciar el mantenimiento.",
       "rescheduleFail": "Fallo al reprogramar.",
       "deleted": "¡Programación eliminada con éxito!",
-      "deleteFail": "Fallo al eliminar la programación."
+      "deleteFail": "Fallo al eliminar la programación.",
+      "loadError": "Fallo al cargar las programaciones.",
+      "selectMachine": "Selecciona una máquina.",
+      "createError": "Fallo al crear la programación.",
+      "started": "¡Mantenimiento iniciado con éxito!",
+      "startError": "Fallo al iniciar el mantenimiento.",
+      "deleteError": "Fallo al eliminar la programación."
     },
     "new": {
       "title": "Programar mantenimiento",

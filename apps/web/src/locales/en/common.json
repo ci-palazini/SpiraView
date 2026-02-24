@@ -563,7 +563,13 @@
       "startFail": "Failed to start maintenance.",
       "rescheduleFail": "Failed to reschedule.",
       "deleted": "Schedule successfully deleted!",
-      "deleteFail": "Failed to delete schedule."
+      "deleteFail": "Failed to delete schedule.",
+      "loadError": "Failed to load schedules.",
+      "selectMachine": "Please select a machine.",
+      "createError": "Failed to create schedule.",
+      "started": "Maintenance started successfully!",
+      "startError": "Failed to start maintenance.",
+      "deleteError": "Failed to delete schedule."
     },
     "new": {
       "title": "Schedule Maintenance",

@@ -435,7 +435,13 @@
       "startFail": "无法开始维护。",
       "rescheduleFail": "重新计划失败。",
       "deleted": "计划已成功删除！",
-      "deleteFail": "删除计划失败。"
+      "deleteFail": "删除计划失败。",
+      "loadError": "加载计划失败。",
+      "selectMachine": "请选择一台机器。",
+      "createError": "创建计划失败。",
+      "started": "维护已成功开始！",
+      "startError": "无法开始维护。",
+      "deleteError": "删除计划失败。"
     },
     "new": {
       "title": "计划维护",
