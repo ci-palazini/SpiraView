@@ -48,6 +48,7 @@ flowchart LR
 | GET | `/chamados/:id/fotos` | - | Listar fotos |
 | POST | `/chamados/:id/atender` | `meus_chamados: editar` | Aceitar chamado (manutentor principal); insere em `chamado_manutentores` com `papel='principal'` |
 | POST | `/chamados/:id/entrar` | `meus_chamados: editar` | Co-manutenção: entrar num chamado já "Em Andamento"; insere em `chamado_manutentores` com `papel='co'` |
+| POST | `/chamados/:id/sair` | `meus_chamados: editar` | Sair do chamado (apenas `papel='co'`; principal recebe 403) |
 
 ### Checklists (`checklists.ts`)
 
@@ -125,8 +126,9 @@ stateDiagram-v2
 1. **Checklist → Chamado automático**: Se operador marca item como NOK, sistema pode criar chamado automaticamente.
 2. **Fotos obrigatórias**: Alguns tipos de chamado exigem foto antes de conclusão.
 3. **Tempo de parada**: Calculado automaticamente (conclusão - abertura).
-4. **Responsável atual**: Quando manutentor assume, vira responsável até devolver ou concluir.
+4. **Manutentor único**: `chamados.manutentor_id` é o técnico principal (referência rápida para JOINs e filtros de permissão).
 5. **Co-manutenção**: Múltiplos manutentores podem trabalhar num mesmo chamado. O primeiro que aceita é `principal`; os demais entram via `POST /chamados/:id/entrar` com papel `co`. A tabela `chamado_manutentores` é a fonte canônica de todos os participantes. O botão "Entrar na Manutenção" aparece apenas quando o chamado está "Em Andamento" e o usuário ainda não está na lista.
+6. **Sair da manutenção**: Somente co-manutentores (`papel='co'`) podem sair via `POST /chamados/:id/sair`. O manutentor principal recebe 403 ao tentar sair.
 
 ---
 

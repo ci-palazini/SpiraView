@@ -367,19 +367,18 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
       const { rows: chamados } = await client.query(
         `INSERT INTO chamados
            (maquina_id, tipo, status, descricao,
-            criado_por_id, manutentor_id, responsavel_atual_id,
+            criado_por_id, manutentor_id,
             checklist, agendamento_id)
          VALUES
            ($1, 'preventiva', $2, $3,
-            $4, $5, $6,
-            $7::jsonb, $8)
+            $4, $5,
+            $6::jsonb, $7)
          RETURNING id`,
         [
           agendamento.maquina_id,
           statusInicial,
           descricaoChamado,
           criadoPorId,
-          manutentorId,
           manutentorId,
           JSON.stringify(checklist),
           id, // agendamento_id

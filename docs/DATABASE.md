@@ -101,17 +101,23 @@ Sistema de chamados de manutenção.
 |--------|------|-----------|
 | `id` | UUID | PK |
 | `maquina_id` | UUID | FK → maquinas.id |
-| `operador_id` | UUID | FK → usuarios.id (quem abriu) |
-| `manutentor_id` | UUID | FK → usuarios.id (técnico responsável) |
-| `situacao` | VARCHAR | Status: Aberto, Em Andamento, Concluído |
-| `prioridade` | VARCHAR | Alta, Média, Baixa |
-| `tipo_manutencao` | VARCHAR | Corretiva, Preventiva |
+| `criado_por_id` | UUID | FK → usuarios.id (quem abriu) |
+| `manutentor_id` | UUID | FK → usuarios.id (técnico principal; referência rápida para JOINs/filtros) |
+| `status` | VARCHAR | `Aberto`, `Em Andamento`, `Concluido`, `Cancelado` |
+| `tipo` | VARCHAR | `corretiva`, `preventiva` |
 | `descricao` | TEXT | Descrição do problema |
+| `causa` | TEXT | Causa raiz identificada |
 | `solucao` | TEXT | Solução aplicada |
-| `data_abertura` | TIMESTAMP | Quando foi aberto |
-| `data_inicio` | TIMESTAMP | Quando iniciou atendimento |
-| `data_conclusao` | TIMESTAMP | Quando foi concluído |
-| `tempo_parada` | INTERVAL | Tempo de parada |
+| `checklist` | JSONB | Itens de checklist preventivo |
+| `agendamento_id` | UUID | FK → agendamentos_preventivos.id (se originado de agendamento) |
+| `criado_em` | TIMESTAMPTZ | Quando foi aberto |
+| `concluido_em` | TIMESTAMPTZ | Quando foi concluído |
+| `concluido_por_id` | UUID | FK → usuarios.id |
+| `concluido_por_email` | TEXT | Email de quem concluiu |
+| `concluido_por_nome` | TEXT | Nome de quem concluiu |
+| `atualizado_em` | TIMESTAMPTZ | Última atualização |
+
+> **Nota:** A lista completa de participantes (principal + co-manutentores) está em `chamado_manutentores`.
 
 #### `chamado_observacoes`
 Histórico de observações/comentários em chamados.

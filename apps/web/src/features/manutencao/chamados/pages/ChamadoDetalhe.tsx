@@ -80,19 +80,9 @@ interface ApiChamado {
     operadorNome?: string;
     dataAbertura?: string;
     dataConclusao?: string;
-    manutentor_id_norm?: string;
-    manutentor_nome_norm?: string;
-    manutentor_email_norm?: string;
-    responsavel_atual_id?: string;
-    responsavel_atual_nome?: string;
-    responsavel_atual_email?: string;
-    atendido_por_id?: string;
-    atendido_por_nome?: string;
-    atendido_por_email?: string;
-    atendido_em?: string;
-    atribuido_para_id?: string;
-    atribuido_para_nome?: string;
-    atribuido_para_email?: string;
+    manutentor_id?: string;
+    manutentor?: string;
+    manutentor_email?: string;
     manutentores?: Array<{
         id: string;
         nome: string;
@@ -118,12 +108,6 @@ interface ChamadoMapped {
     manutentorId: string | null;
     manutentorNome: string;
     manutentorEmail: string;
-    atendidoPorId: string | null;
-    atendidoPorNome: string;
-    atendidoPorEmail: string;
-    atendidoEm: string | null;
-    assignedTo: string | null;
-    assignedToNome: string;
     manutentores: { id: string; nome: string; email: string; papel: 'principal' | 'co'; entrou_em: string }[];
 }
 
@@ -208,28 +192,9 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 const c: ApiChamado = await getChamado(id);
 
                 // normaliza responsabilidades do chamado
-                const normId = c.manutentor_id_norm
-                    ?? c.responsavel_atual_id
-                    ?? c.atendido_por_id
-                    ?? c.atribuido_para_id
-                    ?? null;
-
-                const normNome = c.manutentor_nome_norm
-                    ?? c.responsavel_atual_nome
-                    ?? c.atendido_por_nome
-                    ?? c.atribuido_para_nome
-                    ?? '';
-
-                const normEmail = (c.manutentor_email_norm
-                    ?? c.responsavel_atual_email
-                    ?? c.atendido_por_email
-                    ?? c.atribuido_para_email
-                    ?? '').toLowerCase();
-
-                const attendedById = c.atendido_por_id ?? null;
-                const attendedByNome = c.atendido_por_nome ?? '';
-                const attendedByEmail = (c.atendido_por_email ?? '').toLowerCase();
-                const attendedEm = c.atendido_em ?? null;
+                const normId = c.manutentor_id ?? null;
+                const normNome = c.manutentor ?? '';
+                const normEmail = (c.manutentor_email ?? '').toLowerCase();
 
                 const mapped: ChamadoMapped = {
                     id: c.id,
@@ -244,20 +209,9 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     dataAbertura: c.dataAbertura ?? c.criado_em ?? null,
                     dataConclusao: c.dataConclusao ?? c.concluido_em ?? null,
 
-                    // "dono" do chamado para permissão (isOwner)
                     manutentorId: normId,
                     manutentorNome: normNome,
                     manutentorEmail: normEmail,
-
-                    // exibimos também quem atendeu
-                    atendidoPorId: attendedById,
-                    atendidoPorNome: attendedByNome,
-                    atendidoPorEmail: attendedByEmail,
-                    atendidoEm: attendedEm,
-
-                    // usado para bloquear "atender" se já tem dono
-                    assignedTo: normId,
-                    assignedToNome: normNome,
 
                     manutentores: (c.manutentores || []) as ChamadoMapped['manutentores'],
 
@@ -354,8 +308,15 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     const isOwner = useMemo(() => {
         if (!chamado) return false;
-        const byId = !!userId && !!chamado.manutentorId && String(chamado.manutentorId) === String(userId);
-        const byEmail = !!userEmail && !!chamado.manutentorEmail && chamado.manutentorEmail === userEmail;
+        const principal = chamado.manutentores.find(m => m.papel === 'principal');
+        if (!principal) {
+            // fallback para chamados sem entrada em chamado_manutentores ainda
+            const byId = !!userId && !!chamado.manutentorId && String(chamado.manutentorId) === String(userId);
+            const byEmail = !!userEmail && !!chamado.manutentorEmail && chamado.manutentorEmail === userEmail;
+            return byId || byEmail;
+        }
+        const byId = !!userId && String(principal.id) === String(userId);
+        const byEmail = !!userEmail && principal.email === userEmail;
         return byId || byEmail;
     }, [chamado, userId, userEmail]);
 
@@ -467,7 +428,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     }
 
     async function handleAtenderChamado() {
-        if (chamado?.assignedTo && !isOwner) {
+        if (chamado?.manutentorId && !isOwner) {
             toast.error(t('chamadoDetalhe.toasts.assignedToOther'));
             return;
         }
@@ -616,18 +577,6 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                         </p>
                     </div>
 
-                    {chamado.atendidoPorNome && (
-                        <div className={styles.detailItem}>
-                            <strong>{t('chamadoDetalhe.fields.attendedBy') || 'Atendido por'}</strong>
-                            <p>{chamado.atendidoPorNome}</p>
-                            {chamado.atendidoEm && (
-                                <small>
-                                    {t('chamadoDetalhe.fields.attendedAt', { date: fmtDateTime.format(asDate(chamado.atendidoEm) as Date) }) || `Atendido em: ${fmtDateTime.format(asDate(chamado.atendidoEm) as Date)}`}
-                                </small>
-                            )}
-                        </div>
-                    )}
-
                     {chamado.manutentores.length > 0 && (
                         <div className={styles.detailItem}>
                             <strong>{t('chamadoDetalhe.fields.coMaintainers')}</strong>
@@ -765,9 +714,9 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     </Select>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                         <Button onClick={handleAtribuir} loading={assigning} disabled={!selectedManutentor}>
-                            {chamado.assignedTo ? t('chamadoDetalhe.assign.reassign') : t('chamadoDetalhe.assign.assign')}
+                            {chamado.manutentorId ? t('chamadoDetalhe.assign.reassign') : t('chamadoDetalhe.assign.assign')}
                         </Button>
-                        {chamado.assignedTo && (
+                        {chamado.manutentorId && (
                             <Button variant="secondary" onClick={handleRemoverAtribuicao} loading={assigning}>
                                 {t('chamadoDetalhe.assign.remove')}
                             </Button>

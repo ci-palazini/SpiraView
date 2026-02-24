@@ -107,17 +107,10 @@ chamadosRouter.get("/chamados", async (req, res) => {
       where.push(`LOWER(u.email) = LOWER($${params.length})`);
     }
 
-    // manutentor: cobre manutentor_id E colunas de atribuição por e-mail (se existirem)
+    // manutentor: filtra por manutentor_id via join
     if (manutentorEmail) {
       params.push(manutentorEmail);
-      const idx = params.length;
-      where.push(`
-        (
-          LOWER(um.email) = LOWER($${idx})
-          OR LOWER(COALESCE(c.atribuido_para_email, '')) = LOWER($${idx})
-          OR LOWER(ura.email) = LOWER($${idx})
-        )
-      `);
+      where.push(`LOWER(um.email) = LOWER($${params.length})`);
     }
 
     // Período: se Concluído, filtra por concluido_em; senão por criado_em
@@ -140,7 +133,6 @@ chamadosRouter.get("/chamados", async (req, res) => {
          JOIN public.maquinas  m  ON m.id  = c.maquina_id
          JOIN public.usuarios  u  ON u.id  = c.criado_por_id
          LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-         LEFT JOIN public.usuarios ura ON ura.id = c.responsavel_atual_id
         WHERE ${whereSql}`,
       params
     );
@@ -167,7 +159,6 @@ chamadosRouter.get("/chamados", async (req, res) => {
        JOIN public.maquinas  m  ON m.id  = c.maquina_id
        JOIN public.usuarios  u  ON u.id  = c.criado_por_id
        LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-       LEFT JOIN public.usuarios ura ON ura.id = c.responsavel_atual_id
        WHERE ${whereSql}
        ORDER BY ${orderCol} DESC NULLS LAST
        LIMIT $${params2.length - 1} OFFSET $${params2.length}`,
@@ -181,12 +172,11 @@ chamadosRouter.get("/chamados", async (req, res) => {
   }
 });
 
-// ---------- Chamados: detalhe (patch 3 - versão completa) ----------
+// ---------- Chamados: detalhe ----------
 chamadosRouter.get("/chamados/:id", async (req, res) => {
   try {
     const id = String(req.params.id);
 
-    // Detalhe do chamado + responsável atual
     const { rows } = await pool.query(
       `
       SELECT
@@ -214,52 +204,31 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
 
         -- quem criou
         c.criado_por_id,
-        COALESCE(c.criado_por_nome, ucri.nome)   AS criado_por,
-        ucri.email                                AS criado_por_email,
+        COALESCE(c.criado_por_nome, ucri.nome) AS criado_por,
+        ucri.email                              AS criado_por_email,
 
-        -- Manutentor (quem atendeu)
-         c.atendido_por_id,
-         c.atendido_por_nome,
-         c.atendido_por_email,
-         to_char(c.atendido_em, 'YYYY-MM-DD HH24:MI') AS atendido_em,
-         COALESCE(c.atendido_por_nome, umat.nome)     AS manutentor,
-         COALESCE(c.atendido_por_email, umat.email)   AS manutentor_email,
+        -- Manutentor principal (via manutentor_id)
+        c.manutentor_id,
+        umat.nome  AS manutentor,
+        umat.email AS manutentor_email,
 
-        -- Atribuído (histórico da importação)
-        c.atribuido_para_id,
-        c.atribuido_para_nome,
-        c.atribuido_para_email,
-
-        -- Responsável atual (o que a UI mostra como Atribuído a)
-        c.responsavel_atual_id,
-        ru.nome   AS responsavel_atual_nome,
-        ru.email  AS responsavel_atual_email,
-
-        -- quem concluiu (novo)
+        -- quem concluiu
         c.concluido_por_id,
         c.concluido_por_nome,
         c.concluido_por_email,
 
-        -- Checklist sempre como JSONB
+        -- Checklist
         CASE WHEN jsonb_typeof(c.checklist) = 'array' THEN c.checklist ELSE '[]'::jsonb END AS checklist,
-
-        -- Metadados do checklist
         CASE WHEN c.tipo = 'preventiva' THEN 'preventiva' ELSE NULL END AS tipo_checklist,
         CASE WHEN c.tipo = 'preventiva' AND c.checklist IS NOT NULL
             THEN jsonb_array_length(c.checklist)
             ELSE NULL
-        END AS qtd_itens,
-
-        -- Aliases normalizados p/ o front
-        COALESCE(c.responsavel_atual_id, c.atendido_por_id, c.atribuido_para_id)     AS manutentor_id_norm,
-        COALESCE(ru.email,                umat.email,        c.atribuido_para_email) AS manutentor_email_norm,
-        COALESCE(ru.nome,                 umat.nome,         c.atribuido_para_nome)  AS manutentor_nome_norm
+        END AS qtd_itens
 
       FROM public.chamados c
-      JOIN public.maquinas  m   ON m.id  = c.maquina_id
+      JOIN public.maquinas  m    ON m.id   = c.maquina_id
       LEFT JOIN public.usuarios ucri ON ucri.id = c.criado_por_id
-      LEFT JOIN public.usuarios umat ON umat.id = c.atendido_por_id
-      LEFT JOIN public.usuarios ru   ON ru.id   = c.responsavel_atual_id
+      LEFT JOIN public.usuarios umat ON umat.id = c.manutentor_id
       WHERE c.id = $1
       LIMIT 1;
       `,
@@ -271,22 +240,19 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
     }
     const chamado = rows[0];
 
-    // Observações (texto sempre string; sem arrays SQL)
+    // Observações
     const obs = await pool.query(
-      `
-      SELECT
-        o.texto                                       AS texto,
-        to_char(o.criado_em,'YYYY-MM-DD HH24:MI')     AS criado_em,
-        COALESCE(o.autor_nome, u.nome, 'Sistema')     AS autor
-      FROM public.chamado_observacoes o
-      LEFT JOIN public.usuarios u ON u.id = o.autor_id
-      WHERE o.chamado_id = $1
-      ORDER BY o.criado_em ASC
-      `,
+      `SELECT o.texto,
+              to_char(o.criado_em,'YYYY-MM-DD HH24:MI') AS criado_em,
+              COALESCE(o.autor_nome, u.nome, 'Sistema')  AS autor
+         FROM public.chamado_observacoes o
+         LEFT JOIN public.usuarios u ON u.id = o.autor_id
+        WHERE o.chamado_id = $1
+        ORDER BY o.criado_em ASC`,
       [id]
     );
 
-    // Manutentores do chamado (principal + co-manutentores)
+    // Manutentores (principal + co-manutentores)
     const manutRes = await pool.query(
       `SELECT manutentor_id AS id, manutentor_nome AS nome, manutentor_email AS email, papel,
               to_char(entrou_em, 'YYYY-MM-DD HH24:MI') AS entrou_em
@@ -519,7 +485,7 @@ chamadosRouter.post(
       const resultado = await withTx(async (client) => {
         // trava a linha para transição segura
         const { rows } = await client.query(
-          `SELECT status, tipo, manutentor_id, responsavel_atual_id, atendido_por_id, agendamento_id
+          `SELECT status, tipo, manutentor_id, agendamento_id
              FROM public.chamados
             WHERE id = $1
             FOR UPDATE`,
@@ -541,21 +507,12 @@ chamadosRouter.post(
         // Atualiza para "Em Andamento"
         const { rows: updated } = await client.query(
           `UPDATE public.chamados
-              SET status               = $2,
-                  -- não sobrescreve se já existir
-                  manutentor_id        = COALESCE(manutentor_id, $3),
-                  responsavel_atual_id = COALESCE(responsavel_atual_id, $3),
-
-                  -- marca quem atendeu e quando (idempotente)
-                  atendido_por_id      = COALESCE(atendido_por_id,    $3),
-                  atendido_por_email   = COALESCE(atendido_por_email, $4),
-                  atendido_por_nome    = COALESCE(atendido_por_nome,  $5),
-                  atendido_em          = COALESCE(atendido_em,        NOW()),
-
-                  atualizado_em        = NOW()
+              SET status        = $2,
+                  manutentor_id = COALESCE(manutentor_id, $3),
+                  atualizado_em = NOW()
             WHERE id = $1
-        RETURNING id, status, manutentor_id, responsavel_atual_id, atendido_por_id, atendido_em, agendamento_id`,
-          [chamadoId, CHAMADO_STATUS.EM_ANDAMENTO, atendenteId, atendenteEmail, atendenteNome]
+        RETURNING id, status, manutentor_id, agendamento_id`,
+          [chamadoId, CHAMADO_STATUS.EM_ANDAMENTO, atendenteId]
         );
 
         if (!updated.length) {
@@ -756,13 +713,7 @@ chamadosRouter.post(
 
       // lê status/tipo e vínculos para regras de permissão/transição
       const { rows } = await pool.query(
-        `SELECT status,
-                tipo,
-                manutentor_id,
-                responsavel_atual_id,
-                atendido_por_id,
-                agendamento_id,
-                checklist
+        `SELECT status, tipo, manutentor_id, agendamento_id, checklist
            FROM public.chamados
           WHERE id = $1`,
         [chamadoId]
@@ -778,16 +729,19 @@ chamadosRouter.post(
         return res.status(409).json({ error: "STATE_CONFLICT", status: atual.status });
       }
 
-      // Permissão: manutentor/resp/atendente podem concluir; gestor sempre pode
-      const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
-        .filter(Boolean)
-        .map((v) => String(v));
-
+      // Permissão: manutentor pode concluir; gestor sempre pode
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
       const isGestorLike = (user.role || '').toLowerCase() === "admin" || hasGestao;
 
-      if (!isGestorLike && !associados.includes(String(user.id))) {
-        return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+      if (!isGestorLike && String(atual.manutentor_id) !== String(user.id)) {
+        // também verifica se é co-manutentor
+        const { rows: cmRows } = await pool.query(
+          `SELECT 1 FROM public.chamado_manutentores WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, user.id]
+        );
+        if (!cmRows.length) {
+          return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+        }
       }
 
       const tipoChamado = typeof atual.tipo === "string" ? atual.tipo.toLowerCase() : "";
@@ -923,14 +877,9 @@ chamadosRouter.post(
         return res.status(400).json({ error: "TIPO_INVALIDO", detalhe: "Envie apenas imagens." });
       }
 
-      // valida se o usuário está associado ao chamado (igual ao patch checklist)
+      // valida se o usuário está associado ao chamado
       const { rows } = await pool.query(
-        `
-        SELECT status, manutentor_id, responsavel_atual_id, atendido_por_id
-          FROM public.chamados
-         WHERE id = $1
-         LIMIT 1
-        `,
+        `SELECT status, manutentor_id FROM public.chamados WHERE id = $1 LIMIT 1`,
         [chamadoId]
       );
       if (!rows.length) {
@@ -938,16 +887,18 @@ chamadosRouter.post(
       }
 
       const atual = rows[0];
-      const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
-        .filter(Boolean)
-        .map((v: any) => String(v));
-
       const role = String(user.role || "").toLowerCase();
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
       const isGestorLike = role === "gestor industrial" || role === "admin" || hasGestao;
 
-      if (!isGestorLike && !associados.includes(String(user.id))) {
-        return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+      if (!isGestorLike && String(atual.manutentor_id) !== String(user.id)) {
+        const { rows: cmRows } = await pool.query(
+          `SELECT 1 FROM public.chamado_manutentores WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, user.id]
+        );
+        if (!cmRows.length) {
+          return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+        }
       }
 
       // upload no Storage via Provider
@@ -1035,10 +986,7 @@ chamadosRouter.patch(
 
       // Carrega chamado para validar estado/permissão
       const { rows } = await pool.query(
-        `SELECT status, manutentor_id, responsavel_atual_id, atendido_por_id
-           FROM public.chamados
-          WHERE id = $1
-          LIMIT 1`,
+        `SELECT status, manutentor_id FROM public.chamados WHERE id = $1 LIMIT 1`,
         [chamadoId]
       );
       if (!rows.length) {
@@ -1051,17 +999,18 @@ chamadosRouter.patch(
         return res.status(409).json({ error: "INVALID_STATE", status: atual.status });
       }
 
-
       // manutentor/gestor: se não for gestor, precisa estar associado
-      const associados = [atual.manutentor_id, atual.responsavel_atual_id, atual.atendido_por_id]
-        .filter(Boolean)
-        .map((v: any) => String(v));
-
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
       const isGestorLike = (user.role || '').toLowerCase() === "gestor industrial" || user.role === "admin" || hasGestao;
 
-      if (!isGestorLike && !associados.includes(String(user.id))) {
-        return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+      if (!isGestorLike && String(atual.manutentor_id) !== String(user.id)) {
+        const { rows: cmRows } = await pool.query(
+          `SELECT 1 FROM public.chamado_manutentores WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, user.id]
+        );
+        if (!cmRows.length) {
+          return res.status(403).json({ error: "PERMISSAO_NEGADA" });
+        }
       }
 
       await pool.query(
@@ -1205,9 +1154,9 @@ chamadosRouter.post("/chamados", async (req, res) => {
     const { rows: created } = await pool.query(
       `INSERT INTO public.chamados
          (maquina_id, tipo, status, descricao,
-          criado_por_id, manutentor_id, responsavel_atual_id,
+          criado_por_id, manutentor_id,
           checklist)
-       VALUES ($1,$2,$3,$4, $5,$6,$7, $8::jsonb)
+       VALUES ($1,$2,$3,$4, $5,$6, $7::jsonb)
        RETURNING id`,
       [
         maquinaId,
@@ -1215,7 +1164,6 @@ chamadosRouter.post("/chamados", async (req, res) => {
         statusFinal,
         String(data.descricao).trim(),
         uCriador[0].id,
-        manutentorId,     // null se não atribuído
         manutentorId,     // null se não atribuído
         JSON.stringify(checklistFinal),
       ]
@@ -1314,11 +1262,6 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
           WHEN $1 = 'Aberto' THEN NULL
           ELSE c.manutentor_id
         END,
-        responsavel_atual_id = CASE
-          WHEN $1 = 'Em Andamento' THEN (SELECT id FROM mt)
-          WHEN $1 = 'Aberto' THEN NULL
-          ELSE c.responsavel_atual_id
-        END,
         concluido_em = CASE
           WHEN $1 = 'Concluido' THEN NOW()
           WHEN $1 = 'Aberto' THEN NULL
@@ -1370,7 +1313,7 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
 // -------------------------------------------------------
 // POST /chamados/:id/atribuir  (GESTOR atribui a alguém)
 // body: { manutentorEmail: string }
-// -> Atualiza manutentor_id, responsavel_atual_id, status = 'Em Andamento'
+// -> Atualiza manutentor_id, status = 'Em Andamento'
 // -------------------------------------------------------
 chamadosRouter.post(
   '/chamados/:id/atribuir',
@@ -1405,7 +1348,6 @@ chamadosRouter.post(
       await pool.query(
         `UPDATE public.chamados
             SET manutentor_id = $2,
-                responsavel_atual_id = $2,
                 status = $3,
                 atualizado_em = NOW()
           WHERE id = $1`,
@@ -1457,7 +1399,6 @@ chamadosRouter.delete(
       await pool.query(
         `UPDATE public.chamados
             SET manutentor_id = NULL,
-                responsavel_atual_id = NULL,
                 status = $2,
                 atualizado_em = NOW()
           WHERE id = $1`,
@@ -1510,7 +1451,6 @@ chamadosRouter.post(
       await pool.query(
         `UPDATE public.chamados
             SET manutentor_id = $2,
-                responsavel_atual_id = $2,
                 status = $3,
                 atualizado_em = NOW()
           WHERE id = $1`,
