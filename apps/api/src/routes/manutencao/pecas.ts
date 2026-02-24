@@ -87,7 +87,7 @@ pecasRouter.put('/pecas/:id', async (req, res) => {
     } = req.body || {};
 
     if (!codigo || !nome) return res.status(400).json({ error: 'Informe código e nome.' });
-    if (estoqueMinimo < 0) return res.status(400).json({ error: 'Estoque mÃ­nimo inválido.' });
+    if (estoqueMinimo < 0) return res.status(400).json({ error: 'Estoque mínimo inválido.' });
 
     const upd = await pool.query(
       `UPDATE pecas
@@ -160,7 +160,7 @@ pecasRouter.delete('/pecas/:id', async (req, res) => {
   }
 });
 
-// Lista de chamados com filtros opcionais (tipo, status, PerÃ­odo e máquina)
+// Lista de chamados com filtros opcionais (tipo, status, Período e máquina)
 
 pecasRouter.post('/pecas/:id/movimentacoes', async (req, res) => {
   try {
