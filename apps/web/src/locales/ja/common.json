@@ -385,7 +385,8 @@
       "onlyManagerDelete": "管理者のみ削除できます。",
       "deleted": "依頼を削除しました。",
       "deleteError": "削除に失敗しました。",
-      "checklistSaveError": "チェックリストの保存に失敗しました。"
+      "checklistSaveError": "チェックリストの保存に失敗しました。",
+      "checklistIncomplete": "完了する前にすべてのチェックリスト項目に回答してください。"
     },
     "preventive": {
       "title": "保守チェックリスト"

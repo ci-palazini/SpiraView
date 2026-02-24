@@ -385,7 +385,8 @@
       "onlyManagerDelete": "Nur Manager können den Arbeitsauftrag löschen.",
       "deleted": "Arbeitsauftrag erfolgreich gelöscht.",
       "deleteError": "Fehler beim Löschen.",
-      "checklistSaveError": "Fehler beim Speichern der Checkliste."
+      "checklistSaveError": "Fehler beim Speichern der Checkliste.",
+      "checklistIncomplete": "Bitte alle Checklisten-Punkte beantworten, bevor Sie abschließen."
     },
     "preventive": {
       "title": "Wartungs-Checkliste"

@@ -6,15 +6,17 @@ export const ChamadoStatusKey = z.enum(["aberto", "em_andamento", "concluido", "
 
 // Itens de checklist: aceita string ou objeto
 export const ChecklistItemSchema = z.union([
-  z.string().trim().min(1).transform((s: string) => ({ item: s, resposta: "sim" as const })),
+  z.string().trim().min(1).transform((s: string) => ({ item: s, resposta: null as null })),
   z.object({
     item: z.string().trim().min(1),
-    resposta: z.string().trim().optional(),
+    resposta: z.string().trim().nullish(),
     status: z.string().trim().optional(),
     comentario: z.string().trim().optional().nullable(),
-  }).transform((o: { item: string; resposta?: string; status?: string; comentario?: string | null }) => ({
+  }).transform((o: { item: string; resposta?: string | null; status?: string; comentario?: string | null }) => ({
     item: o.item,
-    resposta: ((o.resposta ?? o.status ?? "sim").toLowerCase().startsWith("n") ? "nao" : "sim") as "sim" | "nao",
+    resposta: (o.resposta == null && o.status == null)
+      ? null as null
+      : ((o.resposta ?? o.status ?? "sim").toLowerCase().startsWith("n") ? "nao" : "sim") as "sim" | "nao",
     comentario: o.comentario ?? undefined,
   })),
 ]);

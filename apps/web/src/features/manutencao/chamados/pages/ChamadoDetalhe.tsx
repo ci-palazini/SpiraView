@@ -33,7 +33,7 @@ interface ChamadoDetalheProps {
 
 interface ChecklistItem {
     item: string;
-    resposta: 'sim' | 'nao';
+    resposta: 'sim' | 'nao' | null;
 }
 
 interface Observacao {
@@ -125,10 +125,11 @@ function asDate(v: unknown): Date | null {
 }
 
 function normChecklistItem(it: unknown): ChecklistItem {
-    if (typeof it === 'string') return { item: it, resposta: 'sim' };
+    if (typeof it === 'string') return { item: it, resposta: null };
     const obj = it as { item?: string; texto?: string; key?: string; resposta?: string } | null;
     const itemTxt = obj?.item || obj?.texto || obj?.key || '';
-    const resp = String(obj?.resposta || 'sim').toLowerCase() === 'nao' ? 'nao' : 'sim';
+    const raw = String(obj?.resposta ?? '').toLowerCase();
+    const resp: 'sim' | 'nao' | null = raw === 'sim' ? 'sim' : raw === 'nao' ? 'nao' : null;
     return { item: itemTxt, resposta: resp };
 }
 
@@ -515,6 +516,12 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         setBusy(true);
         try {
             if (chamado?.tipo === 'preventiva') {
+                const unanswered = checklist.filter(i => i.resposta === null).length;
+                if (unanswered > 0) {
+                    toast.error(t('chamadoDetalhe.toasts.checklistIncomplete') || `Responda todos os itens do checklist (${unanswered} pendente${unanswered > 1 ? 's' : ''}).`);
+                    setBusy(false);
+                    return;
+                }
                 await concluirChamado(id as string, { tipo: 'preventiva', checklist }, { role: user.role, email: user.email });
             } else {
                 if (!causa) { toast.error(t('chamadoDetalhe.toasts.selectCause')); setBusy(false); return; }
@@ -639,7 +646,8 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                             manutentorNome: chamado.manutentorNome,
                                             dataAbertura: chamado.dataAbertura,
                                             dataConclusao: chamado.dataConclusao,
-                                            checklist: checklist.length > 0 ? checklist : (chamado.checklist || []),
+                                            checklist: (checklist.length > 0 ? checklist : (chamado.checklist || []))
+                                                .map(i => ({ ...i, resposta: (i.resposta ?? 'nao') as 'sim' | 'nao' })),
                                             observacoes: chamado.observacoes || [],
                                             fotos: fotos
                                                 .filter((f) => !!f.url)

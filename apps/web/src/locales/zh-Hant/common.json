@@ -385,7 +385,8 @@
       "onlyManagerDelete": "只有經理可以刪除此工單。",
       "deleted": "工單刪除成功。",
       "deleteError": "刪除工單時發生錯誤。",
-      "checklistSaveError": "儲存檢查表時發生錯誤。"
+      "checklistSaveError": "儲存檢查表時發生錯誤。",
+      "checklistIncomplete": "請在完成前回答所有檢查表項目。"
     },
     "preventive": {
       "title": "維護檢查表"

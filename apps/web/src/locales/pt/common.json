@@ -602,7 +602,8 @@
       "onlyManagerDelete": "Apenas gestores podem excluir chamado.",
       "deleted": "Chamado excluído com sucesso.",
       "deleteError": "Erro ao excluir chamado.",
-      "checklistSaveError": "Falha ao salvar checklist."
+      "checklistSaveError": "Falha ao salvar checklist.",
+      "checklistIncomplete": "Responda todos os itens do checklist antes de concluir."
     },
     "preventive": {
       "title": "Checklist de Manutenção"

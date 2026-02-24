@@ -385,7 +385,8 @@
       "onlyManagerDelete": "Solo i responsabili possono eliminare l’ordine.",
       "deleted": "Ordine eliminato con successo.",
       "deleteError": "Errore durante l’eliminazione dell’ordine.",
-      "checklistSaveError": "Errore durante il salvataggio della checklist."
+      "checklistSaveError": "Errore durante il salvataggio della checklist.",
+      "checklistIncomplete": "Rispondere a tutti gli elementi della checklist prima di concludere."
     },
     "preventive": {
       "title": "Checklist di manutenzione"

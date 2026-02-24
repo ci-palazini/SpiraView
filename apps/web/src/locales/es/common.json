@@ -496,7 +496,8 @@
       "onlyManagerDelete": "Solo gestores pueden eliminar la orden.",
       "deleted": "Orden eliminada con éxito.",
       "deleteError": "Error al eliminar la orden.",
-      "checklistSaveError": "Error al guardar el checklist."
+      "checklistSaveError": "Error al guardar el checklist.",
+      "checklistIncomplete": "Responda todos los ítems del checklist antes de concluir."
     },
     "preventive": {
       "title": "Checklist de mantenimiento"

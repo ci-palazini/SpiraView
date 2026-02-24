@@ -385,7 +385,8 @@
       "onlyManagerDelete": "仅经理可删除此工单。",
       "deleted": "工单已成功删除。",
       "deleteError": "删除工单时发生错误。",
-      "checklistSaveError": "保存检查表失败。"
+      "checklistSaveError": "保存检查表失败。",
+      "checklistIncomplete": "请在完成前回答所有检查表项目。"
     },
     "preventive": {
       "title": "维护检查表"

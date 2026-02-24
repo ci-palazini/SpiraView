@@ -519,7 +519,8 @@
       "onlyManagerDelete": "Only managers can delete the work order.",
       "deleted": "Work order successfully deleted.",
       "deleteError": "Error deleting the work order.",
-      "checklistSaveError": "Failed to save checklist."
+      "checklistSaveError": "Failed to save checklist.",
+      "checklistIncomplete": "Please answer all checklist items before finishing."
     },
     "preventive": {
       "title": "Maintenance Checklist"

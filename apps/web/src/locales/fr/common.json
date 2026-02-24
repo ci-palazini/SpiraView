@@ -385,7 +385,8 @@
       "onlyManagerDelete": "Seuls les gestionnaires peuvent supprimer l’ordre.",
       "deleted": "Ordre supprimé avec succès.",
       "deleteError": "Erreur lors de la suppression de l’ordre.",
-      "checklistSaveError": "Échec de l’enregistrement de la checklist."
+      "checklistSaveError": "Échec de l’enregistrement de la checklist.",
+      "checklistIncomplete": "Veuillez répondre à tous les éléments de la checklist avant de terminer."
     },
     "preventive": {
       "title": "Checklist de maintenance"
