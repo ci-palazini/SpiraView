@@ -332,6 +332,12 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         );
     }, [chamado, userId, userEmail]);
 
+    // "podeTrabalhar" = está no chamado como principal ou co-manutentor
+    const podeTrabalhar =
+        isManutentor &&
+        chamado?.status === 'Em Andamento' &&
+        (isOwner || jaEstaNaLista);
+
     const podeEntrar =
         isManutentor &&
         chamado?.status === 'Em Andamento' &&
@@ -344,10 +350,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         );
     }, [chamado, userId, userEmail]);
 
-    const podeConcluir =
-        isManutentor &&
-        chamado?.status === 'Em Andamento' &&
-        isOwner;
+    const podeConcluir = podeTrabalhar;
 
     // --------- handlers ---------
     function handleFotoChange(e: ChangeEvent<HTMLInputElement>) {
@@ -505,7 +508,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     async function handleConcluirChamado(e: FormEvent) {
         e.preventDefault();
-        if (!isOwner) {
+        if (!isOwner && !jaEstaNaLista) {
             toast.error(t('chamadoDetalhe.toasts.finishOnlyOwner'));
             return;
         }
@@ -730,7 +733,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             <div className={`${styles.card} ${styles.historySection}`}>
                 <h2 className={styles.cardTitle}>{t('chamadoDetalhe.history.title')}</h2>
 
-                {podeConcluir && (
+                {(podeTrabalhar || canGerirChamados) && chamado.status !== 'Concluido' && (
                     <div className={styles.formGroup}>
                         <label htmlFor="observacao">{t('chamadoDetalhe.history.add')}</label>
                         <textarea
