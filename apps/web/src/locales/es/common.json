@@ -451,7 +451,8 @@
       "noObservations": "Sin observaciones.",
       "page": "Página",
       "of": "de",
-      "generatedAt": "Generado el"
+      "generatedAt": "Generado el",
+      "photosTitle": "Registros Fotográficos"
     },
     "photos": {
       "title": "Fotos del mantenimiento",

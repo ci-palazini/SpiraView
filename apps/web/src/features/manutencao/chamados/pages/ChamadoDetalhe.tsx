@@ -631,8 +631,8 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                         <div className={`${styles.detailItem} ${styles.detailItemFull}`} style={{ paddingTop: 8 }}>
                             <Button
                                 variant="secondary"
-                                onClick={() => {
-                                    generatePreventiveReport(
+                                onClick={async () => {
+                                    await generatePreventiveReport(
                                         {
                                             maquina: chamado.maquina,
                                             descricao: chamado.descricao,
@@ -641,6 +641,13 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                             dataConclusao: chamado.dataConclusao,
                                             checklist: checklist.length > 0 ? checklist : (chamado.checklist || []),
                                             observacoes: chamado.observacoes || [],
+                                            fotos: fotos
+                                                .filter((f) => !!f.url)
+                                                .map((f) => ({
+                                                    url: f.url as string,
+                                                    autorNome: f.autorNome,
+                                                    criadoEm: f.criadoEm,
+                                                })),
                                         },
                                         {
                                             title: t('chamadoDetalhe.pdf.title'),
@@ -664,6 +671,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                             of: t('chamadoDetalhe.pdf.of'),
                                             generatedAt: t('chamadoDetalhe.pdf.generatedAt'),
                                             coordinatorName: 'Leandro Rocha da Silva',
+                                            photosTitle: t('chamadoDetalhe.pdf.photosTitle'),
                                         },
                                     );
                                 }}

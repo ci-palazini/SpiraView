@@ -13,6 +13,12 @@ interface ReportObservacao {
     texto: string;
 }
 
+interface ReportFoto {
+    url: string;
+    autorNome?: string;
+    criadoEm?: string | null;
+}
+
 interface PreventiveReportData {
     maquina: string;
     descricao: string;
@@ -21,6 +27,7 @@ interface PreventiveReportData {
     dataConclusao: string | null;
     checklist: ReportChecklistItem[];
     observacoes: ReportObservacao[];
+    fotos?: ReportFoto[];
 }
 
 interface ReportLabels {
@@ -45,6 +52,7 @@ interface ReportLabels {
     of: string;
     generatedAt: string;
     coordinatorName: string;
+    photosTitle: string;
 }
 
 // ---------- Constants ----------
@@ -60,7 +68,57 @@ const TABLE_HEADER_BG: [number, number, number] = [0, 51, 102];
 const TABLE_ROW_ALT_BG: [number, number, number] = [240, 244, 248];
 const BORDER_COLOR: [number, number, number] = [200, 210, 220];
 
-// ---------- Helper ----------
+// ---------- Helpers ----------
+async function fetchImageAsBase64(url: string): Promise<{
+    data: string;
+    format: string;
+    naturalW: number;
+    naturalH: number;
+} | null> {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const contentType = response.headers.get('Content-Type') || 'image/jpeg';
+        const format = contentType.includes('png') ? 'PNG' : 'JPEG';
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        const dataUrl = `data:${contentType};base64,${base64}`;
+
+        // Resolve natural dimensions using browser Image and bake EXIF orientation
+        const { w, h, bakedDataUrl } = await new Promise<{ w: number; h: number; bakedDataUrl: string }>((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+                    const mimeType = contentType.includes('png') ? 'image/png' : 'image/jpeg';
+                    resolve({
+                        w: img.naturalWidth,
+                        h: img.naturalHeight,
+                        bakedDataUrl: canvas.toDataURL(mimeType, 0.9)
+                    });
+                } else {
+                    resolve({ w: img.naturalWidth, h: img.naturalHeight, bakedDataUrl: dataUrl });
+                }
+            };
+            img.onerror = () => resolve({ w: 1, h: 1, bakedDataUrl: dataUrl });
+            img.src = dataUrl;
+        });
+
+        return { data: bakedDataUrl, format, naturalW: w, naturalH: h };
+    } catch {
+        return null;
+    }
+}
+
 function formatDateForReport(dateStr: string | null): string {
     if (!dateStr) return '—';
     try {
@@ -79,12 +137,33 @@ function formatDateForReport(dateStr: string | null): string {
 }
 
 // ---------- Main ----------
-export function generatePreventiveReport(
+export async function generatePreventiveReport(
     data: PreventiveReportData,
     labels: ReportLabels,
-): void {
+): Promise<void> {
     const doc = new jsPDF('p', 'mm', 'a4');
     let y = 15;
+
+    // Pre-load all images as base64 before building the PDF
+    const fotosParaRenderizar: {
+        data: string;
+        format: string;
+        naturalW: number;
+        naturalH: number;
+        autorNome?: string;
+        criadoEm?: string | null;
+    }[] = [];
+    if (data.fotos && data.fotos.length > 0) {
+        const results = await Promise.all(
+            data.fotos.map(async (f) => {
+                if (!f.url) return null;
+                const img = await fetchImageAsBase64(f.url);
+                if (!img) return null;
+                return { ...img, autorNome: f.autorNome, criadoEm: f.criadoEm };
+            }),
+        );
+        results.forEach((r) => { if (r) fotosParaRenderizar.push(r); });
+    }
 
     // ============ HEADER ============
     // Logo
@@ -268,6 +347,99 @@ export function generatePreventiveReport(
             doc.line(MARGIN_LEFT + 2, y, MARGIN_LEFT + CONTENT_WIDTH - 2, y);
             y += 4;
         });
+    }
+
+    // ============ PHOTOS ============
+    if (fotosParaRenderizar.length > 0) {
+        if (y > 220) {
+            doc.addPage();
+            y = 20;
+        } else {
+            y += 4;
+        }
+
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...HEADER_COLOR);
+        doc.text(labels.photosTitle, MARGIN_LEFT, y);
+        y += 2;
+
+        doc.setDrawColor(...ACCENT_COLOR);
+        doc.setLineWidth(0.5);
+        doc.line(MARGIN_LEFT, y + 3, PAGE_WIDTH - MARGIN_RIGHT, y + 3);
+        y += 9;
+
+        // 2-column grid — height is proportional to each image's natural aspect ratio
+        const COL_GAP = 6;
+        const COL_WIDTH = (CONTENT_WIDTH - COL_GAP) / 2;
+        // Cap portrait images at 120mm; landscape images capped at 80mm
+        const IMG_MAX_H_PORTRAIT = 120;
+        const IMG_MAX_H_LANDSCAPE = 80;
+        const CAPTION_H = 6;
+        const ROW_PADDING = 8;
+        const PAGE_BOTTOM = 280;
+
+        const calcImgH = (naturalW: number, naturalH: number): number => {
+            const isPortrait = naturalH >= naturalW;
+            const maxH = isPortrait ? IMG_MAX_H_PORTRAIT : IMG_MAX_H_LANDSCAPE;
+            const proportional = COL_WIDTH * (naturalH / naturalW);
+            return Math.min(maxH, proportional);
+        };
+
+        const renderPhoto = (
+            foto: typeof fotosParaRenderizar[0],
+            xOffset: number,
+            rowY: number,
+            imgH: number,
+        ) => {
+            doc.setDrawColor(...BORDER_COLOR);
+            doc.setLineWidth(0.3);
+            doc.rect(xOffset, rowY, COL_WIDTH, imgH);
+
+            try {
+                doc.addImage(foto.data, foto.format, xOffset, rowY, COL_WIDTH, imgH);
+            } catch (e) {
+                console.warn('Could not embed photo in PDF:', e);
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('(imagem indisponível)', xOffset + 2, rowY + imgH / 2);
+            }
+
+            const captionY = rowY + imgH + 4;
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 100, 100);
+            const caption = [
+                foto.autorNome,
+                foto.criadoEm ? formatDateForReport(foto.criadoEm) : null,
+            ].filter(Boolean).join(' • ');
+            if (caption) {
+                doc.text(caption, xOffset, captionY, { maxWidth: COL_WIDTH });
+            }
+        };
+
+        // Process in pairs (one row at a time)
+        for (let i = 0; i < fotosParaRenderizar.length; i += 2) {
+            const left = fotosParaRenderizar[i];
+            const right = fotosParaRenderizar[i + 1] ?? null;
+
+            const leftH = calcImgH(left.naturalW, left.naturalH);
+            const rightH = right ? calcImgH(right.naturalW, right.naturalH) : 0;
+            const rowH = Math.max(leftH, rightH);
+
+            // New page if row doesn't fit
+            if (y + rowH + CAPTION_H + ROW_PADDING > PAGE_BOTTOM) {
+                doc.addPage();
+                y = 20;
+            }
+
+            renderPhoto(left, MARGIN_LEFT, y, leftH);
+            if (right) {
+                renderPhoto(right, MARGIN_LEFT + COL_WIDTH + COL_GAP, y, rightH);
+            }
+
+            y += rowH + CAPTION_H + ROW_PADDING;
+        }
     }
 
     // ============ FOOTER ============

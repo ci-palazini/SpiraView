@@ -470,7 +470,8 @@
       "noObservations": "No observations.",
       "page": "Page",
       "of": "of",
-      "generatedAt": "Generated at"
+      "generatedAt": "Generated at",
+      "photosTitle": "Photo Records"
     },
     "photos": {
       "title": "Maintenance Photos",

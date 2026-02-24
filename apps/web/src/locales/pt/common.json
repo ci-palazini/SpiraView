@@ -553,7 +553,8 @@
       "noObservations": "Nenhuma observação.",
       "page": "Página",
       "of": "de",
-      "generatedAt": "Gerado em"
+      "generatedAt": "Gerado em",
+      "photosTitle": "Registros Fotográficos"
     },
     "photos": {
       "title": "Fotos da manutenção",
