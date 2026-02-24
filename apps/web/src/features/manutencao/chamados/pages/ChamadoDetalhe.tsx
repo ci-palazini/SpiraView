@@ -151,7 +151,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const [busy, setBusy] = useState(false);
     const [reloadTick, setReloadTick] = useState(0);
 
-    // ediÃ§Ã£o / conclusÃ£o
+    // edição / conclusão
     const [solucao, setSolucao] = useState('');
     const [causa, setCausa] = useState('');
     const [causas, setCausas] = useState<string[]>([]);
@@ -159,16 +159,16 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     // checklist preventiva
     const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
 
-    // observaÃ§Ãµes
+    // observações
     const [novaObservacao, setNovaObservacao] = useState('');
 
-    // fotos de manutenÃ§Ã£o
+    // fotos de manutenção
     const [fotos, setFotos] = useState<Foto[]>([]);
     const [fotoFile, setFotoFile] = useState<File | null>(null);
     const [uploadingFoto, setUploadingFoto] = useState(false);
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
-    // atribuiÃ§Ã£o (gestor)
+    // atribuição (gestor)
     const [manutentores, setManutentores] = useState<Manutentor[]>([]);
     const [selectedManutentor, setSelectedManutentor] = useState('');
     const [assigning, setAssigning] = useState(false);
@@ -176,7 +176,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const role = (user?.role || '').toLowerCase();
     const perm = usePermissions(user as any);
 
-    // Pode gerenciar chamados: admin/gestor OU quem tem permissÃ£o granular
+    // Pode gerenciar chamados: admin/gestor OU quem tem permissão granular
     const canGerirChamados = role === 'gestor industrial' || role === 'admin' || perm.canEdit('chamados_gestao');
     const isManutentor = role === 'manutentor' || perm.canEdit('meus_chamados');
     const isOperador = role === 'operador';
@@ -236,18 +236,18 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     dataAbertura: c.dataAbertura ?? c.criado_em ?? null,
                     dataConclusao: c.dataConclusao ?? c.concluido_em ?? null,
 
-                    // "dono" do chamado para permissÃ£o (isOwner)
+                    // "dono" do chamado para permissão (isOwner)
                     manutentorId: normId,
                     manutentorNome: normNome,
                     manutentorEmail: normEmail,
 
-                    // exibimos tambÃ©m quem atendeu
+                    // exibimos também quem atendeu
                     atendidoPorId: attendedById,
                     atendidoPorNome: attendedByNome,
                     atendidoPorEmail: attendedByEmail,
                     atendidoEm: attendedEm,
 
-                    // usado para bloquear "atender" se jÃ¡ tem dono
+                    // usado para bloquear "atender" se já tem dono
                     assignedTo: normId,
                     assignedToNome: normNome,
 
@@ -338,7 +338,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         })();
     }, [canGerirChamados, t]);
 
-    // --------- permissÃµes ---------
+    // --------- permissões ---------
     const userId = user?.uid || user?.id || user?.userId || null;
     const userEmail = (user?.email || '').toLowerCase();
 
@@ -375,7 +375,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         if (!isOwner && !isManutentor && !canGerirChamados) {
             toast.error(
                 t('chamadoDetalhe.photos.permissionDenied') ||
-                'VocÃª nÃ£o tem permissÃ£o para enviar fotos.'
+                'Você não tem permissão para enviar fotos.'
             );
             return;
         }
@@ -533,7 +533,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     if (loading) return <p style={{ padding: 20 }}>{t('common.loading')}</p>;
     if (!chamado) return <p style={{ padding: 20 }}>{t('chamadoDetalhe.notFound')}</p>;
 
-    const openedAt = chamado?.dataAbertura ? fmtDateTime.format(asDate(chamado.dataAbertura) as Date) : 'â€”';
+    const openedAt = chamado?.dataAbertura ? fmtDateTime.format(asDate(chamado.dataAbertura) as Date) : '—';
     const isPreventiva = (chamado?.tipo || '').toLowerCase() === 'preventiva';
 
     return (
@@ -573,7 +573,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
                     {chamado.manutentorNome && (
                         <div className={styles.detailItem}>
-                            <strong>{t('chamadoDetalhe.fields.assignedTo') || 'AtribuÃ­do a'}</strong>
+                            <strong>{t('chamadoDetalhe.fields.assignedTo') || 'Atribuído a'}</strong>
                             <p>{chamado.manutentorNome}</p>
                         </div>
                     )}
@@ -596,7 +596,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                 <strong>{t('chamadoDetalhe.fields.performedService')}</strong>
                                 <p style={{ wordBreak: 'break-word' }}>{chamado.solucao}</p>
                                 <small>{t('chamadoDetalhe.fields.finishedAt', {
-                                    date: chamado.dataConclusao ? fmtDateTime.format(asDate(chamado.dataConclusao) as Date) : 'â€”',
+                                    date: chamado.dataConclusao ? fmtDateTime.format(asDate(chamado.dataConclusao) as Date) : '—',
                                 })}</small>
                             </div>
                         )
@@ -669,14 +669,14 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                     ))}
                                 </Select>
                             ) : (
-                                <p className={styles.readonlyField}>{chamado.causa || 'â€“'}</p>
+                                <p className={styles.readonlyField}>{chamado.causa || '–'}</p>
                             )}
                         </div>
                     )}
                 </div>
             </Card>
 
-            {/* AtribuiÃ§Ã£o (gestor) */}
+            {/* Atribuição (gestor) */}
             {canGerirChamados && chamado.status !== 'Concluido' && (
                 <div className={styles.card}>
                     <h2 className={styles.cardTitle}>{t('chamadoDetalhe.assign.title')}</h2>
@@ -705,7 +705,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             )
             }
 
-            {/* ObservaÃ§Ãµes */}
+            {/* Observações */}
             <div className={`${styles.card} ${styles.historySection}`}>
                 <h2 className={styles.cardTitle}>{t('chamadoDetalhe.history.title')}</h2>
 
@@ -729,8 +729,8 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     {(chamado.observacoes || []).slice().reverse().map((obs, i) => (
                         <li key={i} className={styles.historyItem}>
                             <div className={styles.historyHeader}>
-                                <strong>{obs.autor || 'â€”'}</strong>
-                                <span>{obs.data ? fmtDateTime.format(asDate(obs.data) as Date) : 'â€”'}</span>
+                                <strong>{obs.autor || '—'}</strong>
+                                <span>{obs.data ? fmtDateTime.format(asDate(obs.data) as Date) : '—'}</span>
                             </div>
                             <p className={styles.historyContent}>{obs.texto}</p>
                         </li>
@@ -739,10 +739,10 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 </ul>
             </div>
 
-            {/* Fotos da manutenÃ§Ã£o */}
+            {/* Fotos da manutenção */}
             <div className={styles.card}>
                 <h2 className={styles.cardTitle}>
-                    {t('chamadoDetalhe.photos.title') || 'Fotos da manutenÃ§Ã£o'}
+                    {t('chamadoDetalhe.photos.title') || 'Fotos da manutenção'}
                 </h2>
 
                 {(() => {
@@ -775,7 +775,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                                 className={styles.photoInputHidden}
                                             />
 
-                                            {/* botÃ£o de escolher arquivo */}
+                                            {/* botão de escolher arquivo */}
                                             <label htmlFor="fotoUpload" className={styles.chooseFileButton}>
                                                 {t('chamadoDetalhe.photos.choose') || 'Escolher arquivo'}
                                             </label>
@@ -787,7 +787,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                                     : (t('chamadoDetalhe.photos.noFile') || 'Nenhum arquivo selecionado')}
                                             </span>
 
-                                            {/* botÃ£o de enviar */}
+                                            {/* botão de enviar */}
                                             <Button
                                                 type="button"
                                                 onClick={handleUploadFoto}
@@ -804,7 +804,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                             {(!fotos || fotos.length === 0) ? (
                                 <p>
                                     {t('chamadoDetalhe.photos.empty') ||
-                                        'Nenhuma foto adicionada atÃ© o momento.'}
+                                        'Nenhuma foto adicionada até o momento.'}
                                 </p>
                             ) : (
                                 <div className={styles.photosGrid}>
@@ -817,17 +817,17 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                                                 >
                                                     <img
                                                         src={f.url}
-                                                        alt="Foto da manutenÃ§Ã£o"
+                                                        alt="Foto da manutenção"
                                                         className={styles.photoThumb}
                                                     />
                                                 </div>
                                             ) : (
                                                 <div className={styles.photoThumbFallback}>
-                                                    <span>URL indisponÃ­vel</span>
+                                                    <span>URL indisponível</span>
                                                 </div>
                                             )}
                                             <small>
-                                                {f.autorNome ? `${f.autorNome} â€¢ ` : ''}
+                                                {f.autorNome ? `${f.autorNome} • ` : ''}
                                                 {f.criadoEm
                                                     ? fmtDateTime.format(asDate(f.criadoEm) as Date)
                                                     : ''}
@@ -841,7 +841,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                 })()}
             </div>
 
-            {/* AÃ§Ãµes */}
+            {/* Ações */}
             {
                 podeAtender && (
                     <div className={styles.card}>
@@ -945,7 +945,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
                         <img
                             src={fotos[selectedPhotoIndex].url}
-                            alt={`Foto da manutenÃ§Ã£o ${selectedPhotoIndex + 1}`}
+                            alt={`Foto da manutenção ${selectedPhotoIndex + 1}`}
                             className={styles.lightboxImage}
                         />
 

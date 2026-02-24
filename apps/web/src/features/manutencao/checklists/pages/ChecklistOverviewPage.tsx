@@ -97,7 +97,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 const mappedItems: ItemMaquina[] = overviewItems.map(item => ({
                     id: item.id,
                     nome: item.nome,
-                    rowDia: null, // nÃ£o usado mais diretamente na renderizaÃ§Ã£o simplificada, ou podemos adaptar se precisar
+                    rowDia: null, // não usado mais diretamente na renderização simplificada, ou podemos adaptar se precisar
                     turno1Ok: item.turno1Ok,
                     turno2Ok: item.turno2Ok,
                     turno1Nomes: item.turno1Nomes,
@@ -161,7 +161,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
 
     const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => setDateFilter(e.target.value);
 
-    // ---------- Helpers e Handler de ExportaÃ§Ã£o Excel ----------
+    // ---------- Helpers e Handler de Exportação Excel ----------
     const toIsoLocal = (d: Date) => {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -190,7 +190,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
             // Fetch otimizado do intervalo (substitui N+1)
             const rangeItems = await getChecklistOverviewRange(startIso, endIso);
 
-            // Separar mÃ¡quinas com e sem checklist
+            // Separar máquinas com e sem checklist
             const comChecklist = rangeItems.filter((m) => m.hasChecklist);
             const semChecklist = rangeItems.filter((m) => !m.hasChecklist);
             const maquinasSemChecklist = semChecklist.map((m) => m.nome);
@@ -228,7 +228,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 const pend1: string[] = [];
                 const pend2: string[] = [];
 
-                // Contabilizar apenas mÃ¡quinas COM checklist
+                // Contabilizar apenas máquinas COM checklist
                 for (const maq of comChecklist) {
                     const rowDia = maq.days ? maq.days.find(d => d.date === iso) : null;
 
@@ -242,9 +242,9 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                     else pend2.push(maq.nome);
                 }
 
-                // Se quiser o "-" do 2Âº turno no "hoje", simples: se Ã© hoje e ainda nÃ£o Ã© hora do 2Âº turno, mostra "-"
+                // Se quiser o "-" do 2º turno no "hoje", simples: se é hoje e ainda não é hora do 2º turno, mostra "-"
                 const now = new Date();
-                const TURN2_START_HOUR = 14; // ajuste conforme sua operaÃ§Ã£o
+                const TURN2_START_HOUR = 14; // ajuste conforme sua operação
                 const turn2NotExpectedYet = iso === todayIso && now.getHours() < TURN2_START_HOUR;
 
                 const sem1 =
@@ -265,7 +265,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                 dtLoop.setDate(dtLoop.getDate() + 1);
             }
 
-            // Aba opcional de detalhes do dia (usa o que jÃ¡ renderiza)
+            // Aba opcional de detalhes do dia (usa o que já renderiza)
             const detalhesDoDia = items.map((m) => ({
                 maquina: m.nome,
                 turno1: (m.turno1Ok ? 'Enviado' : 'Pendente') as 'Enviado' | 'Pendente',
@@ -292,7 +292,7 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
     };
 
     const renderStatusBadge = (ok: boolean, nomes: string[], hasChecklist: boolean): ReactNode => {
-        // Se a mÃ¡quina nÃ£o tem checklist configurado
+        // Se a máquina não tem checklist configurado
         if (!hasChecklist) {
             return (
                 <span className={`${styles.statusBadge} ${styles.statusNoChecklist}`}>

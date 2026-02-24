@@ -104,7 +104,7 @@ const ChamadosAbertosPage = () => {
                 const rows: ApiChamado[] = data.items ?? data;
 
                 const abertos = rows.filter((r: ApiChamado) =>
-                    !['Concluido', 'ConcluÃ­do'].includes(r.status || '')
+                    !['Concluido', 'Concluído'].includes(r.status || '')
                 );
 
                 const mapped: ChamadoAberto[] = abertos.map((r: ApiChamado) => ({
@@ -164,22 +164,22 @@ const ChamadosAbertosPage = () => {
     }
 
     const excelData = chamadosFiltrados.map(c => ({
-        [t('chamadosAbertos.export.columns.machine', 'MÃ¡quina')]: c.maquina,
+        [t('chamadosAbertos.export.columns.machine', 'Máquina')]: c.maquina,
         [t('chamadosAbertos.export.columns.type', 'Tipo')]: tipoLabel(c.tipo),
         [t('chamadosAbertos.export.columns.status', 'Status')]: statusLabel(c.status),
         [t('chamadosAbertos.export.columns.openedAt', 'Aberto em')]:
             c.dataAbertura ? dtFmt.format(tsToDate(c.dataAbertura)!) : '',
-        [t('chamadosAbertos.export.columns.assignee', 'ResponsÃ¡vel')]: c.manutentorNome || '',
-        [t('chamadosAbertos.export.columns.description', 'DescriÃ§Ã£o')]: c.descricao || ''
+        [t('chamadosAbertos.export.columns.assignee', 'Responsável')]: c.manutentorNome || '',
+        [t('chamadosAbertos.export.columns.description', 'Descrição')]: c.descricao || ''
     }));
 
     const pdfColumns = [
-        { key: 'maquina', label: t('chamadosAbertos.export.columns.machine', 'MÃ¡quina') },
+        { key: 'maquina', label: t('chamadosAbertos.export.columns.machine', 'Máquina') },
         { key: 'tipo', label: t('chamadosAbertos.export.columns.type', 'Tipo') },
         { key: 'status', label: t('chamadosAbertos.export.columns.status', 'Status') },
         { key: 'dataAbertura', label: t('chamadosAbertos.export.columns.openedAt', 'Aberto em') },
-        { key: 'manutentorNome', label: t('chamadosAbertos.export.columns.assignee', 'ResponsÃ¡vel') },
-        { key: 'descricao', label: t('chamadosAbertos.export.columns.description', 'DescriÃ§Ã£o') }
+        { key: 'manutentorNome', label: t('chamadosAbertos.export.columns.assignee', 'Responsável') },
+        { key: 'descricao', label: t('chamadosAbertos.export.columns.description', 'Descrição') }
     ];
 
     const pdfData = chamadosFiltrados.map(c => ({
@@ -193,13 +193,13 @@ const ChamadosAbertosPage = () => {
         <>
             <PageHeader
                 title={t('chamadosAbertos.title', 'Chamados em Aberto')}
-                subtitle={t('chamadosAbertos.subtitle', 'Visualize todos os chamados pendentes de conclusÃ£o.')}
+                subtitle={t('chamadosAbertos.subtitle', 'Visualize todos os chamados pendentes de conclusão.')}
             />
 
             <div className={styles.listContainer}>
                 {loading ? (
                     <>
-                        {/* Skeleton dos botÃµes de export */}
+                        {/* Skeleton dos botões de export */}
                         <div className={styles.exportButtons}>
                             <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
                             <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
@@ -279,7 +279,7 @@ const ChamadosAbertosPage = () => {
 
                             <Input
                                 id="filtroMaquina"
-                                label={t('chamadosAbertos.filters.byMachine', 'MÃ¡quina')}
+                                label={t('chamadosAbertos.filters.byMachine', 'Máquina')}
                                 value={filtroMaquina}
                                 onChange={(e) => setFiltroMaquina(e.target.value)}
                                 placeholder={t('chamadosAbertos.filters.allMachines', 'Todas')}
@@ -290,7 +290,7 @@ const ChamadosAbertosPage = () => {
                                 label={t('chamadosAbertos.filters.search', 'Busca')}
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'DescriÃ§Ã£o ou responsÃ¡vel...')}
+                                placeholder={t('chamadosAbertos.filters.searchPlaceholder', 'Descrição ou responsável...')}
                             />
                         </div>
 
@@ -323,12 +323,12 @@ const ChamadosAbertosPage = () => {
                                                 </small>
                                                 {chamado.manutentorNome && (
                                                     <small>
-                                                        <strong>{t('chamadosAbertos.item.assignee', 'ResponsÃ¡vel')}:</strong>{' '}
+                                                        <strong>{t('chamadosAbertos.item.assignee', 'Responsável')}:</strong>{' '}
                                                         {chamado.manutentorNome}
                                                     </small>
                                                 )}
                                                 <p className={styles.descricaoPreview}>
-                                                    {chamado.descricao || t('chamadosAbertos.item.noDescription', 'Sem descriÃ§Ã£o')}
+                                                    {chamado.descricao || t('chamadosAbertos.item.noDescription', 'Sem descrição')}
                                                 </p>
                                             </div>
                                         </li>

@@ -74,7 +74,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
     );
     const formatDate = (v: string | null | undefined): string => {
         const d = tsToDate(v);
-        return d ? dtFmt.format(d) : 'â€”';
+        return d ? dtFmt.format(d) : '—';
     };
 
     useEffect(() => {
@@ -167,7 +167,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
             <>
                 <PageHeader
                     title={t('meusChamados.title')}
-                    subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuÃ­dos ou abertos por vocÃª.')}
+                    subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuídos ou abertos por você.')}
                 />
                 <div className={styles.listContainer}>
                     <p className={styles.empty}>{t('meusChamados.loginFirst')}</p>
@@ -180,7 +180,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         <>
             <PageHeader
                 title={t('meusChamados.title')}
-                subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuÃ­dos ou abertos por vocÃª.')}
+                subtitle={t('meusChamados.subtitle', 'Acompanhe os chamados atribuídos ou abertos por você.')}
             />
 
             <div className={styles.listContainer}>
@@ -230,10 +230,10 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
                                 {chamados.map((c, idx) => (
                                     <tr key={c.id}>
                                         <td>{String(idx + 1).padStart(2, '0')}</td>
-                                        <td>{c.maquina || 'â€”'}</td>
+                                        <td>{c.maquina || '—'}</td>
                                         <td className={styles.descCell} title={c.descricao || ''}>
                                             {(c.descricao || '').slice(0, 80) +
-                                                ((c.descricao || '').length > 80 ? 'â€¦' : '')}
+                                                ((c.descricao || '').length > 80 ? '...' : '')}
                                         </td>
                                         <td>
                                             <span

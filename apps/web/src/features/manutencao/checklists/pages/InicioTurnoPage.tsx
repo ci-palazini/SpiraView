@@ -17,7 +17,7 @@ import {
     X
 } from 'lucide-react';
 
-// API jÃ¡ existentes
+// API já existentes
 import {
     listarMaquinas,
     listarSubmissoesDiarias,
@@ -53,16 +53,16 @@ type Respostas = Record<string, 'sim' | 'nao'>;
 
 // ---------- Helpers ----------
 /**
- * Retorna a data de referÃªncia do checklist considerando a regra de turnos:
- * - Se a hora atual for entre 00:00 e 00:44, pertence ao 2Âº turno do DIA ANTERIOR
- * - Caso contrÃ¡rio, Ã© a data atual
+ * Retorna a data de referência do checklist considerando a regra de turnos:
+ * - Se a hora atual for entre 00:00 e 00:44, pertence ao 2º turno do DIA ANTERIOR
+ * - Caso contrário, é a data atual
  */
 function getDataReferenciaChecklist(): string {
     const agora = new Date();
     const hora = agora.getHours();
     const minutos = agora.getMinutes();
 
-    // Se for entre 00:00 e 00:44, pertence ao dia anterior (2Âº turno)
+    // Se for entre 00:00 e 00:44, pertence ao dia anterior (2º turno)
     if (hora === 0 && minutos < 45) {
         const ontem = new Date(agora);
         ontem.setDate(ontem.getDate() - 1);
@@ -141,7 +141,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     // Novo estado para o alerta
     const [showAlertTurno, setShowAlertTurno] = useState(true);
 
-    // Carrega mÃ¡quinas e jÃ¡ marca "enviada hoje" (do backend)
+    // Carrega máquinas e já marca "enviada hoje" (do backend)
     useEffect(() => {
         let alive = true;
         (async () => {
@@ -154,7 +154,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 if (!alive) return;
                 setTodasMaquinas(ordenada);
 
-                // quem eu jÃ¡ enviei hoje (do backend)
+                // quem eu já enviei hoje (do backend)
                 if (operadorEmail) {
                     const resp = await listarSubmissoesDiarias({ operadorEmail, date: getDataReferenciaChecklist() });
                     const items: SubmissaoItem[] = Array.isArray(resp) ? resp : (Array.isArray((resp as { items?: SubmissaoItem[] })?.items) ? (resp as { items: SubmissaoItem[] }).items : []);
@@ -184,17 +184,17 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
         );
     };
 
-    // AvanÃ§a para o passo de checklists
+    // Avança para o passo de checklists
     const iniciarChecklists = async () => {
         if (selecionadas.length === 0) {
-            toast.error(t('inicioTurno.alert.selectOne', 'Selecione ao menos 1 mÃ¡quina.'));
+            toast.error(t('inicioTurno.alert.selectOne', 'Selecione ao menos 1 máquina.'));
             return;
         }
         setIdx(0);
         setModo('checklist');
     };
 
-    // Carrega perguntas da mÃ¡quina atual quando entramos no modo checklist ou trocamos idx
+    // Carrega perguntas da máquina atual quando entramos no modo checklist ou trocamos idx
     useEffect(() => {
         let alive = true;
         (async () => {
@@ -219,7 +219,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 const bloqueados = new Set<string>(m.itensComChamadoAberto || []);
                 setItensBloqueados(bloqueados);
 
-                // Verifica se jÃ¡ existe submissÃ£o deste operador para esta mÃ¡quina hoje
+                // Verifica se já existe submissão deste operador para esta máquina hoje
                 let respostasAnteriores: Respostas | null = null;
                 try {
                     const submissoes = await listarSubmissoesDiarias({
@@ -235,16 +235,16 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         }
                     }
                 } catch (e) {
-                    console.error('Erro ao buscar submissÃµes anteriores:', e);
+                    console.error('Erro ao buscar submissões anteriores:', e);
                 }
 
                 const iniciais: Respostas = {};
                 lista.forEach(item => {
-                    // Se jÃ¡ tem resposta anterior, usa ela
+                    // Se já tem resposta anterior, usa ela
                     if (respostasAnteriores && item in respostasAnteriores) {
                         iniciais[item] = respostasAnteriores[item];
                     } else if (bloqueados.has(slugify(item))) {
-                        // Se item estÃ¡ bloqueado por chamado, forÃ§a 'nao'
+                        // Se item está bloqueado por chamado, força 'nao'
                         iniciais[item] = 'nao';
                     } else {
                         iniciais[item] = 'sim';
@@ -283,11 +283,11 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
             // marca como enviada hoje
             setEnviadasHoje(prev => new Set([...prev, String(maquinaAtual.id)]));
 
-            // prÃ³xima mÃ¡quina ou fim
+            // próxima máquina ou fim
             if (idx + 1 < selecionadas.length) {
                 setIdx(idx + 1);
             } else {
-                toast.success(t('checklist.allDone', 'Checklists concluÃ­das!'));
+                toast.success(t('checklist.allDone', 'Checklists concluídas!'));
                 navigate('/', { replace: true });
             }
         } catch (e) {
@@ -298,7 +298,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
         }
     };
 
-    // Sair (limpa sessÃ£o)
+    // Sair (limpa sessão)
     const handleLogout = () => {
         try { localStorage.removeItem('usuario'); } catch { /* ignore */ }
         window.dispatchEvent(new Event('auth-user-changed'));
@@ -311,7 +311,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
             <div className={styles.pageContainer}>
                 <div className={styles.loadingContainer}>
                     <div className={styles.spinner} />
-                    <p>{t('common.loading', 'Carregandoâ€¦')}</p>
+                    <p>{t('common.loading', 'Carregando...')}</p>
                 </div>
             </div>
         );
@@ -325,7 +325,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         <div className={styles.headerTitle}>
                             <h1>
                                 <ClipboardCheck size={28} style={{ marginRight: 10, verticalAlign: 'middle' }} />
-                                {t('inicioTurno.title', 'InÃ­cio de turno')}
+                                {t('inicioTurno.title', 'Início de turno')}
                             </h1>
                             <p>
                                 <User className={styles.userIcon} />
@@ -369,7 +369,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                     )}
 
                     <div className={styles.formGroup}>
-                        <label>{t('inicioTurno.fields.machinesLabel', 'MÃ¡quinas do seu turno')}</label>
+                        <label>{t('inicioTurno.fields.machinesLabel', 'Máquinas do seu turno')}</label>
                         <div className={styles.machineList}>
                             {todasMaquinas.map(m => {
                                 const jaEnviou = enviadasHoje.has(String(m.id));
@@ -437,13 +437,13 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 {jaEnviouEsta && (
                     <div className={styles.badgeEnviada} style={{ marginBottom: 20, display: 'inline-flex' }}>
                         <CheckCircle2 size={14} />
-                        {t('checklist.alreadySent', 'Checklist jÃ¡ enviado hoje')}
+                        {t('checklist.alreadySent', 'Checklist já enviado hoje')}
                     </div>
                 )}
 
                 {perguntas.length === 0 && (
                     <div className={styles.emptyState}>
-                        {t('checklist.empty', 'NÃ£o hÃ¡ itens configurados para esta mÃ¡quina.')}
+                        {t('checklist.empty', 'Não há itens configurados para esta máquina.')}
                     </div>
                 )}
 
@@ -457,7 +457,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         <div
                             key={i}
                             className={isLocked ? styles.checklistItemLocked : styles.checklistItem}
-                            title={isLocked ? t('checklist.itemLockedHint', 'Este item jÃ¡ possui um chamado aberto') : undefined}
+                            title={isLocked ? t('checklist.itemLockedHint', 'Este item já possui um chamado aberto') : undefined}
                         >
                             <span>
                                 {pergunta}
@@ -522,12 +522,12 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         title={t('checklist.send', 'Enviar')}
                     >
                         {salvando ? (
-                            t('checklist.sending', 'Enviandoâ€¦')
+                            t('checklist.sending', 'Enviando...')
                         ) : (
                             <>
                                 <Send size={20} />
                                 {idx + 1 < selecionadas.length
-                                    ? t('checklist.sendAndNext', 'Enviar e prÃ³xima')
+                                    ? t('checklist.sendAndNext', 'Enviar e próxima')
                                     : t('checklist.finishAll', 'Enviar e finalizar')}
                             </>
                         )}

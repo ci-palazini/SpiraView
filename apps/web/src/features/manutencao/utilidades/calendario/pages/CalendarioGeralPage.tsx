@@ -128,8 +128,8 @@ function toPlainText(v: unknown): string {
 
     // Corrigir artefatos de encoding comuns
     return text
-        .replace(/â€”/g, '—')
-        .replace(/â€¢/g, '•');
+        .replace(/—/g, '—')
+        .replace(/•/g, '•');
 }
 
 function getContrastColor(hexColor: string): string {
@@ -471,7 +471,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                 <div className={styles.calendarWrapper}>
                     {loading ? (
                         <>
-                            {/* Skeleton da barra de navegaÃ§Ã£o do calendÃ¡rio */}
+                            {/* Skeleton da barra de navegação do calendário */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                                 <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
                                 <div style={{ display: 'flex', gap: 8 }}>
@@ -485,7 +485,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                                     <Skeleton variant="rectangular" width={60} height={36} sx={{ borderRadius: 1 }} />
                                 </div>
                             </div>
-                            {/* Skeleton do grid do calendÃ¡rio */}
+                            {/* Skeleton do grid do calendário */}
                             <Skeleton variant="rectangular" width="100%" height={500} sx={{ borderRadius: 2 }} />
                         </>
                     ) : (
@@ -675,7 +675,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
                 </form>
             </Modal>
 
-            {/* Modal de confirmaÃ§Ã£o de exclusÃ£o */}
+            {/* Modal de confirmação de exclusão */}
             <Modal
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}

@@ -60,7 +60,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [nomeNovaMaquina, setNomeNovaMaquina] = useState('');
 
-    // menu/aÃ§Ã£o: editar/excluir
+    // menu/ação: editar/excluir
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [alvo, setAlvo] = useState<Maquina | null>(null);
@@ -76,7 +76,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
         setLoading(true);
         (async () => {
             try {
-                // 1) MÃ¡quinas
+                // 1) Máquinas
                 const lista: Maquina[] = await getMaquinas('', 'manutencao');
                 if (!alive) return;
                 setMaquinas(lista);
@@ -159,7 +159,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
             const status = (err as { status?: number })?.status;
             let msg = t('maquinas.toasts.createError') || 'Erro ao criar.';
             if (status === 409)
-                msg = t('maquinas.toasts.createDuplicated') || 'JÃ¡ existe uma mÃ¡quina com esse nome.';
+                msg = t('maquinas.toasts.createDuplicated') || 'Já existe uma máquina com esse nome.';
             toast.error(msg);
             console.error(err);
         }
@@ -233,7 +233,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
             const status = (err as { status?: number })?.status;
             let msg = t('maquinas.toasts.renameError') || 'Erro ao renomear.';
             if (status === 409)
-                msg = t('maquinas.toasts.renameDuplicated') || 'JÃ¡ existe uma mÃ¡quina com esse nome.';
+                msg = t('maquinas.toasts.renameDuplicated') || 'Já existe uma máquina com esse nome.';
             toast.error(msg);
             console.error(err);
         } finally {
@@ -286,14 +286,14 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                             </div>
                         </div>
 
-                        {/* Grid de mÃ¡quinas */}
+                        {/* Grid de máquinas */}
                         <div className={styles.grid}>
                             {maquinasComStatus.map((maquina) => (
                                 <div
                                     key={maquina.id}
                                     className={`${styles.card} ${getStatusClass(maquina.statusDestaque)}`}
                                 >
-                                    {/* botÃ£o 3 pontinhos (apenas gestor/admin) */}
+                                    {/* botão 3 pontinhos (apenas gestor/admin) */}
                                     {canEditMaquinas && (
                                         <button
                                             className={styles.menuButton}
@@ -330,7 +330,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                                         </div>
                                     )}
 
-                                    {/* conteÃºdo clicÃ¡vel do card */}
+                                    {/* conteúdo clicável do card */}
                                     <Link
                                         to={`/maquinas/${maquina.id}`}
                                         className={styles.cardLink}
@@ -357,7 +357,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                     </>
                 )}
 
-                {/* modal: criar mÃ¡quina */}
+                {/* modal: criar máquina */}
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
@@ -423,7 +423,7 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                     </form>
                 </Modal>
 
-                {/* modal: confirmar exclusÃ£o */}
+                {/* modal: confirmar exclusão */}
                 <Modal
                     isOpen={isDeleteOpen}
                     onClose={() => setIsDeleteOpen(false)}

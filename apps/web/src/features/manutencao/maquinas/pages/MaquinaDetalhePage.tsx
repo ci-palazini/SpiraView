@@ -81,7 +81,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
     const [chamadosConcluidos, setChamadosConcluidos] = useState<Chamado[]>([]);
     const [chamadosAtivos, setChamadosAtivos] = useState<Chamado[]>([]);
 
-    // HistÃ³rico do back
+    // Histórico do back
     const [historicoDiario, setHistoricoDiario] = useState<HistoricoDia[]>([]);
     const [submissoesRecentes, setSubmissoesRecentes] = useState<Submissao[]>([]);
 
@@ -90,7 +90,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
     const [novoItemChecklist, setNovoItemChecklist] = useState('');
     const [reloadTick, setReloadTick] = useState(0);
 
-    // Modal de detalhe da submissÃ£o
+    // Modal de detalhe da submissão
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTitulo, setModalTitulo] = useState('');
     const [modalSubmissoes, setModalSubmissoes] = useState<Submissao[]>([]);
@@ -105,7 +105,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
             try {
                 setLoading(true);
 
-                // 1) MÃ¡quina + histÃ³rico (o back jÃ¡ manda)
+                // 1) Máquina + histórico (o back já manda)
                 const m = await getMaquina(id!);
                 if (!alive) return;
 
@@ -263,7 +263,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
 
     const abrirDetalheOperador = async (diaISO: string, turno: string, operadorNome: string, operadorEmail?: string) => {
         try {
-            // 1) Fallback local: procurar nas submissÃµes recentes que jÃ¡ vieram do back
+            // 1) Fallback local: procurar nas submissões recentes que já vieram do back
             const locais = (submissoesRecentes || []).filter((s) => {
                 const sDia = String(s.criado_em || '').slice(0, 10);
                 const sTurno = deriveTurno(s.turno, s.criado_em);
@@ -315,7 +315,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
             });
 
             if (filtradas.length === 0) {
-                toast(t('maquinaDetalhe.checklist.detailEmpty', 'NÃ£o hÃ¡ submissÃµes encontradas para esse dia/turno.'));
+                toast(t('maquinaDetalhe.checklist.detailEmpty', 'Não há submissões encontradas para esse dia/turno.'));
                 return;
             }
 
@@ -563,7 +563,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 {modalSubmissoes.map((s) => (
                     <div key={s.id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 12 }}>
                         <div style={{ marginBottom: 8, fontSize: 13, color: '#6b7280' }}>
-                            {t('maquinaDetalhe.checklist.submittedAt', 'Enviado em')}: {s.criado_em ? fmtDateTime.format(new Date(s.criado_em)) : 'â€”'}
+                            {t('maquinaDetalhe.checklist.submittedAt', 'Enviado em')}: {s.criado_em ? fmtDateTime.format(new Date(s.criado_em)) : '—'}
                         </div>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>

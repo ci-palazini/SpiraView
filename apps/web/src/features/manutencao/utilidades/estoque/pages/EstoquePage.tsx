@@ -116,7 +116,7 @@ export default function EstoquePage({ user }: EstoquePageProps) {
 
             {/* Container branco principal */}
             <div className={styles.listContainer}>
-                {/* Toolbar: criaÃ§Ã£o e exportaÃ§Ã£o */}
+                {/* Toolbar: criação e exportação */}
                 <div className={styles.toolbar}>
                     {canEditEstoque && (
                         <button

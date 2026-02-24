@@ -177,13 +177,13 @@ const HistoricoPage = () => {
         <>
             <PageHeader
                 title={t('historico.title')}
-                subtitle={t('historico.subtitle', 'Veja o histÃ³rico de chamados concluÃ­dos e filtre por tipo, mÃ¡quina ou texto.')}
+                subtitle={t('historico.subtitle', 'Veja o histórico de chamados concluídos e filtre por tipo, máquina ou texto.')}
             />
 
             <div className={styles.listContainer}>
                 {loading ? (
                     <>
-                        {/* Skeleton dos botÃµes de export */}
+                        {/* Skeleton dos botões de export */}
                         <div className={styles.exportButtons}>
                             <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
                             <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />

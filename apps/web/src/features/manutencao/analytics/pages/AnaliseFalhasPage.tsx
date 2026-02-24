@@ -39,7 +39,7 @@ const AnaliseFalhasPage = () => {
             try {
                 setLoading(true);
 
-                // janela padrÃ£o: Ãºltimos 90 dias
+                // janela padrão: últimos 90 dias
                 const now = new Date();
                 const from = startDate ? new Date(startDate) : new Date(now);
                 if (!startDate) {
@@ -79,7 +79,7 @@ const AnaliseFalhasPage = () => {
         const falhasPorMaquina: Record<string, number> = {};
 
         for (const chamado of list) {
-            const nome = chamado?.maquina ?? 'â€”';
+            const nome = chamado?.maquina ?? '—';
             falhasPorMaquina[nome] = (falhasPorMaquina[nome] || 0) + 1;
         }
 
@@ -156,10 +156,10 @@ const AnaliseFalhasPage = () => {
         <>
             <PageHeader
                 title={t('analiseFalhas.title')}
-                subtitle={t('analiseFalhas.subtitle', 'Veja a distribuiÃ§Ã£o de falhas corretivas por mÃ¡quina no perÃ­odo selecionado.')}
+                subtitle={t('analiseFalhas.subtitle', 'Veja a distribuição de falhas corretivas por máquina no período selecionado.')}
             />
 
-            {/* Card principal (filtros + grÃ¡fico) */}
+            {/* Card principal (filtros + gráfico) */}
             <div className={styles.listContainer}>
                 {loading ? (
                     <>
@@ -176,7 +176,7 @@ const AnaliseFalhasPage = () => {
                             <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: 1, alignSelf: 'flex-end' }} />
                         </div>
 
-                        {/* Skeleton do grÃ¡fico */}
+                        {/* Skeleton do gráfico */}
                         <div className={styles.chartContainer}>
                             <Skeleton variant="text" width={250} height={28} sx={{ marginBottom: 2, marginX: 'auto' }} />
                             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 300 }}>
