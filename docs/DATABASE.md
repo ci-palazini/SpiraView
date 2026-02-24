@@ -520,6 +520,18 @@ Configuração de destinatários de notificações por email.
 | `usuario_id` | UUID | FK para `usuarios.id` |
 | `created_at` | TIMESTAMP | Data de criação |
 
+#### `notificacoes_enviadas`
+Controle de idempotência para evitar reenvio duplicado de notificações automáticas.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `evento` | VARCHAR | Evento enviado (ex.: `PREVENTIVA_D1`, `PREVENTIVA_D0`) |
+| `agendamento_id` | UUID | FK para `agendamentos_preventivos.id` |
+| `usuario_id` | UUID | FK para `usuarios.id` |
+| `data_ref_local` | DATE | Data de referência local (America/Sao_Paulo) |
+| `enviado_em` | TIMESTAMP WITH TIME ZONE | Timestamp de envio |
+
 ---
 
 ### Views

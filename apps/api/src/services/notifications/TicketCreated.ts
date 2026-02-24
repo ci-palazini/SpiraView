@@ -106,7 +106,7 @@ export const TicketCreatedNotification = {
 
             <!-- Botão -->
             <div style="text-align:center; margin:30px 0;">
-              <a href="https://ci-spiraview.vercel.app/"
+              <a href="${env.appUrl}/"
                  style="
                    display:inline-block;
                    background:#0056b3;

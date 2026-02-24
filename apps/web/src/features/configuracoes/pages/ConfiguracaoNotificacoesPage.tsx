@@ -19,6 +19,8 @@ const EVENTOS = [
     { value: 'NOVO_CHAMADO', label: 'Novo Chamado Aberto', description: 'Recebe email quando um novo chamado manutentor é aberto.' },
     { value: 'checklist_pendente_turno1', label: 'Checklist Pendente - 1º Turno', description: 'Recebe email com lista de máquinas sem checklist no 1º turno (dia anterior).' },
     { value: 'checklist_pendente_turno2', label: 'Checklist Pendente - 2º Turno', description: 'Recebe email com lista de máquinas sem checklist no 2º turno (dia anterior).' },
+    { value: 'PREVENTIVA_D1', label: 'Preventiva D-1', description: 'Recebe email um dia antes da manutenção preventiva agendada.' },
+    { value: 'PREVENTIVA_D0', label: 'Preventiva D0', description: 'Recebe email no dia da manutenção preventiva agendada.' },
 ];
 
 interface ConfiguracaoNotificacoesPageProps {

@@ -28,6 +28,7 @@ const rawEnvSchema = z
     PGPOOL_IDLE_TIMEOUT: z.coerce.number().int().nonnegative().optional(),
     AUTH_STRICT: z.string().optional(),
     AUTOMATION_API_TOKEN: z.string().optional(),
+    APP_URL: z.string().url().optional(),
     MS_FORMS_FORM_ID: z.string().optional(),
     MS_FORMS_SUBMIT_URL: z.string().optional(),
     MS_FORMS_FIELD_ID_TO: z.string().optional(),
@@ -51,6 +52,7 @@ type Env = {
   };
   auth: { strict: boolean; jwtSecret: string };
   automation: { apiToken: string | undefined };
+  appUrl: string;
   msForms: {
     formId: string | undefined;
     submitUrl: string | undefined;
@@ -171,6 +173,7 @@ function toEnv(raw: RawEnv): Env {
       jwtSecret: raw.JWT_SECRET,
     },
     automation: { apiToken: raw.AUTOMATION_API_TOKEN },
+    appUrl: raw.APP_URL ?? 'https://ci-spiraview.vercel.app',
     msForms,
   };
 

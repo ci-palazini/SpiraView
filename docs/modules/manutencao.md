@@ -76,6 +76,9 @@ flowchart LR
 |--------|------|-----------|
 | GET | `/agendamentos` | Listar agendamentos preventivos |
 | POST | `/agendamentos` | Criar agendamento |
+| PATCH | `/agendamentos/:id` | Reagendar/atualizar status do agendamento |
+| DELETE | `/agendamentos/:id` | Excluir agendamento |
+| POST | `/agendamentos/:id/iniciar` | Iniciar preventiva (gera chamado preventivo) |
 
 ---
 
@@ -129,6 +132,8 @@ stateDiagram-v2
 4. **Manutentor único**: `chamados.manutentor_id` é o técnico principal (referência rápida para JOINs e filtros de permissão).
 5. **Co-manutenção**: Múltiplos manutentores podem trabalhar num mesmo chamado. O primeiro que aceita é `principal`; os demais entram via `POST /chamados/:id/entrar` com papel `co`. A tabela `chamado_manutentores` é a fonte canônica de todos os participantes. O botão "Entrar na Manutenção" aparece apenas quando o chamado está "Em Andamento" e o usuário ainda não está na lista.
 6. **Sair da manutenção**: Somente co-manutentores (`papel='co'`) podem sair via `POST /chamados/:id/sair`. O manutentor principal recebe 403 ao tentar sair.
+7. **Lembretes de preventiva**: O scheduler executa diariamente notificações por email para preventivas com status `agendado` em dois eventos:
+   `PREVENTIVA_D1` (1 dia antes) e `PREVENTIVA_D0` (no dia). O envio é idempotente por usuário/agendamento/data local.
 
 ---
 

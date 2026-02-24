@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { checkMissingChecklists } from '../scripts/checkMissingChecklists';
+import { checkPreventiveMaintenanceReminders } from '../scripts/checkPreventiveMaintenanceReminders';
 import { logger } from '../logger';
 
 /**
@@ -20,5 +21,15 @@ export const initScheduler = () => {
         }
     });
 
-    logger.info('[Scheduler] Job configurado: 05:30 (verifica dia anterior)');
+    // JOB DIARIO: 06:00 (Lembretes de preventiva D-1 e D0)
+    cron.schedule('0 6 * * *', async () => {
+        logger.info('[Scheduler] Executando job 06:00 - Lembretes de preventiva (D-1/D0)...');
+        try {
+            await checkPreventiveMaintenanceReminders();
+        } catch (error) {
+            logger.error({ err: error }, '[Scheduler] Erro no job 06:00 (preventiva)');
+        }
+    });
+
+    logger.info('[Scheduler] Jobs configurados: 05:30 (checklists) e 06:00 (preventiva D-1/D0)');
 };
