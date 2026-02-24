@@ -17,7 +17,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@sentry/node": "^10.39.0",
     "@spiraview/shared": "workspace:^",
     "@supabase/supabase-js": "^2.86.0",
     "@types/date-fns": "^2.6.3",
