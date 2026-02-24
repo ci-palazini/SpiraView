@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     getChamado, listarManutentores, listarCausasRaiz,
-    atribuirChamado, removerAtribuicao, atenderChamado,
+    atribuirChamado, removerAtribuicao, atenderChamado, entrarChamado, sairChamado,
     adicionarObservacao, concluirChamado, deletarChamado,
     atualizarChecklistChamado,
     listarFotosChamado,
@@ -93,6 +93,13 @@ interface ApiChamado {
     atribuido_para_id?: string;
     atribuido_para_nome?: string;
     atribuido_para_email?: string;
+    manutentores?: Array<{
+        id: string;
+        nome: string;
+        email: string;
+        papel: 'principal' | 'co';
+        entrou_em: string;
+    }>;
 }
 
 interface ChamadoMapped {
@@ -117,6 +124,7 @@ interface ChamadoMapped {
     atendidoEm: string | null;
     assignedTo: string | null;
     assignedToNome: string;
+    manutentores: { id: string; nome: string; email: string; papel: 'principal' | 'co'; entrou_em: string }[];
 }
 
 // ---------- Helpers ----------
@@ -251,7 +259,9 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     assignedTo: normId,
                     assignedToNome: normNome,
 
-                    observacoes: (c.observacoes || []).map(o => ({
+                    manutentores: (c.manutentores || []) as ChamadoMapped['manutentores'],
+
+                    observacoes:(c.observacoes || []).map(o => ({
                         autor: o.autor || '',
                         data: o.criado_em || o.data || null,
                         texto: o.texto || '',
@@ -354,6 +364,25 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         chamado?.status === 'Aberto' &&
         (!chamado?.manutentorNome || isOwner);
 
+    const jaEstaNaLista = useMemo(() => {
+        if (!chamado || !userId) return false;
+        return chamado.manutentores.some(
+            m => String(m.id) === String(userId) || (userEmail && m.email === userEmail)
+        );
+    }, [chamado, userId, userEmail]);
+
+    const podeEntrar =
+        isManutentor &&
+        chamado?.status === 'Em Andamento' &&
+        !jaEstaNaLista;
+
+    const podeSair = useMemo(() => {
+        if (!chamado || !userId) return false;
+        return chamado.manutentores.some(
+            m => m.papel === 'co' && (String(m.id) === String(userId) || (userEmail && m.email === userEmail))
+        );
+    }, [chamado, userId, userEmail]);
+
     const podeConcluir =
         isManutentor &&
         chamado?.status === 'Em Andamento' &&
@@ -450,6 +479,34 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.takeError'));
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function handleEntrarChamado() {
+        setBusy(true);
+        try {
+            await entrarChamado(id as string, { role: user.role, email: user.email });
+            toast.success(t('chamadoDetalhe.toasts.joined'));
+            setReloadTick(n => n + 1);
+        } catch (e) {
+            console.error(e);
+            toast.error(t('chamadoDetalhe.toasts.joinError'));
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function handleSairChamado() {
+        setBusy(true);
+        try {
+            await sairChamado(id as string, { role: user.role, email: user.email });
+            toast.success(t('chamadoDetalhe.toasts.left'));
+            setReloadTick(n => n + 1);
+        } catch (e) {
+            console.error(e);
+            toast.error(t('chamadoDetalhe.toasts.leaveError'));
         } finally {
             setBusy(false);
         }
@@ -571,7 +628,22 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                         </div>
                     )}
 
-                    {chamado.manutentorNome && (
+                    {chamado.manutentores.length > 0 && (
+                        <div className={styles.detailItem}>
+                            <strong>{t('chamadoDetalhe.fields.coMaintainers')}</strong>
+                            {chamado.manutentores.map(m => (
+                                <p key={m.id}>
+                                    {m.nome}
+                                    {m.papel === 'co' && (
+                                        <span style={{ marginLeft: 6, fontSize: '0.75rem', opacity: 0.7 }}>
+                                            ({t('chamadoDetalhe.fields.coMaintainerLabel')})
+                                        </span>
+                                    )}
+                                </p>
+                            ))}
+                        </div>
+                    )}
+                    {!chamado.manutentores.length && chamado.manutentorNome && (
                         <div className={styles.detailItem}>
                             <strong>{t('chamadoDetalhe.fields.assignedTo') || 'Atribuído a'}</strong>
                             <p>{chamado.manutentorNome}</p>
@@ -847,6 +919,26 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
                     <div className={styles.card}>
                         <Button onClick={handleAtenderChamado} loading={busy}>
                             {t('chamadoDetalhe.actions.take')}
+                        </Button>
+                    </div>
+                )
+            }
+
+            {
+                podeEntrar && (
+                    <div className={styles.card}>
+                        <Button variant="secondary" onClick={handleEntrarChamado} loading={busy}>
+                            {t('chamadoDetalhe.actions.join')}
+                        </Button>
+                    </div>
+                )
+            }
+
+            {
+                podeSair && (
+                    <div className={styles.card}>
+                        <Button variant="secondary" onClick={handleSairChamado} loading={busy}>
+                            {t('chamadoDetalhe.actions.leave')}
                         </Button>
                     </div>
                 )

@@ -21,6 +21,7 @@ erDiagram
     
     chamados ||--o{ chamado_observacoes : "observações"
     chamados ||--o{ chamado_fotos : "fotos anexas"
+    chamados ||--o{ chamado_manutentores : "manutentores"
     
     pecas ||--o{ movimentacoes : "movimentação"
     
@@ -131,6 +132,19 @@ Fotos anexadas a chamados.
 | `id` | UUID | PK |
 | `chamado_id` | UUID | FK → chamados.id |
 | `storage_path` | VARCHAR | Caminho no storage |
+
+#### `chamado_manutentores`
+Lista de todos os manutentores que participaram de um chamado (co-manutenção). **Fonte canônica** da equipe de manutenção por chamado.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `chamado_id` | UUID | FK → chamados.id (CASCADE) |
+| `manutentor_id` | UUID | ID do usuário |
+| `manutentor_email` | TEXT | E-mail |
+| `manutentor_nome` | TEXT | Nome |
+| `papel` | TEXT | `'principal'` (quem atendeu) ou `'co'` (co-manutentor) |
+| `entrou_em` | TIMESTAMPTZ | Data de entrada |
 
 #### `checklist_submissoes`
 Submissões de checklists diários.

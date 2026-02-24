@@ -1,5 +1,6 @@
 // src/features/calendario/pages/CalendarioGeralPage.tsx
 import React, { useState, useEffect, useMemo, FormEvent, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Modal from '../../../../../shared/components/Modal';
 import styles from './CalendarioGeralPage.module.css';
@@ -143,6 +144,7 @@ function getContrastColor(hexColor: string): string {
 // ---------- Component ----------
 export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const perm = usePermissions(user);
 
     const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -338,10 +340,14 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
 
     const handleIniciarManutencao = async (event: CalendarEvent) => {
         try {
-            await iniciarAgendamento(event.id, { email: user?.email, role: user?.role });
+            const result = await iniciarAgendamento(event.id, { email: user?.email, role: user?.role });
             toast.success(t('calendarioGeral.toasts.started'));
             setSelectedEvent(null);
-            setReloadTick((n) => n + 1);
+            if (result?.chamadoId) {
+                navigate(`/maquinas/chamado/${result.chamadoId}`);
+            } else {
+                setReloadTick((n) => n + 1);
+            }
         } catch (err) {
             console.error(err);
             toast.error(t('calendarioGeral.toasts.startError'));

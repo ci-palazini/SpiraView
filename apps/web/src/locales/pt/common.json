@@ -496,7 +496,9 @@
       "finishedAt": "Concluido em: {{date}}",
       "cause": "Causa da Falha",
       "attendedBy": "Atendido por",
-      "attendedAt": "Atendido em: {{date}}"
+      "attendedAt": "Atendido em: {{date}}",
+      "coMaintainers": "Manutentores",
+      "coMaintainerLabel": "co-manutentor"
     },
     "of": "de",
     "selects": {
@@ -521,6 +523,8 @@
     },
     "actions": {
       "take": "Atender Chamado",
+      "join": "Entrar na Manutenção",
+      "leave": "Sair da Manutenção",
       "finish": "Concluir Chamado",
       "finishing": "Concluindo...",
       "preventive": "Checklist de Manutenção",
@@ -580,6 +584,10 @@
       "assignedToOther": "Este chamado foi atribuído a outro manutentor.",
       "taken": "Chamado atendido.",
       "takeError": "Erro ao atender chamado.",
+      "joined": "Você entrou na manutenção.",
+      "joinError": "Erro ao entrar na manutenção.",
+      "left": "Você saiu da manutenção.",
+      "leaveError": "Erro ao sair da manutenção.",
       "noteAdded": "Observação adicionada.",
       "noteError": "Erro ao adicionar observação.",
       "finishOnlyOwner": "Apenas o manutentor que atendeu pode concluir este chamado.",

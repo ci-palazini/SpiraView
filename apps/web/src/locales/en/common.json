@@ -413,7 +413,9 @@
       "finishedAt": "Closed on: {{date}}",
       "cause": "Failure Cause",
       "attendedBy": "Handled by",
-      "attendedAt": "Attended on: {{date}}"
+      "attendedAt": "Attended on: {{date}}",
+      "coMaintainers": "Maintainers",
+      "coMaintainerLabel": "co-maintainer"
     },
     "of": "of",
     "selects": {
@@ -438,6 +440,8 @@
     },
     "actions": {
       "take": "Handle Work Order",
+      "join": "Join Maintenance",
+      "leave": "Leave Maintenance",
       "finish": "Close Work Order",
       "finishing": "Closing...",
       "preventive": "Maintenance Checklist",
@@ -497,6 +501,10 @@
       "assignedToOther": "This work order was assigned to another maintainer.",
       "taken": "Work order handled.",
       "takeError": "Error handling work order.",
+      "joined": "You joined the maintenance.",
+      "joinError": "Error joining the maintenance.",
+      "left": "You left the maintenance.",
+      "leaveError": "Error leaving the maintenance.",
       "noteAdded": "Observation added.",
       "noteError": "Error adding observation.",
       "finishOnlyOwner": "Only the maintainer who handled can close this work order.",

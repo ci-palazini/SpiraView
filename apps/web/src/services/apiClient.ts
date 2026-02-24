@@ -246,6 +246,14 @@ export async function atenderChamado(id: string, auth: AuthParams = {}): Promise
     return http.post(`/chamados/${id}/atender`, { data: {}, auth });
 }
 
+export async function entrarChamado(id: string, auth: AuthParams = {}): Promise<{ ok: boolean }> {
+    return http.post(`/chamados/${id}/entrar`, { data: {}, auth });
+}
+
+export async function sairChamado(id: string, auth: AuthParams = {}): Promise<{ ok: boolean }> {
+    return http.post(`/chamados/${id}/sair`, { data: {}, auth });
+}
+
 export async function adicionarObservacao(id: string, opts: { texto: string } & AuthParams): Promise<unknown> {
     return http.post(`/chamados/${id}/observacoes`, { data: { texto: opts.texto }, auth: opts });
 }

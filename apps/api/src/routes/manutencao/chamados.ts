@@ -286,7 +286,17 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
       [id]
     );
 
-    res.json({ ...chamado, observacoes: obs.rows });
+    // Manutentores do chamado (principal + co-manutentores)
+    const manutRes = await pool.query(
+      `SELECT manutentor_id AS id, manutentor_nome AS nome, manutentor_email AS email, papel,
+              to_char(entrou_em, 'YYYY-MM-DD HH24:MI') AS entrou_em
+         FROM public.chamado_manutentores
+        WHERE chamado_id = $1
+        ORDER BY entrou_em ASC`,
+      [id]
+    );
+
+    res.json({ ...chamado, observacoes: obs.rows, manutentores: manutRes.rows });
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
@@ -552,6 +562,15 @@ chamadosRouter.post(
           return { conflict: String(atual.status) };
         }
 
+        // Registra manutentor principal na tabela canônica
+        await client.query(
+          `INSERT INTO public.chamado_manutentores
+             (chamado_id, manutentor_id, manutentor_email, manutentor_nome, papel)
+           VALUES ($1, $2, $3, $4, 'principal')
+           ON CONFLICT (chamado_id, manutentor_id) DO NOTHING`,
+          [chamadoId, atendenteId, atendenteEmail, atendenteNome]
+        );
+
         return { row: updated[0] };
       });
 
@@ -568,6 +587,127 @@ chamadosRouter.post(
 
       // mantém o mesmo shape de retorno que você já usa
       return res.json({ ok: true, chamado: resultado.row });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: String(error) });
+    }
+  }
+);
+
+// ---------- Chamados: entrar (co-manutenção) ----------
+chamadosRouter.post(
+  "/chamados/:id/entrar",
+  requirePermission('meus_chamados', 'editar'),
+  async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "USUARIO_NAO_CADASTRADO" });
+      }
+
+      const chamadoId = String(req.params.id);
+      const manutentorId    = user.id;
+      const manutentorEmail = user.email ? String(user.email).trim() : null;
+      const manutentorNome  = user.name  ? String(user.name).trim()  : null;
+
+      const resultado = await withTx(async (client) => {
+        const { rows } = await client.query(
+          `SELECT status FROM public.chamados WHERE id = $1 FOR UPDATE`,
+          [chamadoId]
+        );
+
+        if (!rows.length) return { notFound: true as const };
+
+        const statusAtual = normalizeChamadoStatus(rows[0].status);
+        if (statusAtual !== CHAMADO_STATUS.EM_ANDAMENTO) {
+          return { conflict: String(rows[0].status) };
+        }
+
+        // Verifica se já está na lista
+        const { rows: existing } = await client.query(
+          `SELECT id FROM public.chamado_manutentores
+            WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, manutentorId]
+        );
+        if (existing.length) return { alreadyJoined: true as const };
+
+        await client.query(
+          `INSERT INTO public.chamado_manutentores
+             (chamado_id, manutentor_id, manutentor_email, manutentor_nome, papel)
+           VALUES ($1, $2, $3, $4, 'co')`,
+          [chamadoId, manutentorId, manutentorEmail, manutentorNome]
+        );
+
+        return { ok: true as const };
+      });
+
+      if (resultado.notFound) {
+        return res.status(404).json({ error: "CHAMADO_NAO_ENCONTRADO" });
+      }
+      if (resultado.conflict) {
+        return res.status(409).json({ error: "STATE_CONFLICT", status: resultado.conflict });
+      }
+      if (resultado.alreadyJoined) {
+        return res.status(409).json({ error: "JA_NA_MANUTENCAO" });
+      }
+
+      try {
+        sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
+      } catch { }
+
+      return res.json({ ok: true });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: String(error) });
+    }
+  }
+);
+
+// ---------- Chamados: sair (co-manutenção) ----------
+chamadosRouter.post(
+  "/chamados/:id/sair",
+  requirePermission('meus_chamados', 'editar'),
+  async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "USUARIO_NAO_CADASTRADO" });
+      }
+
+      const chamadoId = String(req.params.id);
+
+      const resultado = await withTx(async (client) => {
+        const { rows } = await client.query(
+          `SELECT manutentor_id, papel
+             FROM public.chamado_manutentores
+            WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, user.id]
+        );
+
+        if (!rows.length) return { notFound: true as const };
+        if (rows[0].papel === 'principal') return { forbidden: true as const };
+
+        await client.query(
+          `DELETE FROM public.chamado_manutentores
+            WHERE chamado_id = $1 AND manutentor_id = $2`,
+          [chamadoId, user.id]
+        );
+
+        return { ok: true as const };
+      });
+
+      if (resultado.notFound) {
+        return res.status(404).json({ error: "NAO_ESTA_NA_MANUTENCAO" });
+      }
+      if (resultado.forbidden) {
+        return res.status(403).json({ error: "MANUTENTOR_PRINCIPAL_NAO_PODE_SAIR" });
+      }
+
+      try {
+        sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
+      } catch { }
+
+      return res.json({ ok: true });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: String(error) });
