@@ -6,7 +6,6 @@ import { usuariosRouter } from './usuarios';
 import rolesRouter from './roles';
 import { healthRouter } from './health';
 import { eventsRouter } from './events';
-import { emailRouter } from './email';
 import { notificacoesConfigRouter } from './notificacoes_config';
 
 export const coreRouter: Router = Router();
@@ -17,7 +16,5 @@ coreRouter.use(operatorAuthRouter);
 coreRouter.use(usuariosRouter);
 coreRouter.use('/roles', rolesRouter);
 coreRouter.use(healthRouter);
-coreRouter.use(healthRouter);
 coreRouter.use(eventsRouter);
-coreRouter.use('/email', emailRouter);
 coreRouter.use('/notificacoes', notificacoesConfigRouter);

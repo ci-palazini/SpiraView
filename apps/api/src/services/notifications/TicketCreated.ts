@@ -1,6 +1,7 @@
 import { pool } from '../../db';
 import { sendEmailViaMSForms } from '../msFormsSender';
 import { logger } from '../../logger';
+import { env } from '../../config/env';
 
 export const TicketCreatedNotification = {
     /**
@@ -25,17 +26,9 @@ export const TicketCreatedNotification = {
             }
 
             // 2. Montar Config do Forms via ENV
-            const formId = process.env.MS_FORMS_FORM_ID;
-            const fieldIds = {
-                to: process.env.MS_FORMS_FIELD_ID_TO,
-                subject: process.env.MS_FORMS_FIELD_ID_SUBJECT,
-                body: process.env.MS_FORMS_FIELD_ID_BODY
-            };
-            const envSubmitUrl = process.env.MS_FORMS_SUBMIT_URL;
+            logger.info(`[TicketCreated] Config ENV: FormID=${env.msForms.formId ? 'OK' : 'MISSING'}, SubmitURL=${env.msForms.submitUrl ? 'OK' : 'MISSING'}`);
 
-            logger.info(`[TicketCreated] Config ENV: FormID=${formId ? 'OK' : 'MISSING'}, SubmitURL=${envSubmitUrl ? 'OK' : 'MISSING'}`);
-
-            if (!formId || !fieldIds.to || !fieldIds.subject || !fieldIds.body) {
+            if (!env.msForms.isConfigured) {
                 logger.error('[TicketCreated] Configuração de MS Forms incompleta no .env');
                 return;
             }
@@ -150,9 +143,13 @@ export const TicketCreatedNotification = {
                     await sendEmailViaMSForms(
                         { to: emailDestino, subject, body },
                         {
-                            formId: formId!,
-                            fieldIds: fieldIds as any,
-                            submitUrl: envSubmitUrl
+                            formId: env.msForms.formId!,
+                            fieldIds: {
+                                to: env.msForms.fieldIds.to!,
+                                subject: env.msForms.fieldIds.subject!,
+                                body: env.msForms.fieldIds.body!,
+                            },
+                            submitUrl: env.msForms.submitUrl
                         }
                     );
                     logger.info(`[TicketCreated] SUCESSO: Enviado para ${emailDestino}`);

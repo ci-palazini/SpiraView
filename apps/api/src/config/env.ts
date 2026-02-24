@@ -28,6 +28,11 @@ const rawEnvSchema = z
     PGPOOL_IDLE_TIMEOUT: z.coerce.number().int().nonnegative().optional(),
     AUTH_STRICT: z.string().optional(),
     AUTOMATION_API_TOKEN: z.string().optional(),
+    MS_FORMS_FORM_ID: z.string().optional(),
+    MS_FORMS_SUBMIT_URL: z.string().optional(),
+    MS_FORMS_FIELD_ID_TO: z.string().optional(),
+    MS_FORMS_FIELD_ID_SUBJECT: z.string().optional(),
+    MS_FORMS_FIELD_ID_BODY: z.string().optional(),
     JWT_SECRET: z.string().min(1),
   })
   .transform(v => ({ ...v, PGPOOL_IDLE_TIMEOUT: v.PGPOOL_IDLE_TIMEOUT ?? 30_000 }));
@@ -46,6 +51,16 @@ type Env = {
   };
   auth: { strict: boolean; jwtSecret: string };
   automation: { apiToken: string | undefined };
+  msForms: {
+    formId: string | undefined;
+    submitUrl: string | undefined;
+    fieldIds: {
+      to: string | undefined;
+      subject: string | undefined;
+      body: string | undefined;
+    };
+    isConfigured: boolean;
+  };
 };
 
 function ensureDotenvLoaded(): void {
@@ -125,6 +140,22 @@ function parseBoolean(input: string | undefined, defaultValue: boolean): boolean
 
 function toEnv(raw: RawEnv): Env {
   const connectionString = resolveConnectionString(raw);
+  const msForms = {
+    formId: raw.MS_FORMS_FORM_ID,
+    submitUrl: raw.MS_FORMS_SUBMIT_URL,
+    fieldIds: {
+      to: raw.MS_FORMS_FIELD_ID_TO,
+      subject: raw.MS_FORMS_FIELD_ID_SUBJECT,
+      body: raw.MS_FORMS_FIELD_ID_BODY,
+    },
+    isConfigured: Boolean(
+      raw.MS_FORMS_FORM_ID
+      && raw.MS_FORMS_FIELD_ID_TO
+      && raw.MS_FORMS_FIELD_ID_SUBJECT
+      && raw.MS_FORMS_FIELD_ID_BODY
+    ),
+  };
+
   const env: Env = {
     nodeEnv: raw.NODE_ENV,
     server: { port: raw.PORT },
@@ -140,6 +171,7 @@ function toEnv(raw: RawEnv): Env {
       jwtSecret: raw.JWT_SECRET,
     },
     automation: { apiToken: raw.AUTOMATION_API_TOKEN },
+    msForms,
   };
 
   return env;
@@ -152,6 +184,10 @@ function freezeEnv(env: Env): DeepReadonly<Env> {
     cors: Object.freeze({ ...env.cors, allowedOrigins: Object.freeze([...env.cors.allowedOrigins]) }),
     database: Object.freeze({ ...env.database }),
     auth: Object.freeze({ ...env.auth }),
+    msForms: Object.freeze({
+      ...env.msForms,
+      fieldIds: Object.freeze({ ...env.msForms.fieldIds }),
+    }),
   });
 }
 
@@ -162,6 +198,9 @@ function loadEnv(overrides?: Partial<NodeJS.ProcessEnv>): ReadonlyEnv {
 
   const env = toEnv(parseRawEnv(overrides));
   if (overrides) return freezeEnv(env);
+  if (env.nodeEnv === "production" && !env.msForms.isConfigured) {
+    console.warn("[env] MS_FORMS_* not fully configured - email notifications are disabled.");
+  }
 
   cachedEnv = freezeEnv(env);
   return cachedEnv;

@@ -60,18 +60,13 @@ flowchart LR
 | PUT | `/roles/:id` | `roles: editar` | Atualizar permissões |
 | DELETE | `/roles/:id` | `roles: editar` | Excluir |
 
-### Email (`email.ts`)
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| POST | `/email/send` | Envio de emails (notificações) |
-
 ### Notificações (`notificacoes_config.ts`)
 
 | Método | Rota | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| GET | `/notificacoes/config` | `notificacoes_config` (ver) | Listar configurações |
-| PUT | `/notificacoes/config/:tipo` | `notificacoes_config` (editar) | Atualizar destinatários |
+| GET | `/notificacoes/config/:evento` | `notificacoes_config` (ver) | Listar usuários inscritos no evento |
+| POST | `/notificacoes/config` | `notificacoes_config` (editar) | Adicionar inscrição (`evento`, `usuario_id`) |
+| DELETE | `/notificacoes/config/:evento/:usuarioId` | `notificacoes_config` (editar) | Remover inscrição |
 
 ---
 

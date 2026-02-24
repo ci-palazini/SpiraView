@@ -2,6 +2,7 @@ import { pool } from '../db';
 import { sendEmailViaMSForms } from '../services/msFormsSender';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { env } from '../config/env';
 
 interface MissingItem {
     maquina_id: string;
@@ -203,21 +204,21 @@ export async function checkMissingChecklists(targetDateStr?: string) {
 `;
 
             try {
-                if (!process.env.MS_FORMS_FORM_ID) {
-                    console.warn('[CheckMissingChecklists] MS_FORMS_FORM_ID not set, skipping email.');
+                if (!env.msForms.isConfigured) {
+                    console.warn('[CheckMissingChecklists] MS_FORMS_* incompleto, pulando envio de email.');
                     continue;
                 }
 
                 await sendEmailViaMSForms(
                     { to: emailDestino, subject, body },
                     {
-                        formId: process.env.MS_FORMS_FORM_ID,
+                        formId: env.msForms.formId!,
                         fieldIds: {
-                            to: process.env.MS_FORMS_FIELD_ID_TO!,
-                            subject: process.env.MS_FORMS_FIELD_ID_SUBJECT!,
-                            body: process.env.MS_FORMS_FIELD_ID_BODY!
+                            to: env.msForms.fieldIds.to!,
+                            subject: env.msForms.fieldIds.subject!,
+                            body: env.msForms.fieldIds.body!
                         },
-                        submitUrl: process.env.MS_FORMS_SUBMIT_URL
+                        submitUrl: env.msForms.submitUrl
                     }
                 );
                 console.log(`[CheckMissingChecklists] Email enviado para ${emailDestino} (${eventKey})`);

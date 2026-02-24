@@ -516,9 +516,8 @@ Configuração de destinatários de notificações por email.
 | Coluna | Tipo | Descrição |
 |--------|------|-----------|
 | `id` | UUID | PK |
-| `tipo` | VARCHAR | Tipo de notificação |
-| `destinatarios` | TEXT[] | Lista de emails |
-| `ativo` | BOOLEAN | Se está ativa |
+| `evento` | VARCHAR | Evento de notificação (ex.: `NOVO_CHAMADO`) |
+| `usuario_id` | UUID | FK para `usuarios.id` |
 | `created_at` | TIMESTAMP | Data de criação |
 
 ---
