@@ -1,3 +1,53 @@
+
+interface TeamsMessagePayload {
+    message: string;
+}
+
+interface TeamsFormsConfig {
+    formId: string;
+    fieldIdMessage: string;
+    submitUrl?: string;
+}
+
+/**
+ * Envia uma mensagem para o Teams utilizando o Microsoft Forms como proxy.
+ * Requer configuração prévia do Form ID e do ID do campo de mensagem.
+ */
+export async function sendTeamsMessageViaMSForms(
+    payload: TeamsMessagePayload,
+    config: TeamsFormsConfig
+): Promise<void> {
+    const { formId, fieldIdMessage, submitUrl: customUrl } = config;
+
+    const answersList = [
+        { questionId: fieldIdMessage, answer1: payload.message },
+    ];
+
+    const requestBody = {
+        startDate: new Date().toISOString(),
+        submitDate: new Date().toISOString(),
+        answers: JSON.stringify(answersList)
+    };
+
+    const submitUrl = customUrl || `https://forms.office.com/formapi/api/${formId}/users/anonymous/responses`;
+
+    const response = await fetch(submitUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'SpiraView-Backend/1.0'
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        let txt = '';
+        try {
+            txt = await response.text();
+        } catch { }
+        throw new Error(`MS Teams Forms Error ${response.status}: ${txt}`);
+    }
+}
 
 interface EmailPayload {
     to: string;

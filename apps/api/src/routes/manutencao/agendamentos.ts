@@ -3,6 +3,7 @@ import { pool, withTx } from '../../db';
 import { slugify } from '../../utils/slug';
 import { sseBroadcast } from '../../utils/sse';
 import { AGENDAMENTO_STATUS, normalizeAgendamentoStatus, CHAMADO_STATUS } from '../../utils/status';
+import { PreventiveMaintenanceNotification } from '../../services/notifications/PreventiveMaintenance';
 
 // Helper: verificar permissão granular inline
 async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
@@ -310,7 +311,7 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
       throw err;
     };
 
-    const { chamadoId } = await withTx(async (client) => {
+    const { chamadoId, maquinaNome, descricao, quemAbriu, qtdItens } = await withTx(async (client) => {
       const { rows } = await client.query(
         `SELECT a.id,
                 a.maquina_id,
@@ -336,7 +337,7 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
       }
 
       const { rows: criadorRows } = await client.query(
-        `SELECT id FROM usuarios WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+        `SELECT id, nome FROM usuarios WHERE LOWER(email) = LOWER($1) LIMIT 1`,
         [criadoPorEmail],
       );
 
@@ -345,6 +346,7 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
       }
 
       const criadoPorId: string = criadorRows[0].id;
+      const criadoPorNome: string = criadorRows[0].nome ?? criadoPorEmail;
 
       let manutentorId: string | null = null;
       if (manutentorEmail) {
@@ -392,12 +394,20 @@ agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
         [id, AGENDAMENTO_STATUS.INICIADO],
       );
 
-      return { chamadoId };
+      return { chamadoId, maquinaNome: agendamento.maquina_nome, descricao: agendamento.descricao, quemAbriu: criadoPorNome, qtdItens: checklist.length };
     });
 
     try {
       sseBroadcast?.({ topic: 'agendamentos', action: 'started', id, payload: { chamadoId } });
     } catch { }
+
+    // Notificação Teams: chamado preventivo aberto (fire-and-forget)
+    PreventiveMaintenanceNotification.onAberta({
+      maquinaNome: maquinaNome ?? 'N/A',
+      descricao: descricao ?? 'N/A',
+      quemAbriu: quemAbriu ?? 'N/A',
+      qtdItens: qtdItens ?? 0,
+    }).catch(() => { });
 
     res.json({ ok: true, chamadoId });
   } catch (error: any) {

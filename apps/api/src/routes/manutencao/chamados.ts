@@ -13,6 +13,7 @@ import {
 import multer from "multer";
 import { storageProvider } from "../../utils/storage";
 import { TicketCreatedNotification } from "../../services/notifications/TicketCreated";
+import { PreventiveMaintenanceNotification } from "../../services/notifications/PreventiveMaintenance";
 import { logger } from '../../logger';
 
 export const chamadosRouter: Router = Router();
@@ -528,7 +529,7 @@ chamadosRouter.post(
           [chamadoId, atendenteId, atendenteEmail, atendenteNome]
         );
 
-        return { row: updated[0] };
+        return { row: updated[0], tipo: atual.tipo };
       });
 
       if (resultado.notFound) {
@@ -541,6 +542,14 @@ chamadosRouter.post(
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
       } catch { }
+
+      // Notificação Teams: preventiva iniciada (fire-and-forget)
+      if (typeof resultado.tipo === 'string' && resultado.tipo.toLowerCase() === 'preventiva') {
+        PreventiveMaintenanceNotification.onIniciada({
+          chamadoId,
+          manutentorNome: atendenteNome ?? atendenteEmail ?? 'N/A',
+        }).catch(() => { });
+      }
 
       // mantém o mesmo shape de retorno que você já usa
       return res.json({ ok: true, chamado: resultado.row });
@@ -713,9 +722,11 @@ chamadosRouter.post(
 
       // lê status/tipo e vínculos para regras de permissão/transição
       const { rows } = await pool.query(
-        `SELECT status, tipo, manutentor_id, agendamento_id, checklist
-           FROM public.chamados
-          WHERE id = $1`,
+        `SELECT c.status, c.tipo, c.manutentor_id, c.agendamento_id, c.checklist,
+                m.nome AS maquina_nome
+           FROM public.chamados c
+           JOIN public.maquinas m ON m.id = c.maquina_id
+          WHERE c.id = $1`,
         [chamadoId]
       );
 
@@ -841,6 +852,16 @@ chamadosRouter.post(
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
       } catch { }
+
+      // Notificação Teams: preventiva concluída (fire-and-forget)
+      if (tipoChamado === 'preventiva') {
+        PreventiveMaintenanceNotification.onConcluida({
+          chamadoId,
+          maquinaNome: atual.maquina_nome ?? 'N/A',
+          concluidorNome: user.name ?? user.email ?? 'N/A',
+          checklist: body.checklist ?? [],
+        }).catch(() => { });
+      }
 
       return res.json({ ok: true, chamado: chamadoAtualizado });
     } catch (error) {

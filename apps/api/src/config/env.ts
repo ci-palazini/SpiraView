@@ -34,6 +34,9 @@ const rawEnvSchema = z
     MS_FORMS_FIELD_ID_TO: z.string().optional(),
     MS_FORMS_FIELD_ID_SUBJECT: z.string().optional(),
     MS_FORMS_FIELD_ID_BODY: z.string().optional(),
+    MS_TEAMS_FORMS_FORM_ID: z.string().optional(),
+    MS_TEAMS_FORMS_SUBMIT_URL: z.string().optional(),
+    MS_TEAMS_FORMS_FIELD_ID_MESSAGE: z.string().optional(),
     JWT_SECRET: z.string().min(1),
   })
   .transform(v => ({ ...v, PGPOOL_IDLE_TIMEOUT: v.PGPOOL_IDLE_TIMEOUT ?? 30_000 }));
@@ -61,6 +64,12 @@ type Env = {
       subject: string | undefined;
       body: string | undefined;
     };
+    isConfigured: boolean;
+  };
+  msTeamsForms: {
+    formId: string | undefined;
+    submitUrl: string | undefined;
+    fieldIdMessage: string | undefined;
     isConfigured: boolean;
   };
 };
@@ -158,6 +167,16 @@ function toEnv(raw: RawEnv): Env {
     ),
   };
 
+  const msTeamsForms = {
+    formId: raw.MS_TEAMS_FORMS_FORM_ID,
+    submitUrl: raw.MS_TEAMS_FORMS_SUBMIT_URL,
+    fieldIdMessage: raw.MS_TEAMS_FORMS_FIELD_ID_MESSAGE,
+    isConfigured: Boolean(
+      raw.MS_TEAMS_FORMS_FORM_ID
+      && raw.MS_TEAMS_FORMS_FIELD_ID_MESSAGE
+    ),
+  };
+
   const env: Env = {
     nodeEnv: raw.NODE_ENV,
     server: { port: raw.PORT },
@@ -175,6 +194,7 @@ function toEnv(raw: RawEnv): Env {
     automation: { apiToken: raw.AUTOMATION_API_TOKEN },
     appUrl: raw.APP_URL ?? 'https://ci-spiraview.vercel.app',
     msForms,
+    msTeamsForms,
   };
 
   return env;
@@ -191,6 +211,7 @@ function freezeEnv(env: Env): DeepReadonly<Env> {
       ...env.msForms,
       fieldIds: Object.freeze({ ...env.msForms.fieldIds }),
     }),
+    msTeamsForms: Object.freeze({ ...env.msTeamsForms }),
   });
 }
 
