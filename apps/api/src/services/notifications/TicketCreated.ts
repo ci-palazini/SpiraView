@@ -39,16 +39,20 @@ export const TicketCreatedNotification = {
             // Assunto Único
             const subject = `Novo Chamado: ${maquinaNome} - ${chamado.tipo}`;
 
-            // 3. Enviar para cada um
-            const promessas = recipients.map(async (user) => {
-                const emailDestino = user.email_real || user.email;
-                if (!emailDestino || !emailDestino.includes('@')) {
-                    logger.info(`[TicketCreated] Usuário ${user.nome} sem email válido.`);
-                    return;
-                }
+            // 3. Coletar todos os emails válidos e enviar um único email
+            const emailsValidos = recipients
+                .map((u) => u.email_real || u.email)
+                .filter((e): e is string => !!e && e.includes('@'));
 
-                // Template HTML
-                const body = `
+            if (emailsValidos.length === 0) {
+                logger.info('[TicketCreated] Nenhum destinatário com email válido.');
+                return;
+            }
+
+            const toField = emailsValidos.join(';');
+
+            // Template HTML
+            const body = `
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4f6f8" style="padding:30px 0;">
   <tr>
     <td align="center">
@@ -71,7 +75,7 @@ export const TicketCreatedNotification = {
           <td style="padding:24px; font-family:Arial, sans-serif; color:#333;">
 
             <p style="font-size:15px;">
-              Olá <strong>${user.nome}</strong>,
+              Olá, pessoal,
             </p>
 
             <p>
@@ -138,27 +142,24 @@ export const TicketCreatedNotification = {
 </table>
 `.trim();
 
-                try {
-                    logger.info(`[TicketCreated] Enviando para ${emailDestino}...`);
-                    await sendEmailViaMSForms(
-                        { to: emailDestino, subject, body },
-                        {
-                            formId: env.msForms.formId!,
-                            fieldIds: {
-                                to: env.msForms.fieldIds.to!,
-                                subject: env.msForms.fieldIds.subject!,
-                                body: env.msForms.fieldIds.body!,
-                            },
-                            submitUrl: env.msForms.submitUrl
-                        }
-                    );
-                    logger.info(`[TicketCreated] SUCESSO: Enviado para ${emailDestino}`);
-                } catch (err) {
-                    logger.error({ err, emailDestino }, '[TicketCreated] ERRO ao enviar email');
-                }
-            });
-
-            await Promise.all(promessas);
+            try {
+                logger.info(`[TicketCreated] Enviando para ${toField}...`);
+                await sendEmailViaMSForms(
+                    { to: toField, subject, body },
+                    {
+                        formId: env.msForms.formId!,
+                        fieldIds: {
+                            to: env.msForms.fieldIds.to!,
+                            subject: env.msForms.fieldIds.subject!,
+                            body: env.msForms.fieldIds.body!,
+                        },
+                        submitUrl: env.msForms.submitUrl
+                    }
+                );
+                logger.info(`[TicketCreated] SUCESSO: Enviado para ${emailsValidos.length} destinatário(s)`);
+            } catch (err) {
+                logger.error({ err, toField }, '[TicketCreated] ERRO ao enviar email');
+            }
 
         } catch (error) {
             logger.error({ err: error }, '[TicketCreated] Erro CRÍTICO ao processar TicketCreatedNotification');

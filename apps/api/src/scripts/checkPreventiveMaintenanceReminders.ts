@@ -87,7 +87,7 @@ async function releaseNotificationLock(lockId: string): Promise<void> {
   await pool.query(`DELETE FROM notificacoes_enviadas WHERE id = $1`, [lockId]);
 }
 
-function buildEmailContent(evento: ReminderEvent, row: PreventiveScheduleRow, nomeUsuario: string) {
+function buildEmailContent(evento: ReminderEvent, row: PreventiveScheduleRow) {
   const isD1 = evento === 'PREVENTIVA_D1';
 
   const headerColor  = isD1 ? '#d97706' : '#c2410c';
@@ -127,7 +127,7 @@ function buildEmailContent(evento: ReminderEvent, row: PreventiveScheduleRow, no
               </span>
             </div>
 
-            <p style="font-size:15px;">Olá <strong>${nomeUsuario}</strong>,</p>
+            <p style="font-size:15px;">Olá, pessoal,</p>
             <p>Existe uma manutenção preventiva prevista para <strong>${whenLabel}</strong>. Confira os detalhes:</p>
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0; background:#fafafa; border:1px solid #eee; border-radius:6px;">
@@ -187,39 +187,52 @@ async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRef
   if (!recipients.length) return;
 
   for (const item of schedules) {
+    // Reservar locks e coletar emails dos destinatários ainda não notificados
+    const lockedIds: string[] = [];
+    const emailsValidos: string[] = [];
+
     for (const recipient of recipients) {
       const emailDestino = recipient.email_real || recipient.email;
       if (!emailDestino || !emailDestino.includes('@')) continue;
 
       const lockId = await reserveNotification(evento, item.id, recipient.usuario_id, dataRefLocal);
-      if (!lockId) continue;
+      if (!lockId) continue; // Já notificado
 
-      const { subject, body } = buildEmailContent(evento, item, recipient.nome);
-      try {
-        await sendEmailViaMSForms(
-          { to: emailDestino, subject, body },
-          {
-            formId: env.msForms.formId!,
-            fieldIds: {
-              to: env.msForms.fieldIds.to!,
-              subject: env.msForms.fieldIds.subject!,
-              body: env.msForms.fieldIds.body!,
-            },
-            submitUrl: env.msForms.submitUrl,
+      lockedIds.push(lockId);
+      emailsValidos.push(emailDestino);
+    }
+
+    if (!emailsValidos.length) continue;
+
+    const toField = emailsValidos.join(';');
+    const { subject, body } = buildEmailContent(evento, item);
+    try {
+      await sendEmailViaMSForms(
+        { to: toField, subject, body },
+        {
+          formId: env.msForms.formId!,
+          fieldIds: {
+            to: env.msForms.fieldIds.to!,
+            subject: env.msForms.fieldIds.subject!,
+            body: env.msForms.fieldIds.body!,
           },
-        );
-        logger.info(
-          { evento, agendamentoId: item.id, usuarioId: recipient.usuario_id, emailDestino },
-          '[PreventiveReminder] Email enviado',
-        );
-        await sleep(300);
-      } catch (err) {
+          submitUrl: env.msForms.submitUrl,
+        },
+      );
+      logger.info(
+        { evento, agendamentoId: item.id, totalDestinatarios: emailsValidos.length },
+        '[PreventiveReminder] Email enviado',
+      );
+      await sleep(300);
+    } catch (err) {
+      // Liberar locks para permitir nova tentativa
+      for (const lockId of lockedIds) {
         await releaseNotificationLock(lockId);
-        logger.error(
-          { err, evento, agendamentoId: item.id, usuarioId: recipient.usuario_id, emailDestino },
-          '[PreventiveReminder] Falha ao enviar email',
-        );
       }
+      logger.error(
+        { err, evento, agendamentoId: item.id, toField },
+        '[PreventiveReminder] Falha ao enviar email',
+      );
     }
   }
 }

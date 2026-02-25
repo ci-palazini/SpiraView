@@ -122,14 +122,19 @@ export async function checkMissingChecklists(targetDateStr?: string) {
             return;
         }
 
-        const listaHtml = items.map(i => `<li>${i.maquina_nome}</li>`).join('');
+        const emailsValidos = users
+            .map((u) => u.email_real || u.email)
+            .filter((e): e is string => !!e && e.includes('@'));
+
+        if (emailsValidos.length === 0) {
+            console.log(`[CheckMissingChecklists] Sem emails válidos para ${eventKey}`);
+            return;
+        }
+
+        const toField = emailsValidos.join(';');
         const subject = `[ALERTA] Checklists Pendentes - ${turnoLabel} - ${dataFormatada}`;
 
-        for (const user of users) {
-            const emailDestino = user.email_real || user.email;
-            if (!emailDestino || !emailDestino.includes('@')) continue;
-
-            const body = `
+        const body = `
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4f6f8" style="padding:30px 0;">
   <tr>
     <td align="center">
@@ -148,7 +153,7 @@ export async function checkMissingChecklists(targetDateStr?: string) {
         <tr>
           <td style="padding:24px; font-family:Arial, sans-serif; color:#333;">
             <p style="font-size:15px;">
-              Olá <strong>${user.nome}</strong>,
+              Olá, pessoal,
             </p>
             <p>
               Identificamos que as seguintes máquinas não tiveram o checklist enviado no <strong>${turnoLabel}</strong> do dia <strong>${dataFormatada}</strong>:
@@ -203,29 +208,27 @@ export async function checkMissingChecklists(targetDateStr?: string) {
 </table>
 `;
 
-            try {
-                if (!env.msForms.isConfigured) {
-                    console.warn('[CheckMissingChecklists] MS_FORMS_* incompleto, pulando envio de email.');
-                    continue;
-                }
-
-                await sendEmailViaMSForms(
-                    { to: emailDestino, subject, body },
-                    {
-                        formId: env.msForms.formId!,
-                        fieldIds: {
-                            to: env.msForms.fieldIds.to!,
-                            subject: env.msForms.fieldIds.subject!,
-                            body: env.msForms.fieldIds.body!
-                        },
-                        submitUrl: env.msForms.submitUrl
-                    }
-                );
-                console.log(`[CheckMissingChecklists] Email enviado para ${emailDestino} (${eventKey})`);
-                await sleep(500);
-            } catch (err) {
-                console.error(`[CheckMissingChecklists] Erro ao enviar para ${emailDestino}:`, err);
+        try {
+            if (!env.msForms.isConfigured) {
+                console.warn('[CheckMissingChecklists] MS_FORMS_* incompleto, pulando envio de email.');
+                return;
             }
+
+            await sendEmailViaMSForms(
+                { to: toField, subject, body },
+                {
+                    formId: env.msForms.formId!,
+                    fieldIds: {
+                        to: env.msForms.fieldIds.to!,
+                        subject: env.msForms.fieldIds.subject!,
+                        body: env.msForms.fieldIds.body!
+                    },
+                    submitUrl: env.msForms.submitUrl
+                }
+            );
+            console.log(`[CheckMissingChecklists] Email enviado para ${emailsValidos.length} destinatário(s) (${eventKey})`);
+        } catch (err) {
+            console.error(`[CheckMissingChecklists] Erro ao enviar para ${toField}:`, err);
         }
     };
 
