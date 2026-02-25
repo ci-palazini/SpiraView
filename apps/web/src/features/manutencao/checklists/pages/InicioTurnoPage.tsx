@@ -166,13 +166,16 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                     setOverviewData(overviewMap);
                 } catch (e) {
                     console.error('Erro ao buscar overview diário', e);
+                    toast(t('inicioTurno.overviewError', 'Não foi possível carregar o status do dia. Todas as máquinas serão exibidas.'), { icon: '⚠️' });
                 }
 
-                // Filtrar máquinas que têm checklist configurado usando dados do overview
+                // Filtrar máquinas que têm checklist configurado usando dados do overview.
+                // Se o overview falhou (overviewResp vazio), exibe todas as máquinas sem filtro.
                 const hasChecklistMap = new Map(overviewResp.map(o => [String(o.id), o.hasChecklist]));
+                const overviewDisponivel = overviewResp.length > 0;
 
                 const ordenada = [...lista]
-                    .filter(m => hasChecklistMap.get(String(m.id)) === true)
+                    .filter(m => !overviewDisponivel || hasChecklistMap.get(String(m.id)) === true)
                     .sort((a, b) =>
                         String(a.nome || '').localeCompare(String(b.nome || ''), 'pt')
                     );
