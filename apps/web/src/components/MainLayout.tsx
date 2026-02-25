@@ -78,7 +78,8 @@ import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
 import type { User } from '../App';
 
-import { listarChamados, listarAgendamentos, connectSSE } from '../services/apiClient';
+import { listarChamados, listarAgendamentos } from '../services/apiClient';
+import useSSE from '../hooks/useSSE';
 import usePermissions from '../hooks/usePermissions';
 
 type UserRole = 'operador' | 'manutentor' | 'gestor' | 'gestor industrial' | '';
@@ -276,28 +277,19 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     }, [location.pathname]);
 
     useEffect(() => {
-        let stopped = false;
-
         refreshOpenCalls();
         refreshSoonDue();
         refreshMyActive();
-
-        const disconnect = connectSSE({
-            chamados: () => {
-                if (!stopped) {
-                    refreshOpenCalls();
-                    refreshMyActive();
-                }
-            },
-            agendamentos: () => {
-                if (!stopped) refreshSoonDue();
-            },
-        });
-        return () => {
-            stopped = true;
-            disconnect();
-        };
     }, [role, user?.email]);
+
+    useSSE('chamados', () => {
+        refreshOpenCalls();
+        refreshMyActive();
+    });
+
+    useSSE('agendamentos', () => {
+        refreshSoonDue();
+    });
 
     const handleLogout = () => {
         try {

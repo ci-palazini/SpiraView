@@ -1,8 +1,8 @@
 // src/features/chamados/pages/ChamadosAbertosPage.tsx
-import { useState, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useCallback, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { listarChamados } from '../../../../services/apiClient';
-import { subscribeSSE } from '../../../../services/sseClient';
+import useSSE from '../../../../hooks/useSSE';
 import { exportToExcel } from '../../../../utils/exportExcel';
 import { exportToPdf } from '../../../../utils/exportPdf';
 import styles from './ChamadosAbertosPage.module.css';
@@ -53,7 +53,6 @@ const ChamadosAbertosPage = () => {
 
     const [chamados, setChamados] = useState<ChamadoAberto[]>([]);
     const [loading, setLoading] = useState(true);
-    const [reloadTick, setReloadTick] = useState(0);
 
     const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos');
     const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>('todos');
@@ -95,48 +94,38 @@ const ChamadosAbertosPage = () => {
         return arr;
     }, [chamados, filtroTipo, filtroStatus, filtroMaquina, busca]);
 
-    useEffect(() => {
-        let alive = true;
-        setLoading(true);
-        (async () => {
-            try {
-                const data = await listarChamados({ page: 1, pageSize: 500 });
-                const rows: ApiChamado[] = data.items ?? data;
+    const loadChamados = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await listarChamados({ page: 1, pageSize: 500 });
+            const rows: ApiChamado[] = data.items ?? data;
 
-                const abertos = rows.filter((r: ApiChamado) =>
-                    !['Concluido', 'Concluído'].includes(r.status || '')
-                );
+            const abertos = rows.filter((r: ApiChamado) =>
+                !['Concluido', 'Concluído'].includes(r.status || '')
+            );
 
-                const mapped: ChamadoAberto[] = abertos.map((r: ApiChamado) => ({
-                    id: r.id,
-                    maquina: r.maquina,
-                    tipo: r.tipo,
-                    descricao: r.descricao,
-                    manutentorNome: r.manutentor || '',
-                    dataAbertura: r.criado_em || null,
-                    status: r.status,
-                    prioridade: r.prioridade || 'normal'
-                }));
+            const mapped: ChamadoAberto[] = abertos.map((r: ApiChamado) => ({
+                id: r.id,
+                maquina: r.maquina,
+                tipo: r.tipo,
+                descricao: r.descricao,
+                manutentorNome: r.manutentor || '',
+                dataAbertura: r.criado_em || null,
+                status: r.status,
+                prioridade: r.prioridade || 'normal'
+            }));
 
-                if (!alive) return;
-                setChamados(mapped);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                if (alive) setLoading(false);
-            }
-        })();
-        return () => { alive = false; };
-    }, [reloadTick]);
-
-    useEffect(() => {
-        const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
-            if (msg?.topic === 'chamados') {
-                setReloadTick(n => n + 1);
-            }
-        });
-        return () => unsubscribe();
+            setChamados(mapped);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => { loadChamados(); }, [loadChamados]);
+
+    useSSE('chamados', loadChamados);
 
     function tipoLabel(tipo: string | undefined): string {
         if (tipo === 'corretiva') return t('chamadosAbertos.filters.typeOptions.corrective', 'Corretiva');

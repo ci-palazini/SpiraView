@@ -659,49 +659,8 @@ export async function loginOperador(operadorId: string, matricula: string): Prom
 }
 
 // ===== SSE =====
-export function connectSSE(handlers: SSEHandlers = {}): () => void {
-    const es = new EventSource(`${BASE}/events`);
-    es.addEventListener('hello', e => handlers.hello?.(JSON.parse((e as MessageEvent).data)));
-    es.addEventListener('chamados', e => handlers.chamados?.(JSON.parse((e as MessageEvent).data)));
-    es.addEventListener('agendamentos', e => handlers.agendamentos?.(JSON.parse((e as MessageEvent).data)));
-    es.addEventListener('checklist', e => handlers.checklist?.(JSON.parse((e as MessageEvent).data)));
-    es.addEventListener('pecas', e => handlers.pecas?.(JSON.parse((e as MessageEvent).data)));
-    es.onerror = (err) => handlers.onError?.(err);
-    es.onopen = () => handlers.onOpen?.();
-    return () => es.close();
-}
-
-export function subscribeSSE(onEvent: (msg: SSEMessage) => void, opts: { email?: string } = {}): () => void {
-    const qs = new URLSearchParams();
-    if (opts.email) qs.set('email', opts.email);
-
-    const url = `${BASE}/events${qs.toString() ? `?${qs}` : ''}`;
-
-    if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
-        console.warn('EventSource não disponível; subscribeSSE será no-op.');
-        return () => { };
-    }
-
-    const es = new EventSource(url, { withCredentials: false });
-
-    es.onmessage = (ev) => {
-        if (!ev?.data) return;
-        try {
-            const data = JSON.parse(ev.data);
-            if (typeof onEvent === 'function') onEvent(data);
-        } catch {
-            if (typeof onEvent === 'function') onEvent({ raw: ev.data });
-        }
-    };
-
-    es.onerror = (err) => {
-        console.warn('SSE error', err);
-    };
-
-    return () => {
-        try { es.close(); } catch { }
-    };
-}
+// Moved to singleton hook: src/hooks/useSSE.ts
+// connectSSE and subscribeSSE removed — use useSSE('topic', callback) instead.
 
 // ===== PRODUÇÃO =====
 export interface ProducaoMeta {

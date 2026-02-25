@@ -1,8 +1,8 @@
 // src/features/chamados/pages/HistoricoPage.tsx
-import { useState, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useCallback, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { listarChamados } from '../../../../services/apiClient';
-import { subscribeSSE } from '../../../../services/sseClient';
+import useSSE from '../../../../hooks/useSSE';
 import { exportToExcel } from '../../../../utils/exportExcel';
 import { exportToPdf } from '../../../../utils/exportPdf';
 import styles from './HistoricoPage.module.css';
@@ -56,7 +56,6 @@ const HistoricoPage = () => {
 
     const [chamadosConcluidos, setChamadosConcluidos] = useState<ChamadoConcluido[]>([]);
     const [loading, setLoading] = useState(true);
-    const [reloadTick, setReloadTick] = useState(0);
 
     const [filtroTipoChamado, setFiltroTipoChamado] = useState<FiltroTipo>('todos');
     const [filtroMaquina, setFiltroMaquina] = useState('');
@@ -94,46 +93,36 @@ const HistoricoPage = () => {
         return arr;
     }, [chamadosConcluidos, filtroTipoChamado, filtroMaquina, busca]);
 
-    useEffect(() => {
-        let alive = true;
-        setLoading(true);
-        (async () => {
-            try {
-                const data = await listarChamados({ status: 'Concluido', page: 1, pageSize: 500 });
-                const rows: ApiChamado[] = data.items ?? data;
+    const loadConcluidos = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await listarChamados({ status: 'Concluido', page: 1, pageSize: 500 });
+            const rows: ApiChamado[] = data.items ?? data;
 
-                const mapped: ChamadoConcluido[] = rows.map((r: ApiChamado) => ({
-                    id: r.id,
-                    maquina: r.maquina,
-                    tipo: r.tipo,
-                    descricao: r.descricao,
-                    manutentorNome: r.manutentor || '',
-                    dataAbertura: r.criado_em || null,
-                    dataConclusao: r.concluido_em || null,
-                    solucao: r.solucao || '',
-                    causa: r.causa || '',
-                    status: r.status
-                }));
+            const mapped: ChamadoConcluido[] = rows.map((r: ApiChamado) => ({
+                id: r.id,
+                maquina: r.maquina,
+                tipo: r.tipo,
+                descricao: r.descricao,
+                manutentorNome: r.manutentor || '',
+                dataAbertura: r.criado_em || null,
+                dataConclusao: r.concluido_em || null,
+                solucao: r.solucao || '',
+                causa: r.causa || '',
+                status: r.status
+            }));
 
-                if (!alive) return;
-                setChamadosConcluidos(mapped);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                if (alive) setLoading(false);
-            }
-        })();
-        return () => { alive = false; };
-    }, [reloadTick]);
-
-    useEffect(() => {
-        const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
-            if (msg?.topic === 'chamados') {
-                setReloadTick(n => n + 1);
-            }
-        });
-        return () => unsubscribe();
+            setChamadosConcluidos(mapped);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => { loadConcluidos(); }, [loadConcluidos]);
+
+    useSSE('chamados', loadConcluidos);
 
     function tipoLabel(tipo: string | undefined): string {
         if (tipo === 'corretiva') return t('historico.filters.typeOptions.corrective');

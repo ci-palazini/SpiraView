@@ -12,8 +12,8 @@ import {
     listarMaquinas,
     listarChamados,
     criarChamado,
-    subscribeSSE,
 } from '../services/apiClient';
+import useSSE from '../hooks/useSSE';
 
 interface Maquina {
     id: string;
@@ -109,29 +109,10 @@ export default function OperatorDashboard({ user }: OperatorDashboardProps) {
 
     useEffect(() => {
         if (!operadorEmail) return;
-        let stopPolling: ReturnType<typeof setInterval> | undefined;
         carregarChamados();
-
-        let unsubscribeSSE: (() => void) | null = null;
-        if (typeof subscribeSSE === 'function') {
-            try {
-                unsubscribeSSE = subscribeSSE((evt: { topic?: string }) => {
-                    if (evt?.topic === 'chamados') {
-                        carregarChamados();
-                    }
-                });
-            } catch {
-                stopPolling = setInterval(carregarChamados, 30000);
-            }
-        } else {
-            stopPolling = setInterval(carregarChamados, 30000);
-        }
-
-        return () => {
-            if (unsubscribeSSE) try { unsubscribeSSE(); } catch { /* ignore */ }
-            if (stopPolling) clearInterval(stopPolling);
-        };
     }, [operadorEmail]);
+
+    useSSE('chamados', carregarChamados);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();

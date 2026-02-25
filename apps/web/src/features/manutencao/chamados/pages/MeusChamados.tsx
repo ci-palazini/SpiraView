@@ -1,8 +1,8 @@
 // src/features/chamados/pages/MeusChamados.tsx
-import { useEffect, useMemo, useState, ChangeEvent } from 'react';
+import { useEffect, useMemo, useState, useCallback, ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { listarChamadosPorCriador, listarChamados } from '../../../../services/apiClient';
-import { subscribeSSE } from '../../../../services/sseClient';
+import useSSE from '../../../../hooks/useSSE';
 import styles from './MeusChamados.module.css';
 import PageHeader from '../../../../shared/components/PageHeader';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +60,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
     const [statusFiltro, setStatusFiltro] = useState<'ativos' | 'todos' | 'concluidos'>('ativos');
     const [busca, setBusca] = useState('');
 
-    const [reloadTick, setReloadTick] = useState(0);
+
 
     const email = user?.email;
     const role = user?.role;
@@ -77,14 +77,12 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         return d ? dtFmt.format(d) : '—';
     };
 
-    useEffect(() => {
-        if (!email || !isManutentorLike) {
-            setDocsAssigned([]);
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        (async () => {
+    const loadAll = useCallback(async () => {
+        if (!email) return;
+
+        // Load assigned chamados (for manutentores)
+        if (isManutentorLike) {
+            setLoading(true);
             try {
                 const res = await listarChamados({ manutentorEmail: email, page: 1, pageSize: 100 });
                 const rows = (res.items ?? res) as ApiChamado[];
@@ -101,23 +99,13 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
             } finally {
                 setLoading(false);
             }
-        })();
-    }, [email, role, reloadTick]);
-
-    useEffect(() => {
-        const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
-            if (msg?.topic === 'chamados') setReloadTick(n => n + 1);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-        if (!email) return;
-        if (role === 'manutentor') {
-            setDocsAtendidos([]);
-            return;
+        } else {
+            setDocsAssigned([]);
+            setLoading(false);
         }
-        (async () => {
+
+        // Load chamados created by user (for non-manutentores)
+        if (role !== 'manutentor') {
             try {
                 const res = await listarChamadosPorCriador(email, 1, 100);
                 const rows = (res.items ?? res) as ApiChamado[];
@@ -132,8 +120,14 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
             } catch (e) {
                 console.error('Erro criadoPorEmail==user:', e);
             }
-        })();
-    }, [email, reloadTick, role]);
+        } else {
+            setDocsAtendidos([]);
+        }
+    }, [email, role, isManutentorLike]);
+
+    useEffect(() => { loadAll(); }, [loadAll]);
+
+    useSSE('chamados', loadAll);
 
     const chamados = useMemo(() => {
         const map = new Map<string, Chamado>();

@@ -1,5 +1,5 @@
 // src/features/calendario/pages/CalendarioGeralPage.tsx
-import React, { useState, useEffect, useMemo, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Modal from '../../../../../shared/components/Modal';
@@ -19,7 +19,7 @@ import {
     iniciarAgendamento
 } from '../../../../../services/apiClient';
 import { getMaquinas } from '../../../../../services/apiClient';
-import { subscribeSSE } from '../../../../../services/sseClient';
+import useSSE from '../../../../../hooks/useSSE';
 
 // ---------- Types ----------
 interface User {
@@ -150,7 +150,7 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [reloadTick, setReloadTick] = useState(0);
+    const [reloadTick, setReloadTick] = useState(0); // kept for manual reload after mutations
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [showNew, setShowNew] = useState(false);
     const [slotInfo, setSlotInfo] = useState<SlotInfo | null>(null);
@@ -177,15 +177,8 @@ export default function CalendarioGeralPage({ user }: CalendarioGeralPageProps) 
         [i18n.language]
     );
 
-    // SSE para reagir a mudanças de agendamentos
-    useEffect(() => {
-        const unsubscribe = subscribeSSE((msg: { topic?: string }) => {
-            if (msg?.topic === 'agendamentos') {
-                setReloadTick((n) => n + 1);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
+    // SSE para reagir a mudanças de agendamentos (singleton, debounced)
+    useSSE('agendamentos', () => setReloadTick((n) => n + 1));
 
     // Busca máquinas
     useEffect(() => {
