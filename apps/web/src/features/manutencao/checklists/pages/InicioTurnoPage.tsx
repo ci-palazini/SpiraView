@@ -23,6 +23,7 @@ import {
     listarSubmissoesDiarias,
     enviarChecklistDiaria,
     getMaquina,
+    getChecklistOverview,
 } from '../../../../services/apiClient';
 
 // ---------- Types ----------
@@ -125,7 +126,7 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     const [todasMaquinas, setTodasMaquinas] = useState<Maquina[]>([]);
     const [turno, setTurno] = useState(() => getTurnoPadrao());
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
-    const [enviadasHoje, setEnviadasHoje] = useState<Set<string>>(new Set());
+    const [overviewData, setOverviewData] = useState<Record<string, { t1Ok: boolean, t2Ok: boolean, t1Nomes: string[], t2Nomes: string[] }>>({});
     const [loading, setLoading] = useState(true);
 
     // PASSO 2 - checklists (wizard)
@@ -148,25 +149,36 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
             try {
                 setLoading(true);
                 const lista: Maquina[] = await listarMaquinas({ escopo: 'manutencao' });
-                const ordenada = [...lista].sort((a, b) =>
-                    String(a.nome || '').localeCompare(String(b.nome || ''), 'pt')
-                );
+                // buscar overview do dia para todas as máquinas e operadores
+                let overviewResp: any[] = [];
+                try {
+                    overviewResp = await getChecklistOverview(getDataReferenciaChecklist());
+                    if (!alive) return;
+                    const overviewMap: Record<string, { t1Ok: boolean, t2Ok: boolean, t1Nomes: string[], t2Nomes: string[] }> = {};
+                    overviewResp.forEach(o => {
+                        overviewMap[String(o.id)] = {
+                            t1Ok: o.turno1Ok,
+                            t2Ok: o.turno2Ok,
+                            t1Nomes: o.turno1Nomes,
+                            t2Nomes: o.turno2Nomes
+                        };
+                    });
+                    setOverviewData(overviewMap);
+                } catch (e) {
+                    console.error('Erro ao buscar overview diário', e);
+                }
+
+                // Filtrar máquinas que têm checklist configurado usando dados do overview
+                const hasChecklistMap = new Map(overviewResp.map(o => [String(o.id), o.hasChecklist]));
+
+                const ordenada = [...lista]
+                    .filter(m => hasChecklistMap.get(String(m.id)) === true)
+                    .sort((a, b) =>
+                        String(a.nome || '').localeCompare(String(b.nome || ''), 'pt')
+                    );
                 if (!alive) return;
                 setTodasMaquinas(ordenada);
 
-                // quem eu já enviei hoje (do backend)
-                if (operadorEmail) {
-                    const resp = await listarSubmissoesDiarias({ operadorEmail, date: getDataReferenciaChecklist() });
-                    const items: SubmissaoItem[] = Array.isArray(resp) ? resp : (Array.isArray((resp as { items?: SubmissaoItem[] })?.items) ? (resp as { items: SubmissaoItem[] }).items : []);
-                    const ids = new Set<string>(
-                        items
-                            .map(r => r?.maquinaId ?? r?.maquina_id ?? r?.maquina?.id ?? null)
-                            .filter(Boolean)
-                            .map(String)
-                    );
-                    if (!alive) return;
-                    setEnviadasHoje(ids);
-                }
             } catch (e) {
                 console.error(e);
                 toast.error(t('common.loadError', 'Falha ao carregar dados.'));
@@ -280,8 +292,18 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                 turno,
             });
 
-            // marca como enviada hoje
-            setEnviadasHoje(prev => new Set([...prev, String(maquinaAtual.id)]));
+            // marca como enviada hoje no overview local
+            setOverviewData(prev => ({
+                ...prev,
+                [String(maquinaAtual.id)]: {
+                    ...(prev[String(maquinaAtual.id)] || { t1Ok: false, t2Ok: false, t1Nomes: [], t2Nomes: [] }),
+                    [turno === 'turno1' ? 't1Ok' : 't2Ok']: true,
+                    [turno === 'turno1' ? 't1Nomes' : 't2Nomes']: [
+                        ...(prev[String(maquinaAtual.id)]?.[turno === 'turno1' ? 't1Nomes' : 't2Nomes'] || []),
+                        operadorNome
+                    ].filter((v, i, a) => a.indexOf(v) === i) // unique names
+                }
+            }));
 
             // próxima máquina ou fim
             if (idx + 1 < selecionadas.length) {
@@ -372,9 +394,14 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         <label>{t('inicioTurno.fields.machinesLabel', 'Máquinas do seu turno')}</label>
                         <div className={styles.machineList}>
                             {todasMaquinas.map(m => {
-                                const jaEnviou = enviadasHoje.has(String(m.id));
+                                const mIdStr = String(m.id);
+                                const overview = overviewData[mIdStr];
+                                const isT1 = turno === 'turno1';
+                                const jaEnviouNoTurno = isT1 ? overview?.t1Ok : overview?.t2Ok;
+                                const nomesEnviouNoTurno = isT1 ? overview?.t1Nomes : overview?.t2Nomes;
+
                                 return (
-                                    <label key={m.id} className={styles.machineCheckbox}>
+                                    <label key={m.id} className={jaEnviouNoTurno ? styles.machineCheckboxEnviada : styles.machineCheckbox}>
                                         <input
                                             type="checkbox"
                                             checked={selecionadas.includes(m.id)}
@@ -382,10 +409,11 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                                         />
                                         <span className={styles.machineInfo}>
                                             {m.nome}
-                                            {jaEnviou && (
-                                                <span className={styles.badgeEnviada}>
+                                            {jaEnviouNoTurno && (
+                                                <span className={styles.badgeEnviada} title={nomesEnviouNoTurno?.join(', ')}>
                                                     <CheckCircle2 size={12} />
                                                     {t('inicioTurno.sentToday', 'enviado')}
+                                                    {nomesEnviouNoTurno && nomesEnviouNoTurno.length > 0 && ` (${nomesEnviouNoTurno[0]})`}
                                                 </span>
                                             )}
                                         </span>
