@@ -140,59 +140,61 @@ export default function CalendarGrid({
             </div>
 
             {/* Grid do calendário */}
-            <div className={styles.calendarGrid}>
-                {/* Dias da semana */}
-                {WEEKDAYS.map(day => (
-                    <div key={day} className={styles.weekdayHeader}>
-                        {day}
-                    </div>
-                ))}
-
-                {/* Dias do mês */}
-                {calendarDays.map((day, index) => {
-                    const dayKey = format(day, 'yyyy-MM-dd');
-                    const dayEvents = eventsByDay[dayKey] || [];
-                    const isCurrentMonth = isSameMonth(day, currentDate);
-                    const isToday = isSameDay(day, today);
-
-                    return (
-                        <div
-                            key={index}
-                            className={`${styles.dayCell} ${!isCurrentMonth ? styles.otherMonth : ''} ${isToday ? styles.today : ''}`}
-                            onClick={() => handleDayClick(day)}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, day)}
-                        >
-                            <span className={styles.dayNumber}>
-                                {format(day, 'd')}
-                            </span>
-
-                            <div className={styles.eventsContainer}>
-                                {dayEvents.slice(0, 3).map(event => (
-                                    <div
-                                        key={event.id}
-                                        className={styles.event}
-                                        style={{ backgroundColor: getEventColor(event) }}
-                                        draggable={canEdit}
-                                        onDragStart={(e) => handleDragStart(e, event)}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEventClick?.(event);
-                                        }}
-                                        title={event.title}
-                                    >
-                                        {event.title}
-                                    </div>
-                                ))}
-                                {dayEvents.length > 3 && (
-                                    <div className={styles.moreEvents}>
-                                        +{dayEvents.length - 3} mais
-                                    </div>
-                                )}
-                            </div>
+            <div className={styles.gridScrollWrapper}>
+                <div className={styles.calendarGrid}>
+                    {/* Dias da semana */}
+                    {WEEKDAYS.map(day => (
+                        <div key={day} className={styles.weekdayHeader}>
+                            {day}
                         </div>
-                    );
-                })}
+                    ))}
+
+                    {/* Dias do mês */}
+                    {calendarDays.map((day, index) => {
+                        const dayKey = format(day, 'yyyy-MM-dd');
+                        const dayEvents = eventsByDay[dayKey] || [];
+                        const isCurrentMonth = isSameMonth(day, currentDate);
+                        const isToday = isSameDay(day, today);
+
+                        return (
+                            <div
+                                key={index}
+                                className={`${styles.dayCell} ${!isCurrentMonth ? styles.otherMonth : ''} ${isToday ? styles.today : ''}`}
+                                onClick={() => handleDayClick(day)}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, day)}
+                            >
+                                <span className={styles.dayNumber}>
+                                    {format(day, 'd')}
+                                </span>
+
+                                <div className={styles.eventsContainer}>
+                                    {dayEvents.slice(0, 3).map(event => (
+                                        <div
+                                            key={event.id}
+                                            className={styles.event}
+                                            style={{ backgroundColor: getEventColor(event) }}
+                                            draggable={canEdit}
+                                            onDragStart={(e) => handleDragStart(e, event)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onEventClick?.(event);
+                                            }}
+                                            title={event.title}
+                                        >
+                                            {event.title}
+                                        </div>
+                                    ))}
+                                    {dayEvents.length > 3 && (
+                                        <div className={styles.moreEvents}>
+                                            +{dayEvents.length - 3} mais
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
