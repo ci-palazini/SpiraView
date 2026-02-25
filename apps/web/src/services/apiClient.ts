@@ -223,6 +223,20 @@ export async function listarChamados(params: ListaChamadosParams = {}): Promise<
     return { items, total, page, pageSize, hasNext };
 }
 
+// Badge counts — single request replaces 4 separate listarChamados(pageSize=1)
+export interface ChamadoCounts {
+    abertos: number;
+    emAndamento: number;
+    meusAbertos: number;
+    meusEmAndamento: number;
+}
+
+export async function getChamadoCounts(manutentorEmail?: string): Promise<ChamadoCounts> {
+    const params: Record<string, string> = {};
+    if (manutentorEmail) params.manutentorEmail = manutentorEmail;
+    return http.get<ChamadoCounts>('/chamados/counts', { params });
+}
+
 export async function getChamado(id: string, auth: AuthParams = {}): Promise<Chamado> {
     return apiFetch<Chamado>(`/chamados/${id}`, { auth });
 }

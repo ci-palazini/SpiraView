@@ -78,7 +78,7 @@ import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
 import type { User } from '../App';
 
-import { listarChamados, listarAgendamentos } from '../services/apiClient';
+import { listarAgendamentos, getChamadoCounts } from '../services/apiClient';
 import useSSE from '../hooks/useSSE';
 import usePermissions from '../hooks/usePermissions';
 
@@ -175,22 +175,25 @@ const MainLayout = ({ user }: MainLayoutProps) => {
         return '?';
     }, [(user as { nome?: string })?.nome, user?.email]);
 
-    const refreshOpenCalls = async () => {
-        // Otimização: Só busca se tiver permissão de ver máquinas (onde o badge aparece)
-        if (!perm.canView('maquinas')) {
+    const refreshChamadoCounts = async () => {
+        // Single endpoint replaces 4 separate listarChamados(pageSize=1) calls
+        const canViewMaquinas = perm.canView('maquinas');
+        const canViewMeus = perm.canView('meus_chamados') && !!user?.email;
+
+        if (!canViewMaquinas && !canViewMeus) {
             setHasOpenCalls(false);
+            setMyActiveCount(0);
             return;
         }
 
         try {
-            const a = await listarChamados({ status: 'Aberto', pageSize: 1 });
-            const e = await listarChamados({ status: 'Em Andamento', pageSize: 1 });
-            setHasOpenCalls(((a?.total || 0) + (e?.total || 0)) > 0);
+            const counts = await getChamadoCounts(user?.email || undefined);
+            setHasOpenCalls(canViewMaquinas ? (counts.abertos + counts.emAndamento) > 0 : false);
+            setMyActiveCount(canViewMeus ? (counts.meusAbertos + counts.meusEmAndamento) : 0);
         } catch { /* ignore */ }
     };
 
     const refreshSoonDue = async () => {
-        // Otimização: Só busca se tiver permissão de ver calendário
         if (!perm.canView('calendario')) {
             setHasSoonDue(false);
             return;
@@ -208,27 +211,6 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 (a) => a.status === 'agendado' && a.start_ts && new Date(a.start_ts) <= to
             ).length;
             setHasSoonDue(qtd > 0);
-        } catch { /* ignore */ }
-    };
-
-    const refreshMyActive = async () => {
-        // Apenas quem tem permissão de 'meus_chamados' busca chamados ativos
-        if (!perm.canView('meus_chamados') || !user?.email) {
-            setMyActiveCount(0);
-            return;
-        }
-        try {
-            const a = await listarChamados({
-                status: 'Aberto',
-                manutentorEmail: user.email,
-                pageSize: 1,
-            });
-            const e = await listarChamados({
-                status: 'Em Andamento',
-                manutentorEmail: user.email,
-                pageSize: 1,
-            });
-            setMyActiveCount((a?.total || 0) + (e?.total || 0));
         } catch { /* ignore */ }
     };
 
@@ -277,19 +259,13 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     }, [location.pathname]);
 
     useEffect(() => {
-        refreshOpenCalls();
+        refreshChamadoCounts();
         refreshSoonDue();
-        refreshMyActive();
     }, [role, user?.email]);
 
-    useSSE('chamados', () => {
-        refreshOpenCalls();
-        refreshMyActive();
-    });
+    useSSE('chamados', refreshChamadoCounts);
 
-    useSSE('agendamentos', () => {
-        refreshSoonDue();
-    });
+    useSSE('agendamentos', refreshSoonDue);
 
     const handleLogout = () => {
         try {

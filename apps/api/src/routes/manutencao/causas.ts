@@ -28,6 +28,7 @@ causasRouter.get('/causas', async (_req, res) => {
         ORDER BY nome ASC`
     );
     // 👇 devolve o array direto
+    res.set('Cache-Control', 'private, max-age=600');
     res.json(rows);
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');

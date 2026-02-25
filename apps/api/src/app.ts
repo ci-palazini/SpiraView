@@ -2,6 +2,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors, { type CorsOptions } from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import pinoHttp from 'pino-http';
 import { logger } from './logger';
 
@@ -24,6 +25,9 @@ export const app: Express = express(); // 👈 evita o TS2742
 
 // Security headers (Helmet)
 app.use(helmet());
+
+// Gzip compression — reduces response payload size ~60-80%
+app.use(compression());
 
 // HTTP request logging (Pino)
 app.use(pinoHttp({

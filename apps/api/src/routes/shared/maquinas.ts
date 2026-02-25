@@ -57,6 +57,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
        ORDER BY nome ASC`,
       params
     );
+    res.set('Cache-Control', 'private, max-age=300');
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: String(e) });

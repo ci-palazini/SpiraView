@@ -55,6 +55,41 @@ const upload = multer({
  *       200:
  *         description: List of tickets
  */
+// ---------- Chamados: contagens para badges (1 query, substitui 4 GETs) ----------
+chamadosRouter.get("/chamados/counts", async (req, res) => {
+  try {
+    const manutentorEmail = req.query.manutentorEmail as string | undefined;
+
+    const { rows } = await pool.query(
+      `SELECT
+         COUNT(*) FILTER (WHERE LOWER(c.status) = 'aberto')::int          AS abertos,
+         COUNT(*) FILTER (WHERE LOWER(c.status) = 'em andamento')::int    AS em_andamento,
+         COUNT(*) FILTER (
+           WHERE LOWER(c.status) = 'aberto'
+             AND ($1::text IS NULL OR LOWER(um.email) = LOWER($1))
+         )::int AS meus_abertos,
+         COUNT(*) FILTER (
+           WHERE LOWER(c.status) = 'em andamento'
+             AND ($1::text IS NULL OR LOWER(um.email) = LOWER($1))
+         )::int AS meus_em_andamento
+       FROM public.chamados c
+       LEFT JOIN public.usuarios um ON um.id = c.manutentor_id`,
+      [manutentorEmail || null]
+    );
+
+    const r = rows[0] || {};
+    res.json({
+      abertos: r.abertos ?? 0,
+      emAndamento: r.em_andamento ?? 0,
+      meusAbertos: r.meus_abertos ?? 0,
+      meusEmAndamento: r.meus_em_andamento ?? 0,
+    });
+  } catch (e: any) {
+    logger.error({ err: e }, 'Erro em /chamados/counts');
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 // ---------- Chamados: lista com filtros + paginação ----------
 chamadosRouter.get("/chamados", async (req, res) => {
   try {
@@ -126,21 +161,9 @@ chamadosRouter.get("/chamados", async (req, res) => {
     }
 
     const whereSql = where.length ? where.join(" AND ") : "1=1";
-
-    // total
-    const { rows: countRows } = await pool.query(
-      `SELECT COUNT(*)::int AS total
-         FROM public.chamados c
-         JOIN public.maquinas  m  ON m.id  = c.maquina_id
-         JOIN public.usuarios  u  ON u.id  = c.criado_por_id
-         LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-        WHERE ${whereSql}`,
-      params
-    );
-    const total = countRows[0]?.total ?? 0;
-
-    // itens
     const orderCol = isConcluido ? "c.concluido_em" : "c.criado_em";
+
+    // Single query: items + total via window function (replaces 2 separate queries)
     const params2 = [...params, pageSize, offset];
     const { rows: items } = await pool.query(
       `SELECT
@@ -155,7 +178,8 @@ chamadosRouter.get("/chamados", async (req, res) => {
          u.nome  AS criado_por,
          um.nome AS manutentor,
          to_char(c.criado_em,    'YYYY-MM-DD HH24:MI') AS criado_em,
-         to_char(c.concluido_em, 'YYYY-MM-DD HH24:MI') AS concluido_em
+         to_char(c.concluido_em, 'YYYY-MM-DD HH24:MI') AS concluido_em,
+         count(*) OVER()::int AS _total
        FROM public.chamados c
        JOIN public.maquinas  m  ON m.id  = c.maquina_id
        JOIN public.usuarios  u  ON u.id  = c.criado_por_id
@@ -166,7 +190,11 @@ chamadosRouter.get("/chamados", async (req, res) => {
       params2
     );
 
-    res.json({ items, page, pageSize, total, hasNext: offset + items.length < total });
+    const total = items[0]?._total ?? 0;
+    // Remove _total from response items
+    const cleanItems = items.map(({ _total, ...rest }: any) => rest);
+
+    res.json({ items: cleanItems, page, pageSize, total, hasNext: offset + cleanItems.length < total });
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
@@ -193,43 +221,67 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
           ELSE 'aberto'
         END AS status_key,
 
-        -- Texto / serviço
         c.descricao,
         c.problema_reportado,
         c.causa,
         c.solucao,
 
-        -- Datas
         to_char(c.criado_em,    'YYYY-MM-DD HH24:MI') AS criado_em,
         to_char(c.concluido_em, 'YYYY-MM-DD HH24:MI') AS concluido_em,
 
-        -- quem criou
         c.criado_por_id,
         COALESCE(c.criado_por_nome, ucri.nome) AS criado_por,
         ucri.email                              AS criado_por_email,
 
-        -- Manutentor principal (via manutentor_id)
         c.manutentor_id,
         umat.nome  AS manutentor,
         umat.email AS manutentor_email,
 
-        -- quem concluiu
         c.concluido_por_id,
         c.concluido_por_nome,
         c.concluido_por_email,
 
-        -- Checklist
         CASE WHEN jsonb_typeof(c.checklist) = 'array' THEN c.checklist ELSE '[]'::jsonb END AS checklist,
         CASE WHEN c.tipo = 'preventiva' THEN 'preventiva' ELSE NULL END AS tipo_checklist,
         CASE WHEN c.tipo = 'preventiva' AND c.checklist IS NOT NULL
             THEN jsonb_array_length(c.checklist)
             ELSE NULL
-        END AS qtd_itens
+        END AS qtd_itens,
+
+        -- Observações (inline JSON array — avoids separate query)
+        COALESCE(obs_agg.items, '[]'::jsonb) AS observacoes,
+
+        -- Manutentores (inline JSON array — avoids separate query)
+        COALESCE(man_agg.items, '[]'::jsonb) AS manutentores
 
       FROM public.chamados c
       JOIN public.maquinas  m    ON m.id   = c.maquina_id
       LEFT JOIN public.usuarios ucri ON ucri.id = c.criado_por_id
       LEFT JOIN public.usuarios umat ON umat.id = c.manutentor_id
+
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(jsonb_build_object(
+          'texto', o.texto,
+          'criado_em', to_char(o.criado_em, 'YYYY-MM-DD HH24:MI'),
+          'autor', COALESCE(o.autor_nome, uobs.nome, 'Sistema')
+        ) ORDER BY o.criado_em ASC) AS items
+        FROM public.chamado_observacoes o
+        LEFT JOIN public.usuarios uobs ON uobs.id = o.autor_id
+        WHERE o.chamado_id = c.id
+      ) AS obs_agg ON TRUE
+
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(jsonb_build_object(
+          'id', cm.manutentor_id,
+          'nome', cm.manutentor_nome,
+          'email', cm.manutentor_email,
+          'papel', cm.papel,
+          'entrou_em', to_char(cm.entrou_em, 'YYYY-MM-DD HH24:MI')
+        ) ORDER BY cm.entrou_em ASC) AS items
+        FROM public.chamado_manutentores cm
+        WHERE cm.chamado_id = c.id
+      ) AS man_agg ON TRUE
+
       WHERE c.id = $1
       LIMIT 1;
       `,
@@ -239,31 +291,8 @@ chamadosRouter.get("/chamados/:id", async (req, res) => {
     if (!rows.length) {
       return res.status(404).json({ error: "Chamado não encontrado." });
     }
-    const chamado = rows[0];
 
-    // Observações
-    const obs = await pool.query(
-      `SELECT o.texto,
-              to_char(o.criado_em,'YYYY-MM-DD HH24:MI') AS criado_em,
-              COALESCE(o.autor_nome, u.nome, 'Sistema')  AS autor
-         FROM public.chamado_observacoes o
-         LEFT JOIN public.usuarios u ON u.id = o.autor_id
-        WHERE o.chamado_id = $1
-        ORDER BY o.criado_em ASC`,
-      [id]
-    );
-
-    // Manutentores (principal + co-manutentores)
-    const manutRes = await pool.query(
-      `SELECT manutentor_id AS id, manutentor_nome AS nome, manutentor_email AS email, papel,
-              to_char(entrou_em, 'YYYY-MM-DD HH24:MI') AS entrou_em
-         FROM public.chamado_manutentores
-        WHERE chamado_id = $1
-        ORDER BY entrou_em ASC`,
-      [id]
-    );
-
-    res.json({ ...chamado, observacoes: obs.rows, manutentores: manutRes.rows });
+    res.json(rows[0]);
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
@@ -377,17 +406,17 @@ chamadosRouter.get(
 
       // constrói URLs públicas para exibição no front
       const items = rows.map((row) => {
-          const url = storageProvider.getPublicUrl(row.storage_path);
-          return {
-            id: row.id,
-            url,
-            caminho: row.storage_path,
-            mimeType: row.mime_type,
-            tamanhoBytes: row.tamanho_bytes,
-            criadoEm: row.criado_em,
-            autorNome: row.autor_nome,
-          };
-        })
+        const url = storageProvider.getPublicUrl(row.storage_path);
+        return {
+          id: row.id,
+          url,
+          caminho: row.storage_path,
+          mimeType: row.mime_type,
+          tamanhoBytes: row.tamanho_bytes,
+          criadoEm: row.criado_em,
+          autorNome: row.autor_nome,
+        };
+      })
 
       return res.json(items);
     } catch (e: any) {
@@ -572,9 +601,9 @@ chamadosRouter.post(
       }
 
       const chamadoId = String(req.params.id);
-      const manutentorId    = user.id;
+      const manutentorId = user.id;
       const manutentorEmail = user.email ? String(user.email).trim() : null;
-      const manutentorNome  = user.name  ? String(user.name).trim()  : null;
+      const manutentorNome = user.name ? String(user.name).trim() : null;
 
       const resultado = await withTx(async (client) => {
         const { rows } = await client.query(
