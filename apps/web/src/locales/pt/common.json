@@ -1132,6 +1132,18 @@
       "empty": "Nenhum chamado aberto por você ainda.",
       "machine": "Máquina: {{name}}",
       "openedAt": "Aberto em: {{date}}"
+    },
+    "modal": {
+      "title": "Chamados corretivos em aberto",
+      "subtitleOne": "Esta máquina já possui o seguinte chamado corretivo ativo.",
+      "subtitleMany": "Esta máquina já possui {{count}} chamados corretivos ativos.",
+      "question": "Deseja abrir outro mesmo assim?",
+      "inProgress": "Em andamento",
+      "open": "Aberto",
+      "noDescription": "(sem descrição)",
+      "openedAt": "Aberto em: {{date}}",
+      "cancel": "Cancelar",
+      "proceed": "Prosseguir mesmo assim"
     }
   },
   "pwa": {

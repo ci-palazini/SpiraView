@@ -241,9 +241,9 @@ export async function getChamado(id: string, auth: AuthParams = {}): Promise<Cha
     return apiFetch<Chamado>(`/chamados/${id}`, { auth });
 }
 
-export async function listarChamadosPorMaquina(maquinaId: string, opts: { status?: string } = {}): Promise<Chamado[]> {
+export async function listarChamadosPorMaquina(maquinaId: string, opts: { status?: string; tipo?: string } = {}): Promise<Chamado[]> {
     const data = await http.get<{ items?: Chamado[] } | Chamado[]>('/chamados', {
-        params: { maquinaId, status: opts.status },
+        params: { maquinaId, status: opts.status, tipo: opts.tipo },
     });
     return (data as { items?: Chamado[] })?.items || (data as Chamado[]);
 }

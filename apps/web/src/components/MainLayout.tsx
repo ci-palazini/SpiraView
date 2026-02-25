@@ -279,10 +279,16 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const getDashboardTitle = (): string => {
         // Usa role para título do dashboard (mantém por ser exibição cosmética)
         const roleNorm = (user?.role || '').toLowerCase();
-        if (roleNorm === 'operador') return t('dashboard.operator');
-        if (roleNorm === 'manutentor') return t('dashboard.maintainer');
-        if (roleNorm === 'gestor industrial') return t('dashboard.manager');
-        return user?.role || '—';
+        let title = user?.role || '—';
+
+        if (roleNorm === 'operador') title = t('dashboard.operator');
+        else if (roleNorm === 'manutentor') title = t('dashboard.maintainer');
+        else if (roleNorm === 'gestor industrial') title = t('dashboard.manager');
+
+        if (title === '—') return title;
+
+        // Formata para Letras Maiúsculas em Cada Palavra
+        return title.split(' ').map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '').join(' ');
     };
 
     // Função para verificar permissões granulares por página

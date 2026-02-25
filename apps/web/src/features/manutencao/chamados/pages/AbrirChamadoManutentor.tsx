@@ -1,9 +1,9 @@
 // src/features/chamados/pages/AbrirChamadoManutentor.tsx
-import { useEffect, useMemo, useState, FormEvent, ChangeEvent } from "react";
+import { useEffect, useMemo, useState, useCallback, FormEvent, ChangeEvent } from "react";
 import toast from "react-hot-toast";
-import { FiPlusCircle } from "react-icons/fi";
+import { FiPlusCircle, FiAlertTriangle } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { getMaquinas, criarChamado } from "../../../../services/apiClient";
+import { getMaquinas, criarChamado, listarChamadosPorMaquina } from "../../../../services/apiClient";
 import styles from "./AbrirChamadoManutentor.module.css";
 import type { User } from "../../../../App";
 import usePermissions from "../../../../hooks/usePermissions";
@@ -18,8 +18,25 @@ interface MaquinaSugestao {
     value: string;
 }
 
+interface ChamadoAtivo {
+    id: string;
+    descricao?: string;
+    status: string;
+    criado_em?: string;
+    maquina?: string;
+}
+
 interface AbrirChamadoManutentorProps {
     user: User;
+}
+
+function normalizeStatusKey(status: string | undefined): 'aberto' | 'emandamento' | 'concluido' | 'outro' {
+    if (!status) return 'outro';
+    const s = status.toLowerCase();
+    if (s.includes('concluid')) return 'concluido';
+    if (s.includes('andamento')) return 'emandamento';
+    if (s.includes('abert')) return 'aberto';
+    return 'outro';
 }
 
 export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorProps) {
@@ -35,6 +52,12 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
     const [enviando, setEnviando] = useState(false);
     const [maquinas, setMaquinas] = useState<Maquina[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // Estado do modal de alerta de duplicatas
+    const [showAlertaModal, setShowAlertaModal] = useState(false);
+    const [pendingMachineId, setPendingMachineId] = useState("");
+    const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+    const [chamadosAbertos, setChamadosAbertos] = useState<ChamadoAtivo[]>([]);
 
     useEffect(() => {
         (async () => {
@@ -58,6 +81,64 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
         });
         return itens.sort((a, b) => a.label.localeCompare(b.label, "pt"));
     }, [maquinas]);
+
+    /**
+     * Ao selecionar uma máquina, verifica se há chamados corretivos ativos.
+     * Se houver, exibe o modal de alerta antes de prosseguir.
+     */
+    const handleMachineChange = useCallback(async (e: ChangeEvent<HTMLSelectElement>) => {
+        const id = e.target.value;
+        if (!id) {
+            setSelectedMachineId("");
+            return;
+        }
+
+        setCheckingDuplicates(true);
+        try {
+            const todosRaw = await listarChamadosPorMaquina(id, { tipo: 'corretiva' });
+            // Normaliza para ChamadoAtivo (garante status como string)
+            const todos: ChamadoAtivo[] = todosRaw.map((c) => ({
+                id: c.id,
+                descricao: c.descricao,
+                status: c.status ?? 'Aberto',
+                criado_em: (c as any).criado_em,
+                maquina: c.maquina,
+            }));
+            // Filtra apenas os ativos (a API já garante tipo=corretiva)
+            const ativos = todos.filter((c) => {
+                const sk = normalizeStatusKey(c.status);
+                return sk === 'aberto' || sk === 'emandamento';
+            });
+
+            if (ativos.length > 0) {
+                setChamadosAbertos(ativos);
+                setPendingMachineId(id);
+                setShowAlertaModal(true);
+            } else {
+                setSelectedMachineId(id);
+            }
+        } catch (err) {
+            // Em caso de erro na verificação, não bloqueia — apenas seleciona
+            console.warn('[AbrirChamado] Erro ao verificar duplicatas:', err);
+            setSelectedMachineId(id);
+        } finally {
+            setCheckingDuplicates(false);
+        }
+    }, []);
+
+    const handleModalConfirm = useCallback(() => {
+        setSelectedMachineId(pendingMachineId);
+        setShowAlertaModal(false);
+        setPendingMachineId("");
+        setChamadosAbertos([]);
+    }, [pendingMachineId]);
+
+    const handleModalCancel = useCallback(() => {
+        setShowAlertaModal(false);
+        setPendingMachineId("");
+        setChamadosAbertos([]);
+        // Não aplica a seleção, select volta vazio
+    }, []);
 
     const desabilitado =
         enviando || !podeAbrir || !selectedMachineId || descricao.trim().length < 5;
@@ -138,6 +219,62 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
 
     return (
         <>
+            {/* Modal de alerta: chamados corretivos já abertos */}
+            {showAlertaModal && (
+                <div className={styles.backdrop} onClick={(e) => e.target === e.currentTarget && handleModalCancel()}>
+                    <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+                        <div className={styles.modalHeader}>
+                            <h2 className={styles.modalTitle} id="modal-titulo">
+                                <FiAlertTriangle />
+                                {t('operatorDashboard.modal.title')}
+                            </h2>
+                            <p className={styles.modalSubtitle}>
+                                {chamadosAbertos.length === 1
+                                    ? t('operatorDashboard.modal.subtitleOne')
+                                    : t('operatorDashboard.modal.subtitleMany', { count: chamadosAbertos.length })}{' '}
+                                {t('operatorDashboard.modal.question')}
+                            </p>
+                        </div>
+
+                        <div className={styles.chamadosList}>
+                            {chamadosAbertos.map((c) => {
+                                const sk = normalizeStatusKey(c.status);
+                                const badgeClass = sk === 'emandamento' ? styles.statusEmAndamento : styles.statusAberto;
+                                const statusLabel = sk === 'emandamento' ? t('operatorDashboard.modal.inProgress') : t('operatorDashboard.modal.open');
+                                return (
+                                    <div key={c.id} className={styles.chamadoItem}>
+                                        <div className={styles.chamadoInfo}>
+                                            <div className={styles.chamadoDescricao} title={c.descricao || ''}>
+                                                {c.descricao
+                                                    ? (c.descricao.length > 80 ? c.descricao.slice(0, 80) + '…' : c.descricao)
+                                                    : t('operatorDashboard.modal.noDescription')}
+                                            </div>
+                                            {c.criado_em && (
+                                                <div className={styles.chamadoMeta}>
+                                                    {t('operatorDashboard.modal.openedAt', { date: c.criado_em })}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className={`${styles.statusBadge} ${badgeClass}`}>
+                                            {statusLabel}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className={styles.modalFooter}>
+                            <button type="button" className={styles.cancelBtn} onClick={handleModalCancel}>
+                                {t('operatorDashboard.modal.cancel')}
+                            </button>
+                            <button type="button" className={styles.confirmBtn} onClick={handleModalConfirm}>
+                                {t('operatorDashboard.modal.proceed')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <header className={styles.pageHeader}>
                 <h1 className={styles.pageTitle}>{t("techOpen.header.title")}</h1>
             </header>
@@ -152,12 +289,12 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
                             id="maquina"
                             className={styles.select}
                             value={selectedMachineId}
-                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedMachineId(e.target.value)}
+                            onChange={handleMachineChange}
                             required
-                            disabled={loading}
+                            disabled={loading || checkingDuplicates}
                         >
                             <option value="" disabled>
-                                {loading
+                                {loading || checkingDuplicates
                                     ? t("common.loading")
                                     : t("techOpen.placeholders.chooseMachine")}
                             </option>

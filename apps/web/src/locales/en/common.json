@@ -1048,6 +1048,18 @@
       "empty": "You haven’t opened any work orders yet.",
       "machine": "Machine: {{name}}",
       "openedAt": "Opened on: {{date}}"
+    },
+    "modal": {
+      "title": "Open Corrective Work Orders",
+      "subtitleOne": "This machine already has the following active corrective work order.",
+      "subtitleMany": "This machine already has {{count}} active corrective work orders.",
+      "question": "Do you want to open another one anyway?",
+      "inProgress": "In progress",
+      "open": "Open",
+      "noDescription": "(no description)",
+      "openedAt": "Opened on: {{date}}",
+      "cancel": "Cancel",
+      "proceed": "Proceed anyway"
     }
   },
   "pwa": {

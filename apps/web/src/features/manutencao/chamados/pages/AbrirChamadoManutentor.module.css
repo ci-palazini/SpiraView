@@ -22,7 +22,8 @@
   border-radius: 12px;
   padding: 16px 20px;
   margin: 16px;
-  margin-top: 12px; /* aproxima do header */
+  margin-top: 12px;
+  /* aproxima do header */
 }
 
 /* Form */
@@ -45,7 +46,8 @@
 
 .select,
 .textarea {
-  box-sizing: border-box; /* garante que borda/padding entrem no 100% */
+  box-sizing: border-box;
+  /* garante que borda/padding entrem no 100% */
   width: 100%;
   max-width: 100%;
   border: 1px solid #e5e7eb;
@@ -122,4 +124,164 @@
 .primaryBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===== Modal de alerta: chamados corretivos duplicados ===== */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalIn 0.15s ease;
+}
+
+@keyframes modalIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalSubtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.chamadosList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.chamadoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+}
+
+.chamadoInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.chamadoDescricao {
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chamadoMeta {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.statusBadge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.statusAberto {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.statusEmAndamento {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.cancelBtn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancelBtn:hover {
+  background: #f9fafb;
+}
+
+.confirmBtn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #f97316;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.confirmBtn:hover {
+  filter: brightness(1.08);
 }
