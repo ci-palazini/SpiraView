@@ -248,8 +248,13 @@ export async function generatePreventiveReport(
         // Table rows
         doc.setFontSize(8);
         data.checklist.forEach((item, idx) => {
+            const itemText = item.item || '(sem texto)';
+            const maxItemWidth = colItem - 6;
+            const lines = doc.splitTextToSize(itemText, maxItemWidth);
+            const rowHeight = 7 + Math.max(0, lines.length - 1) * 5;
+
             // Check if we need a new page
-            if (y > 265) {
+            if (y + rowHeight > 270) {
                 doc.addPage();
                 y = 20;
             }
@@ -257,13 +262,13 @@ export async function generatePreventiveReport(
             // Alternating row background
             if (idx % 2 === 0) {
                 doc.setFillColor(...TABLE_ROW_ALT_BG);
-                doc.rect(MARGIN_LEFT, y, CONTENT_WIDTH, 7, 'F');
+                doc.rect(MARGIN_LEFT, y, CONTENT_WIDTH, rowHeight, 'F');
             }
 
             // Row border bottom
             doc.setDrawColor(...BORDER_COLOR);
             doc.setLineWidth(0.2);
-            doc.line(MARGIN_LEFT, y + 7, MARGIN_LEFT + CONTENT_WIDTH, y + 7);
+            doc.line(MARGIN_LEFT, y + rowHeight, MARGIN_LEFT + CONTENT_WIDTH, y + rowHeight);
 
             // Number
             doc.setFont('helvetica', 'normal');
@@ -272,10 +277,9 @@ export async function generatePreventiveReport(
 
             // Item text (with word wrap)
             doc.setTextColor(30, 30, 30);
-            const itemText = item.item || '(sem texto)';
-            const maxItemWidth = colItem - 6;
-            const lines = doc.splitTextToSize(itemText, maxItemWidth);
-            doc.text(lines[0], MARGIN_LEFT + colNum + 3, y + 4.8);
+            lines.forEach((line: string, i: number) => {
+                doc.text(line, MARGIN_LEFT + colNum + 3, y + 4.8 + (i * 5));
+            });
 
             // Result
             const isConforme = item.resposta === 'sim';
@@ -288,21 +292,7 @@ export async function generatePreventiveReport(
                 doc.text(`✗ ${labels.naoConforme}`, MARGIN_LEFT + colNum + colItem + 5, y + 4.8);
             }
 
-            y += 7;
-
-            // Extra lines if item text is long
-            if (lines.length > 1) {
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(30, 30, 30);
-                for (let i = 1; i < lines.length; i++) {
-                    if (y > 265) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text(lines[i], MARGIN_LEFT + colNum + 3, y + 4.8);
-                    y += 5;
-                }
-            }
+            y += rowHeight;
         });
 
         y += 6;
@@ -369,14 +359,35 @@ export async function generatePreventiveReport(
         doc.line(MARGIN_LEFT, y + 3, PAGE_WIDTH - MARGIN_RIGHT, y + 3);
         y += 9;
 
-        // 2-column grid — height is proportional to each image's natural aspect ratio
-        const COL_GAP = 6;
-        const COL_WIDTH = (CONTENT_WIDTH - COL_GAP) / 2;
-        // Cap portrait images at 120mm; landscape images capped at 80mm
-        const IMG_MAX_H_PORTRAIT = 120;
-        const IMG_MAX_H_LANDSCAPE = 80;
+        // 2-column grid by default, dynamic based on number of photos
+        const totalFotos = fotosParaRenderizar.length;
+        let numCols = 2;
+        if (totalFotos > 18) {
+            numCols = 4;
+        } else if (totalFotos > 8) {
+            numCols = 3;
+        }
+
+        const COL_GAP = numCols > 2 ? 4 : 6;
+        const COL_WIDTH = (CONTENT_WIDTH - (COL_GAP * (numCols - 1))) / numCols;
+
+        // Define max heights per column config to ensure rows fit in a single page vertically
+        let IMG_MAX_H_PORTRAIT = 110;
+        let IMG_MAX_H_LANDSCAPE = 80;
+        let ROW_PADDING = 8;
+        if (numCols === 3) {
+            IMG_MAX_H_PORTRAIT = 70;
+            IMG_MAX_H_LANDSCAPE = 52;
+            ROW_PADDING = 4;
+        } else if (numCols === 4) {
+            // Shrink enough so that the first page (with title block) fits all rows without breaking
+            IMG_MAX_H_PORTRAIT = 46;
+            IMG_MAX_H_LANDSCAPE = 34;
+            ROW_PADDING = 3;
+        }
+
         const CAPTION_H = 6;
-        const ROW_PADDING = 8;
+        const CAPTION_FONT_SIZE = numCols > 2 ? 6 : 7;
         const PAGE_BOTTOM = 280;
 
         const calcImgH = (naturalW: number, naturalH: number): number => {
@@ -400,13 +411,13 @@ export async function generatePreventiveReport(
                 doc.addImage(foto.data, foto.format, xOffset, rowY, COL_WIDTH, imgH);
             } catch (e) {
                 console.warn('Could not embed photo in PDF:', e);
-                doc.setFontSize(7);
+                doc.setFontSize(CAPTION_FONT_SIZE);
                 doc.setTextColor(150, 150, 150);
                 doc.text('(imagem indisponível)', xOffset + 2, rowY + imgH / 2);
             }
 
             const captionY = rowY + imgH + 4;
-            doc.setFontSize(7);
+            doc.setFontSize(CAPTION_FONT_SIZE);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(100, 100, 100);
             const caption = [
@@ -418,14 +429,17 @@ export async function generatePreventiveReport(
             }
         };
 
-        // Process in pairs (one row at a time)
-        for (let i = 0; i < fotosParaRenderizar.length; i += 2) {
-            const left = fotosParaRenderizar[i];
-            const right = fotosParaRenderizar[i + 1] ?? null;
+        // Process row by row
+        for (let i = 0; i < totalFotos; i += numCols) {
+            const rowFotos = fotosParaRenderizar.slice(i, i + numCols);
 
-            const leftH = calcImgH(left.naturalW, left.naturalH);
-            const rightH = right ? calcImgH(right.naturalW, right.naturalH) : 0;
-            const rowH = Math.max(leftH, rightH);
+            // Calculate max height for this row
+            let rowH = 0;
+            const heights = rowFotos.map(f => {
+                const h = calcImgH(f.naturalW, f.naturalH);
+                if (h > rowH) rowH = h;
+                return h;
+            });
 
             // New page if row doesn't fit
             if (y + rowH + CAPTION_H + ROW_PADDING > PAGE_BOTTOM) {
@@ -433,10 +447,12 @@ export async function generatePreventiveReport(
                 y = 20;
             }
 
-            renderPhoto(left, MARGIN_LEFT, y, leftH);
-            if (right) {
-                renderPhoto(right, MARGIN_LEFT + COL_WIDTH + COL_GAP, y, rightH);
-            }
+            // Render each photo in the row
+            rowFotos.forEach((foto, colIdx) => {
+                const xOffset = MARGIN_LEFT + colIdx * (COL_WIDTH + COL_GAP);
+                const h = heights[colIdx];
+                renderPhoto(foto, xOffset, y, h);
+            });
 
             y += rowH + CAPTION_H + ROW_PADDING;
         }
