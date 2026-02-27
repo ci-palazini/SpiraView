@@ -139,8 +139,13 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     const [itensBloqueados, setItensBloqueados] = useState<Set<string>>(new Set());
     const [jaEnviouEsta, setJaEnviouEsta] = useState(false);
 
-    // Novo estado para o alerta
+    // Alerta inline de turno pré-selecionado
     const [showAlertTurno, setShowAlertTurno] = useState(true);
+
+    // Modal de confirmação quando o turno diverge do esperado pelo horário
+    const [showTurnoModal, setShowTurnoModal] = useState(false);
+
+    const getTurnoLabel = (t: string) => t === 'turno1' ? '1º Turno' : '2º Turno';
 
     // Carrega máquinas e já marca "enviada hoje" (do backend)
     useEffect(() => {
@@ -200,11 +205,28 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
     };
 
     // Avança para o passo de checklists
-    const iniciarChecklists = async () => {
+    const iniciarChecklists = () => {
         if (selecionadas.length === 0) {
             toast.error(t('inicioTurno.alert.selectOne', 'Selecione ao menos 1 máquina.'));
             return;
         }
+        if (turno !== getTurnoPadrao()) {
+            setShowTurnoModal(true);
+            return;
+        }
+        setIdx(0);
+        setModo('checklist');
+    };
+
+    const prosseguirMesmoAssim = () => {
+        setShowTurnoModal(false);
+        setIdx(0);
+        setModo('checklist');
+    };
+
+    const ajustarTurnoEProsseguir = () => {
+        setTurno(getTurnoPadrao());
+        setShowTurnoModal(false);
         setIdx(0);
         setModo('checklist');
     };
@@ -440,6 +462,34 @@ export default function InicioTurnoPage({ user }: InicioTurnoPageProps) {
                         </button>
                     </div>
                 </div>
+
+                {/* Modal: turno selecionado diverge do esperado pelo horário */}
+                {showTurnoModal && (
+                    <div className={styles.modalOverlay} onClick={() => setShowTurnoModal(false)}>
+                        <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
+                            <div className={styles.modalIconWrap}>
+                                <AlertTriangle size={32} />
+                            </div>
+                            <h2 className={styles.modalTitle}>Turno divergente</h2>
+                            <p className={styles.modalText}>
+                                Você selecionou <strong>{getTurnoLabel(turno)}</strong>, mas o horário
+                                atual indica <strong>{getTurnoLabel(getTurnoPadrao())}</strong>.
+                            </p>
+                            <p className={styles.modalSubText}>
+                                Deseja seguir assim mesmo ou ajustar para o turno correto?
+                            </p>
+                            <div className={styles.modalActions}>
+                                <button className={styles.modalBtnSecondary} onClick={prosseguirMesmoAssim}>
+                                    Seguir com {getTurnoLabel(turno)}
+                                </button>
+                                <button className={styles.modalBtnPrimary} onClick={ajustarTurnoEProsseguir}>
+                                    <CheckCircle2 size={18} />
+                                    Ajustar para {getTurnoLabel(getTurnoPadrao())}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
