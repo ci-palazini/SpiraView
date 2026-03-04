@@ -67,12 +67,15 @@ import RetrabalhoPage from '../features/qualidade/pages/RetrabalhoPage';
 import RetrabalhoAnalisePage from '../features/qualidade/pages/RetrabalhoAnalisePage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
+import SafetyUploadPage from '../features/configuracoes/pages/SafetyUploadPage';
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';
 import PdcaPlanoDetailPage from '../features/pdca/pages/PdcaPlanoDetailPage';
 import JustificativaChecklistPage from '../features/manutencao/checklists/pages/JustificativaChecklistPage';
 import KaizenDashboardPage from '../features/melhoria-continua/pages/KaizenDashboardPage';
 import KamishibaiHistoryPage from '../features/melhoria-continua/pages/KamishibaiHistoryPage';
+import ReuniaoDiariaMenuPage from '../features/reuniao-diaria/ReuniaoDiariaMenuPage';
+import ReuniaoDiariaPage from '../features/reuniao-diaria/ReuniaoDiariaPage';
 
 import logo from '../assets/logo-sidebar.png';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +118,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     const SIDEBAR_GROUPS_KEY = 'sidebar_groups_state';
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false, pdca: false, melhoriaContinua: false };
+        const defaults = { maintenance: false, production: false, planejamento: false, quality: false, logistics: false, pdca: false, melhoriaContinua: false, ehs: false };
         try {
             const saved = localStorage.getItem(SIDEBAR_GROUPS_KEY);
             if (saved) {
@@ -379,6 +382,18 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 <FiTv className={styles.navIcon} />
                 <span>{t('nav.tvMode')}</span>
             </NavLink>
+
+            {perm.canView('reuniao_diaria') && (
+                <NavLink
+                    to="/reuniao-diaria"
+                    className={({ isActive }) =>
+                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                    }
+                >
+                    <FiBarChart2 className={styles.navIcon} />
+                    <span>{t('nav.dailyMeeting', 'Reunião Diária')}</span>
+                </NavLink>
+            )}
 
             {/* Manutenção - usa permissões granulares */}
             {perm.canViewAny(['maquinas', 'chamados_abertos', 'meus_chamados', 'abrir_chamado', 'calendario', 'checklists_diarios', 'checklists_pendencias', 'historico_chamados', 'estoque', 'movimentacoes', 'analise_falhas', 'causas_raiz']) && (
@@ -814,6 +829,25 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                 )
             }
 
+            {/* EHS - Saúde, Segurança e Meio Ambiente */}
+            {
+                perm.canViewAny(['safety']) && (
+                    <SidebarGroup id="ehs" label={t('layout.sections.ehs', 'EHS')} icon={FiAlertCircle}>
+                        {perm.canView('safety') && (
+                            <NavLink
+                                to="/ehs/safety-upload"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiUploadCloud className={styles.navIcon} />
+                                <span>{t('nav.safetyUpload')}</span>
+                            </NavLink>
+                        )}
+                    </SidebarGroup>
+                )
+            }
+
             {/* Configurações - usa permissões granulares */}
             {
                 perm.canViewAny(['usuarios', 'roles', 'notificacoes_config']) && (
@@ -1056,6 +1090,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     />
 
                     <Route
+                        path="/ehs/safety-upload"
+                        element={canAccessPage('safety', <SafetyUploadPage user={user} />)}
+                    />
+
+                    <Route
                         path="/producao/upload"
                         element={canAccessPage('producao_upload', <ProducaoUploadPage user={user} />)}
                     />
@@ -1153,6 +1192,16 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/melhoria-continua/historico-kamishibai"
                         element={canAccessPage('melhoria_continua', <KamishibaiHistoryPage />)}
+                    />
+
+                    {/* Reunião Diária SQDCP */}
+                    <Route
+                        path="/reuniao-diaria"
+                        element={canAccessPage('reuniao_diaria', <ReuniaoDiariaMenuPage />)}
+                    />
+                    <Route
+                        path="/reuniao-diaria/:departamento"
+                        element={canAccessPage('reuniao_diaria', <ReuniaoDiariaPage />)}
                     />
 
                 </Routes>

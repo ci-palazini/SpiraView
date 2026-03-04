@@ -52,7 +52,7 @@ export interface ChecklistItem {
     texto?: string;
     item?: string;
     ok?: boolean;
-    resposta?: string;
+    resposta?: string | null;
 }
 
 export interface Observacao {

@@ -166,6 +166,12 @@ const MyComponent = () => {
 |---------|--------|-----------|---------------|
 | `melhoria_continua` | Melhoria Contínua | Módulo Kaizen e Kamishibai (CRUD) | `ver`, `editar` |
 
+### Safety (BBS)
+
+| PageKey | Módulo | Descrição | Níveis Usados |
+|---------|--------|-----------|---------------|
+| `safety` | Safety | Upload de relatórios BBS e visualização no SQDCP | `ver`, `editar` |
+
 ---
 
 ## Role Templates (Exemplo)

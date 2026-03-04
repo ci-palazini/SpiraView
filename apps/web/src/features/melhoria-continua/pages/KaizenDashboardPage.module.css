@@ -201,17 +201,32 @@
     object-fit: cover;
 }
 
-.statusRibbon {
+.badgeGroup {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 4px 12px;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    z-index: 2;
+}
+
+.statusRibbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 2;
+    white-space: nowrap;
+}
+
+.statusRibbon.audited {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
 }
 
 .statusRibbon.ok {
@@ -272,6 +287,16 @@
 }
 
 .auditDate.late {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.auditDate.auditOk {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.auditDate.auditNok {
     color: #ef4444;
     font-weight: 600;
 }

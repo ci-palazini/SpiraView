@@ -50,6 +50,8 @@ buckups banco.txt
 
 schema/*
 
+%temp/*
+
 *.csv
 
 *.txt

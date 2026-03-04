@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiPlus, FiActivity, FiImage, FiClock, FiSettings, FiCheckSquare } from 'react-icons/fi';
+import { FiPlus, FiActivity, FiImage, FiClock, FiSettings, FiCheckSquare, FiCheck, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -208,27 +208,29 @@ export default function KaizenDashboardPage({ user }: KaizenDashboardPageProps) 
                     <div className={styles.cardsGrid}>
                         {kaizens.map(k => {
                             const statusKam = k.kamishibaiStatus || 'planejado';
-                            let badgeClass = styles.gray;
-                            let displayStatus = statusKam;
-
-                            if (statusKam === 'OK') {
-                                badgeClass = styles.ok;
-                                displayStatus = 'Conforme';
-                            } else if (statusKam === 'NOK') {
-                                badgeClass = styles.nok;
-                                displayStatus = 'Não Conforme';
-                            } else if (statusKam === 'Pendente') {
-                                badgeClass = styles.pendente;
-                                displayStatus = 'Pendente';
-                            } else if (statusKam === 'planejado') {
-                                displayStatus = 'Planejado';
-                            }
+                            const isAudited = statusKam === 'OK' || statusKam === 'NOK';
+                            const isConforme = statusKam === 'OK';
 
                             return (
                                 <div key={k.id} className={styles.kaizenCard} onClick={() => handleCardClick(k)}>
-                                    <span className={`${styles.statusRibbon} ${badgeClass}`}>
-                                        {displayStatus}
-                                    </span>
+                                    <div className={styles.badgeGroup}>
+                                        {isAudited ? (
+                                            <>
+                                                <span className={`${styles.statusRibbon} ${styles.audited}`}>
+                                                    <FiCheck size={11} /> Auditado
+                                                </span>
+                                                <span className={`${styles.statusRibbon} ${isConforme ? styles.ok : styles.nok}`}>
+                                                    {isConforme ? <FiCheck size={11} /> : <FiX size={11} />}
+                                                    {isConforme ? 'Conforme' : 'Não Conforme'}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className={`${styles.statusRibbon} ${statusKam === 'Pendente' ? styles.pendente : styles.gray}`}>
+                                                {statusKam === 'Pendente' ? <FiClock size={11} /> : null}
+                                                {statusKam === 'Pendente' ? 'Pendente' : 'Planejado'}
+                                            </span>
+                                        )}
+                                    </div>
 
                                     <div className={styles.thumbnailContainer}>
                                         {k.thumbnail_url ? (
@@ -246,9 +248,9 @@ export default function KaizenDashboardPage({ user }: KaizenDashboardPageProps) 
 
                                         <div className={styles.auditsInfo}>
                                             <span>Implementado: {k.data_implementacao ? formatDateBR(k.data_implementacao) : '-'}</span>
-                                            <span className={`${styles.auditDate} ${statusKam === 'Pendente' ? styles.late : ''}`}>
-                                                <FiClock />
-                                                {displayStatus}
+                                            <span className={`${styles.auditDate} ${!isAudited && statusKam === 'Pendente' ? styles.late : ''} ${isAudited ? (isConforme ? styles.auditOk : styles.auditNok) : ''}`}>
+                                                {isAudited ? (isConforme ? <FiCheck size={13} /> : <FiX size={13} />) : <FiClock size={13} />}
+                                                {isAudited ? (isConforme ? 'Auditado · Conforme' : 'Auditado · Não Conforme') : (statusKam === 'Pendente' ? 'Não auditado' : '-')}
                                             </span>
                                         </div>
 
