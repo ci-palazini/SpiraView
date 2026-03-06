@@ -21,7 +21,7 @@ Welcome to the SpiraView monorepo.
 - **[Usuários](docs/modules/usuarios.md)**: Auth, roles, permissões.
 
 ### For AI Agents
-- **[Agent Context & Rules](.agent/BEHAVIOR.md)**: **CRITICAL READ** - Architectural rules and system constraints.
+- **[Agent Context & Rules](.agent/CONTEXT.md)**: **CRITICAL READ** - Architectural rules and system constraints.
 
 ## 🏗 Project Structure
 

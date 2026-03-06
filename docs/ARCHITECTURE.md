@@ -247,4 +247,4 @@ formatDateTimeShort(value) // DD/MM/AAAA, HH:MM
 
 - [Sistema de Permissões](PERMISSIONS.md)
 - [Padrões de API](API.md)
-- [Contexto para Agentes](./../.agent/BEHAVIOR.md)
+- [Contexto para Agentes](./../.agent/CONTEXT.md)

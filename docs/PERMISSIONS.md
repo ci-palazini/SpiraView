@@ -223,4 +223,4 @@ Exemplo de configuração de permissões por role:
 
 - [Arquitetura do Sistema](ARCHITECTURE.md)
 - [Schema do Banco](DATABASE.md)
-- [Contexto para Agentes](../.agent/BEHAVIOR.md)
+- [Contexto para Agentes](../.agent/CONTEXT.md)
