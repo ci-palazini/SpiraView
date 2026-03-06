@@ -129,6 +129,7 @@ export default function TvDashboardPage() {
     const rootRef = useRef<HTMLDivElement>(null);
 
     const [dataRef, setDataRef] = useState<string>(() => toISO(new Date()));
+    const [nowISO, setNowISO] = useState<string>(() => toISO(new Date()));
     const [lastUpdateTime, setLastUpdateTime] = useState<string>('--:--');
     const [uploadHHMM, setUploadHHMM] = useState<string>('--:--'); // Hora do upload para cálculo de frac
     const [maquinas, setMaquinas] = useState<Maquina[]>([]);
@@ -162,18 +163,14 @@ export default function TvDashboardPage() {
         return dataRef.includes('T') ? dataRef.slice(0, 10) : dataRef;
     }, [dataRef]);
 
-    // Gerar hoje no fuso local
-    const todayISO = useMemo(() => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    }, []);
-
-    // Gerar ontem no fuso local
+    // todayISO e yesterdayISO derivados de nowISO (atualizado a cada fetch)
+    // para não ficarem obsoletos quando a página passa da meia-noite sem recarregar
+    const todayISO = nowISO;
     const yesterdayISO = useMemo(() => {
-        const yesterday = new Date();
+        const yesterday = new Date(nowISO + 'T12:00:00');
         yesterday.setDate(yesterday.getDate() - 1);
         return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-    }, []);
+    }, [nowISO]);
 
     const isToday = refDateOnly === todayISO;
     const isYesterday = refDateOnly === yesterdayISO;
@@ -231,6 +228,7 @@ export default function TvDashboardPage() {
             }
 
             setDataRef(refDate);
+            setNowISO(toISO(new Date())); // Atualiza "hoje" a cada fetch para detectar virada de dia
             setLastUpdateTime(refTime);
             setUploadHHMM(uploadTime);
 
