@@ -52,6 +52,7 @@ const PAGINAS_DISPONIVEIS = [
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },
+    { key: 'maquinas_config', nome: 'Configuração Global de Máquinas', grupo: 'Configurações' },
 ];
 
 // GET /roles/pages - Listar páginas disponíveis para permissões

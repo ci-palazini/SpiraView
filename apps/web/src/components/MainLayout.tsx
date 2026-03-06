@@ -55,6 +55,7 @@ import ProducaoUploadDetalhePage from '../features/producao/pages/ProducaoUpload
 import ProducaoDashboardPage from '../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../features/producao/pages/ProducaoColaboradoresPage';
 import RolesPage from '../features/configuracoes/pages/RolesPage';
+import MaquinasConfigPage from '../features/configuracoes/pages/MaquinasConfigPage';
 import PlanejamentoDashboardPage from '../features/planejamento/pages/PlanejamentoDashboardPage';
 import CapacidadeUploadPage from '../features/planejamento/pages/CapacidadeUploadPage';
 import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfigPage';
@@ -850,7 +851,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Configurações - usa permissões granulares */}
             {
-                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config']) && (
+                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config', 'maquinas_config']) && (
                     <>
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
@@ -886,6 +887,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             >
                                 <FiSettings className={styles.navIcon} />
                                 <span>{t('nav.notificationConfig', 'Notificações')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('maquinas_config') && (
+                            <NavLink
+                                to="/configuracoes/maquinas"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiServer className={styles.navIcon} />
+                                <span>{t('nav.machinesConfig', 'Config. Máquinas')}</span>
                             </NavLink>
                         )}
                     </>
@@ -1087,6 +1099,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/configuracoes/notificacoes"
                         element={canAccessPage('notificacoes_config', <ConfiguracaoNotificacoesPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/configuracoes/maquinas"
+                        element={canAccessPage('maquinas_config', <MaquinasConfigPage user={user} />)}
                     />
 
                     <Route

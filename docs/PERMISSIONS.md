@@ -102,6 +102,7 @@ const MyComponent = () => {
 | PageKey | Módulo | Descrição | Níveis Usados |
 |---------|--------|-----------|---------------|
 | `maquinas` | Shared | Cadastro de máquinas/ativos | `ver`, `editar` |
+| `maquinas_config` | Shared | Configuração global de máquinas (escopos, setor, hierarquia) | `ver`, `editar` |
 
 ### Manutenção
 
