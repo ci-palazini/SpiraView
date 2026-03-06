@@ -151,10 +151,7 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                                     {maquinas.map((maq) => (
                                         <tr key={maq.id}>
                                             <td>
-                                                <strong>{maq.nome}</strong>
-                                                {maq.tag && maq.tag !== maq.nome && (
-                                                    <span style={{ color: '#94a3b8', marginLeft: 8 }}>({maq.tag})</span>
-                                                )}
+                                                <strong>{maq.nomeProducao || maq.nome}</strong>
                                             </td>
                                             <td>
                                                 {editingId === maq.id ? (

@@ -890,5 +890,14 @@
     "success": {
       "created": "Ticket creato con successo!"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "Tutti",
+      "usinagem": "Lavorazione",
+      "montagem": "Assemblaggio"
+    },
+    "noDataForSetor": "Nessun dato per questo settore",
+    "noDataForSetorDesc": "Nessuna macchina in questo reparto ha un ambito di pianificazione attivo."
   }
 }

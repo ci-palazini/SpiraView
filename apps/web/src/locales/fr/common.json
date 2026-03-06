@@ -888,5 +888,14 @@
     "success": {
       "created": "Ticket créé avec succès !"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "Tous",
+      "usinagem": "Usinage",
+      "montagem": "Assemblage"
+    },
+    "noDataForSetor": "Aucune donnée pour ce secteur",
+    "noDataForSetorDesc": "Aucune machine de ce département a une portée de planification active."
   }
 }

@@ -941,6 +941,7 @@ export interface CapacidadeUploadResult {
 
 export interface ResumoCapacidade {
     centroTrabalho: string;
+    setor: string | null;
     cargaHoras: number;
     cargaOP: number;
     capacidade: number;
@@ -993,6 +994,7 @@ export async function listarUploadsCapacidade(auth: AuthParams): Promise<Capacid
 export interface MaquinaPlanejamento {
     id: string;
     nome: string;
+    nomeProducao: string | null;
     tag: string;
     capacidadeHoras: number;
     aliasesPlanejamento: string[];

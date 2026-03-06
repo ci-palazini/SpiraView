@@ -887,5 +887,14 @@
     "success": {
       "created": "티켓이 성공적으로 생성되었습니다!"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "전체",
+      "usinagem": "가공",
+      "montagem": "조립"
+    },
+    "noDataForSetor": "이 부문에 데이터가 없습니다",
+    "noDataForSetorDesc": "이 부서에 계획 범위가 활성화된 기계가 없습니다."
   }
 }

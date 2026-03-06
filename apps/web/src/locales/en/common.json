@@ -1530,7 +1530,14 @@
       "capacityRestante": "Rem. Cap.",
       "overloadWarning": "Center overloaded!",
       "overloadExceed": "OP Load exceeds remaining capacity!"
-    }
+    },
+    "switcher": {
+      "todos": "All",
+      "usinagem": "Machining",
+      "montagem": "Assembly"
+    },
+    "noDataForSetor": "No data for this sector",
+    "noDataForSetorDesc": "No machines in this department have planning scope enabled."
   },
   "quality": {
     "newScrap": "Scrap",

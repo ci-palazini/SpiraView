@@ -887,5 +887,14 @@
     "success": {
       "created": "工单创建成功！"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "全部",
+      "usinagem": "机械加工",
+      "montagem": "装配"
+    },
+    "noDataForSetor": "此部门无数据",
+    "noDataForSetorDesc": "此部门没有启用规划范围的机器。"
   }
 }

@@ -887,5 +887,14 @@
     "success": {
       "created": "チケットを作成しました！"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "すべて",
+      "usinagem": "機械加工",
+      "montagem": "組立"
+    },
+    "noDataForSetor": "このセクターにデータがありません",
+    "noDataForSetorDesc": "この部門に計画スコープが有効な機械が登録されていません。"
   }
 }

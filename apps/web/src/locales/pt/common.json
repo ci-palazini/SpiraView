@@ -1609,7 +1609,14 @@
       "capacityRestante": "Cap. Restante",
       "overloadWarning": "Centro em sobrecarga!",
       "overloadExceed": "Carga OP excede capacidade restante!"
-    }
+    },
+    "switcher": {
+      "todos": "Todos",
+      "usinagem": "Usinagem",
+      "montagem": "Montagem"
+    },
+    "noDataForSetor": "Sem dados para este setor",
+    "noDataForSetorDesc": "Nenhuma máquina cadastrada neste departamento possui escopo de planejamento."
   },
   "quality": {
     "newScrap": "Refugo",

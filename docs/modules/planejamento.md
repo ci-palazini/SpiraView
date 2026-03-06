@@ -6,7 +6,7 @@
 
 ## Visão Geral
 
-O módulo de Planejamento permite upload de planilhas Excel com reservas de capacidade, visualização da ocupação das máquinas e configuração de capacidades.
+O módulo de Planejamento permite upload de planilhas Excel com reservas de capacidade, visualização da ocupação das máquinas por departamento (Usinagem / Montagem) e configuração de capacidades.
 
 ```mermaid
 flowchart LR
@@ -38,9 +38,9 @@ flowchart LR
 
 | Página | Arquivo | Descrição |
 |--------|---------|-----------|
-| **Dashboard** | `PlanejamentoDashboardPage.tsx` | Ocupação vs capacidade |
+| **Dashboard** | `PlanejamentoDashboardPage.tsx` | Ocupação vs capacidade com switcher Todos / Usinagem / Montagem |
 | **Upload** | `CapacidadeUploadPage.tsx` | Upload de planilhas |
-| **Configurações** | `CapacidadeConfigPage.tsx` | Capacidade por máquina |
+| **Configurações** | `CapacidadeConfigPage.tsx` | Capacidade por máquina (exibe `nome_producao`) |
 
 ---
 
@@ -67,6 +67,8 @@ sequenceDiagram
 2. **Capacidade**: Definida em horas por máquina (`maquinas.capacidade_horas`).
 3. **Status de reservas**: `Criado`, `Liberado`, `Iniciado`.
 4. **Ativo/Inativo**: Uploads podem ser desativados sem excluir dados.
+5. **Departamentos**: Máquinas são identificadas pelo campo `maquinas.setor` (`usinagem` / `montagem`). O dashboard permite filtrar por departamento via switcher.
+6. **Nome de exibição**: Usa `maquinas.nome_producao` quando disponível; fallback para `maquinas.nome`.
 
 ---
 

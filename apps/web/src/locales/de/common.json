@@ -890,5 +890,14 @@
     "success": {
       "created": "Ticket erfolgreich erstellt!"
     }
+  },
+  "planejamento": {
+    "switcher": {
+      "todos": "Alle",
+      "usinagem": "Zerspanung",
+      "montagem": "Montage"
+    },
+    "noDataForSetor": "Keine Daten für diesen Bereich",
+    "noDataForSetorDesc": "Keine Maschine in dieser Abteilung hat einen aktiven Planungsumfang."
   }
 }

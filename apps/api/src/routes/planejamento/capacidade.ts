@@ -14,6 +14,7 @@ const capacidadeRouter: RouterType = Router();
 interface ResumoCapacidade {
     maquinaId: string | null;
     centroTrabalho: string;
+    setor: string | null;
     cargaHoras: number;
     cargaOP: number;
     capacidade: number;
@@ -419,15 +420,16 @@ capacidadeRouter.get(
             const { rows: dados } = await pool.query(`
                 SELECT 
                     m.id as maquina_id,
-                    m.nome as centro_trabalho,
+                    COALESCE(m.nome_producao, m.nome) as centro_trabalho,
+                    m.setor,
                     COALESCE(SUM(pr.horas), 0) as carga_horas,
                     COALESCE(SUM(CASE WHEN pr.status IN ('Liberado', 'Iniciado') THEN pr.horas ELSE 0 END), 0) as carga_op,
                     COALESCE(m.capacidade_horas, 0) as capacidade
                 FROM maquinas m
                 LEFT JOIN planejamento_reservas pr ON pr.maquina_id = m.id AND pr.upload_id = $1
                 WHERE m.escopo_planejamento = TRUE
-                GROUP BY m.id, m.nome, m.capacidade_horas
-                ORDER BY m.nome
+                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.capacidade_horas
+                ORDER BY COALESCE(m.nome_producao, m.nome)
             `, [targetUploadId]);
 
             const today = new Date();
@@ -443,6 +445,7 @@ capacidadeRouter.get(
                 return {
                     maquinaId: d.maquina_id,
                     centroTrabalho: d.centro_trabalho,
+                    setor: d.setor || null,
                     cargaHoras,
                     cargaOP,
                     capacidade,
@@ -503,15 +506,16 @@ capacidadeRouter.get(
             const { rows: dados } = await pool.query(`
                 SELECT 
                     m.id as maquina_id,
-                    m.nome as centro_trabalho,
+                    COALESCE(m.nome_producao, m.nome) as centro_trabalho,
+                    m.setor,
                     COALESCE(SUM(pr.horas), 0) as carga_horas,
                     COALESCE(SUM(CASE WHEN pr.status IN ('Liberado', 'Iniciado') THEN pr.horas ELSE 0 END), 0) as carga_op,
                     COALESCE(m.capacidade_horas, 0) as capacidade
                 FROM maquinas m
                 LEFT JOIN planejamento_reservas pr ON pr.maquina_id = m.id AND pr.upload_id = $1
                 WHERE m.escopo_planejamento = TRUE
-                GROUP BY m.id, m.nome, m.capacidade_horas
-                ORDER BY m.nome
+                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.capacidade_horas
+                ORDER BY COALESCE(m.nome_producao, m.nome)
             `, [targetUploadId]);
 
             const today = new Date();
@@ -528,6 +532,7 @@ capacidadeRouter.get(
                 return {
                     maquinaId: d.maquina_id,
                     centroTrabalho: d.centro_trabalho,
+                    setor: d.setor || null,
                     cargaHoras,
                     cargaOP,
                     capacidade,
@@ -598,12 +603,13 @@ capacidadeRouter.get(
             const { rows } = await pool.query(`
                 SELECT 
                     id, nome,
+                    nome_producao AS "nomeProducao",
                     COALESCE(capacidade_horas, 0) AS "capacidadeHoras",
                     COALESCE(aliases_planejamento, '{}') AS "aliasesPlanejamento",
                     escopo_planejamento AS "escopoPlanejamento"
                 FROM maquinas
                 WHERE escopo_planejamento = TRUE
-                ORDER BY nome
+                ORDER BY COALESCE(nome_producao, nome)
             `);
             res.json({ items: rows });
         } catch (err: any) {

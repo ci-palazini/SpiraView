@@ -37,6 +37,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
     const [uploadId, setUploadId] = useState<string | undefined>(undefined);
     const [lastUploadDate, setLastUploadDate] = useState<string | undefined>(undefined);
     const [calculation, setCalculation] = useState<{ totalBusinessDays: number; remainingBusinessDays: number; passedBusinessDays: number; } | undefined>(undefined);
+    const [selectedSetor, setSelectedSetor] = useState<'todos' | 'usinagem' | 'montagem'>('todos');
 
 
     const fetchData = useCallback(async () => {
@@ -58,22 +59,28 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
         fetchData();
     }, [fetchData]);
 
+    // Filtrar dados pelo setor selecionado
+    const filteredData = useMemo(() => {
+        if (selectedSetor === 'todos') return data;
+        return data.filter(d => (d.setor || '').toLowerCase() === selectedSetor);
+    }, [data, selectedSetor]);
+
     // Estatísticas
     // Estatísticas (Segundo Gráfico - Geral)
-    const totalCentros = data.length;
-    const totalCargaHoras = data.reduce((sum, d) => sum + d.cargaHoras, 0);
-    const totalCapacidade = data.reduce((sum, d) => sum + d.capacidade, 0);
-    const centrosSobrecarga = data.filter(d => d.sobrecarga).length;
+    const totalCentros = filteredData.length;
+    const totalCargaHoras = filteredData.reduce((sum, d) => sum + d.cargaHoras, 0);
+    const totalCapacidade = filteredData.reduce((sum, d) => sum + d.capacidade, 0);
+    const centrosSobrecarga = filteredData.filter(d => d.sobrecarga).length;
 
     // Estatísticas (Primeiro Gráfico - Mensal)
-    const totalCargaOP = data.reduce((sum, d) => sum + d.cargaOP, 0);
-    const totalCapacidadeRestante = data.reduce((sum, d) => sum + d.capacidadeRestante, 0);
-    const totalSobrecarga = data.reduce((sum, d) => sum + Math.max(0, d.cargaOP - d.capacidadeRestante), 0);
-    const centrosDeficitMensal = data.filter(d => d.cargaOP > d.capacidadeRestante).length;
+    const totalCargaOP = filteredData.reduce((sum, d) => sum + d.cargaOP, 0);
+    const totalCapacidadeRestante = filteredData.reduce((sum, d) => sum + d.capacidadeRestante, 0);
+    const totalSobrecarga = filteredData.reduce((sum, d) => sum + Math.max(0, d.cargaOP - d.capacidadeRestante), 0);
+    const centrosDeficitMensal = filteredData.filter(d => d.cargaOP > d.capacidadeRestante).length;
 
     // Formatar dados para o gráfico
     const chartData = useMemo(() => {
-        return data.map((d) => ({
+        return filteredData.map((d) => ({
             name: d.centroTrabalho,
             cargaOP: Math.round(d.cargaOP * 10) / 10,
             cargaHoras: Math.round(d.cargaHoras * 10) / 10,
@@ -82,12 +89,12 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
             capacidadeRestante: Math.round(d.capacidadeRestante * 10) / 10,
             sobrecarga: d.sobrecarga,
         }));
-    }, [data]);
+    }, [filteredData]);
 
     // Custom tooltip
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
-            const item = data.find(d => d.centroTrabalho === label);
+            const item = filteredData.find(d => d.centroTrabalho === label);
             // Payload 0 = Carga OP
             // Payload 1 = Carga Resto (mas queremos mostrar o Total Horas)
             // Payload 2 = Capacidade
@@ -127,7 +134,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
     // Tooltip for Chart 1 (Monthly)
     const MonthlyTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
-            const item = data.find(d => d.centroTrabalho === label);
+            const item = filteredData.find(d => d.centroTrabalho === label);
             const overloaded = item && item.cargaOP > item.capacidadeRestante && item.capacidadeRestante > 0;
             return (
                 <div style={{
@@ -196,7 +203,42 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                     </div>
                 ) : (
                     <>
+                        {/* Department Switcher */}
+                        <div className={styles.switcherContainer}>
+                            <button
+                                className={`${styles.switcherBtn} ${selectedSetor === 'todos' ? styles.switcherBtnActive : ''}`}
+                                onClick={() => setSelectedSetor('todos')}
+                            >
+                                <FiLayers />
+                                {t('planejamento.switcher.todos', 'Todos')}
+                            </button>
+                            <button
+                                className={`${styles.switcherBtn} ${selectedSetor === 'usinagem' ? styles.switcherBtnActive : ''}`}
+                                onClick={() => setSelectedSetor('usinagem')}
+                            >
+                                <FiActivity />
+                                {t('planejamento.switcher.usinagem', 'Usinagem')}
+                            </button>
+                            <button
+                                className={`${styles.switcherBtn} ${selectedSetor === 'montagem' ? `${styles.switcherBtnActive} ${styles.switcherBtnMontagem}` : ''}`}
+                                onClick={() => setSelectedSetor('montagem')}
+                            >
+                                <FiCheckCircle />
+                                {t('planejamento.switcher.montagem', 'Montagem')}
+                            </button>
+                        </div>
+
                         {/* Stats */}
+                        {filteredData.length === 0 ? (
+                            <div className={styles.chartCard}>
+                                <div className={styles.emptyState}>
+                                    <div className={styles.emptyIcon}><FiLayers /></div>
+                                    <h2>{t('planejamento.noDataForSetor', 'Sem dados para este setor')}</h2>
+                                    <p>{t('planejamento.noDataForSetorDesc', 'Nenhuma máquina cadastrada neste departamento possui escopo de planejamento.')}</p>
+                                </div>
+                            </div>
+                        ) : (
+                        <>
                         {/* New Stats for First Chart */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                             <div className={styles.statCard}>
@@ -450,7 +492,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.map((item) => (
+                                        {filteredData.map((item) => (
                                             <tr key={item.centroTrabalho}>
                                                 <td>{item.centroTrabalho}</td>
                                                 <td>{item.cargaOP.toFixed(1)}h</td>
@@ -488,6 +530,8 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 </table>
                             </div>
                         </div>
+                        </>
+                        )}
                     </>
                 )}
             </div>
