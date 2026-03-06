@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import { getKamishibaiHistorico } from '../../../services/apiClient';
+import { formatDateTime } from '../../../shared/utils/dateUtils';
 import styles from './KamishibaiHistoryPage.module.css';
 
 export default function KamishibaiHistoryPage() {
@@ -67,7 +68,7 @@ export default function KamishibaiHistoryPage() {
                             <tbody>
                                 {historico.map((audit_log) => {
                                     const isConforme = audit_log.status === 'conforme';
-                                    const dataFormatada = new Date(audit_log.data_auditoria).toLocaleString('pt-BR');
+                                    const dataFormatada = formatDateTime(audit_log.data_auditoria);
                                     const isExpanded = expandedRow === audit_log.id;
 
                                     return (

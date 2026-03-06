@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import { uploadCapacidade, listarUploadsCapacidade, type CapacidadeUpload, type CapacidadeUploadResult } from '../../../services/apiClient';
+import { formatDateTime } from '../../../shared/utils/dateUtils';
 import styles from './CapacidadeUploadPage.module.css';
 
 interface User {
@@ -313,7 +314,7 @@ export default function CapacidadeUploadPage({ user }: CapacidadeUploadPageProps
                                             {u.nomeArquivo}
                                         </td>
                                         <td>{u.linhasSucesso}/{u.linhasTotal}</td>
-                                        <td>{new Date(u.criadoEm).toLocaleString('pt-BR')}</td>
+                                        <td>{formatDateTime(u.criadoEm)}</td>
                                         <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {(u as any).uploadPorNome || '—'}
                                         </td>

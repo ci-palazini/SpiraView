@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
 import { http, listarOrigens, listarMotivos, listarResponsaveisSettings, QualidadeOpcao, criarOrigem, criarMotivo, criarResponsavel } from '../../../services/apiClient';
+import { formatDate } from '../../../shared/utils/dateUtils';
 import { ReconciliationModal, ReconciliationActions } from '../components/ReconciliationModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './RefugoFormPage.module.css';
@@ -424,7 +425,7 @@ export default function RefugoFormPage() {
 
             // Map to clean format
             const exportData = items.map(item => ({
-                Data: new Date(item.data_ocorrencia).toLocaleDateString('pt-BR'),
+                Data: new Date(item.data_ocorrencia).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
                 Origem: item.origem,
                 'Ref. (OP)': item.origem_referencia,
                 NCR: item.numero_ncr,
@@ -760,7 +761,7 @@ export default function RefugoFormPage() {
                                     <tbody>
                                         {recentEntries.map((item) => (
                                             <tr key={item.id}>
-                                                <td>{new Date(item.data_ocorrencia).toLocaleDateString()}</td>
+                                                <td>{new Date(item.data_ocorrencia).toLocaleDateString('pt-BR')}</td>
                                                 <td>{item.origem}</td>
                                                 <td>{item.origem_referencia}</td>
                                                 <td>{item.numero_ncr}</td>

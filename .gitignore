@@ -39,6 +39,7 @@ Thumbs.db
 # AI Agent context (local only)
 .agent/
 .gemini/
+AGENTS.md
 
 # Web app (artefatos)
 apps/web/dev-dist/

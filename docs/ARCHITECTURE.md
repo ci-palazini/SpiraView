@@ -207,7 +207,33 @@ A plataforma suporta **10 idiomas**:
 
 ---
 
-## 8. Ambientes
+## 8. Datas e Fuso Horário
+
+### Convenção: UTC no banco, Brasília no display
+
+| Camada | Comportamento |
+|--------|--------------|
+| **Banco de dados** | Todos os timestamps são `TIMESTAMPTZ DEFAULT timezone('utc', now())` — armazenados em UTC |
+| **API (lógica de negócio)** | Conversões explícitas para `America/Sao_Paulo` quando necessário (ex: determinação de turno) |
+| **Frontend (display)** | Sempre renderizado em `America/Sao_Paulo` via utilitário centralizado |
+
+### Utilitário de datas (`apps/web/src/shared/utils/dateUtils.ts`)
+
+**Nunca** use `new Date().toLocaleString()` ou `.toLocaleDateString()` diretamente — em ambientes com timezone UTC (containers, servidores de CI), o horário aparecerá 3h adiantado para usuários em Brasília.
+
+**Sempre** use as funções do utilitário:
+
+```typescript
+import { formatDate, formatDateTime, formatDateTimeShort } from '../../../shared/utils/dateUtils';
+
+formatDate(value)          // DD/MM/AAAA
+formatDateTime(value)      // DD/MM/AAAA, HH:MM:SS
+formatDateTimeShort(value) // DD/MM/AAAA, HH:MM
+```
+
+---
+
+## 9. Ambientes
 
 | Ambiente | URL | Uso |
 |----------|-----|-----|

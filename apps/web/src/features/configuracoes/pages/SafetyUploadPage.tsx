@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import PageHeader from '../../../shared/components/PageHeader';
 import { http } from '../../../services/apiClient';
+import { formatDateTime } from '../../../shared/utils/dateUtils';
 import type { User } from '../../../App';
 import styles from './SafetyUploadPage.module.css';
 
@@ -314,7 +315,7 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
                                             {h.registros_atualizados}
                                         </td>
                                         <td>{h.enviado_por || '—'}</td>
-                                        <td>{new Date(h.criado_em).toLocaleString('pt-BR')}</td>
+                                        <td>{formatDateTime(h.criado_em)}</td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -1,7 +1,8 @@
 # Schema do Banco de Dados
 
 > **Engine**: PostgreSQL (hospedado no Supabase)  
-> **Timezone**: `America/Sao_Paulo`
+> **Armazenamento de timestamps**: UTC (`TIMESTAMPTZ DEFAULT timezone('utc', now())`)  
+> **Display no frontend**: `America/Sao_Paulo` — via `apps/web/src/shared/utils/dateUtils.ts`
 
 ---
 

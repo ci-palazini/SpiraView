@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { listarRefugos } from '../../../services/apiClient';
+import { formatDate } from '../../../shared/utils/dateUtils';
 import toast from 'react-hot-toast';
 import { X, Search, FileText } from 'lucide-react';
 import styles from './QualityDrillDownModal.module.css';
@@ -148,7 +149,7 @@ export default function QualityDrillDownModal({ open, onClose, filters, title }:
                                         items.map((row) => (
                                             <TableRow key={row.id} className={styles.tableRow}>
                                                 <TableCell className={styles.tableCell}>
-                                                    {new Date(row.data_ocorrencia).toLocaleDateString()}
+                                                    {formatDate(row.data_ocorrencia)}
                                                 </TableCell>
                                                 <TableCell className={styles.tableCell}>
                                                     <Chip

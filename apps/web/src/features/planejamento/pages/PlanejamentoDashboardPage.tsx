@@ -19,6 +19,7 @@ import {
 
 import { listarResumoCapacidade, type ResumoCapacidade } from '../../../services/apiClient';
 import PageHeader from '../../../shared/components/PageHeader';
+import { formatDateTimeShort } from '../../../shared/utils/dateUtils';
 import styles from './PlanejamentoDashboardPage.module.css';
 
 interface User {
@@ -247,12 +248,7 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 </div>
                                 <div className={styles.statContent}>
                                     <h3>
-                                        {lastUploadDate ? new Date(lastUploadDate).toLocaleDateString('pt-BR', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        }) : '—'}
+                                        {lastUploadDate ? formatDateTimeShort(lastUploadDate) : '—'}
                                     </h3>
                                     <p>{t('planejamento.stats.lastUpdate', 'Última Atualização')}</p>
                                 </div>

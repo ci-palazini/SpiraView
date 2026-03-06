@@ -7,6 +7,7 @@ import { FiArrowLeft, FiCheck, FiX } from 'react-icons/fi';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import { buscarDetalheUploadProducao, type ProducaoUploadDetalhe } from '../../../services/apiClient';
+import { formatDate, formatDateTime } from '../../../shared/utils/dateUtils';
 import styles from './ProducaoUploadPage.module.css';
 
 export default function ProducaoUploadDetalhePage() {
@@ -42,7 +43,7 @@ export default function ProducaoUploadDetalhePage() {
 
     const formatDate = (iso: string) => {
         try {
-            return new Date(iso).toLocaleDateString('pt-BR');
+            return new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         } catch {
             return iso;
         }
@@ -50,7 +51,7 @@ export default function ProducaoUploadDetalhePage() {
 
     const formatDateTime = (iso: string) => {
         try {
-            return new Date(iso).toLocaleString('pt-BR');
+            return new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         } catch {
             return iso;
         }

@@ -9,6 +9,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { useTranslation } from 'react-i18next';
 import { exportToExcel } from '../../../../../utils/exportExcel';
 import { exportToPdf } from '../../../../../utils/exportPdf';
+import { formatDateTimeShort } from '../../../../../shared/utils/dateUtils';
 
 // ---------- Types ----------
 interface User {
@@ -22,14 +23,7 @@ interface HistoricoMovimentacoesPageProps {
 
 // ---------- Helpers ----------
 function formatDate(dateStr: string): string {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    return formatDateTimeShort(dateStr);
 }
 
 // ---------- Component ----------

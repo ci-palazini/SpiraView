@@ -8,6 +8,7 @@ import { FiUploadCloud, FiFileText, FiX, FiCheck, FiAlertTriangle, FiClock, FiAr
 
 import PageHeader from '../../../shared/components/PageHeader';
 import { uploadLancamentosProducao, listarUploadsProducao, listarHistoricoUploadsProducao, type ProducaoUpload, type ProducaoUploadHistorico } from '../../../services/apiClient';
+import { formatDateTime } from '../../../shared/utils/dateUtils';
 import styles from './ProducaoUploadPage.module.css';
 
 // Helpers
@@ -433,7 +434,7 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                         <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {u.uploadPorNome || '—'}
                                         </td>
-                                        <td>{new Date(u.criadoEm).toLocaleString('pt-BR')}</td>
+                                        <td>{formatDateTime(u.criadoEm)}</td>
                                         <td>
                                             {u.ativo ? (
                                                 <span style={{ color: '#16a34a', fontWeight: 500 }}>{t('producao.upload.history.active', 'Ativo')}</span>
@@ -501,8 +502,8 @@ export default function ProducaoUploadPage({ user }: ProducaoUploadPageProps) {
                                                 <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {h.uploadPorNome || '—'}
                                                 </td>
-                                                <td>{new Date(h.criadoEm).toLocaleString('pt-BR')}</td>
-                                                <td>{new Date(h.arquivadoEm).toLocaleString('pt-BR')}</td>
+                                                <td>{formatDateTime(h.criadoEm)}</td>
+                                                <td>{formatDateTime(h.arquivadoEm)}</td>
                                                 <td>
                                                     <td>
                                                         <span style={{ color: '#f59e0b', fontSize: '0.85rem' }}>

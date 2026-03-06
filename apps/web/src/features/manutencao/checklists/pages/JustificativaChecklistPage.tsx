@@ -5,6 +5,7 @@ import { FiCheckSquare, FiAlertTriangle, FiCheck, FiClock, FiFilter, FiList } fr
 import PageHeader from '../../../../shared/components/PageHeader';
 import { Button } from '../../../../shared/components';
 import { http as api } from '../../../../services/apiClient';
+import { formatDate } from '../../../../shared/utils/dateUtils';
 import styles from './JustificativaChecklistPage.module.css';
 
 interface Pendencia {
@@ -282,7 +283,7 @@ const JustificativaChecklistPage = () => {
                                                 <span style={{ fontWeight: 600, color: '#1e293b' }}>
                                                     {group.data_ref.split('-').reverse().join('/')} - {group.turno}
                                                 </span>
-                                                <span>{new Date(group.justificado_em).toLocaleDateString()}</span>
+                                                <span>{formatDate(group.justificado_em)}</span>
                                             </div>
 
                                             <div className={styles.historyReason}>

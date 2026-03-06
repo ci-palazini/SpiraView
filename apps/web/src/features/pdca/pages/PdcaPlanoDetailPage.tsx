@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { http } from '../../../services/apiClient';
+import { formatDateTime } from '../../../shared/utils/dateUtils';
 import PageHeader from '../../../shared/components/PageHeader';
 import styles from './PdcaPlanoDetailPage.module.css';
 import { ArrowLeft, Plus, Trash2, History, Target } from 'lucide-react';
@@ -173,7 +174,7 @@ export default function PdcaPlanoDetailPage() {
 
     const formatDate = (dateStr: string) => {
         try {
-            return new Date(dateStr).toLocaleString('pt-BR');
+            return formatDateTime(dateStr);
         } catch {
             return '-';
         }
