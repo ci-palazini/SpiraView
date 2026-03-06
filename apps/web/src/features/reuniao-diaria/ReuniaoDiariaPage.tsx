@@ -912,7 +912,7 @@ export default function ReuniaoDiariaPage() {
                 </div>
 
                 {/* Row 2.5: Backlog alerts */}
-                {fat && (fat.linhasAtraso > 0 || fat.backlogAtraso > 0 || (dc.custoRefugoMes > 0 && fat.faturadoAcumulado > 0)) && (
+                {fat && (fat.linhasAtraso > 0 || fat.backlogAtraso > 0 || (fat.devolucoesDia > 0 && fat.faturadoAcumulado > 0)) && (
                     <div className={styles.alertRow}>
                         {fat.linhasAtraso > 0 && (
                             <div className={styles.alertCard}>
@@ -936,15 +936,15 @@ export default function ReuniaoDiariaPage() {
                                 </div>
                             </div>
                         )}
-                        {dc.custoRefugoMes > 0 && fat.faturadoAcumulado > 0 && (
+                        {fat.devolucoesDia > 0 && fat.faturadoAcumulado > 0 && (
                             <div className={styles.alertCard} style={{ borderColor: '#d97706' }}>
                                 <FiTrendingUp className={styles.alertIcon} style={{ color: '#d97706' }} />
                                 <div>
                                     <span className={styles.alertValue}>
-                                        {(dc.custoRefugoMes / (fat.faturadoAcumulado * 1000) * 100).toFixed(2)}%
+                                        {(fat.devolucoesDia / fat.faturadoAcumulado * 100).toFixed(2)}%
                                     </span>
                                     <span className={styles.alertLabel}>
-                                        {t('reuniao_diaria.scrap_ratio', 'Custo Refugo / Faturamento')}
+                                        {t('reuniao_diaria.returns_ratio', 'Devoluções / Faturamento')}
                                     </span>
                                 </div>
                             </div>
