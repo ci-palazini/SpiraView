@@ -335,7 +335,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             <div className={styles.sidebarGroup}>
                 <button
                     className={styles.groupHeader}
-                    onClick={() => toggleGroup(id)}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleGroup(id);
+                    }}
                     aria-expanded={isOpen}
                 >
                     <div className={styles.groupHeaderLabel}>
