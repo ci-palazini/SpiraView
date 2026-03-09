@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { requireAuth } from '../../middlewares/requireAuth';
 import { userFromHeader } from '../../middlewares/userFromHeader';
 import { logger } from '../../logger';
 
@@ -31,7 +32,7 @@ export const maquinasRouter: Router = Router();
  *       200:
  *         description: List of machines
  */
-maquinasRouter.get("/maquinas", async (req, res) => {
+maquinasRouter.get("/maquinas", requireAuth, async (req, res) => {
   try {
     const q = (req.query.q as string | undefined)?.trim();
     const escopo = req.query.escopo as string | undefined; // 'manutencao' | 'producao' | undefined
@@ -67,7 +68,7 @@ maquinasRouter.get("/maquinas", async (req, res) => {
 
 
 // Criar máquina
-maquinasRouter.post("/maquinas", async (req, res) => {
+maquinasRouter.post("/maquinas", requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const { nome, setor, parentId, isMaquinaMae, exibirFilhosDashboard, escopoManutencao, escopoProducao, escopoPlanejamento } = req.body ?? {};
     const nomeTrim = String(nome || "").trim();
@@ -273,7 +274,7 @@ maquinasRouter.patch('/maquinas/:id/nome-producao', requirePermission('producao_
   }
 });
 
-maquinasRouter.get('/maquinas/:id', async (req, res) => {
+maquinasRouter.get('/maquinas/:id', requireAuth, async (req, res) => {
   try {
     const id = String(req.params.id);
     const TZ = 'America/Sao_Paulo';
@@ -477,7 +478,7 @@ maquinasRouter.patch(
 );
 
 // ADICIONAR ITEM AO CHECKLIST DIÁRIO DA MÁQUINA
-maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
+maquinasRouter.post('/maquinas/:id/checklist-add', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const id = String(req.params.id);
     const item = String(req.body?.item || '').trim();
@@ -513,7 +514,7 @@ maquinasRouter.post('/maquinas/:id/checklist-add', async (req, res) => {
 });
 
 // REMOVER ITEM DO CHECKLIST DIÁRIO DA MÁQUINA
-maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
+maquinasRouter.post('/maquinas/:id/checklist-remove', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const id = String(req.params.id);
     const item = String(req.body?.item || '').trim();
@@ -542,7 +543,7 @@ maquinasRouter.post('/maquinas/:id/checklist-remove', async (req, res) => {
 });
 
 // REORDENAR ITENS DO CHECKLIST DIÁRIO DA MÁQUINA
-maquinasRouter.post('/maquinas/:id/checklist-reorder', async (req, res) => {
+maquinasRouter.post('/maquinas/:id/checklist-reorder', requirePermission('maquinas', 'editar'), async (req, res) => {
   try {
     const id = String(req.params.id);
     const items = req.body?.items;

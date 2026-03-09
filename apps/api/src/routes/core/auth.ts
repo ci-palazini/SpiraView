@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
 import { validateBody } from '../../middlewares/validateBody';
+import { requireAuth } from '../../middlewares/requireAuth';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Informe usuário ou e-mail.').max(254),
@@ -218,7 +219,7 @@ authRouter.get('/auth/me', async (req, res) => {
   }
 });
 
-authRouter.post('/auth/change-password', validateBody(changePasswordSchema), async (req, res) => {
+authRouter.post('/auth/change-password', requireAuth, validateBody(changePasswordSchema), async (req, res) => {
   try {
     const bodyEmail = req.body.email ? String(req.body.email).trim().toLowerCase() : '';
     const userEmail = req.user?.email;

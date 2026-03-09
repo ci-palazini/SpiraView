@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { pool } from '../../db';
 import { logger } from '../../logger';
+import { requireAuth } from '../../middlewares/requireAuth';
+import { requirePermission } from '../../middlewares/requirePermission';
 
 export const metasRouter: Router = Router();
 
@@ -25,7 +27,7 @@ async function checkPermission(userId: string, pageKey: string, level: 'ver' | '
 // ============================================================================
 
 // GET /producao/metas - Listar metas de produção por máquina
-metasRouter.get('/producao/metas', async (req, res) => {
+metasRouter.get('/producao/metas', requireAuth, async (req, res) => {
     try {
         const maquinaId = req.query.maquinaId as string | undefined;
         const vigente = req.query.vigente === 'true';
@@ -68,7 +70,7 @@ metasRouter.get('/producao/metas', async (req, res) => {
 });
 
 // POST /producao/metas - Criar meta de produção
-metasRouter.post('/producao/metas', async (req, res) => {
+metasRouter.post('/producao/metas', requirePermission('producao_config', 'editar'), async (req, res) => {
     try {
         const auth = (req as any).user || {};
         const userRole = (auth.role || '').toLowerCase();

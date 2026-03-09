@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { logger } from '../../logger';
+import { requirePermission } from '../../middlewares/requirePermission';
 
 export const uploadRouter: Router = Router();
 
@@ -8,7 +9,7 @@ export const uploadRouter: Router = Router();
  * POST /qualidade/refugos/upload
  * Recebe array de refugos já parseados do Excel
  */
-uploadRouter.post('/qualidade/refugos/upload', async (req, res) => {
+uploadRouter.post('/qualidade/refugos/upload', requirePermission('qualidade', 'editar'), async (req, res) => {
     try {
         const { items } = req.body;
         const auth = (req as any).user || {};
