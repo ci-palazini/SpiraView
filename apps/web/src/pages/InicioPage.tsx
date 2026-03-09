@@ -5,7 +5,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import styles from './InicioPage.module.css';
 import usePermissions from '../hooks/usePermissions';
 import useHomeShortcuts from '../hooks/useHomeShortcuts';
-import CustomizeShortcutsModal from '../components/CustomizeShortcutsModal';
+import CustomizeShortcutsModal from '../layouts/CustomizeShortcutsModal';
 import { FiSettings } from 'react-icons/fi';
 
 // ---------- Types ----------

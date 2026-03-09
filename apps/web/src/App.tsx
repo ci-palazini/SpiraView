@@ -6,10 +6,10 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import UserContext from './contexts/UserContext';
 import { MaintenanceProvider, useMaintenance } from './contexts/MaintenanceContext';
-import MaintenanceScreen from './components/MaintenanceScreen';
+import MaintenanceScreen from './layouts/MaintenanceScreen';
 
-import LoginPage from './components/LoginPage';
-import MainLayout from './components/MainLayout';
+import LoginPage from './layouts/LoginPage';
+import MainLayout from './layouts/MainLayout';
 import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoPage';
 
 // Lazy load TV pages

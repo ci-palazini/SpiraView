@@ -6,7 +6,7 @@ import App from './App';
 import './index.css';
 import './i18n';
 
-import SWUpdateBanner from './components/SWUpdateBanner';
+import SWUpdateBanner from './layouts/SWUpdateBanner';
 import { ErrorBoundary } from './shared/components';
 
 const rootElement = document.getElementById('root');
