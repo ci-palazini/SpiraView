@@ -60,6 +60,7 @@ individualRouter.get('/qualidade/individual/metrics',
                     ) as cell_total_cost
                 FROM CollaboratorStats cs
                 ORDER BY cs.person_total_cost DESC
+                LIMIT 200
             `;
 
             const result = await pool.query(query, params);

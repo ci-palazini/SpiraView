@@ -30,75 +30,78 @@ const fetchPeriodData = async (
     label: string,
     query: any
 ): Promise<PeriodData> => {
-    const params: any[] = [];
+    const params: unknown[] = [];
     const where = buildWhereForPeriod(params, dataInicio, dataFim, query);
 
-    // Total cost, quantity and count
-    const totalsQuery = await pool.query(
-        `SELECT COALESCE(SUM(custo), 0) as total_cost, COALESCE(SUM(quantidade), 0) as total_quantity, COUNT(*) as total_count 
-         FROM qualidade_refugos WHERE ${where}`,
+    // Uma única query com CTE substitui as 4 queries anteriores.
+    // A tabela `filtered` é escaneada apenas uma vez por período.
+    const { rows } = await pool.query(
+        `WITH filtered AS (
+            SELECT custo, quantidade, motivo_defeito, origem, responsavel_nome
+            FROM qualidade_refugos
+            WHERE ${where}
+        )
+        SELECT
+            COALESCE(SUM(custo), 0)::float       AS total_cost,
+            COALESCE(SUM(quantidade), 0)::float  AS total_quantity,
+            COUNT(*)::int                         AS total_count,
+            (
+                SELECT json_agg(d)
+                FROM (
+                    SELECT motivo_defeito AS motivo, SUM(custo)::float AS custo
+                    FROM filtered
+                    WHERE motivo_defeito IS NOT NULL AND motivo_defeito != ''
+                    GROUP BY motivo_defeito
+                    ORDER BY custo DESC
+                    LIMIT 5
+                ) d
+            ) AS top_defects,
+            (
+                SELECT json_agg(o)
+                FROM (
+                    SELECT origem, SUM(custo)::float AS custo
+                    FROM filtered
+                    WHERE origem IS NOT NULL AND origem != ''
+                    GROUP BY origem
+                    ORDER BY custo DESC
+                    LIMIT 5
+                ) o
+            ) AS top_origens,
+            (
+                SELECT json_agg(r)
+                FROM (
+                    SELECT responsavel_nome AS responsavel, SUM(custo)::float AS custo
+                    FROM filtered
+                    WHERE responsavel_nome IS NOT NULL AND responsavel_nome != ''
+                    GROUP BY responsavel_nome
+                    ORDER BY custo DESC
+                    LIMIT 5
+                ) r
+            ) AS top_responsaveis
+        FROM filtered`,
         params
     );
 
-    // Top 5 defects
-    const defectsParams: any[] = [];
-    const defectsWhere = buildWhereForPeriod(defectsParams, dataInicio, dataFim, query);
-    const defectsQuery = await pool.query(
-        `SELECT motivo_defeito as motivo, SUM(custo) as custo 
-         FROM qualidade_refugos 
-         WHERE ${defectsWhere} AND motivo_defeito IS NOT NULL AND motivo_defeito != ''
-         GROUP BY motivo_defeito 
-         ORDER BY custo DESC 
-         LIMIT 5`,
-        defectsParams
-    );
-
-    // Top 5 origins
-    const origensParams: any[] = [];
-    const origensWhere = buildWhereForPeriod(origensParams, dataInicio, dataFim, query);
-    const origensQuery = await pool.query(
-        `SELECT origem, SUM(custo) as custo 
-         FROM qualidade_refugos 
-         WHERE ${origensWhere} AND origem IS NOT NULL AND origem != ''
-         GROUP BY origem 
-         ORDER BY custo DESC 
-         LIMIT 5`,
-        origensParams
-    );
-
-    // Top 5 responsaveis
-    const respParams: any[] = [];
-    const respWhere = buildWhereForPeriod(respParams, dataInicio, dataFim, query);
-    const respQuery = await pool.query(
-        `SELECT responsavel_nome as responsavel, SUM(custo) as custo 
-         FROM qualidade_refugos 
-         WHERE ${respWhere} AND responsavel_nome IS NOT NULL AND responsavel_nome != ''
-         GROUP BY responsavel_nome 
-         ORDER BY custo DESC 
-         LIMIT 5`,
-        respParams
-    );
-
+    const row = rows[0] ?? {};
     return {
         label,
-        totalCost: parseFloat(totalsQuery.rows[0]?.total_cost || '0'),
-        totalQuantity: parseFloat(totalsQuery.rows[0]?.total_quantity || '0'),
-        count: parseInt(totalsQuery.rows[0]?.total_count || '0', 10),
-        topDefects: defectsQuery.rows.map(r => ({
+        totalCost: row.total_cost ?? 0,
+        totalQuantity: row.total_quantity ?? 0,
+        count: row.total_count ?? 0,
+        topDefects: (row.top_defects ?? []).map((r: { motivo: string; custo: number }) => ({
             motivo: r.motivo,
-            custo: parseFloat(r.custo)
+            custo: r.custo,
         })),
-        topOrigens: origensQuery.rows.map(r => ({
+        topOrigens: (row.top_origens ?? []).map((r: { origem: string; custo: number }) => ({
             origem: r.origem,
-            custo: parseFloat(r.custo)
+            custo: r.custo,
         })),
-        topResponsaveis: respQuery.rows.map(r => ({
+        topResponsaveis: (row.top_responsaveis ?? []).map((r: { responsavel: string; custo: number }) => ({
             responsavel: r.responsavel,
-            custo: parseFloat(r.custo)
-        }))
+            custo: r.custo,
+        })),
     };
 };
-
 /**
  * GET /qualidade/analytics/compare
  * Compare quality metrics between two periods
