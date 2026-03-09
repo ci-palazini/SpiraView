@@ -7,6 +7,7 @@ import rolesRouter from './roles';
 import { healthRouter } from './health';
 import { eventsRouter } from './events';
 import { notificacoesConfigRouter } from './notificacoes_config';
+import { settingsRouter } from './settings';
 
 export const coreRouter: Router = Router();
 
@@ -18,3 +19,4 @@ coreRouter.use('/roles', rolesRouter);
 coreRouter.use(healthRouter);
 coreRouter.use(eventsRouter);
 coreRouter.use('/notificacoes', notificacoesConfigRouter);
+coreRouter.use(settingsRouter);

@@ -66,13 +66,19 @@ function getLoggedUserEmail(): string {
     return '';
 }
 
-// Tenta obter o token salvo
+// Tenta obter o token salvo (usuário logado ou modo TV)
 function getLoggedUserToken(): string {
     try {
         const raw = localStorage.getItem('usuario');
-        if (!raw) return '';
-        const obj = JSON.parse(raw);
-        return obj?.token ? String(obj.token).trim() : '';
+        if (raw) {
+            const obj = JSON.parse(raw);
+            if (obj?.token) return String(obj.token).trim();
+        }
+    } catch { }
+    // Fallback: token do Modo TV (sessionStorage)
+    try {
+        const tvToken = sessionStorage.getItem('tv_token');
+        if (tvToken) return tvToken.trim();
     } catch { }
     return '';
 }
@@ -168,6 +174,22 @@ export const http = {
 // ===== AUTH =====
 export async function me(): Promise<Record<string, unknown>> {
     return apiFetch<Record<string, unknown>>('/auth/me');
+}
+
+export async function tvLogin(pin: string): Promise<{ token: string; role: string; nome: string }> {
+    return apiFetch('/auth/tv-login', { method: 'POST', body: { pin } });
+}
+
+export async function getTvConfig(): Promise<{ hasPin: boolean }> {
+    return http.get('/settings/tv-config');
+}
+
+export async function setTvPin(pin: string): Promise<{ ok: boolean }> {
+    return http.put('/settings/tv-pin', { data: { pin } });
+}
+
+export async function deleteTvPin(): Promise<{ ok: boolean }> {
+    return http.delete('/settings/tv-pin');
 }
 
 // ===== CHAMADOS =====

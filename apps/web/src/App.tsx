@@ -15,6 +15,7 @@ import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoP
 // Lazy load TV pages
 const TvMenuPage = lazy(() => import('./features/tv/TvMenuPage'));
 const TvDashboardPage = lazy(() => import('./features/tv/TvDashboardPage'));
+const TvPinGate = lazy(() => import('./features/tv/components/TvPinGate'));
 const JustificativaChecklistPage = lazy(() => import('./features/manutencao/checklists/pages/JustificativaChecklistPage'));
 
 const AUTH_EVENT = 'auth-user-changed';
@@ -46,15 +47,19 @@ function AppContent({ user, role }: { user: User | null; role: string }) {
 
     return (
         <Routes>
-            {/* ROTAS PÚBLICAS: TV/Kiosk (não precisa de login) */}
+            {/* ROTAS PÚBLICAS: TV/Kiosk — protegidas por PIN de 4 dígitos */}
             <Route path="/tv" element={
                 <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando TV...</div>}>
-                    <TvMenuPage />
+                    <TvPinGate>
+                        <TvMenuPage />
+                    </TvPinGate>
                 </Suspense>
             } />
             <Route path="/tv/:scope" element={
                 <Suspense fallback={<div style={{ color: 'white', padding: '2rem' }}>Carregando Painel...</div>}>
-                    <TvDashboardPage />
+                    <TvPinGate>
+                        <TvDashboardPage />
+                    </TvPinGate>
                 </Suspense>
             } />
 

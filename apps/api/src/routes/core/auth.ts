@@ -22,6 +22,10 @@ const changePasswordSchema = z.object({
   novaSenha: z.string().min(6, 'Nova senha muito curta.').max(128),
 });
 
+const tvLoginSchema = z.object({
+  pin: z.string().min(4).max(8).regex(/^\d+$/, 'PIN deve conter apenas dígitos.'),
+});
+
 
 
 export const authRouter: Router = Router();
@@ -286,6 +290,56 @@ authRouter.post('/auth/change-password', requireAuth, validateBody(changePasswor
   } catch (e: any) {
     logger.error({ err: e }, '[AUTH CHANGE-PASSWORD ERROR]');
     res.status(500).json({ error: 'Erro interno ao alterar senha.' });
+  }
+});
+
+const tvLoginLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 5,
+  message: { error: 'Muitas tentativas. Tente novamente em 1 minuto.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/**
+ * POST /auth/tv-login
+ * Autenticação do Modo TV via PIN global de 4 dígitos.
+ * Retorna JWT com role 'tv' e permissões read-only embutidas.
+ */
+authRouter.post('/auth/tv-login', tvLoginLimiter, validateBody(tvLoginSchema), async (req, res) => {
+  try {
+    const { pin } = req.body as { pin: string };
+
+    const { rows } = await pool.query<{ value: string | null }>(
+      `SELECT value FROM system_settings WHERE key = 'tv_pin_hash' LIMIT 1`
+    );
+
+    if (!rows.length || !rows[0].value) {
+      return res.status(503).json({ error: 'PIN do Modo TV não configurado. Contate o administrador.' });
+    }
+
+    const ok = await bcrypt.compare(pin, rows[0].value);
+    if (!ok) {
+      return res.status(401).json({ error: 'PIN inválido.' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: 'tv-global',
+        email: 'tv@system.local',
+        role: 'tv',
+        nome: 'Modo TV',
+        usuario: 'tv',
+        permissoes: {},
+      },
+      env.auth.jwtSecret,
+      { expiresIn: '24h' }
+    );
+
+    return res.json({ token, role: 'tv', nome: 'Modo TV' });
+  } catch (e: any) {
+    logger.error({ err: e }, '[AUTH TV-LOGIN ERROR]');
+    res.status(500).json({ error: 'Erro interno ao autenticar modo TV.' });
   }
 });
 

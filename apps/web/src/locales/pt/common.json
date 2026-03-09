@@ -1919,5 +1919,30 @@
     "result_unique": "Registros únicos",
     "result_csv_lines": "Linhas no CSV",
     "rows": "linhas"
+  },
+  "tvSettings": {
+    "title": "Modo TV",
+    "subtitle": "Configure o PIN de acesso ao painel de TV",
+    "statusHasPin": "PIN configurado",
+    "statusNoPin": "Sem PIN — acesso desabilitado",
+    "sectionSetPin": "Definir PIN",
+    "sectionChangePin": "Alterar PIN",
+    "pinDesc": "O PIN deve ter entre 4 e 8 dígitos. Será solicitado ao acessar o painel de TV.",
+    "labelNewPin": "Novo PIN",
+    "labelConfirmPin": "Confirmar PIN",
+    "btnSet": "Definir PIN",
+    "btnChange": "Alterar PIN",
+    "btnRemove": "Remover PIN",
+    "btnRemoving": "Removendo...",
+    "btnSaving": "Salvando...",
+    "confirmRemove": "Remover o PIN vai desabilitar o acesso ao Modo TV. Confirmar?",
+    "errorLength": "O PIN deve ter entre 4 e 8 dígitos numéricos.",
+    "errorMatch": "Os PINs não coincidem.",
+    "successSet": "PIN do Modo TV configurado com sucesso!",
+    "successRemoved": "PIN do Modo TV removido.",
+    "errorLoad": "Erro ao carregar configuração do Modo TV.",
+    "errorSave": "Erro ao salvar PIN.",
+    "errorRemove": "Erro ao remover PIN.",
+    "accessDenied": "Acesso restrito a administradores."
   }
 }

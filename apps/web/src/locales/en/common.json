@@ -1922,5 +1922,30 @@
     "result_unique": "Unique records",
     "result_csv_lines": "CSV lines",
     "rows": "rows"
+  },
+  "tvSettings": {
+    "title": "TV Mode",
+    "subtitle": "Configure the PIN for TV panel access",
+    "statusHasPin": "PIN configured",
+    "statusNoPin": "No PIN — access disabled",
+    "sectionSetPin": "Set PIN",
+    "sectionChangePin": "Change PIN",
+    "pinDesc": "The PIN must have 4 to 8 digits. It will be requested when accessing the TV dashboard.",
+    "labelNewPin": "New PIN",
+    "labelConfirmPin": "Confirm PIN",
+    "btnSet": "Set PIN",
+    "btnChange": "Change PIN",
+    "btnRemove": "Remove PIN",
+    "btnRemoving": "Removing...",
+    "btnSaving": "Saving...",
+    "confirmRemove": "Removing the PIN will disable access to TV Mode. Confirm?",
+    "errorLength": "PIN must have between 4 and 8 numeric digits.",
+    "errorMatch": "PINs do not match.",
+    "successSet": "TV Mode PIN configured successfully!",
+    "successRemoved": "TV Mode PIN removed.",
+    "errorLoad": "Error loading TV Mode configuration.",
+    "errorSave": "Error saving PIN.",
+    "errorRemove": "Error removing PIN.",
+    "accessDenied": "Access restricted to administrators."
   }
 }

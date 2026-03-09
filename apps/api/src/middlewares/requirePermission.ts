@@ -118,6 +118,14 @@ export function requirePermission(
 ): RequestHandler {
     return async (req, res, next) => {
         try {
+            // Modo TV: permite apenas leitura, sem verificar a tabela usuarios
+            if (req.user?.role === 'tv') {
+                if (level === 'editar') {
+                    return res.status(403).json({ error: 'PERMISSAO_NEGADA', message: 'Modo TV não tem permissão de edição.' });
+                }
+                return next();
+            }
+
             const userPerms = await loadUserPermissions(req, res);
             if (!userPerms) {
                 return; // Response already sent by loadUserPermissions
@@ -161,6 +169,14 @@ export function requireAnyPermission(
 ): RequestHandler {
     return async (req, res, next) => {
         try {
+            // Modo TV: permite apenas leitura, sem verificar a tabela usuarios
+            if (req.user?.role === 'tv') {
+                if (level === 'editar') {
+                    return res.status(403).json({ error: 'PERMISSAO_NEGADA', message: 'Modo TV não tem permissão de edição.' });
+                }
+                return next();
+            }
+
             const userPerms = await loadUserPermissions(req, res);
             if (!userPerms) {
                 return; // Response already sent by loadUserPermissions

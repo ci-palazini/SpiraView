@@ -69,6 +69,7 @@ import RetrabalhoAnalisePage from '../features/qualidade/pages/RetrabalhoAnalise
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../features/configuracoes/pages/SafetyUploadPage';
+import TvSettingsPage from '../features/configuracoes/pages/TvSettingsPage';
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';
 import PdcaPlanoDetailPage from '../features/pdca/pages/PdcaPlanoDetailPage';
@@ -851,7 +852,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             {/* Configurações - usa permissões granulares */}
             {
-                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config', 'maquinas_config']) && (
+                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config', 'maquinas_config', 'tv_config']) && (
                     <>
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
@@ -898,6 +899,17 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             >
                                 <FiServer className={styles.navIcon} />
                                 <span>{t('nav.machinesConfig', 'Config. Máquinas')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('roles') && (
+                            <NavLink
+                                to="/configuracoes/tv"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiTv className={styles.navIcon} />
+                                <span>{t('nav.tvSettings', 'Modo TV')}</span>
                             </NavLink>
                         )}
                     </>
@@ -1104,6 +1116,11 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     <Route
                         path="/configuracoes/maquinas"
                         element={canAccessPage('maquinas_config', <MaquinasConfigPage user={user} />)}
+                    />
+
+                    <Route
+                        path="/configuracoes/tv"
+                        element={<TvSettingsPage user={user} />}
                     />
 
                     <Route

@@ -1,0 +1,83 @@
+/* src/features/configuracoes/pages/TvSettingsPage.module.css */
+
+.container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 24px;
+}
+
+.cardHeader {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+}
+
+.cardHeader h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.cardHeader p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.sectionTitle {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+
+.statusActive {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.statusInactive {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 360px;
+    margin-bottom: 24px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.accessDenied {
+    padding: 24px;
+    color: #999;
+}
