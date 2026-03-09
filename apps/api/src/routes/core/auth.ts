@@ -5,6 +5,7 @@ import * as jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { pool } from '../../db';
 import { env } from '../../config/env';
+import { sendEmailViaMSForms } from '../../services/msFormsSender';
 import rateLimit from 'express-rate-limit';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
@@ -19,6 +20,15 @@ const loginSchema = z.object({
 const changePasswordSchema = z.object({
   email: z.string().email().max(254).optional(),
   senhaAtual: z.string().max(128).optional().default(''),
+  novaSenha: z.string().min(6, 'Nova senha muito curta.').max(128),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('E-mail inválido.').max(254),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token inválido.'),
   novaSenha: z.string().min(6, 'Nova senha muito curta.').max(128),
 });
 
@@ -343,3 +353,116 @@ authRouter.post('/auth/tv-login', tvLoginLimiter, validateBody(tvLoginSchema), a
   }
 });
 
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Muitas tentativas. Tente novamente mais tarde.' },
+});
+
+authRouter.post('/auth/forgot-password', forgotPasswordLimiter, validateBody(forgotPasswordSchema), async (req, res) => {
+  try {
+    const emailInput = req.body.email.trim().toLowerCase();
+
+    const { rows } = await pool.query(
+      `SELECT id, nome, email, email_real, senha_hash FROM usuarios WHERE LOWER(email) = LOWER($1) OR LOWER(email_real) = LOWER($1) LIMIT 1`,
+      [emailInput]
+    );
+
+    if (!rows.length) {
+      return res.json({ ok: true, message: 'Se o e-mail existir, um link de recuperação será enviado.' });
+    }
+
+    const u = rows[0];
+    const targetEmail = u.email_real || u.email;
+
+    const secret = env.auth.jwtSecret + (u.senha_hash || '');
+    const token = jwt.sign(
+      { id: u.id, type: 'password_reset' },
+      secret,
+      { expiresIn: '15m' }
+    );
+
+    const resetLink = `${env.appUrl}/reset-password?token=${token}&email=${encodeURIComponent(u.email)}`;
+
+    const bodyHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+          <h2 style="color: #0f172a; margin: 0;">SpiraView</h2>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff;">
+          <h3 style="color: #1e293b; margin-top: 0;">Recuperação de Senha</h3>
+          <p style="color: #475569; font-size: 16px; line-height: 1.5;">Olá <strong>${u.nome}</strong>,</p>
+          <p style="color: #475569; font-size: 16px; line-height: 1.5;">Recebemos uma solicitação para redefinir a senha da sua conta no SpiraView. Se foi você, clique no botão abaixo para criar uma nova senha:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Redefinir Minha Senha</a>
+          </div>
+          <p style="color: #ef4444; font-size: 14px; text-align: center;">Este link é válido por <strong>15 minutos</strong>.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+          <p style="color: #94a3b8; font-size: 14px; margin-bottom: 0;">Se você não solicitou essa redefinição, pode ignorar este e-mail com segurança. Sua senha permanecerá inalterada.</p>
+        </div>
+        <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b;">
+          &copy; ${new Date().getFullYear()} SpiraView. Todos os direitos reservados.
+        </div>
+      </div>
+    `;
+
+    if (env.msForms.isConfigured && targetEmail) {
+      await sendEmailViaMSForms(
+        {
+          to: targetEmail,
+          subject: 'Recuperação de Senha - SpiraView',
+          body: bodyHtml
+        },
+        env.msForms as any
+      );
+    } else {
+      logger.warn({
+        msg: 'Forgot password request ignored because MS Forms is not configured',
+        link: resetLink
+      });
+    }
+
+    res.json({ ok: true, message: 'Se o e-mail existir, um link de recuperação será enviado.' });
+  } catch (e: any) {
+    logger.error({ err: e }, '[AUTH FORGOT-PASSWORD ERROR]');
+    res.status(500).json({ error: 'Erro interno ao processar recuperação de senha.' });
+  }
+});
+
+authRouter.post('/auth/reset-password', validateBody(resetPasswordSchema), async (req, res) => {
+  try {
+    const { token, novaSenha } = req.body;
+
+    const decodedUnverified = jwt.decode(token) as any;
+    if (!decodedUnverified || !decodedUnverified.id || decodedUnverified.type !== 'password_reset') {
+      return res.status(400).json({ error: 'Token inválido ou malformado.' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT id, senha_hash FROM usuarios WHERE id = $1 LIMIT 1`,
+      [decodedUnverified.id]
+    );
+
+    if (!rows.length) {
+      return res.status(400).json({ error: 'Token inválido (usuário não encontrado).' });
+    }
+
+    const u = rows[0];
+    const secret = env.auth.jwtSecret + (u.senha_hash || '');
+
+    try {
+      jwt.verify(token, secret);
+    } catch (err: any) {
+      return res.status(400).json({ error: 'Link de recuperação expirado ou inválido (já utilizado?).' });
+    }
+
+    const hash = await bcrypt.hash(novaSenha, 10);
+    await pool.query(`UPDATE usuarios SET senha_hash=$2 WHERE id=$1`, [u.id, hash]);
+
+    res.json({ ok: true, message: 'Senha atualizada com sucesso.' });
+  } catch (e: any) {
+    logger.error({ err: e }, '[AUTH RESET-PASSWORD ERROR]');
+    res.status(500).json({ error: 'Erro interno ao redefinir a senha.' });
+  }
+});

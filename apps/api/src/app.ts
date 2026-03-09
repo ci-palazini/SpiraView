@@ -104,8 +104,8 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(userFromHeader);
 
 // Módulos organizados
@@ -123,7 +123,11 @@ app.use(safetyRouter);        // Segurança (BBS)
 
 // Global error handler — captura erros não tratados
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+app.use((err: Error & { type?: string; status?: number; statusCode?: number }, req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status ?? err.statusCode ?? 500;
+  if (err.type === 'entity.too.large' || status === 413) {
+    return res.status(413).json({ error: 'Payload muito grande. Reduza o tamanho do arquivo e tente novamente.' });
+  }
   req.log.error({ err }, '[GLOBAL ERROR]');
   res.status(500).json({ error: 'Erro interno do servidor.' });
 });

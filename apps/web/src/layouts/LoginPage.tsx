@@ -2,8 +2,8 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiEyeOff, FiUsers, FiMonitor } from 'react-icons/fi';
-import { login } from '../services/apiClient';
+import { FiEye, FiEyeOff, FiUsers, FiMonitor, FiX } from 'react-icons/fi';
+import { login, forgotPassword } from '../services/apiClient';
 import toast from 'react-hot-toast';
 import styles from './LoginPage.module.css';
 import logo from '../assets/logo.png';
@@ -48,6 +48,9 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showOperatorMode, setShowOperatorMode] = useState(false);
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
 
     const search = new URLSearchParams(location.search);
     const redirectTo = search.get('redirect') || '/';
@@ -116,6 +119,23 @@ export default function LoginPage() {
         } catch { /* ignore */ }
 
         navigate('/inicio-turno', { replace: true });
+    };
+
+    const handleForgotSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (forgotLoading || !forgotEmail) return;
+        setForgotLoading(true);
+        try {
+            const res = await forgotPassword(forgotEmail);
+            toast.success(res.message || 'E-mail de recuperação enviado com sucesso.');
+            setShowForgotModal(false);
+            setForgotEmail('');
+        } catch (err: any) {
+            console.error('Erro forgot pass:', err);
+            toast.error(err.message || 'Erro ao processar solicitação.');
+        } finally {
+            setForgotLoading(false);
+        }
     };
 
     const userPlaceholder = t('login.userPlaceholder', '');
@@ -201,9 +221,13 @@ export default function LoginPage() {
                                         </div>
                                     </div>
 
-                                    <p className={styles.forgotHint}>
-                                        {t('login.forgotHint', 'Esqueceu a senha? Procure o responsável de Melhoria Contínua.')}
-                                    </p>
+                                    <button
+                                        type="button"
+                                        className={styles.forgotHintBtn}
+                                        onClick={() => setShowForgotModal(true)}
+                                    >
+                                        {t('login.forgotHint', 'Esqueci minha senha')}
+                                    </button>
 
                                     <button
                                         type="submit"
@@ -247,6 +271,37 @@ export default function LoginPage() {
                     </div>
                 </div>
             </div>
+
+            {showForgotModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <button className={styles.modalClose} onClick={() => setShowForgotModal(false)}>
+                            <FiX />
+                        </button>
+                        <h2 className={styles.modalTitle}>Recuperar Senha</h2>
+                        <p className={styles.modalSubtitle}>Digite seu e-mail para receber o link de recuperação de senha.</p>
+
+                        <form onSubmit={handleForgotSubmit} className={styles.forgotForm}>
+                            <input
+                                type="email"
+                                className={styles.fieldInput}
+                                placeholder="Seu e-mail cadastrado"
+                                value={forgotEmail}
+                                onChange={(e) => setForgotEmail(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="submit"
+                                className={styles.submitButton}
+                                disabled={forgotLoading}
+                                style={{ marginTop: 16 }}
+                            >
+                                {forgotLoading ? 'Enviando...' : 'Enviar Link'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

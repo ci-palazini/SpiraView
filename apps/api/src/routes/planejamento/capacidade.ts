@@ -1,5 +1,5 @@
 // apps/api/src/routes/planejamento/capacidade.ts
-import express, { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import type { Router as RouterType } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
@@ -173,7 +173,6 @@ async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
  */
 capacidadeRouter.post(
     '/capacidade/upload',
-    express.json({ limit: '10mb' }),
     requirePermission('planejamento_upload', 'editar'),
     async (req: Request, res: Response) => {
         const startTime = Date.now();

@@ -11,6 +11,7 @@ import MaintenanceScreen from './layouts/MaintenanceScreen';
 import LoginPage from './layouts/LoginPage';
 import MainLayout from './layouts/MainLayout';
 import InicioTurnoPage from './features/manutencao/checklists/pages/InicioTurnoPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Lazy load TV pages
 const TvMenuPage = lazy(() => import('./features/tv/TvMenuPage'));
@@ -63,9 +64,12 @@ function AppContent({ user, role }: { user: User | null; role: string }) {
                 </Suspense>
             } />
 
-
-            {!user && <Route path="/*" element={<LoginPage />} />}
-
+            {!user && (
+                <>
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/*" element={<LoginPage />} />
+                </>
+            )}
             {user && role === 'operador' && (
                 <>
                     {/* Wizard fora do layout */}

@@ -670,6 +670,14 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     });
 }
 
+export async function forgotPassword(email: string): Promise<{ ok: boolean; message: string }> {
+    return http.post<{ ok: boolean; message: string }>('/auth/forgot-password', { data: { email } });
+}
+
+export async function resetPassword(payload: { token: string; novaSenha: string }): Promise<{ ok: boolean; message: string }> {
+    return http.post<{ ok: boolean; message: string }>('/auth/reset-password', { data: payload });
+}
+
 export async function changePassword(payload: ChangePasswordPayload): Promise<{ ok: boolean }> {
     return http.post<{ ok: boolean }>('/auth/change-password', { data: payload });
 }
