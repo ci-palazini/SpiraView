@@ -2,53 +2,17 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { buildQualidadeWhere } from './whereBuilders';
 
 export const compareRouter: Router = Router();
 
 // Helper to build WHERE clause for a period
 const buildWhereForPeriod = (
-    params: any[],
+    params: unknown[],
     dataInicio: string,
     dataFim: string,
-    query: any
-) => {
-    let where = '1=1';
-    const { origem, responsavel, tipo, tipoLancamento } = query;
-
-    params.push(dataInicio);
-    where += ` AND data_ocorrencia >= $${params.length}`;
-
-    params.push(dataFim);
-    where += ` AND data_ocorrencia <= $${params.length}`;
-
-    if (origem) {
-        if (Array.isArray(origem)) {
-            params.push(origem);
-            where += ` AND origem = ANY($${params.length})`;
-        } else {
-            params.push(origem);
-            where += ` AND origem = $${params.length}`;
-        }
-    }
-    if (responsavel) {
-        if (Array.isArray(responsavel)) {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = ANY($${params.length})`;
-        } else {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = $${params.length}`;
-        }
-    }
-    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
-        params.push(tipo);
-        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
-    }
-    if (tipoLancamento) {
-        params.push(tipoLancamento);
-        where += ` AND tipo_lancamento = $${params.length}`;
-    }
-    return where;
-};
+    query: Record<string, unknown>
+) => buildQualidadeWhere(params, { dataInicio, dataFim, ...query });
 
 interface PeriodData {
     label: string;

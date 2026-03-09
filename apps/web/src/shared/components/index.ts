@@ -18,3 +18,5 @@ export { NumericKeypad } from './NumericKeypad';
 
 // Existing components (default exports)
 export { default as ExportButtons } from './ExportButtons';
+
+export { ErrorBoundary } from './ErrorBoundary';

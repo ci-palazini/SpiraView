@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { buildQualidadeWhere } from './whereBuilders';
 
 export const refugosRouter: Router = Router();
 
@@ -11,55 +12,12 @@ refugosRouter.get('/qualidade/refugos',
     requirePermission('qualidade_lancamento', 'ver'), // Simplificação: assume que lancamento 'ver' é o basico
     async (req, res) => {
         try {
-            const dataInicio = req.query.dataInicio as string;
-            const dataFim = req.query.dataFim as string;
-            const origem = req.query.origem as string;
-            const tipo = req.query.tipo as string;
-            const tipoLancamento = req.query.tipoLancamento as string;
-
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 50;
             const offset = (page - 1) * limit;
 
-            const params: any[] = [];
-            let where = '1=1';
-
-            if (dataInicio) {
-                params.push(dataInicio);
-                where += ` AND qr.data_ocorrencia >= $${params.length}`;
-            }
-            if (dataFim) {
-                params.push(dataFim);
-                where += ` AND qr.data_ocorrencia <= $${params.length}`;
-            }
-            if (origem) {
-                if (Array.isArray(origem)) {
-                    params.push(origem);
-                    where += ` AND qr.origem = ANY($${params.length})`;
-                } else {
-                    params.push(origem);
-                    where += ` AND qr.origem = $${params.length}`;
-                }
-            }
-            if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
-                params.push(tipo);
-                where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qr.origem AND qo.tipo = $${params.length})`;
-            }
-            if (tipoLancamento) {
-                params.push(tipoLancamento);
-                where += ` AND qr.tipo_lancamento = $${params.length}`;
-            }
-
-            const responsavel = req.query.responsavel as string | string[];
-            if (responsavel) {
-                if (Array.isArray(responsavel)) {
-                    params.push(responsavel);
-                    where += ` AND qr.responsavel_nome = ANY($${params.length})`;
-                } else {
-                    params.push(responsavel);
-                    where += ` AND qr.responsavel_nome = $${params.length}`;
-                }
-            }
+            const params: unknown[] = [];
+            const where = buildQualidadeWhere(params, req.query, { tableAlias: 'qr' });
 
             // Count total
             const countQuery = await pool.query(

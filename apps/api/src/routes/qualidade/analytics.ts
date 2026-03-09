@@ -2,82 +2,13 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { buildQualidadeWhere } from './whereBuilders';
 
 export const analyticsRouter: Router = Router();
 
-// Helper to build WHERE clause
-const buildWhere = (params: any[], query: any) => {
-    let where = '1=1';
-    const { dataInicio, dataFim, origem, responsavel, tipo, tipoLancamento } = query;
-
-    if (dataInicio) {
-        params.push(dataInicio);
-        where += ` AND data_ocorrencia >= $${params.length}`;
-    }
-    if (dataFim) {
-        params.push(dataFim);
-        where += ` AND data_ocorrencia <= $${params.length}`;
-    }
-    if (origem) {
-        if (Array.isArray(origem)) {
-            params.push(origem);
-            where += ` AND origem = ANY($${params.length})`;
-        } else {
-            params.push(origem);
-            where += ` AND origem = $${params.length}`;
-        }
-    }
-    if (responsavel) {
-        if (Array.isArray(responsavel)) {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = ANY($${params.length})`;
-        } else {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = $${params.length}`;
-        }
-    }
-    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
-        params.push(tipo);
-        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
-    }
-    if (tipoLancamento) {
-        params.push(tipoLancamento);
-        where += ` AND tipo_lancamento = $${params.length}`;
-    }
-    return where;
-};
-
-const buildBaseWhere = (params: any[], query: any) => {
-    let where = '1=1';
-    const { origem, responsavel, tipo, tipoLancamento } = query;
-    if (origem) {
-        if (Array.isArray(origem)) {
-            params.push(origem);
-            where += ` AND origem = ANY($${params.length})`;
-        } else {
-            params.push(origem);
-            where += ` AND origem = $${params.length}`;
-        }
-    }
-    if (responsavel) {
-        if (Array.isArray(responsavel)) {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = ANY($${params.length})`;
-        } else {
-            params.push(responsavel);
-            where += ` AND responsavel_nome = $${params.length}`;
-        }
-    }
-    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
-        params.push(tipo);
-        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
-    }
-    if (tipoLancamento) {
-        params.push(tipoLancamento);
-        where += ` AND tipo_lancamento = $${params.length}`;
-    }
-    return where;
-};
+// buildBaseWhere: filtros sem datas (usado em contextos onde datas vêm de outro nível)
+const buildBaseWhere = (params: unknown[], query: Record<string, unknown>) =>
+    buildQualidadeWhere(params, { ...query, dataInicio: undefined, dataFim: undefined } as Parameters<typeof buildQualidadeWhere>[1]);
 
 // GET /qualidade/analytics/responsaveis
 // Returns list of unique responsible names
@@ -135,7 +66,7 @@ analyticsRouter.get('/qualidade/analytics/summary',
     async (req, res) => {
         try {
             const params: any[] = [];
-            const where = buildWhere(params, req.query);
+            const where = buildQualidadeWhere(params, req.query);
 
             // Total Cost
             const totalCostQuery = await pool.query(
@@ -215,7 +146,7 @@ analyticsRouter.get('/qualidade/analytics/trends',
     async (req, res) => {
         try {
             const params: any[] = [];
-            const where = buildWhere(params, req.query);
+            const where = buildQualidadeWhere(params, req.query);
 
             // Cost by Month (for the selected period)
             // Using TO_CHAR for formatting, assumes Postgres
@@ -249,7 +180,7 @@ analyticsRouter.get('/qualidade/analytics/details',
     async (req, res) => {
         try {
             const params: any[] = [];
-            const where = buildWhere(params, req.query);
+            const where = buildQualidadeWhere(params, req.query);
 
             // Responsible List with aggregation
             const listQuery = await pool.query(

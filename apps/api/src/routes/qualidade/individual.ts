@@ -2,41 +2,9 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { buildQualidadeWhere } from './whereBuilders';
 
 export const individualRouter: Router = Router();
-
-// Helper to build WHERE clause (reused logic pattern)
-const buildWhere = (params: any[], query: any) => {
-    let where = '1=1';
-    const { dataInicio, dataFim, origem, tipo, tipoLancamento } = query;
-
-    if (dataInicio) {
-        params.push(dataInicio);
-        where += ` AND data_ocorrencia >= $${params.length}`;
-    }
-    if (dataFim) {
-        params.push(dataFim);
-        where += ` AND data_ocorrencia <= $${params.length}`;
-    }
-    if (origem) {
-        if (Array.isArray(origem)) {
-            params.push(origem);
-            where += ` AND origem = ANY($${params.length})`;
-        } else {
-            params.push(origem);
-            where += ` AND origem = $${params.length}`;
-        }
-    }
-    if (tipo && (tipo === 'INTERNO' || tipo === 'EXTERNO')) {
-        params.push(tipo);
-        where += ` AND EXISTS (SELECT 1 FROM qualidade_origens qo WHERE qo.nome = qualidade_refugos.origem AND qo.tipo = $${params.length})`;
-    }
-    if (tipoLancamento) {
-        params.push(tipoLancamento);
-        where += ` AND tipo_lancamento = $${params.length}`;
-    }
-    return where;
-};
 
 // GET /qualidade/individual/metrics
 // Returns list of performance metrics by responsible
@@ -45,7 +13,7 @@ individualRouter.get('/qualidade/individual/metrics',
     async (req, res) => {
         try {
             const params: any[] = [];
-            const where = buildWhere(params, req.query);
+            const where = buildQualidadeWhere(params, req.query);
 
             const query = `
                 WITH BaseData AS (
