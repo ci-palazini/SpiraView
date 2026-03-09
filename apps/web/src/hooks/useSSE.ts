@@ -5,6 +5,9 @@
  * Components subscribe to topics ('chamados', 'agendamentos', …)
  * and their callbacks are debounced (default 300 ms) so that a
  * burst of events triggers only one re-fetch.
+ *
+ * Reconnect strategy: exponential backoff starting at 1 s, capped at 30 s.
+ * The backoff counter resets on every successful connection (onopen).
  */
 import { useEffect, useRef } from 'react';
 
@@ -27,6 +30,38 @@ const topicSubscribers = new Map<SSETopic, Subscriber[]>();
 const debounceTimers = new Map<SSETopic, ReturnType<typeof setTimeout>>();
 
 const DEBOUNCE_MS = 300;
+const INITIAL_RETRY_MS = 1_000;
+const MAX_RETRY_MS = 30_000;
+
+// --------------- Reconnect backoff state ---------------
+let retryCount = 0;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getBackoffDelay(): number {
+    return Math.min(INITIAL_RETRY_MS * (2 ** retryCount), MAX_RETRY_MS);
+}
+
+function cancelReconnect(): void {
+    if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+    }
+}
+
+function scheduleReconnect(): void {
+    if (retryTimer) return; // already scheduled
+
+    // Don't reconnect if nobody is subscribed
+    let total = 0;
+    topicSubscribers.forEach((subs) => { total += subs.length; });
+    if (total === 0) return;
+
+    const delay = getBackoffDelay();
+    retryTimer = setTimeout(() => {
+        retryTimer = null;
+        ensureConnection();
+    }, delay);
+}
 
 /** Notify all subscribers for a given topic (debounced). */
 function notifyTopic(topic: SSETopic) {
@@ -56,6 +91,11 @@ function ensureConnection() {
 
     es = new EventSource(`${BASE}/events`, { withCredentials: false });
 
+    es.onopen = () => {
+        // Successful connection — reset backoff counter
+        retryCount = 0;
+    };
+
     es.onmessage = (ev) => {
         if (!ev?.data) return;
         try {
@@ -76,7 +116,12 @@ function ensureConnection() {
     });
 
     es.onerror = () => {
-        // EventSource auto-reconnects; nothing to do.
+        // Close the broken connection; EventSource auto-reconnects would hammer the
+        // server — take manual control with exponential backoff instead.
+        try { es?.close(); } catch { /* ignore */ }
+        es = null;
+        retryCount++;
+        scheduleReconnect();
     };
 }
 
@@ -85,8 +130,10 @@ function maybeClose() {
     let total = 0;
     topicSubscribers.forEach((subs) => { total += subs.length; });
     if (total === 0 && es) {
+        cancelReconnect();
         try { es.close(); } catch { /* ignore */ }
         es = null;
+        retryCount = 0;
     }
 }
 
