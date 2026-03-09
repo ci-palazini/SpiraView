@@ -1217,8 +1217,12 @@
       "proceed": "Prosseguir mesmo assim"
     }
   },
+  "offline": {
+    "warning": "Você está sem conexão. As funcionalidades dependem de internet.",
+    "backOnline": "Conexão restabelecida."
+  },
   "pwa": {
-    "offlineReady": "Aplicativo disponível offline.",
+    "offlineReady": "Aplicativo instalado com sucesso.",
     "newVersion": "Nova versão disponível.",
     "update": "Atualizar",
     "dismiss": "Agora não"
@@ -1546,16 +1550,26 @@
       "title": "Configuração de Capacidades",
       "subtitle": "Defina a capacidade disponível e aliases por máquina",
       "howTo": "Como funciona",
-      "howToDesc": "As máquinas listadas abaixo são as que possuem escopo de Planejamento ativo. Configure a capacidade (em horas) de cada uma e adicione aliases para que o sistema possa identificar automaticamente o \"Centro de Trabalho\" do Excel.",
-      "machinesTitle": "Máquinas com Escopo Planejamento",
+      "howToDesc": "Ative o toggle nas máquinas que devem aparecer no Planejamento. Configure a capacidade (em horas), o setor de exibição desejado, e adicione aliases para que o sistema identifique automaticamente a máquina nas planilhas do Excel.",
+      "machinesTitle": "Máquinas Disponíveis para Planejamento",
       "noMachines": "Nenhuma máquina com escopo Planejamento. Ative o escopo nas máquinas desejadas em Configurações > Máquinas.",
       "machineName": "Máquina",
+      "status": "Status",
+      "originalSector": "Setor Padrão",
+      "planningSector": "Setor (Plan.)",
+      "defaultSelection": "Usar Padrão",
+      "usinagem": "Usinagem",
+      "montagem": "Montagem",
       "capacity": "Capacidade (h)",
       "aliases": "Aliases",
-      "loadError": "Erro ao carregar máquinas",
+      "toggleScope": "Exibir máquina no dashboard",
+      "active": "Ativa",
+      "inactive": "Inativa",
+      "scopeToggled": "Status no planejamento atualizado!",
       "capacityRequired": "Informe uma capacidade válida",
-      "saved": "Capacidade salva com sucesso",
-      "saveError": "Erro ao salvar"
+      "saved": "Configuração salva com sucesso",
+      "saveError": "Erro ao salvar",
+      "loadError": "Erro ao carregar máquinas"
     },
     "upload": {
       "title": "Upload de Capacidade",

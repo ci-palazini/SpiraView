@@ -31,6 +31,7 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editCapacidade, setEditCapacidade] = useState('');
     const [editAliases, setEditAliases] = useState('');
+    const [editSetorPlanejamento, setEditSetorPlanejamento] = useState('');
 
     const fetchMaquinas = useCallback(async () => {
         try {
@@ -53,12 +54,31 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
         setEditingId(maq.id);
         setEditCapacidade(String(maq.capacidadeHoras || ''));
         setEditAliases((maq.aliasesPlanejamento || []).join(', '));
+        setEditSetorPlanejamento(maq.setorPlanejamento || '');
     };
 
     const cancelEditing = () => {
         setEditingId(null);
         setEditCapacidade('');
         setEditAliases('');
+        setEditSetorPlanejamento('');
+    };
+
+    const handleToggleScope = async (maq: MaquinaPlanejamento) => {
+        setSaving(maq.id);
+        try {
+            await atualizarMaquinaPlanejamento(
+                maq.id,
+                { escopoPlanejamento: !maq.escopoPlanejamento },
+                { role: user?.role, email: user?.email }
+            );
+            toast.success(t('planejamento.config.scopeToggled', 'Status no planejamento atualizado!'));
+            fetchMaquinas();
+        } catch (err: any) {
+            toast.error(err.message || t('planejamento.config.saveError', 'Erro ao salvar'));
+        } finally {
+            setSaving(null);
+        }
     };
 
     const handleSave = async (id: string) => {
@@ -77,7 +97,11 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
         try {
             await atualizarMaquinaPlanejamento(
                 id,
-                { capacidadeHoras: capacidadeNum, aliasesPlanejamento: aliasesArray },
+                {
+                    capacidadeHoras: capacidadeNum,
+                    aliasesPlanejamento: aliasesArray,
+                    setorPlanejamento: editSetorPlanejamento.trim() || ''
+                },
                 { role: user?.role, email: user?.email }
             );
             toast.success(t('planejamento.config.saved', 'Capacidade salva com sucesso'));
@@ -105,9 +129,9 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                     </h2>
                     <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
                         {t('planejamento.config.howToDesc',
-                            'As máquinas listadas abaixo são as que possuem escopo de Planejamento ativo. ' +
-                            'Configure a capacidade (em horas) de cada uma e adicione aliases para que o sistema ' +
-                            'possa identificar automaticamente o "Centro de Trabalho" do Excel.'
+                            'Ative o toggle nas máquinas que devem aparecer no Planejamento. ' +
+                            'Configure a capacidade (em horas), o setor de exibição desejado, e adicione aliases para que o sistema ' +
+                            'identifique automaticamente a máquina nas planilhas do Excel.'
                         )}
                     </p>
                 </div>
@@ -115,7 +139,7 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                 {/* Lista de máquinas */}
                 <div className={styles.card}>
                     <h2 className={styles.cardTitle}>
-                        {t('planejamento.config.machinesTitle', 'Máquinas com Escopo Planejamento')}
+                        {t('planejamento.config.machinesTitle', 'Máquinas Disponíveis para Planejamento')}
                         {maquinas.length > 0 && (
                             <span style={{ fontWeight: 400, fontSize: '0.9rem', color: '#64748b', marginLeft: 8 }}>
                                 ({maquinas.length})
@@ -142,6 +166,9 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                                 <thead>
                                     <tr>
                                         <th>{t('planejamento.config.machineName', 'Máquina')}</th>
+                                        <th>{t('planejamento.config.status', 'Status')}</th>
+                                        <th>{t('planejamento.config.originalSector', 'Setor Padrão')}</th>
+                                        <th>{t('planejamento.config.planningSector', 'Setor (Plan.)')}</th>
                                         <th>{t('planejamento.config.capacity', 'Capacidade (h)')}</th>
                                         <th>{t('planejamento.config.aliases', 'Aliases')}</th>
                                         <th style={{ width: 100 }}>{t('common.actions', 'Ações')}</th>
@@ -149,9 +176,46 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                                 </thead>
                                 <tbody>
                                     {maquinas.map((maq) => (
-                                        <tr key={maq.id}>
+                                        <tr key={maq.id} style={{ opacity: maq.escopoPlanejamento ? 1 : 0.6, transition: 'opacity 0.2s' }}>
                                             <td>
                                                 <strong>{maq.nomeProducao || maq.nome}</strong>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <button
+                                                        className={`${styles.toggleBtn} ${maq.escopoPlanejamento ? styles.toggleOn : styles.toggleOff}`}
+                                                        onClick={() => handleToggleScope(maq)}
+                                                        disabled={saving === maq.id}
+                                                        title={t('planejamento.config.toggleScope', 'Exibir máquina no dashboard')}
+                                                    >
+                                                        <div className={styles.toggleKnob}></div>
+                                                    </button>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500, color: maq.escopoPlanejamento ? '#10b981' : '#64748b' }}>
+                                                        {maq.escopoPlanejamento ? t('planejamento.config.active', 'Ativa') : t('planejamento.config.inactive', 'Inativa')}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span style={{ color: '#64748b' }}>
+                                                    {maq.setorOriginal || '—'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {editingId === maq.id ? (
+                                                    <select
+                                                        value={editSetorPlanejamento}
+                                                        onChange={(e) => setEditSetorPlanejamento(e.target.value)}
+                                                        style={{ width: 140, padding: '4px 8px', borderRadius: 4, border: '1px solid #d1d5db' }}
+                                                    >
+                                                        <option value="">{t('planejamento.config.defaultSelection', 'Usar Padrão')}</option>
+                                                        <option value="Usinagem">{t('planejamento.config.usinagem', 'Usinagem')}</option>
+                                                        <option value="Montagem">{t('planejamento.config.montagem', 'Montagem')}</option>
+                                                    </select>
+                                                ) : (
+                                                    <span style={{ color: maq.setorPlanejamento ? '#3b82f6' : '#64748b', fontWeight: maq.setorPlanejamento ? 500 : 400 }}>
+                                                        {maq.setorPlanejamento || t('planejamento.config.defaultSelection', 'Usar Padrão')}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td>
                                                 {editingId === maq.id ? (

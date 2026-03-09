@@ -1018,9 +1018,11 @@ export interface MaquinaPlanejamento {
     nome: string;
     nomeProducao: string | null;
     tag: string;
+    setorOriginal: string;
     capacidadeHoras: number;
     aliasesPlanejamento: string[];
     escopoPlanejamento: boolean;
+    setorPlanejamento?: string | null;
 }
 
 // Listar máquinas com escopo planejamento
@@ -1032,7 +1034,7 @@ export async function listarMaquinasPlanejamento(auth: AuthParams): Promise<Maqu
 // Atualizar capacidade/aliases de uma máquina
 export async function atualizarMaquinaPlanejamento(
     id: string,
-    payload: { capacidadeHoras?: number; aliasesPlanejamento?: string[]; escopoPlanejamento?: boolean },
+    payload: { capacidadeHoras?: number; aliasesPlanejamento?: string[]; escopoPlanejamento?: boolean; setorPlanejamento?: string },
     auth: AuthParams
 ): Promise<MaquinaPlanejamento> {
     return apiFetch<MaquinaPlanejamento>(`/planejamento/capacidade/maquinas/${id}`, {

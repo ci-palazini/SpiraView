@@ -422,14 +422,14 @@ capacidadeRouter.get(
                 SELECT 
                     m.id as maquina_id,
                     COALESCE(m.nome_producao, m.nome) as centro_trabalho,
-                    m.setor,
+                    COALESCE(m.setor_planejamento, m.setor) as setor,
                     COALESCE(SUM(pr.horas), 0) as carga_horas,
                     COALESCE(SUM(CASE WHEN pr.status IN ('Liberado', 'Iniciado') THEN pr.horas ELSE 0 END), 0) as carga_op,
                     COALESCE(m.capacidade_horas, 0) as capacidade
                 FROM maquinas m
                 LEFT JOIN planejamento_reservas pr ON pr.maquina_id = m.id AND pr.upload_id = $1
                 WHERE m.escopo_planejamento = TRUE
-                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.capacidade_horas
+                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.setor_planejamento, m.capacidade_horas
                 ORDER BY COALESCE(m.nome_producao, m.nome)
             `, [targetUploadId]);
 
@@ -508,14 +508,14 @@ capacidadeRouter.get(
                 SELECT 
                     m.id as maquina_id,
                     COALESCE(m.nome_producao, m.nome) as centro_trabalho,
-                    m.setor,
+                    COALESCE(m.setor_planejamento, m.setor) as setor,
                     COALESCE(SUM(pr.horas), 0) as carga_horas,
                     COALESCE(SUM(CASE WHEN pr.status IN ('Liberado', 'Iniciado') THEN pr.horas ELSE 0 END), 0) as carga_op,
                     COALESCE(m.capacidade_horas, 0) as capacidade
                 FROM maquinas m
                 LEFT JOIN planejamento_reservas pr ON pr.maquina_id = m.id AND pr.upload_id = $1
                 WHERE m.escopo_planejamento = TRUE
-                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.capacidade_horas
+                GROUP BY m.id, m.nome, m.nome_producao, m.setor, m.setor_planejamento, m.capacidade_horas
                 ORDER BY COALESCE(m.nome_producao, m.nome)
             `, [targetUploadId]);
 
@@ -605,12 +605,13 @@ capacidadeRouter.get(
                 SELECT 
                     id, nome,
                     nome_producao AS "nomeProducao",
+                    setor AS "setorOriginal",
                     COALESCE(capacidade_horas, 0) AS "capacidadeHoras",
                     COALESCE(aliases_planejamento, '{}') AS "aliasesPlanejamento",
-                    escopo_planejamento AS "escopoPlanejamento"
+                    escopo_planejamento AS "escopoPlanejamento",
+                    setor_planejamento AS "setorPlanejamento"
                 FROM maquinas
-                WHERE escopo_planejamento = TRUE
-                ORDER BY COALESCE(nome_producao, nome)
+                ORDER BY escopo_planejamento DESC, COALESCE(nome_producao, nome)
             `);
             res.json({ items: rows });
         } catch (err: any) {
@@ -630,7 +631,7 @@ capacidadeRouter.patch(
     async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const { capacidadeHoras, aliasesPlanejamento, escopoPlanejamento } = req.body;
+            const { capacidadeHoras, aliasesPlanejamento, escopoPlanejamento, setorPlanejamento } = req.body;
 
             const sets: string[] = [];
             const params: any[] = [id];
@@ -653,6 +654,11 @@ capacidadeRouter.patch(
                 sets.push(`escopo_planejamento = $${params.length}`);
             }
 
+            if (setorPlanejamento !== undefined) {
+                params.push(setorPlanejamento === '' ? null : String(setorPlanejamento).trim());
+                sets.push(`setor_planejamento = $${params.length}`);
+            }
+
             if (sets.length === 0) {
                 return res.status(400).json({ error: 'Nenhum campo para atualizar' });
             }
@@ -662,10 +668,12 @@ capacidadeRouter.patch(
                 SET ${sets.join(', ')}, atualizado_em = NOW()
                 WHERE id = $1
                 RETURNING 
-                    id, nome, tag,
+                    id, nome,
+                    setor AS "setorOriginal",
                     COALESCE(capacidade_horas, 0) AS "capacidadeHoras",
                     COALESCE(aliases_planejamento, '{}') AS "aliasesPlanejamento",
-                    escopo_planejamento AS "escopoPlanejamento"
+                    escopo_planejamento AS "escopoPlanejamento",
+                    setor_planejamento AS "setorPlanejamento"
             `, params);
 
             if (rows.length === 0) {

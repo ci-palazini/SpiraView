@@ -63,7 +63,18 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
     // Filtrar dados pelo setor selecionado
     const filteredData = useMemo(() => {
         if (selectedSetor === 'todos') return data;
-        return data.filter(d => (d.setor || '').toLowerCase() === selectedSetor);
+
+        return data.filter(d => {
+            const rawSector = (d.setor || '').toLowerCase();
+            // Handle edge cases where the DB or dropdown might have different terminology
+            if (selectedSetor === 'usinagem') {
+                return rawSector.includes('usinagem') || rawSector === 'tornos' || rawSector === 'fresamento';
+            }
+            if (selectedSetor === 'montagem') {
+                return rawSector.includes('montagem') || rawSector.includes('pintura');
+            }
+            return rawSector === selectedSetor;
+        });
     }, [data, selectedSetor]);
 
     // Estatísticas
@@ -239,294 +250,294 @@ export default function PlanejamentoDashboardPage({ user }: PlanejamentoDashboar
                                 </div>
                             </div>
                         ) : (
-                        <>
-                        {/* New Stats for First Chart */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
-                                    <FiClock />
+                            <>
+                                {/* New Stats for First Chart */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                            <FiClock />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>
+                                                {lastUploadDate ? formatDateTimeShort(lastUploadDate) : '—'}
+                                            </h3>
+                                            <p>{t('planejamento.stats.lastUpdate', 'Última Atualização')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                            <FiInfo />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>
+                                                {calculation
+                                                    ? `${calculation.passedBusinessDays} / ${calculation.totalBusinessDays} dias`
+                                                    : '—'
+                                                }
+                                            </h3>
+                                            <p>{t('planejamento.stats.calculation', 'Dias Úteis (Atual / Total)')}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.statContent}>
-                                    <h3>
-                                        {lastUploadDate ? formatDateTimeShort(lastUploadDate) : '—'}
-                                    </h3>
-                                    <p>{t('planejamento.stats.lastUpdate', 'Última Atualização')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
-                                    <FiInfo />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>
-                                        {calculation
-                                            ? `${calculation.passedBusinessDays} / ${calculation.totalBusinessDays} dias`
-                                            : '—'
-                                        }
-                                    </h3>
-                                    <p>{t('planejamento.stats.calculation', 'Dias Úteis (Atual / Total)')}</p>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className={styles.statsGrid}>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
-                                    <FiLayers />
+                                <div className={styles.statsGrid}>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                            <FiLayers />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalCargaOP.toFixed(0)}h</h3>
+                                            <p>{t('planejamento.stats.totalOpLoad', 'Carga OP Total')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+                                            <FiCheckCircle />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalCapacidadeRestante.toFixed(0)}h</h3>
+                                            <p>{t('planejamento.stats.totalRemainingCapacity', 'Capacidade Restante')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconRed}`}>
+                                            <FiAlertTriangle />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalSobrecarga.toFixed(0)}h</h3>
+                                            <p>{t('planejamento.stats.totalOverload', 'Sobrecarga Total')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
+                                            <FiActivity />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{centrosDeficitMensal}</h3>
+                                            <p>{t('planejamento.stats.deficitCenters', 'Centros com Déficit')}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCargaOP.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalOpLoad', 'Carga OP Total')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
-                                    <FiCheckCircle />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCapacidadeRestante.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalRemainingCapacity', 'Capacidade Restante')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconRed}`}>
-                                    <FiAlertTriangle />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalSobrecarga.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalOverload', 'Sobrecarga Total')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
-                                    <FiActivity />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{centrosDeficitMensal}</h3>
-                                    <p>{t('planejamento.stats.deficitCenters', 'Centros com Déficit')}</p>
-                                </div>
-                            </div>
-                        </div>
 
 
-                        {/* Chart 1: Análise da Capacidade Mensal vs Plano do Mês */}
-                        <div className={styles.chartCard}>
-                            <div className={styles.chartHeader}>
-                                <div>
-                                    <h2 className={styles.chartTitle}>
-                                        {t('planejamento.chart.monthlyTitle', 'Análise da Capacidade Mensal vs Plano do Mês')}
+                                {/* Chart 1: Análise da Capacidade Mensal vs Plano do Mês */}
+                                <div className={styles.chartCard}>
+                                    <div className={styles.chartHeader}>
+                                        <div>
+                                            <h2 className={styles.chartTitle}>
+                                                {t('planejamento.chart.monthlyTitle', 'Análise da Capacidade Mensal vs Plano do Mês')}
+                                            </h2>
+                                            <p className={styles.chartSubtitle}>
+                                                {t('planejamento.chart.monthlySubtitle', 'Carga OP vs Capacidade Restante (proporcional aos dias úteis)')}
+                                            </p>
+                                        </div>
+                                        <div className={styles.legendContainer}>
+                                            <div className={styles.legendItem}>
+                                                <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
+                                                {t('planejamento.table.loadOP', 'Carga OP')}
+                                            </div>
+                                            <div className={styles.legendItem}>
+                                                <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
+                                                {t('planejamento.table.capacityRestante', 'Cap. Restante')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <ResponsiveContainer width="100%" height={400}>
+                                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                            <XAxis
+                                                dataKey="name"
+                                                tick={{ fill: '#64748b', fontSize: 12 }}
+                                                angle={-45}
+                                                textAnchor="end"
+                                                height={80}
+                                            />
+                                            <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
+                                            <Tooltip content={<MonthlyTooltip />} />
+                                            <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                                                <LabelList
+                                                    dataKey="cargaOP"
+                                                    position="top"
+                                                    style={{ fill: '#1e3a8a', fontSize: 11, fontWeight: 600 }}
+                                                    formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                                />
+                                            </Bar>
+                                            <Bar dataKey="capacidadeRestante" name={t('planejamento.table.capacityRestante', 'Cap. Restante')} fill="#22c55e" radius={[4, 4, 0, 0]}>
+                                                <LabelList
+                                                    dataKey="capacidadeRestante"
+                                                    position="top"
+                                                    style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }}
+                                                    formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                                />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Existing Stats (Moved Below First Chart) */}
+                                <div className={styles.statsGrid}>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+                                            <FiLayers />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalCentros}</h3>
+                                            <p>{t('planejamento.stats.workCenters', 'Centros de Trabalho')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
+                                            <FiActivity />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalCargaHoras.toFixed(0)}h</h3>
+                                            <p>{t('planejamento.stats.totalLoad', 'Carga Total')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+                                            <FiCheckCircle />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{totalCapacidade.toFixed(0)}h</h3>
+                                            <p>{t('planejamento.stats.totalCapacity', 'Capacidade Total')}</p>
+                                        </div>
+                                    </div>
+                                    <div className={styles.statCard}>
+                                        <div className={`${styles.statIcon} ${styles.statIconRed}`}>
+                                            <FiAlertTriangle />
+                                        </div>
+                                        <div className={styles.statContent}>
+                                            <h3>{centrosSobrecarga}</h3>
+                                            <p>{t('planejamento.stats.overloaded', 'Em Sobrecarga')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Chart 2: Análise da Capacidade (30 dias) vs Necessidade Total */}
+                                <div className={styles.chartCard}>
+                                    <div className={styles.chartHeader}>
+                                        <div>
+                                            <h2 className={styles.chartTitle}>
+                                                {t('planejamento.chart.thirtyDayTitle', 'Análise da Capacidade (30 dias) vs Necessidade Total')}
+                                            </h2>
+                                            <p className={styles.chartSubtitle}>
+                                                {t('planejamento.chart.thirtyDaySubtitle', 'Ordem de Venda + IQM')}
+                                            </p>
+                                        </div>
+                                        <div className={styles.legendContainer}>
+                                            <div className={styles.legendItem}>
+                                                <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
+                                                {t('planejamento.table.loadOP', 'Carga OP')}
+                                            </div>
+                                            <div className={styles.legendItem}>
+                                                <span className={`${styles.legendDot} ${styles.dotHoras}`}></span>
+                                                {t('planejamento.table.loadHours', 'Carga Horas')}
+                                            </div>
+                                            <div className={styles.legendItem}>
+                                                <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
+                                                {t('planejamento.table.capacity', 'Capacidade')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <ResponsiveContainer width="100%" height={500}>
+                                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                            <XAxis
+                                                dataKey="name"
+                                                tick={{ fill: '#64748b', fontSize: 12 }}
+                                                angle={-45}
+                                                textAnchor="end"
+                                                height={80}
+                                            />
+                                            <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            {/* Carga OP (Base - Azul) */}
+                                            <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]}>
+                                                <LabelList
+                                                    dataKey="cargaOP"
+                                                    position="insideTop"
+                                                    style={{ fill: '#fff', fontSize: 11, fontWeight: 700 }}
+                                                    formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                                />
+                                            </Bar>
+
+                                            {/* Carga Resto (Topo - Cinza) -> Representa o Total (Horas) visualmente */}
+                                            <Bar dataKey="cargaResto" name={t('planejamento.table.loadHours', 'Carga Horas')} stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]}>
+                                                <LabelList
+                                                    dataKey="cargaHoras"
+                                                    position="top"
+                                                    style={{ fill: '#475569', fontSize: 11, fontWeight: 600 }}
+                                                    formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
+                                                />
+                                            </Bar>
+                                            {/* Capacidade (Separada) */}
+                                            <Bar dataKey="capacidade" name="Capacidade" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                                                <LabelList dataKey="capacidade" position="top" style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }} formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''} />
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Table */}
+                                <div className={styles.chartCard}>
+                                    <h2 className={styles.chartTitle} style={{ marginBottom: '1rem' }}>
+                                        {t('planejamento.table.title', 'Detalhes por Centro de Trabalho')}
                                     </h2>
-                                    <p className={styles.chartSubtitle}>
-                                        {t('planejamento.chart.monthlySubtitle', 'Carga OP vs Capacidade Restante (proporcional aos dias úteis)')}
-                                    </p>
-                                </div>
-                                <div className={styles.legendContainer}>
-                                    <div className={styles.legendItem}>
-                                        <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
-                                        {t('planejamento.table.loadOP', 'Carga OP')}
-                                    </div>
-                                    <div className={styles.legendItem}>
-                                        <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
-                                        {t('planejamento.table.capacityRestante', 'Cap. Restante')}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <ResponsiveContainer width="100%" height={400}>
-                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis
-                                        dataKey="name"
-                                        tick={{ fill: '#64748b', fontSize: 12 }}
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={80}
-                                    />
-                                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
-                                    <Tooltip content={<MonthlyTooltip />} />
-                                    <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                                        <LabelList
-                                            dataKey="cargaOP"
-                                            position="top"
-                                            style={{ fill: '#1e3a8a', fontSize: 11, fontWeight: 600 }}
-                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
-                                        />
-                                    </Bar>
-                                    <Bar dataKey="capacidadeRestante" name={t('planejamento.table.capacityRestante', 'Cap. Restante')} fill="#22c55e" radius={[4, 4, 0, 0]}>
-                                        <LabelList
-                                            dataKey="capacidadeRestante"
-                                            position="top"
-                                            style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }}
-                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
-                                        />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* Existing Stats (Moved Below First Chart) */}
-                        <div className={styles.statsGrid}>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
-                                    <FiLayers />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCentros}</h3>
-                                    <p>{t('planejamento.stats.workCenters', 'Centros de Trabalho')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
-                                    <FiActivity />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCargaHoras.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalLoad', 'Carga Total')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
-                                    <FiCheckCircle />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{totalCapacidade.toFixed(0)}h</h3>
-                                    <p>{t('planejamento.stats.totalCapacity', 'Capacidade Total')}</p>
-                                </div>
-                            </div>
-                            <div className={styles.statCard}>
-                                <div className={`${styles.statIcon} ${styles.statIconRed}`}>
-                                    <FiAlertTriangle />
-                                </div>
-                                <div className={styles.statContent}>
-                                    <h3>{centrosSobrecarga}</h3>
-                                    <p>{t('planejamento.stats.overloaded', 'Em Sobrecarga')}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Chart 2: Análise da Capacidade (30 dias) vs Necessidade Total */}
-                        <div className={styles.chartCard}>
-                            <div className={styles.chartHeader}>
-                                <div>
-                                    <h2 className={styles.chartTitle}>
-                                        {t('planejamento.chart.thirtyDayTitle', 'Análise da Capacidade (30 dias) vs Necessidade Total')}
-                                    </h2>
-                                    <p className={styles.chartSubtitle}>
-                                        {t('planejamento.chart.thirtyDaySubtitle', 'Ordem de Venda + IQM')}
-                                    </p>
-                                </div>
-                                <div className={styles.legendContainer}>
-                                    <div className={styles.legendItem}>
-                                        <span className={`${styles.legendDot} ${styles.dotOP}`}></span>
-                                        {t('planejamento.table.loadOP', 'Carga OP')}
-                                    </div>
-                                    <div className={styles.legendItem}>
-                                        <span className={`${styles.legendDot} ${styles.dotHoras}`}></span>
-                                        {t('planejamento.table.loadHours', 'Carga Horas')}
-                                    </div>
-                                    <div className={styles.legendItem}>
-                                        <span className={`${styles.legendDot} ${styles.dotCapacidade}`}></span>
-                                        {t('planejamento.table.capacity', 'Capacidade')}
+                                    <div className={styles.tableContainer}>
+                                        <table className={styles.dataTable}>
+                                            <thead>
+                                                <tr>
+                                                    <th>{t('planejamento.table.workCenter', 'Centro de Trabalho')}</th>
+                                                    <th>{t('planejamento.table.loadOP', 'Carga OP')}</th>
+                                                    <th>{t('planejamento.table.loadHours', 'Carga Horas')}</th>
+                                                    <th>{t('planejamento.table.capacity', 'Capacidade')}</th>
+                                                    <th>{t('planejamento.table.occupation', '% Ocupação')}</th>
+                                                    <th>{t('planejamento.table.status', 'Status')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredData.map((item) => (
+                                                    <tr key={item.centroTrabalho}>
+                                                        <td>{item.centroTrabalho}</td>
+                                                        <td>{item.cargaOP.toFixed(1)}h</td>
+                                                        <td>{item.cargaHoras.toFixed(1)}h</td>
+                                                        <td>{item.capacidade > 0 ? `${item.capacidade.toFixed(0)}h` : '—'}</td>
+                                                        <td>
+                                                            {item.capacidade > 0 ? (
+                                                                <span style={{
+                                                                    color: item.percentualOcupacao > 100 ? '#dc2626' :
+                                                                        item.percentualOcupacao > 80 ? '#f59e0b' : '#16a34a',
+                                                                    fontWeight: 500
+                                                                }}>
+                                                                    {item.percentualOcupacao}%
+                                                                </span>
+                                                            ) : '—'}
+                                                        </td>
+                                                        <td>
+                                                            {item.capacidade === 0 ? (
+                                                                <span className={`${styles.badge} ${styles.badgeGray}`}>
+                                                                    {t('planejamento.table.noCapacity', 'Sem meta')}
+                                                                </span>
+                                                            ) : item.sobrecarga ? (
+                                                                <span className={`${styles.badge} ${styles.badgeRed}`}>
+                                                                    {t('planejamento.table.overloaded', 'Sobrecarga')}
+                                                                </span>
+                                                            ) : (
+                                                                <span className={`${styles.badge} ${styles.badgeGreen}`}>
+                                                                    {t('planejamento.table.ok', 'OK')}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            </div>
-
-                            <ResponsiveContainer width="100%" height={500}>
-                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis
-                                        dataKey="name"
-                                        tick={{ fill: '#64748b', fontSize: 12 }}
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={80}
-                                    />
-                                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    {/* Carga OP (Base - Azul) */}
-                                    <Bar dataKey="cargaOP" name={t('planejamento.table.loadOP', 'Carga OP')} stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]}>
-                                        <LabelList
-                                            dataKey="cargaOP"
-                                            position="insideTop"
-                                            style={{ fill: '#fff', fontSize: 11, fontWeight: 700 }}
-                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
-                                        />
-                                    </Bar>
-
-                                    {/* Carga Resto (Topo - Cinza) -> Representa o Total (Horas) visualmente */}
-                                    <Bar dataKey="cargaResto" name={t('planejamento.table.loadHours', 'Carga Horas')} stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]}>
-                                        <LabelList
-                                            dataKey="cargaHoras"
-                                            position="top"
-                                            style={{ fill: '#475569', fontSize: 11, fontWeight: 600 }}
-                                            formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
-                                        />
-                                    </Bar>
-                                    {/* Capacidade (Separada) */}
-                                    <Bar dataKey="capacidade" name="Capacidade" fill="#22c55e" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="capacidade" position="top" style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }} formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''} />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* Table */}
-                        <div className={styles.chartCard}>
-                            <h2 className={styles.chartTitle} style={{ marginBottom: '1rem' }}>
-                                {t('planejamento.table.title', 'Detalhes por Centro de Trabalho')}
-                            </h2>
-                            <div className={styles.tableContainer}>
-                                <table className={styles.dataTable}>
-                                    <thead>
-                                        <tr>
-                                            <th>{t('planejamento.table.workCenter', 'Centro de Trabalho')}</th>
-                                            <th>{t('planejamento.table.loadOP', 'Carga OP')}</th>
-                                            <th>{t('planejamento.table.loadHours', 'Carga Horas')}</th>
-                                            <th>{t('planejamento.table.capacity', 'Capacidade')}</th>
-                                            <th>{t('planejamento.table.occupation', '% Ocupação')}</th>
-                                            <th>{t('planejamento.table.status', 'Status')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredData.map((item) => (
-                                            <tr key={item.centroTrabalho}>
-                                                <td>{item.centroTrabalho}</td>
-                                                <td>{item.cargaOP.toFixed(1)}h</td>
-                                                <td>{item.cargaHoras.toFixed(1)}h</td>
-                                                <td>{item.capacidade > 0 ? `${item.capacidade.toFixed(0)}h` : '—'}</td>
-                                                <td>
-                                                    {item.capacidade > 0 ? (
-                                                        <span style={{
-                                                            color: item.percentualOcupacao > 100 ? '#dc2626' :
-                                                                item.percentualOcupacao > 80 ? '#f59e0b' : '#16a34a',
-                                                            fontWeight: 500
-                                                        }}>
-                                                            {item.percentualOcupacao}%
-                                                        </span>
-                                                    ) : '—'}
-                                                </td>
-                                                <td>
-                                                    {item.capacidade === 0 ? (
-                                                        <span className={`${styles.badge} ${styles.badgeGray}`}>
-                                                            {t('planejamento.table.noCapacity', 'Sem meta')}
-                                                        </span>
-                                                    ) : item.sobrecarga ? (
-                                                        <span className={`${styles.badge} ${styles.badgeRed}`}>
-                                                            {t('planejamento.table.overloaded', 'Sobrecarga')}
-                                                        </span>
-                                                    ) : (
-                                                        <span className={`${styles.badge} ${styles.badgeGreen}`}>
-                                                            {t('planejamento.table.ok', 'OK')}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        </>
+                            </>
                         )}
                     </>
                 )}
