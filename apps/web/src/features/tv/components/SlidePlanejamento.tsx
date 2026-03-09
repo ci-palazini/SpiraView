@@ -165,7 +165,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                             <Bar
                                 dataKey="produzido"
                                 radius={[6, 6, 0, 0]}
-                                isAnimationActive={true}
+                                isAnimationActive={false}
                                 label={<BarLabel />}
                             >
                                 {diasProducao.map((d, i) => (
@@ -271,7 +271,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                             />
                             <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
                             <Tooltip />
-                            <Bar dataKey="cargaOP" name="Carga OP" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                            <Bar dataKey="cargaOP" name="Carga OP" fill="#3b82f6" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                 <LabelList
                                     dataKey="cargaOP"
                                     position="top"
@@ -279,7 +279,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                                     formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''}
                                 />
                             </Bar>
-                            <Bar dataKey="capacidadeRestante" name="Cap. Restante" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                            <Bar dataKey="capacidadeRestante" name="Cap. Restante" fill="#22c55e" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                                 <LabelList
                                     dataKey="capacidadeRestante"
                                     position="top"
@@ -371,7 +371,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                         <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
                         <Tooltip />
                         {/* Carga OP (Base - Azul) */}
-                        <Bar dataKey="cargaOP" name="Carga OP" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]}>
+                        <Bar dataKey="cargaOP" name="Carga OP" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} isAnimationActive={false}>
                             <LabelList
                                 dataKey="cargaOP"
                                 position="insideTop"
@@ -380,7 +380,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                             />
                         </Bar>
                         {/* Carga Resto (Topo - Cinza) */}
-                        <Bar dataKey="cargaResto" name="Carga Horas" stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="cargaResto" name="Carga Horas" stackId="a" fill="#94a3b8" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                             <LabelList
                                 dataKey="cargaHoras"
                                 position="top"
@@ -389,7 +389,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
                             />
                         </Bar>
                         {/* Capacidade (Separada) */}
-                        <Bar dataKey="capacidade" name="Capacidade" fill="#22c55e" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="capacidade" name="Capacidade" fill="#22c55e" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                             <LabelList dataKey="capacidade" position="top" style={{ fill: '#14532d', fontSize: 11, fontWeight: 600 }} formatter={(v: any) => v > 0 ? Number(v).toFixed(0) : ''} />
                         </Bar>
                     </BarChart>

@@ -130,7 +130,7 @@ export default function SlideResumo({ dias }: SlideResumoProps) {
                         <Bar
                             dataKey="produzido"
                             radius={[6, 6, 0, 0]}
-                            isAnimationActive={true}
+                            isAnimationActive={false}
                             label={<BarLabel />}
                         >
                             {dias.map((d, i) => (
