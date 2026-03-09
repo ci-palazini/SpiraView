@@ -276,7 +276,7 @@ interface RowError {
  *       200:
  *         description: Upload processed
  */
-uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '100mb' }), async (req, res) => {
+uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }), async (req, res) => {
     try {
         const auth = (req as any).user || {};
 

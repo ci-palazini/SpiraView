@@ -173,6 +173,7 @@ async function buildMaquinaCache(): Promise<Map<string, MaquinaCache>> {
  */
 capacidadeRouter.post(
     '/capacidade/upload',
+    express.json({ limit: '10mb' }),
     requirePermission('planejamento_upload', 'editar'),
     async (req: Request, res: Response) => {
         const startTime = Date.now();

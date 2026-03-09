@@ -541,11 +541,7 @@ Controle de idempotência para evitar reenvio duplicado de notificações autom�
 
 | View | Descrição |
 |------|-----------|
-| `v_chamados_analiticos` | Chamados com dados agregados para analytics |
-| `v_maquinas` | Máquinas com informações hierárquicas |
-| `v_producao_rendimento` | Rendimento de produção calculado |
-| `v_producao_resumo_diario` | Resumo diário de produção |
-| `v_causas` | Causas de chamados com dados correlacionados |
+| `v_producao_rendimento` | Rendimento de produção calculado (usado em `routes/producao/lancamentos.ts`) |
 
 ### Safety (BBS)
 
