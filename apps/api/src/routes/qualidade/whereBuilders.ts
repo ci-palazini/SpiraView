@@ -2,6 +2,32 @@
 // Utilitário compartilhado para construção de WHERE clauses em queries de qualidade_refugos.
 // Centraliza a lógica duplicada entre analytics, compare, individual e refugos.
 
+import { z } from 'zod';
+
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido (esperado YYYY-MM-DD)');
+const multiString = z.union([z.string(), z.array(z.string())]);
+
+/** Schema Zod para os filtros comuns das rotas de qualidade. */
+export const qualidadeFiltrosSchema = z.object({
+    dataInicio: isoDate.optional(),
+    dataFim: isoDate.optional(),
+    origem: multiString.optional(),
+    responsavel: multiString.optional(),
+    tipo: z.enum(['INTERNO', 'EXTERNO']).optional(),
+    tipoLancamento: z.string().optional(),
+}).passthrough();
+
+/** Schema para a rota de comparação — requer 4 datas obrigatórias. */
+export const compareQuerySchema = qualidadeFiltrosSchema.extend({
+    dataInicioA: isoDate,
+    dataFimA: isoDate,
+    dataInicioB: isoDate,
+    dataFimB: isoDate,
+});
+
+export type QualidadeFiltros = z.infer<typeof qualidadeFiltrosSchema>;
+export type CompareQuery = z.infer<typeof compareQuerySchema>;
+
 export interface QualidadeWhereFilters {
     dataInicio?: string;
     dataFim?: string;

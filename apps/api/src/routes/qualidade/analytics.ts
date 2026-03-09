@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
-import { buildQualidadeWhere } from './whereBuilders';
+import { buildQualidadeWhere, qualidadeFiltrosSchema } from './whereBuilders';
 
 export const analyticsRouter: Router = Router();
 
@@ -16,8 +16,13 @@ analyticsRouter.get('/qualidade/analytics/responsaveis',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
+            const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+            }
+            const filters = parsed.data;
             const params: any[] = [];
-            const { tipo, dataInicio, dataFim, origem, tipoLancamento } = req.query;
+            const { tipo, dataInicio, dataFim, origem, tipoLancamento } = filters;
 
             let where = 'responsavel_nome IS NOT NULL AND responsavel_nome != \'\'';
 
@@ -65,8 +70,12 @@ analyticsRouter.get('/qualidade/analytics/summary',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
+            const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+            }
             const params: any[] = [];
-            const where = buildQualidadeWhere(params, req.query);
+            const where = buildQualidadeWhere(params, parsed.data);
 
             // Total Cost
             const totalCostQuery = await pool.query(
@@ -98,7 +107,7 @@ analyticsRouter.get('/qualidade/analytics/summary',
 
             // Cost Last Month
             const paramsLastMonth: any[] = [];
-            const whereLastMonth = buildBaseWhere(paramsLastMonth, req.query);
+            const whereLastMonth = buildBaseWhere(paramsLastMonth, parsed.data);
             const lastMonthQuery = await pool.query(
                 `SELECT SUM(custo) as total FROM qualidade_refugos 
                  WHERE ${whereLastMonth} 
@@ -109,7 +118,7 @@ analyticsRouter.get('/qualidade/analytics/summary',
 
             // Cost Last Year (Previous Calendar Year)
             const paramsLastYear: any[] = [];
-            const whereLastYear = buildBaseWhere(paramsLastYear, req.query);
+            const whereLastYear = buildBaseWhere(paramsLastYear, parsed.data);
             const lastYearQuery = await pool.query(
                 `SELECT SUM(custo) as total FROM qualidade_refugos 
                   WHERE ${whereLastYear} 
@@ -145,8 +154,12 @@ analyticsRouter.get('/qualidade/analytics/trends',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
+            const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+            }
             const params: any[] = [];
-            const where = buildQualidadeWhere(params, req.query);
+            const where = buildQualidadeWhere(params, parsed.data);
 
             // Cost by Month (for the selected period)
             // Using TO_CHAR for formatting, assumes Postgres

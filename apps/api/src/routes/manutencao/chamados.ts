@@ -357,7 +357,7 @@ chamadosRouter.delete(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "deleted", id: chamadoId });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
 
       // Limpeza assíncrona de arquivos
@@ -491,7 +491,7 @@ chamadosRouter.post(
           id: chamadoId,
           payload: ultimaObservacao,
         });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       return res.status(201).json({ ok: true, observacao: ultimaObservacao, observacoes: lista });
     } catch (error: any) {
@@ -578,7 +578,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       // Notificação Teams: preventiva iniciada (fire-and-forget)
       if (typeof resultado.tipo === 'string' && resultado.tipo.toLowerCase() === 'preventiva') {
@@ -656,7 +656,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       return res.json({ ok: true });
     } catch (error) {
@@ -708,7 +708,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       return res.json({ ok: true });
     } catch (error) {
@@ -888,7 +888,7 @@ chamadosRouter.post(
 
       try {
         sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       // Notificação Teams: preventiva concluída (fire-and-forget)
       if (tipoChamado === 'preventiva') {
@@ -1011,7 +1011,7 @@ chamadosRouter.post(
           id: chamadoId,
           payload,
         });
-      } catch { }
+      } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       return res.status(201).json(payload);
     } catch (e: any) {
@@ -1079,7 +1079,7 @@ chamadosRouter.patch(
         [chamadoId, JSON.stringify(checklist)]
       );
 
-      try { sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId }); } catch { }
+      try { sseBroadcast?.({ topic: "chamados", action: "updated", id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
       return res.json({ ok: true });
     } catch (e: any) {
@@ -1255,7 +1255,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
       [chamadoId]
     );
 
-    try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch { }
+    try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
     // Dispara notificação de email (fire-and-forget)
     void TicketCreatedNotification.handle(rows[0]);
@@ -1437,7 +1437,7 @@ chamadosRouter.post(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
       return res.json(rows[0]);
     } catch (e: any) {
       logger.error({ err: e }, 'Erro na rota');
@@ -1488,7 +1488,7 @@ chamadosRouter.delete(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
       return res.json(rows[0]);
     } catch (e: any) {
       logger.error({ err: e }, 'Erro na rota');
@@ -1540,7 +1540,7 @@ chamadosRouter.post(
         [chamadoId]
       );
 
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch { }
+      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
       return res.json(rows[0]);
     } catch (e: any) {
       logger.error({ err: e }, 'Erro na rota');

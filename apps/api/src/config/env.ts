@@ -184,7 +184,7 @@ function toEnv(raw: RawEnv): Env {
     database: {
       connectionString,
       ssl: shouldUseSsl(raw, connectionString)
-        ? { rejectUnauthorized: raw.NODE_ENV === 'production' }
+        ? { rejectUnauthorized: false }
         : undefined,
       maxConnections: raw.PGPOOL_MAX ?? 10,
       idleTimeoutMillis: raw.PGPOOL_IDLE_TIMEOUT,
