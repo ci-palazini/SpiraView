@@ -130,7 +130,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         }
 
         const nomeUsuario = (usuario || '').trim() || nomeCompleto.toLowerCase().replace(/\s+/g, '.');
-        const emailGerado = `${nomeUsuario}@manutencao.local`;
+        const emailGerado = `${nomeUsuario}@spiraview.ci`;
 
         // Busca o nome correto do role para usar como "funcao" e armazena na API
         const roleObj = roles.find(r => r.nome.toLowerCase() === role.toLowerCase());
