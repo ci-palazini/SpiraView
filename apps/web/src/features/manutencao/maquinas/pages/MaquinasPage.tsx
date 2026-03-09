@@ -14,7 +14,7 @@ import Modal from '../../../../shared/components/Modal';
 import PageHeader from '../../../../shared/components/PageHeader';
 import { FiPlus, FiMoreVertical, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 import usePermissions from '../../../../hooks/usePermissions';
 import { useUsuario } from '../../../../contexts/UserContext';
 
@@ -254,15 +254,15 @@ const MaquinasPage = ({ user: userProp }: MaquinasPageProps) => {
                     <>
                         {/* Skeleton da legenda */}
                         <div className={styles.legendContainer}>
-                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
-                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
-                            <Skeleton variant="rectangular" width={100} height={20} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={100} height={20} style={{ borderRadius: '4px' }} />
+                            <Skeleton variant="rectangular" width={100} height={20} style={{ borderRadius: '4px' }} />
+                            <Skeleton variant="rectangular" width={100} height={20} style={{ borderRadius: '4px' }} />
                         </div>
                         {/* Skeleton dos cards */}
                         <div className={styles.grid}>
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <div key={i} className={styles.card} style={{ borderLeftColor: '#e0e0e0' }}>
-                                    <Skeleton variant="text" width="70%" height={28} sx={{ marginBottom: 1 }} />
+                                    <Skeleton variant="text" width="70%" height={28} style={{ marginBottom: '8px' }} />
                                     <Skeleton variant="text" width="50%" height={16} />
                                 </div>
                             ))}

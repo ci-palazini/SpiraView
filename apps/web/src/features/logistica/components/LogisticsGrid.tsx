@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CircularProgress } from '@mui/material';
+import Spinner from '../../../shared/components/Spinner';
 import {
     FiChevronLeft, FiChevronRight, FiRefreshCw,
     FiTrendingUp, FiMaximize2, FiX, FiEdit3, FiDollarSign, FiPackage, FiTruck, FiZap, FiDownload
@@ -576,7 +576,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
                 <div className={styles.controlsActions}>
                     {(loading || saving) && (
                         <div className={styles.savingIndicator}>
-                            <CircularProgress size={14} color="inherit" />
+                            <Spinner size={14} />
                             <span>{saving ? t('logistics.controls.saving') : t('logistics.controls.loading')}</span>
                         </div>
                     )}
@@ -640,7 +640,7 @@ export const LogisticsGrid: React.FC<LogisticsGridProps> = () => {
             <div className={styles.gridWrapper}>
                 {(loading && !data) ? (
                     <div className={styles.loadingOverlay}>
-                        <CircularProgress />
+                        <Spinner size={40} />
                     </div>
                 ) : (
                     <>

@@ -16,7 +16,7 @@ import { df } from '../../../../i18n/format';
 import PageHeader from '../../../../shared/components/PageHeader';
 import ExportButtons from '../../../../shared/components/ExportButtons';
 import styles from './ChecklistOverviewPage.module.css';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 
 // ---------- Types ----------
 interface User {
@@ -469,10 +469,10 @@ const ChecklistOverviewPage = ({ user }: ChecklistOverviewPageProps) => {
                                     {[1, 2, 3, 4, 5, 6].map((i) => (
                                         <tr key={i}>
                                             <td><Skeleton variant="text" width="80%" height={20} /></td>
-                                            <td><Skeleton variant="rectangular" width={90} height={28} sx={{ borderRadius: 1 }} /></td>
-                                            <td><Skeleton variant="rectangular" width={90} height={28} sx={{ borderRadius: 1 }} /></td>
+                                            <td><Skeleton variant="rectangular" width={90} height={28} style={{ borderRadius: '4px' }} /></td>
+                                            <td><Skeleton variant="rectangular" width={90} height={28} style={{ borderRadius: '4px' }} /></td>
                                             <td><Skeleton variant="text" width={120} height={20} /></td>
-                                            <td><Skeleton variant="rectangular" width={100} height={28} sx={{ borderRadius: 1 }} /></td>
+                                            <td><Skeleton variant="rectangular" width={100} height={28} style={{ borderRadius: '4px' }} /></td>
                                         </tr>
                                     ))}
                                 </>

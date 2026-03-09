@@ -14,7 +14,7 @@ import {
     FiTarget,
     FiGrid,
 } from 'react-icons/fi';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import Modal from '../../../shared/components/Modal';

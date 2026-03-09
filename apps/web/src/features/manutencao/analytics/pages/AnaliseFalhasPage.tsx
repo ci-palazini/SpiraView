@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { listarChamados } from '../../../../services/apiClient';
 import type { Chamado } from '../../../../types/api';
 import PageHeader from '../../../../shared/components/PageHeader';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -166,22 +166,22 @@ const AnaliseFalhasPage = () => {
                         {/* Skeleton dos filtros */}
                         <div className={styles.filterContainer}>
                             <div className={styles.filterField}>
-                                <Skeleton variant="text" width={80} height={20} sx={{ marginBottom: 0.5 }} />
-                                <Skeleton variant="rectangular" width={150} height={36} sx={{ borderRadius: 1 }} />
+                                <Skeleton variant="text" width={80} height={20} style={{ marginBottom: '4px' }} />
+                                <Skeleton variant="rectangular" width={150} height={36} style={{ borderRadius: '4px' }} />
                             </div>
                             <div className={styles.filterField}>
-                                <Skeleton variant="text" width={80} height={20} sx={{ marginBottom: 0.5 }} />
-                                <Skeleton variant="rectangular" width={150} height={36} sx={{ borderRadius: 1 }} />
+                                <Skeleton variant="text" width={80} height={20} style={{ marginBottom: '4px' }} />
+                                <Skeleton variant="rectangular" width={150} height={36} style={{ borderRadius: '4px' }} />
                             </div>
-                            <Skeleton variant="rectangular" width={100} height={36} sx={{ borderRadius: 1, alignSelf: 'flex-end' }} />
+                            <Skeleton variant="rectangular" width={100} height={36} style={{ borderRadius: '4px', alignSelf: 'flex-end' }} />
                         </div>
 
                         {/* Skeleton do gráfico */}
                         <div className={styles.chartContainer}>
-                            <Skeleton variant="text" width={250} height={28} sx={{ marginBottom: 2, marginX: 'auto' }} />
+                            <Skeleton variant="text" width={250} height={28} style={{ marginBottom: '16px', marginLeft: 'auto', marginRight: 'auto' }} />
                             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 300 }}>
                                 {[180, 140, 200, 120, 160, 100, 80].map((h, i) => (
-                                    <Skeleton key={i} variant="rectangular" width={40} height={h} sx={{ borderRadius: 1 }} />
+                                    <Skeleton key={i} variant="rectangular" width={40} height={h} style={{ borderRadius: '4px' }} />
                                 ))}
                             </div>
                         </div>

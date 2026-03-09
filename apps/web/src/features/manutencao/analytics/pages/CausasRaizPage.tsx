@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import styles from './CausasRaizPage.module.css';
 import { useTranslation } from 'react-i18next';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 import {
     listarCausas,
     criarCausa,
@@ -165,7 +165,7 @@ function CausasCrud({ user }: CausasCrudProps) {
                     {[1, 2, 3, 4].map((i) => (
                         <li key={i} className={styles.listItem}>
                             <Skeleton variant="text" width="60%" height={24} />
-                            <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={60} height={28} style={{ borderRadius: '4px' }} />
                         </li>
                     ))}
                 </ul>
@@ -319,7 +319,7 @@ function ParetoChart() {
                     {/* Skeleton do gráfico Pareto */}
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, justifyContent: 'center', height: 350, marginTop: 16 }}>
                         {[180, 150, 120, 90, 60, 40, 25].map((h, i) => (
-                            <Skeleton key={i} variant="rectangular" width={50} height={h} sx={{ borderRadius: 1 }} />
+                            <Skeleton key={i} variant="rectangular" width={50} height={h} style={{ borderRadius: '4px' }} />
                         ))}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>

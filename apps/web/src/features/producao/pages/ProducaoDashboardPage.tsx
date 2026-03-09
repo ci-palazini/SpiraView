@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { FiBarChart2, FiCalendar, FiClock, FiActivity } from 'react-icons/fi';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import {
@@ -572,7 +572,7 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                                 {t('producao.dashboard.summary.title', 'Total Fábrica')}
                             </span>
                             {loading ? (
-                                <Skeleton variant="rectangular" width={60} height={24} sx={{ borderRadius: 2 }} />
+                                <Skeleton variant="rectangular" width={60} height={24} style={{ borderRadius: '8px' }} />
                             ) : isFuture ? (
                                 <span className={`${styles.badge} ${styles.badgeGray}`}>{t('producao.dashboard.summary.future', 'FUTURO')}</span>
                             ) : (
@@ -657,14 +657,14 @@ export default function ProducaoDashboardPage({ user }: ProducaoDashboardPagePro
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <div key={i} className={styles.machineCard}>
                                     <Skeleton variant="text" width="60%" height={24} />
-                                    <Skeleton variant="text" width="100%" height={20} sx={{ mt: 1 }} />
+                                    <Skeleton variant="text" width="100%" height={20} style={{ marginTop: '8px' }} />
                                     <Skeleton variant="text" width="100%" height={20} />
                                     <Skeleton variant="text" width="100%" height={20} />
                                     <Skeleton
                                         variant="rectangular"
                                         width="100%"
                                         height={8}
-                                        sx={{ mt: 2, borderRadius: 1 }}
+                                        style={{ marginTop: '16px', borderRadius: '4px' }}
                                     />
                                 </div>
                             ))}

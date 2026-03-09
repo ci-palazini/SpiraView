@@ -16,7 +16,7 @@ import Modal from '../../../shared/components/Modal';
 import styles from './RolesPage.module.css';
 import toast from 'react-hot-toast';
 import { FiShield, FiEdit2, FiTrash2, FiPlus, FiLock, FiStar, FiUser } from 'react-icons/fi';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 
 // ---------- Types ----------
 interface User {

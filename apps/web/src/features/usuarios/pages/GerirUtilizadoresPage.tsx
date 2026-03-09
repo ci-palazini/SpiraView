@@ -6,7 +6,7 @@ import { Input, Select, Button } from '../../../shared/components';
 import { FiPlus, FiEdit, FiTrash2, FiBarChart2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 import {
     listarUsuarios,
     criarUsuario,
@@ -336,8 +336,8 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                 <li key={i} className={styles.userItem}>
                                     <Skeleton variant="text" width="40%" height={24} />
                                     <Skeleton variant="text" width="25%" height={20} />
-                                    <Skeleton variant="rectangular" width={50} height={24} sx={{ borderRadius: 1 }} />
-                                    <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 2 }} />
+                                    <Skeleton variant="rectangular" width={50} height={24} style={{ borderRadius: '4px' }} />
+                                    <Skeleton variant="rectangular" width={80} height={24} style={{ borderRadius: '8px' }} />
                                     <div className={styles.actions}>
                                         <Skeleton variant="circular" width={32} height={32} />
                                         <Skeleton variant="circular" width={32} height={32} />
@@ -528,7 +528,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 {loadingStats ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {[1, 2, 3, 4].map(i => (
-                            <Skeleton key={i} variant="rectangular" height={60} sx={{ borderRadius: 2 }} />
+                            <Skeleton key={i} variant="rectangular" height={60} style={{ borderRadius: '8px' }} />
                         ))}
                     </div>
                 ) : statsData ? (

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiPlus, FiActivity, FiImage, FiClock, FiSettings, FiCheckSquare, FiCheck, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import {
@@ -169,7 +169,7 @@ export default function KaizenDashboardPage({ user }: KaizenDashboardPageProps) 
                             </span>
                         </div>
                         {loading ? (
-                            <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
+                            <Skeleton variant="rectangular" height={80} style={{ borderRadius: '8px' }} />
                         ) : (
                             <div className={styles.summaryStats}>
                                 <div className={`${styles.statBox} ${styles.ok}`}>
@@ -192,7 +192,7 @@ export default function KaizenDashboardPage({ user }: KaizenDashboardPageProps) 
                 {loading && (
                     <div className={styles.cardsGrid}>
                         {[1, 2, 3, 4].map((i) => (
-                            <Skeleton key={i} variant="rounded" height={300} sx={{ borderRadius: 4 }} />
+                            <Skeleton key={i} variant="rounded" height={300} style={{ borderRadius: '16px' }} />
                         ))}
                     </div>
                 )}

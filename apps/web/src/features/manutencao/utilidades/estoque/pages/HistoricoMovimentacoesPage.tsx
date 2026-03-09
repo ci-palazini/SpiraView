@@ -5,7 +5,7 @@ import type { Peca } from '../../../../../types/api';
 import styles from './HistoricoMovimentacoesPage.module.css';
 import PageHeader from '../../../../../shared/components/PageHeader';
 import ExportButtons from '../../../../../shared/components/ExportButtons';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../../shared/components/Skeleton';
 import { useTranslation } from 'react-i18next';
 import { exportToExcel } from '../../../../../utils/exportExcel';
 import { exportToPdf } from '../../../../../utils/exportPdf';

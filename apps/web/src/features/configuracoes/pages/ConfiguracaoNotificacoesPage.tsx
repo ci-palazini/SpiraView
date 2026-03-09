@@ -11,7 +11,7 @@ import { Select, Button } from '../../../shared/components';
 import styles from './ConfiguracaoNotificacoesPage.module.css';
 import toast from 'react-hot-toast';
 import { FiTrash2, FiPlus, FiMail } from 'react-icons/fi';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../shared/components/Skeleton';
 import { useTranslation } from 'react-i18next';
 
 // Available events

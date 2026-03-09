@@ -9,7 +9,7 @@ import styles from './ChamadosAbertosPage.module.css';
 import PageHeader from '../../../../shared/components/PageHeader';
 import { Select, Input, ExportButtons } from '../../../../shared/components';
 import { useTranslation } from 'react-i18next';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 
 interface ChamadoAberto {
     id: string;
@@ -190,22 +190,22 @@ const ChamadosAbertosPage = () => {
                     <>
                         {/* Skeleton dos botões de export */}
                         <div className={styles.exportButtons}>
-                            <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
-                            <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={120} height={36} style={{ borderRadius: '4px' }} />
+                            <Skeleton variant="rectangular" width={120} height={36} style={{ borderRadius: '4px' }} />
                         </div>
 
                         {/* Skeleton dos filtros */}
                         <div className={styles.filterContainer}>
                             {[1, 2, 3, 4].map((i) => (
                                 <div key={i}>
-                                    <Skeleton variant="text" width={60} height={20} sx={{ marginBottom: 0.5 }} />
-                                    <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: 1 }} />
+                                    <Skeleton variant="text" width={60} height={20} style={{ marginBottom: '4px' }} />
+                                    <Skeleton variant="rectangular" width="100%" height={36} style={{ borderRadius: '4px' }} />
                                 </div>
                             ))}
                         </div>
 
                         {/* Skeleton do contador */}
-                        <Skeleton variant="text" width={180} height={24} sx={{ marginBottom: 2 }} />
+                        <Skeleton variant="text" width={180} height={24} style={{ marginBottom: '16px' }} />
 
                         {/* Skeleton da lista de chamados */}
                         <ul className={styles.chamadoList} style={{ listStyle: 'none', padding: 0 }}>
@@ -213,7 +213,7 @@ const ChamadosAbertosPage = () => {
                                 <li key={i} className={styles.chamadoItem} style={{ marginBottom: 12 }}>
                                     <div className={styles.chamadoHeader}>
                                         <Skeleton variant="text" width="40%" height={24} />
-                                        <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 1 }} />
+                                        <Skeleton variant="rectangular" width={80} height={24} style={{ borderRadius: '4px' }} />
                                     </div>
                                     <div className={styles.chamadoInfo}>
                                         <Skeleton variant="text" width="30%" height={16} />

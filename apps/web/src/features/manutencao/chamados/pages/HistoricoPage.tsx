@@ -9,7 +9,7 @@ import styles from './HistoricoPage.module.css';
 import PageHeader from '../../../../shared/components/PageHeader';
 import ExportButtons from '../../../../shared/components/ExportButtons';
 import { useTranslation } from 'react-i18next';
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from '../../../../shared/components/Skeleton';
 
 interface ChamadoConcluido {
     id: string;
@@ -174,16 +174,16 @@ const HistoricoPage = () => {
                     <>
                         {/* Skeleton dos botões de export */}
                         <div className={styles.exportButtons}>
-                            <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
-                            <Skeleton variant="rectangular" width={120} height={36} sx={{ borderRadius: 1 }} />
+                            <Skeleton variant="rectangular" width={120} height={36} style={{ borderRadius: '4px' }} />
+                            <Skeleton variant="rectangular" width={120} height={36} style={{ borderRadius: '4px' }} />
                         </div>
 
                         {/* Skeleton dos filtros */}
                         <div className={styles.filterContainer}>
                             {[1, 2, 3].map((i) => (
                                 <div key={i}>
-                                    <Skeleton variant="text" width={60} height={20} sx={{ marginBottom: 0.5 }} />
-                                    <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: 1 }} />
+                                    <Skeleton variant="text" width={60} height={20} style={{ marginBottom: '4px' }} />
+                                    <Skeleton variant="rectangular" width="100%" height={36} style={{ borderRadius: '4px' }} />
                                 </div>
                             ))}
                         </div>
@@ -196,7 +196,7 @@ const HistoricoPage = () => {
                                         <Skeleton variant="text" width="50%" height={24} />
                                         <Skeleton variant="text" width="40%" height={16} />
                                         <Skeleton variant="text" width="35%" height={16} />
-                                        <Skeleton variant="text" width="90%" height={16} sx={{ marginTop: 1 }} />
+                                        <Skeleton variant="text" width="90%" height={16} style={{ marginTop: '8px' }} />
                                     </div>
                                 </li>
                             ))}
