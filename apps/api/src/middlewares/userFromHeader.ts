@@ -1,4 +1,5 @@
 //apps/api/src/middlewares/userFromHeader.ts
+import { timingSafeEqual } from "crypto";
 import type { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 import { env } from "../config/env";
@@ -21,15 +22,19 @@ export async function userFromHeader(req: Request, res: Response, next: NextFunc
       const token = authHeader.slice(7);
 
       // 1. Check automation token first
-      if (env.automation.apiToken && token === env.automation.apiToken) {
-        req.user = {
-          id: "automation",
-          email: "automation@system.local",
-          nome: "Automação",
-          name: "Automação",
-          role: "gestor",
-        };
-        return next();
+      if (env.automation.apiToken) {
+        const a = Buffer.from(token);
+        const b = Buffer.from(env.automation.apiToken);
+        if (a.length === b.length && timingSafeEqual(a, b)) {
+          req.user = {
+            id: "automation",
+            email: "automation@system.local",
+            nome: "Automação",
+            name: "Automação",
+            role: "gestor",
+          };
+          return next();
+        }
       }
 
       // 2. Check JWT

@@ -4,6 +4,7 @@ import cors, { type CorsOptions } from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import pinoHttp from 'pino-http';
+import rateLimit from 'express-rate-limit';
 import { logger } from './logger';
 
 import { userFromHeader } from './middlewares/userFromHeader';
@@ -24,6 +25,19 @@ import { reuniaoDiariaRouter } from './routes/reuniao-diaria';
 import { safetyRouter } from './routes/safety';
 
 export const app: Express = express(); // 👈 evita o TS2742
+
+// Trust proxy (Fly.io / load balancer) — ensures correct IP for rate limiting
+app.set('trust proxy', 1);
+
+// Global rate limit — prevents L7 DDoS on general API routes
+const globalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisições. Tente novamente em instantes.' },
+});
+app.use(globalLimiter);
 
 // Security headers (Helmet)
 app.use(helmet());
