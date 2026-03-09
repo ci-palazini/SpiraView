@@ -13,6 +13,7 @@ import {
 } from '../../services/apiClient';
 import type { Maquina } from '../../types/api';
 import SlideResumo from './components/SlideResumo';
+import useSSE from '../../hooks/useSSE';
 import SlidePlanejamento from './components/SlidePlanejamento';
 import styles from './TvDashboardPage.module.css';
 
@@ -143,7 +144,7 @@ export default function TvDashboardPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const CARDS_PER_PAGE = 6;
-    const REFRESH_INTERVAL = 300000; // 5 minutos
+    const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutos — fallback caso SSE não esteja disponível
     const SLIDE_INTERVAL = 12000; // 12 segundos por slide
 
     // Título dinâmico baseado no escopo
@@ -341,7 +342,11 @@ export default function TvDashboardPage() {
         fetchData();
     }, [fetchData]);
 
-    // Auto-refresh a cada 5 minutos
+    // Auto-refresh via SSE — atualiza imediatamente quando há novos lançamentos ou upload ativado
+    useSSE('producao_lancamentos', fetchData);
+    useSSE('producao_uploads', fetchData);
+
+    // Polling como fallback (30 min) — garante atualização mesmo se SSE cair
     useEffect(() => {
         const id = setInterval(fetchData, REFRESH_INTERVAL);
         return () => clearInterval(id);

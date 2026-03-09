@@ -9,7 +9,7 @@
 import { useEffect, useRef } from 'react';
 
 // --------------- Types ---------------
-export type SSETopic = 'chamados' | 'agendamentos' | 'checklist' | 'pecas';
+export type SSETopic = 'chamados' | 'agendamentos' | 'checklist' | 'pecas' | 'producao_lancamentos' | 'producao_uploads';
 
 type Callback = () => void;
 
@@ -68,7 +68,7 @@ function ensureConnection() {
     };
 
     // Also listen for named events (the server may emit named events)
-    const topics: SSETopic[] = ['chamados', 'agendamentos', 'checklist', 'pecas'];
+    const topics: SSETopic[] = ['chamados', 'agendamentos', 'checklist', 'pecas', 'producao_lancamentos', 'producao_uploads'];
     topics.forEach((topic) => {
         es!.addEventListener(topic, () => {
             notifyTopic(topic);
