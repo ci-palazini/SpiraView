@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
-import { buildQualidadeWhere } from './whereBuilders';
+import { buildQualidadeWhere, qualidadeFiltrosSchema } from './whereBuilders';
 
 export const individualRouter: Router = Router();
 
@@ -12,8 +12,12 @@ individualRouter.get('/qualidade/individual/metrics',
     requirePermission('qualidade_desempenho', 'ver'),
     async (req, res) => {
         try {
+            const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+            }
             const params: any[] = [];
-            const where = buildQualidadeWhere(params, req.query);
+            const where = buildQualidadeWhere(params, parsed.data);
 
             const query = `
                 WITH BaseData AS (

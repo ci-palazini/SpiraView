@@ -192,8 +192,12 @@ analyticsRouter.get('/qualidade/analytics/details',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
+            const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+            }
             const params: any[] = [];
-            const where = buildQualidadeWhere(params, req.query);
+            const where = buildQualidadeWhere(params, parsed.data);
 
             // Responsible List with aggregation
             const listQuery = await pool.query(

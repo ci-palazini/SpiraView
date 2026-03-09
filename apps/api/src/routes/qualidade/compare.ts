@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
-import { buildQualidadeWhere } from './whereBuilders';
+import { buildQualidadeWhere, compareQuerySchema } from './whereBuilders';
 
 export const compareRouter: Router = Router();
 
@@ -115,17 +115,11 @@ compareRouter.get('/qualidade/analytics/compare',
     requirePermission('qualidade_analitico', 'ver'),
     async (req, res) => {
         try {
-            const {
-                dataInicioA, dataFimA,
-                dataInicioB, dataFimB
-            } = req.query;
-
-            // Validate required params
-            if (!dataInicioA || !dataFimA || !dataInicioB || !dataFimB) {
-                return res.status(400).json({
-                    error: 'Missing required date parameters: dataInicioA, dataFimA, dataInicioB, dataFimB'
-                });
+            const parsed = compareQuerySchema.safeParse(req.query);
+            if (!parsed.success) {
+                return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
             }
+            const { dataInicioA, dataFimA, dataInicioB, dataFimB } = parsed.data;
 
             // Create labels from date ranges
             const labelA = `${dataInicioA} - ${dataFimA}`;
@@ -134,16 +128,16 @@ compareRouter.get('/qualidade/analytics/compare',
             // Fetch data for both periods
             const [periodA, periodB] = await Promise.all([
                 fetchPeriodData(
-                    dataInicioA as string,
-                    dataFimA as string,
+                    dataInicioA,
+                    dataFimA,
                     labelA,
-                    req.query
+                    parsed.data
                 ),
                 fetchPeriodData(
-                    dataInicioB as string,
-                    dataFimB as string,
+                    dataInicioB,
+                    dataFimB,
                     labelB,
-                    req.query
+                    parsed.data
                 )
             ]);
 

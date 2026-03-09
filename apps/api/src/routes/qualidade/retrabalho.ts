@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { z } from 'zod';
+import { validateBody } from '../../middlewares/validateBody';
 
 export const retrabalhoRouter: Router = Router();
 
@@ -128,8 +130,25 @@ retrabalhoRouter.get('/qualidade/retrabalho',
     });
 
 // POST /qualidade/retrabalho - Novo registro
+const retrabalhoBodySchema = z.object({
+    data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve ser YYYY-MM-DD'),
+    codigo: z.string().min(1),
+    ordem_producao: z.string().optional().nullable(),
+    descricao: z.string().optional().nullable(),
+    nao_conformidade: z.string().optional().nullable(),
+    solicitante: z.string().optional().nullable(),
+    ocorrencia: z.number().int().min(1).max(5),
+    severidade: z.number().int().min(1).max(5),
+    deteccao: z.number().int().min(1).max(5),
+    causa_provavel: z.string().optional().nullable(),
+    ncr: z.string().optional().nullable(),
+    horas_retrabalho: z.union([z.string(), z.number()]).optional().nullable(),
+    pdca_plano_id: z.number().int().positive().optional().nullable(),
+});
+
 retrabalhoRouter.post('/qualidade/retrabalho',
     requirePermission('qualidade_retrabalho', 'editar'),
+    validateBody(retrabalhoBodySchema),
     async (req, res) => {
         try {
             const user = (req as any).user;
@@ -148,15 +167,6 @@ retrabalhoRouter.post('/qualidade/retrabalho',
                 horas_retrabalho,
                 pdca_plano_id
             } = req.body;
-
-            if (!data || !codigo || !ocorrencia || !severidade || !deteccao) {
-                return res.status(400).json({ error: 'Campos obrigatórios faltando (data, código, ocorrência, severidade, detecção).' });
-            }
-
-            // Validate ranges
-            if (ocorrencia < 1 || ocorrencia > 5 || severidade < 1 || severidade > 5 || deteccao < 1 || deteccao > 5) {
-                return res.status(400).json({ error: 'Ocorrência, Severidade e Detecção devem estar entre 1 e 5.' });
-            }
 
             // If total >= 18, pdca_plano_id should eventually be required
             const total = ocorrencia * severidade * deteccao;
