@@ -852,8 +852,12 @@
       "openedAt": "开启于：{{date}}"
     }
   },
+  "offline": {
+    "warning": "您已离线，功能需要互联网连接。",
+    "backOnline": "连接已恢复。"
+  },
   "pwa": {
-    "offlineReady": "应用可离线使用。",
+    "offlineReady": "应用已成功安装。",
     "newVersion": "有新版本可用。",
     "update": "更新",
     "dismiss": "暂不"

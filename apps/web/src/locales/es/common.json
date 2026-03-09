@@ -990,8 +990,12 @@
       "openedAt": "Abierta el: {{date}}"
     }
   },
+  "offline": {
+    "warning": "Estás sin conexión. Las funciones requieren internet.",
+    "backOnline": "Conexión restablecida."
+  },
   "pwa": {
-    "offlineReady": "Aplicación disponible sin conexión.",
+    "offlineReady": "Aplicación instalada correctamente.",
     "newVersion": "Nueva versión disponible.",
     "update": "Actualizar",
     "dismiss": "Ahora no"

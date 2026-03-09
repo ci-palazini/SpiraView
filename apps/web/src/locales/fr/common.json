@@ -853,8 +853,12 @@
       "openedAt": "Ouvert le : {{date}}"
     }
   },
+  "offline": {
+    "warning": "Vous êtes hors ligne. Les fonctionnalités nécessitent une connexion internet.",
+    "backOnline": "Connexion rétablie."
+  },
   "pwa": {
-    "offlineReady": "Application disponible hors ligne.",
+    "offlineReady": "Application installée avec succès.",
     "newVersion": "Nouvelle version disponible.",
     "update": "Mettre à jour",
     "dismiss": "Pas maintenant"

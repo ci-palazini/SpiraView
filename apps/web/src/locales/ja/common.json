@@ -852,8 +852,12 @@
       "openedAt": "開始日：{{date}}"
     }
   },
+  "offline": {
+    "warning": "オフラインです。機能にはインターネット接続が必要です。",
+    "backOnline": "接続が回復しました。"
+  },
   "pwa": {
-    "offlineReady": "アプリはオフラインで利用可能です。",
+    "offlineReady": "アプリが正常にインストールされました。",
     "newVersion": "新しいバージョンが利用可能です。",
     "update": "更新",
     "dismiss": "後で"

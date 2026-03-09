@@ -852,8 +852,12 @@
       "openedAt": "開啟於：{{date}}"
     }
   },
+  "offline": {
+    "warning": "您已離線，功能需要網際網路連線。",
+    "backOnline": "連線已恢復。"
+  },
   "pwa": {
-    "offlineReady": "應用程式可離線使用。",
+    "offlineReady": "應用程式已成功安裝。",
     "newVersion": "有新版本可用。",
     "update": "更新",
     "dismiss": "暫時不要"

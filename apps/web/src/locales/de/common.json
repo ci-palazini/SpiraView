@@ -855,8 +855,12 @@
       "openedAt": "Eröffnet am: {{date}}"
     }
   },
+  "offline": {
+    "warning": "Sie sind offline. Funktionen erfordern eine Internetverbindung.",
+    "backOnline": "Verbindung wiederhergestellt."
+  },
   "pwa": {
-    "offlineReady": "App offline verfügbar.",
+    "offlineReady": "App erfolgreich installiert.",
     "newVersion": "Neue Version verfügbar.",
     "update": "Aktualisieren",
     "dismiss": "Jetzt nicht"

@@ -1,0 +1,28 @@
+.bannerOffline,
+.bannerOnline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.bannerOffline {
+  background: #92400e; /* amber-800 */
+  color: #fef3c7;      /* amber-100 */
+}
+
+.bannerOnline {
+  background: #14532d; /* green-900 */
+  color: #dcfce7;      /* green-100 */
+}

@@ -852,8 +852,12 @@
       "openedAt": "시작일: {{date}}"
     }
   },
+  "offline": {
+    "warning": "오프라인 상태입니다. 기능을 사용하려면 인터넷 연결이 필요합니다.",
+    "backOnline": "연결이 복원되었습니다."
+  },
   "pwa": {
-    "offlineReady": "앱을 오프라인에서 사용할 수 있습니다.",
+    "offlineReady": "앱이 성공적으로 설치되었습니다.",
     "newVersion": "새 버전이 있습니다.",
     "update": "업데이트",
     "dismiss": "나중에"

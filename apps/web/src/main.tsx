@@ -7,6 +7,7 @@ import './index.css';
 import './i18n';
 
 import SWUpdateBanner from './layouts/SWUpdateBanner';
+import OfflineBanner from './layouts/OfflineBanner';
 import { ErrorBoundary } from './shared/components';
 
 const rootElement = document.getElementById('root');
@@ -16,6 +17,7 @@ ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
         <BrowserRouter>
             <ErrorBoundary>
+                <OfflineBanner />
                 <SWUpdateBanner autoUpdateOnWeb />
                 <App />
             </ErrorBoundary>

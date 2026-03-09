@@ -1149,8 +1149,12 @@
       "proceed": "Proceed anyway"
     }
   },
+  "offline": {
+    "warning": "You are offline. Features require an internet connection.",
+    "backOnline": "Back online."
+  },
   "pwa": {
-    "offlineReady": "App available offline.",
+    "offlineReady": "App installed successfully.",
     "newVersion": "New version available.",
     "update": "Update",
     "dismiss": "Not now"

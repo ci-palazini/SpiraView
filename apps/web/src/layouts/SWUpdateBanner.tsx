@@ -44,6 +44,14 @@ export default function SWUpdateBanner({
         }
     }, [standalone, autoUpdateOnWeb, needRefresh, updateServiceWorker]);
 
+    // Auto-dismiss the "installed" confirmation after 4 seconds
+    useEffect(() => {
+        if (offlineReady[0]) {
+            const timer = setTimeout(() => setDismissed(true), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [offlineReady]);
+
     if (showOnlyInApp && !standalone) return null;
 
     if ((!(needRefresh[0] || offlineReady[0])) || dismissed) return null;
@@ -51,7 +59,7 @@ export default function SWUpdateBanner({
     return (
         <div className={styles.banner} role="region" aria-live="polite">
             <div className={styles.content}>
-                {offlineReady[0] && <span>{t('pwa.offlineReady')}</span>}
+                {offlineReady[0] && !needRefresh[0] && <span>{t('pwa.offlineReady')}</span>}
                 {needRefresh[0] && (
                     <>
                         <span className={styles.text}>{t('pwa.newVersion')}</span>
