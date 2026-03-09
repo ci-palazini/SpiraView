@@ -68,13 +68,17 @@ O módulo de Qualidade gerencia o controle de refugos e quarentena da fábrica, 
 
 ## Frontend Pages
 
-| Página | Path | Permissão | Descrição |
-|--------|------|-----------|-----------|
-| Dashboard | `/qualidade/dashboard` | `qualidade_dashboard` | KPIs e gráficos gerais |
-| Lançamentos | `/qualidade/lancamentos` | `qualidade_lancamento` | CRUD de refugos, upload Excel |
-| Análise Detalhada | `/qualidade/analitico` | `qualidade_analitico` | Análise por responsável/origem |
-| Comparativos | `/qualidade/comparativo` | `qualidade_analitico` | Comparar períodos |
-| Configurações | `/qualidade/config` | `qualidade_config` | Gerenciar origens, motivos, responsáveis |
+A sidebar organiza as páginas em sub-seções: **Visão Geral**, **Refugo / Quarentena** e **Retrabalho**.
+
+| Sub-seção | Página | Path | Permissão | Descrição |
+|-----------|--------|------|-----------|-----------|
+| Visão Geral | Dashboard Qualidade | `/qualidade/dashboard` | `qualidade_dashboard` | KPIs e gráficos gerais |
+| Refugo / Quarentena | Lançamentos | `/qualidade/lancamentos` | `qualidade_lancamento` | CRUD de refugos, upload Excel |
+| Refugo / Quarentena | Análise Comparativa | `/qualidade/comparativo` | `qualidade_comparativo` | Comparar períodos |
+| Refugo / Quarentena | Desempenho Individual | `/qualidade/desempenho` | `qualidade_desempenho` | Ranking por colaborador |
+| Retrabalho | Lançamentos | `/qualidade/retrabalho` | `qualidade_retrabalho` | CRUD de retrabalhos, upload Excel |
+| Retrabalho | Análise de Causas | `/qualidade/analise-retrabalho` | `qualidade_retrabalho` | Pareto de causas (4M1D) |
+| — | Configurações | `/qualidade/config` | `qualidade_config` | Gerenciar origens, motivos, responsáveis |
 
 ## Permissões
 

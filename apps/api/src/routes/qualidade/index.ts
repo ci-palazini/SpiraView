@@ -7,6 +7,7 @@ import { compareRouter } from './compare';
 import { individualRouter } from './individual';
 import { retrabalhoRouter } from './retrabalho';
 import { retrabalhoSettingsRouter } from './retrabalho-settings';
+import { dashboardGeralRouter } from './dashboard-geral';
 
 export const qualidadeRouter: Router = Router();
 
@@ -18,4 +19,5 @@ qualidadeRouter.use(compareRouter);
 qualidadeRouter.use(individualRouter);
 qualidadeRouter.use(retrabalhoRouter);
 qualidadeRouter.use(retrabalhoSettingsRouter);
+qualidadeRouter.use(dashboardGeralRouter);
 

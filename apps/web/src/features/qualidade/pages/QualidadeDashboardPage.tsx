@@ -295,7 +295,7 @@ export default function QualidadeDashboardPage() {
     return (
         <div className={styles.container}>
             <PageHeader
-                title={t('quality.dashboard', 'Dashboard de Qualidade')}
+                title={t('quality.refugoDashboard', 'Dashboard de Refugo / Quarentena')}
                 subtitle={t('quality.dashSubtitle', 'Visão geral dos custos e principais ofensores de qualidade.')}
             />
 

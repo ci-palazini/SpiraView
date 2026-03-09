@@ -11,9 +11,10 @@ export type Period = 'current_year' | 'current_month' | 'last_month' | 'current_
 interface Props {
     onChange: (period: Period, start?: string, end?: string, tipo?: string, tipoLancamento?: string, origem?: string | string[], responsavel?: string | string[]) => void;
     hideOriginType?: boolean;
+    hideEntityFilters?: boolean;
 }
 
-export default function DashboardFilter({ onChange, hideOriginType = false }: Props) {
+export default function DashboardFilter({ onChange, hideOriginType = false, hideEntityFilters = false }: Props) {
     const { t } = useTranslation();
     const [period, setPeriod] = useState<Period>('current_month');
     const [tipo, setTipo] = useState('');
@@ -163,29 +164,33 @@ export default function DashboardFilter({ onChange, hideOriginType = false }: Pr
                 </select>
             </div>
 
-            <div className={styles.filterGroup}>
-                <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
-                <div style={{ width: '250px' }}>
-                    <MultiSelect
-                        options={origensList.map(o => ({ label: o.nome, value: o.nome }))}
-                        value={origem}
-                        onChange={handleOrigemChange}
-                        placeholder={t('qualityAnalytics.all', 'Todas')}
-                    />
-                </div>
-            </div>
+            {!hideEntityFilters && (
+                <>
+                    <div className={styles.filterGroup}>
+                        <label>{t('qualityAnalytics.filterOrigin', 'Origem')}:</label>
+                        <div style={{ width: '250px' }}>
+                            <MultiSelect
+                                options={origensList.map(o => ({ label: o.nome, value: o.nome }))}
+                                value={origem}
+                                onChange={handleOrigemChange}
+                                placeholder={t('qualityAnalytics.all', 'Todas')}
+                            />
+                        </div>
+                    </div>
 
-            <div className={styles.filterGroup}>
-                <label>{t('qualityAnalytics.responsible', 'Responsável')}:</label>
-                <div style={{ width: '250px' }}>
-                    <MultiSelect
-                        options={responsaveisList.map(r => ({ label: r.nome, value: r.nome }))}
-                        value={responsavel}
-                        onChange={handleResponsavelChange}
-                        placeholder={t('qualityAnalytics.all', 'Todos')}
-                    />
-                </div>
-            </div>
+                    <div className={styles.filterGroup}>
+                        <label>{t('qualityAnalytics.responsible', 'Responsável')}:</label>
+                        <div style={{ width: '250px' }}>
+                            <MultiSelect
+                                options={responsaveisList.map(r => ({ label: r.nome, value: r.nome }))}
+                                value={responsavel}
+                                onChange={handleResponsavelChange}
+                                placeholder={t('qualityAnalytics.all', 'Todos')}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
 
             {period === 'custom' && (
                 <div className={styles.customDates}>

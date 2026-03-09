@@ -60,6 +60,7 @@ import PlanejamentoDashboardPage from '../features/planejamento/pages/Planejamen
 import CapacidadeUploadPage from '../features/planejamento/pages/CapacidadeUploadPage';
 import CapacidadeConfigPage from '../features/planejamento/pages/CapacidadeConfigPage';
 import RefugoFormPage from '../features/qualidade/pages/RefugoFormPage';
+import QualidadeDashboardGeralPage from '../features/qualidade/pages/QualidadeDashboardGeralPage';
 import QualidadeDashboardPage from '../features/qualidade/pages/QualidadeDashboardPage';
 import QualidadeConfigPage from '../features/qualidade/pages/QualidadeConfigPage';
 import QualidadeComparativoPage from '../features/qualidade/pages/QualidadeComparativoPage';
@@ -667,10 +668,41 @@ const MainLayout = ({ user }: MainLayoutProps) => {
 
             )}
 
-            {/* Qualidade - novo departamento */}
+            {/* Qualidade - organizado por sub-seções */}
             {
                 perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_config', 'qualidade_desempenho', 'qualidade_comparativo', 'qualidade_retrabalho']) && (
                     <SidebarGroup id="quality" label={t('layout.sections.quality', 'Qualidade')} icon={FiShield}>
+                        {/* ── Visão Geral ── */}
+                        {perm.canView('qualidade_dashboard') && (
+                            <>
+                                <div className={styles.groupSublabel}>{t('nav.qualitySubOverview', 'Visão Geral')}</div>
+                                <NavLink
+                                    to="/qualidade/visao-geral"
+                                    className={({ isActive }) =>
+                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                    }
+                                >
+                                    <LuLayoutDashboard className={styles.navIcon} />
+                                    <span>{t('nav.qualityOverviewDashboard', 'Dashboard Geral')}</span>
+                                </NavLink>
+                            </>
+                        )}
+
+                        {/* ── Refugo / Quarentena ── */}
+                        {perm.canViewAny(['qualidade_dashboard', 'qualidade_lancamento', 'qualidade_comparativo', 'qualidade_desempenho']) && (
+                            <div className={styles.groupSublabel}>{t('nav.qualitySubRefugo', 'Refugo / Quarentena')}</div>
+                        )}
+                        {perm.canView('qualidade_lancamento') && (
+                            <NavLink
+                                to="/qualidade/lancamentos"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiPlusCircle className={styles.navIcon} />
+                                <span>{t('nav.qualityLaunch', 'Lançamentos')}</span>
+                            </NavLink>
+                        )}
                         {perm.canView('qualidade_dashboard') && (
                             <NavLink
                                 to="/qualidade/dashboard"
@@ -678,8 +710,8 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                     isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
                                 }
                             >
-                                <LuLayoutDashboard className={styles.navIcon} />
-                                <span>{t('nav.qualityDashboard', 'Dashboard')}</span>
+                                <FiBarChart2 className={styles.navIcon} />
+                                <span>{t('nav.qualityRefugoQuarentenaDashboard', 'Dashboard Refugo')}</span>
                             </NavLink>
                         )}
                         {perm.canView('qualidade_comparativo') && (
@@ -690,7 +722,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 }
                             >
                                 <FiBarChart2 className={styles.navIcon} />
-                                <span>{t('qualityComparative.title', 'Comparativos')}</span>
+                                <span>{t('nav.qualityComparativo', 'Análise Comparativa')}</span>
                             </NavLink>
                         )}
                         {perm.canView('qualidade_desempenho') && (
@@ -701,19 +733,13 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 }
                             >
                                 <FiUsers className={styles.navIcon} />
-                                <span>{t('qualityIndividual.title', 'Desempenho')}</span>
+                                <span>{t('nav.qualityDesempenho', 'Desempenho Individual')}</span>
                             </NavLink>
                         )}
-                        {perm.canView('qualidade_lancamento') && (
-                            <NavLink
-                                to="/qualidade/lancamentos"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiPlusCircle className={styles.navIcon} />
-                                <span>{t('nav.qualityLaunch', 'Lançamento')}</span>
-                            </NavLink>
+
+                        {/* ── Retrabalho ── */}
+                        {perm.canViewAny(['qualidade_retrabalho']) && (
+                            <div className={styles.groupSublabel}>{t('nav.qualitySubRetrabalho', 'Retrabalho')}</div>
                         )}
                         {perm.canView('qualidade_retrabalho') && (
                             <NavLink
@@ -723,7 +749,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 }
                             >
                                 <FiRefreshCw className={styles.navIcon} />
-                                <span>{t('nav.qualityRetrabalho', 'Retrabalho')}</span>
+                                <span>{t('nav.qualityRetrabalhoLanc', 'Lançamentos')}</span>
                             </NavLink>
                         )}
                         {perm.canView('qualidade_retrabalho') && (
@@ -734,19 +760,24 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 }
                             >
                                 <FiPieChart className={styles.navIcon} />
-                                <span>{t('nav.qualityRetrabalhoAnalise', 'Análise Retrabalho')}</span>
+                                <span>{t('nav.qualityRetrabalhoAnalise', 'Análise de Causas')}</span>
                             </NavLink>
                         )}
+
+                        {/* ── Configurações ── */}
                         {perm.canView('qualidade_config') && (
-                            <NavLink
-                                to="/qualidade/config"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiSettings className={styles.navIcon} />
-                                <span>{t('nav.qualityConfig', 'Configurações')}</span>
-                            </NavLink>
+                            <>
+                                <div className={styles.groupSublabel} />
+                                <NavLink
+                                    to="/qualidade/config"
+                                    className={({ isActive }) =>
+                                        isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                    }
+                                >
+                                    <FiSettings className={styles.navIcon} />
+                                    <span>{t('nav.qualityConfig', 'Configurações')}</span>
+                                </NavLink>
+                            </>
                         )}
                     </SidebarGroup>
                 )
@@ -1167,10 +1198,13 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         element={canAccessPage('planejamento_config', <CapacidadeConfigPage user={user} />)}
                     />
 
-                    {/* Rotas Qualidade */}
                     <Route
                         path="/qualidade/lancamentos"
                         element={canAccessPage('qualidade_lancamento', <RefugoFormPage />)}
+                    />
+                    <Route
+                        path="/qualidade/visao-geral"
+                        element={canAccessPage('qualidade_dashboard', <QualidadeDashboardGeralPage />)}
                     />
                     <Route
                         path="/qualidade/dashboard"

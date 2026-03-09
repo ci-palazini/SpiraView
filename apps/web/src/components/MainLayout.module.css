@@ -126,6 +126,24 @@
   opacity: 1;
 }
 
+/* Sub-labels dentro de grupos (ex: Refugo/Quarentena, Retrabalho) */
+.groupSublabel {
+  padding: var(--spacing-1) var(--spacing-4) var(--spacing-1);
+  margin-top: var(--spacing-2);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-top: 1px solid var(--color-neutral-200);
+  padding-top: var(--spacing-2);
+}
+
+.groupSublabel:first-child {
+  border-top: none;
+  margin-top: 0;
+}
+
 /* Links de navegação */
 .navLink {
   display: flex;
