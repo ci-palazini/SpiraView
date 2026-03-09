@@ -3,6 +3,7 @@ import express, { Router } from 'express';
 import { pool, withTx } from '../../db';
 import { sseBroadcast } from '../../utils/sse';
 import { logger } from '../../logger';
+import { requirePermission } from '../../middlewares/requirePermission';
 
 export const uploadRouter: Router = Router();
 
@@ -687,7 +688,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
  *       200:
  *         description: List of uploads
  */
-uploadRouter.get('/producao/uploads', async (req, res) => {
+uploadRouter.get('/producao/uploads', requirePermission('producao_upload', 'ver'), async (req, res) => {
     try {
         const dataRef = req.query.dataRef as string | undefined;
 
@@ -753,7 +754,7 @@ uploadRouter.get('/producao/uploads/ultimo', async (_req, res) => {
 
 // GET /producao/uploads/historico - Histórico de uploads arquivados (audit trail)
 // IMPORTANTE: Esta rota DEVE vir antes de /producao/uploads/:id para não ser capturada como parâmetro
-uploadRouter.get('/producao/uploads/historico', async (req, res) => {
+uploadRouter.get('/producao/uploads/historico', requirePermission('producao_upload', 'ver'), async (req, res) => {
     try {
         const dataRef = req.query.dataRef as string | undefined;
         const limite = Math.min(parseInt(req.query.limite as string) || 100, 500);
@@ -803,7 +804,7 @@ uploadRouter.get('/producao/uploads/historico', async (req, res) => {
 });
 
 // GET /producao/uploads/:id - Detalhes de um upload específico
-uploadRouter.get('/producao/uploads/:id', async (req, res) => {
+uploadRouter.get('/producao/uploads/:id', requirePermission('producao_upload', 'ver'), async (req, res) => {
     try {
         const id = String(req.params.id);
 
@@ -885,31 +886,8 @@ uploadRouter.get('/producao/uploads/:id', async (req, res) => {
 });
 
 // POST /producao/uploads/:id/ativar - Tornar um upload ativo
-uploadRouter.post('/producao/uploads/:id/ativar', async (req, res) => {
+uploadRouter.post('/producao/uploads/:id/ativar', requirePermission('producao_upload', 'editar'), async (req, res) => {
     try {
-        const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin) {
-            // Buscar permissões do role do usuário
-            const { rows: permRows } = await pool.query<{ permissoes: Record<string, string> }>(
-                `SELECT r.permissoes 
-                 FROM usuarios u
-                 JOIN roles r ON u.role_id = r.id
-                 WHERE u.id = $1
-                 LIMIT 1`,
-                [auth.id]
-            );
-
-            const permissions = permRows[0]?.permissoes || {};
-            const uploadPerm = permissions['producao_upload'];
-
-            if (uploadPerm !== 'editar') {
-                return res.status(403).json({ error: 'Sem permissão.' });
-            }
-        }
-
         const id = String(req.params.id);
 
         // Buscar upload

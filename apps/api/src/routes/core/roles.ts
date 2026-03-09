@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import type { Router as RouterType } from 'express';
 import { pool, withTx } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { requireAuth } from '../../middlewares/requireAuth';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
 
@@ -62,7 +63,7 @@ rolesRouter.get('/pages', (_req: Request, res: Response) => {
 
 // GET /roles/options - Listar roles para dropdowns (não exige permissão de gestão de roles)
 // Usado em páginas como Gerir Utilizadores onde o usuário precisa apenas listar os roles para atribuir
-rolesRouter.get('/options', async (_req: Request, res: Response) => {
+rolesRouter.get('/options', requireAuth, async (_req: Request, res: Response) => {
     try {
         const { rows } = await pool.query(`
             SELECT id, nome

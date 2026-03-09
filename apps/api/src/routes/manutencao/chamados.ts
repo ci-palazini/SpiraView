@@ -64,7 +64,7 @@ const upload = multer({
  *         description: List of tickets
  */
 // ---------- Chamados: contagens para badges (1 query, substitui 4 GETs) ----------
-chamadosRouter.get("/chamados/counts", async (req, res) => {
+chamadosRouter.get("/chamados/counts", requireAnyPermission(['meus_chamados', 'chamados_abertos'], 'ver'), async (req, res) => {
   try {
     const manutentorEmail = req.query.manutentorEmail as string | undefined;
 

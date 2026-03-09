@@ -177,7 +177,7 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
     // senha_hash (opcional)
     let senha_hash: string | null = null;
     if (typeof senha === 'string' && senha.trim().length >= 6) {
-      senha_hash = await bcrypt.hash(senha.trim(), 10);
+      senha_hash = await bcrypt.hash(senha.trim(), 12);
     }
 
     // Buscar role_id a partir do nome do role
@@ -250,7 +250,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
 
     // Reset de senha se informado (min-length enforced by schema)
     if (typeof senha === 'string') {
-      const hash = await bcrypt.hash(senha, 10);
+      const hash = await bcrypt.hash(senha, 12);
       add('senha_hash', hash);
     }
 

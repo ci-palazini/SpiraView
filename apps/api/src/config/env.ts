@@ -49,7 +49,7 @@ type Env = {
   cors: { allowedOrigins: readonly string[] };
   database: {
     connectionString: string;
-    ssl?: { rejectUnauthorized: false };
+    ssl?: { rejectUnauthorized: boolean };
     maxConnections: number;
     idleTimeoutMillis: number;
   };
@@ -183,7 +183,9 @@ function toEnv(raw: RawEnv): Env {
     cors: { allowedOrigins: parseCorsOrigins(raw.CORS_ORIGINS) },
     database: {
       connectionString,
-      ssl: shouldUseSsl(raw, connectionString) ? { rejectUnauthorized: false } : undefined,
+      ssl: shouldUseSsl(raw, connectionString)
+        ? { rejectUnauthorized: raw.NODE_ENV === 'production' }
+        : undefined,
       maxConnections: raw.PGPOOL_MAX ?? 10,
       idleTimeoutMillis: raw.PGPOOL_IDLE_TIMEOUT,
     },

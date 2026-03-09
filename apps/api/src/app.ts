@@ -40,7 +40,27 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Security headers (Helmet)
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "https:"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31_536_000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  frameguard: { action: 'deny' },
+  referrerPolicy: { policy: 'no-referrer' },
+}));
 
 // Gzip compression — reduces response payload size ~60-80%
 app.use(compression());

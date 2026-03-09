@@ -34,6 +34,14 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const meLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 60,
+  message: { error: 'Muitas requisições. Tente novamente em instantes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * @swagger
  * /auth/login:
@@ -174,7 +182,7 @@ authRouter.post('/auth/login', loginLimiter, validateBody(loginSchema), async (r
  *       401:
  *         description: Não autenticado
  */
-authRouter.get('/auth/me', async (req, res) => {
+authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
   try {
     const email = req.user?.email;
     if (!email) {
