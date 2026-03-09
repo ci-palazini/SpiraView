@@ -32,12 +32,22 @@ O módulo de Qualidade gerencia o controle de refugos e quarentena da fábrica, 
 | GET | `/qualidade/analytics/summary` | `qualidade_analitico` (ver) | Resumo: custo total e top responsáveis |
 | GET | `/qualidade/analytics/trends` | `qualidade_analitico` (ver) | Evolução mensal de custos |
 | GET | `/qualidade/analytics/details` | `qualidade_analitico` (ver) | Detalhamento por responsável |
+| GET | `/qualidade/individual/metrics` | `qualidade_desempenho` (ver) | Métricas individuais por responsável (máx 200 registros) |
+
+**Filtros aceitos** (todos opcionais, validados via Zod):
+- `dataInicio`, `dataFim` — formato `YYYY-MM-DD`
+- `origem` — string ou array de strings
+- `responsavel` — string ou array de strings
+- `tipo` — `"INTERNO"` ou `"EXTERNO"`
+- `tipoLancamento` — `"REFUGO"` ou `"QUARENTENA"`
 
 ### Compare
 
 | Método | Rota | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| GET | `/qualidade/compare` | `qualidade_analitico` (ver) | Comparativo entre períodos |
+| GET | `/qualidade/analytics/compare` | `qualidade_analitico` (ver) | Comparativo entre dois períodos |
+
+**Parâmetros obrigatórios**: `dataInicioA`, `dataFimA`, `dataInicioB`, `dataFimB` (formato `YYYY-MM-DD`).
 
 ### Settings (Configurações)
 
@@ -93,7 +103,13 @@ Tabela principal de lançamentos de refugo/quarentena.
 | `origem` | TEXT | Origem (FK nome) |
 | `responsavel_nome` | TEXT | Responsável |
 | `numero_ncr` | TEXT | Número NCR (opcional) |
-| `tipo_lancamento` | TEXT | "REFUGO" ou "QUARENTENA" |
+| `tipo_lancamento` | TEXT | `"REFUGO"` ou `"QUARENTENA"` |
+
+**Indexes de performance** (B-tree, criados em março/2026):
+- `responsavel_nome` — filtro/agrupamento por responsável
+- `tipo_lancamento` — filtro REFUGO/QUARENTENA
+- `(data_ocorrencia DESC, responsavel_nome)` — analytics por responsável no período
+- `(data_ocorrencia DESC, origem)` — analytics por origem no período
 
 ### qualidade_origens
 Cadastro de origens (setores/áreas).
@@ -103,6 +119,21 @@ Cadastro de motivos de defeito.
 
 ### qualidade_responsaveis
 Cadastro de responsáveis por origem.
+
+## Utilitário Compartilhado
+
+**`whereBuilders.ts`** centraliza os filtros SQL de `qualidade_refugos`. Todas as rotas de analytics, compare, individual e refugos usam este utilitário:
+
+```typescript
+import { buildQualidadeWhere, qualidadeFiltrosSchema } from './whereBuilders';
+
+const parsed = qualidadeFiltrosSchema.safeParse(req.query);
+if (!parsed.success) return res.status(400).json({ error: 'Parâmetros inválidos.', details: parsed.error.flatten().fieldErrors });
+
+const params: unknown[] = [];
+const where = buildQualidadeWhere(params, parsed.data);
+// Para alias de tabela: buildQualidadeWhere(params, parsed.data, { tableAlias: 'qr' })
+```
 
 ## Fluxos Principais
 

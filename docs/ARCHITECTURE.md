@@ -1,6 +1,6 @@
 # Arquitetura da Plataforma TPM Manutenção
 
-> **Última atualização**: Fevereiro 2026
+> **Última atualização**: Março 2026
 
 ## 1. Visão Geral
 
@@ -233,7 +233,19 @@ formatDateTimeShort(value) // DD/MM/AAAA, HH:MM
 
 ---
 
-## 9. Ambientes
+## 9. Segurança
+
+| Camada | Implementação |
+|--------|---------------|
+| **Headers HTTP** | Helmet com CSP, HSTS (1 ano), `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` |
+| **Rate Limiting** | `express-rate-limit` em rotas sensíveis (login, `/auth/me`) |
+| **Hashing** | bcrypt com 12 rounds (força mínima recomendada) |
+| **SSL** | `rejectUnauthorized: true` em produção; desabilitado apenas em dev |
+| **Permissões** | Todas as rotas autenticadas exigem `requirePermission` — nenhuma rota exposta sem verificação |
+
+---
+
+## 10. Ambientes
 
 | Ambiente | URL | Uso |
 |----------|-----|-----|

@@ -333,8 +333,21 @@ Registros de não-conformidades e refugos.
 | `setor` | VARCHAR | Setor responsável |
 | `responsavel_nome` | VARCHAR | Nome do responsável (texto) |
 | `numero_ncr` | VARCHAR | Número da NCR |
+| `tipo_lancamento` | TEXT | `"REFUGO"` ou `"QUARENTENA"` |
 | `criado_por_id` | UUID | FK → usuarios.id |
 | `created_at` | TIMESTAMP | Data de lançamento |
+
+**Indexes em `qualidade_refugos`** (criados em março/2026):
+
+| Index | Colunas | Tipo | Uso |
+|-------|---------|------|-----|
+| `idx_qualidade_refugos_data` | `data_ocorrencia` | B-tree | Filtro e ordenação por data (pré-existente) |
+| `idx_qualidade_refugos_setor` | `origem` | B-tree | Filtro por origem/setor (pré-existente) |
+| `idx_qualidade_refugos_codigo_item` | `codigo_item` | B-tree | Busca por código (pré-existente) |
+| `idx_qualidade_refugos_responsavel` | `responsavel_nome` | B-tree | Filtro e agrupamento por responsável |
+| `idx_qualidade_refugos_tipo_lancamento` | `tipo_lancamento` | B-tree | Filtro REFUGO/QUARENTENA |
+| `idx_qualidade_refugos_data_responsavel` | `(data_ocorrencia DESC, responsavel_nome)` | B-tree | Analytics por responsável no período |
+| `idx_qualidade_refugos_data_origem` | `(data_ocorrencia DESC, origem)` | B-tree | Analytics por origem no período |
 
 #### `qualidade_origens`
 Cadastro de origens (setores/áreas).
