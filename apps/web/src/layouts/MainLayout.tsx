@@ -69,7 +69,7 @@ import RetrabalhoPage from '../features/qualidade/pages/RetrabalhoPage';
 import RetrabalhoAnalisePage from '../features/qualidade/pages/RetrabalhoAnalisePage';
 import LogisticaDashboardPage from '../features/logistica/pages/LogisticaDashboardPage';
 import ConfiguracaoNotificacoesPage from '../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
-import SafetyUploadPage from '../features/configuracoes/pages/SafetyUploadPage';
+import SafetyUploadPage from '../features/ehs/pages/SafetyUploadPage';
 import TvSettingsPage from '../features/configuracoes/pages/TvSettingsPage';
 import PdcaDashboardPage from '../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../features/pdca/pages/PdcaPlanosPage';

@@ -44,7 +44,7 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
 
     const fetchHistory = useCallback(async () => {
         try {
-            const data = await http.get<UploadHistory[]>('/safety/uploads');
+            const data = await http.get<UploadHistory[]>('/ehs/uploads');
             setHistory(data);
         } catch {
             // ignore
@@ -107,11 +107,11 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
         if (!rows.length) return;
         setUploading(true);
         try {
-            const res = await http.post<{ ok: boolean; resumo: UploadResumo }>('/safety/upload', {
+            const res = await http.post<{ ok: boolean; resumo: UploadResumo }>('/ehs/upload', {
                 data: { nomeArquivo: file?.name || 'upload.csv', inputRows: rows },
             });
             setResult(res);
-            
+
             if (res.ok) {
                 toast.success(t('safety_upload.success'));
                 setFile(null);

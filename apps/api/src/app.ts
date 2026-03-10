@@ -22,7 +22,7 @@ import { melhoriaContinuaRouter } from './routes/melhoria-continua';
 import { logisticaRouter } from './routes/logistica';
 import { pdcaRouter } from './routes/pdca';
 import { reuniaoDiariaRouter } from './routes/reuniao-diaria';
-import { safetyRouter } from './routes/safety';
+import { ehsRouter } from './routes/ehs';
 
 export const app: Express = express(); // 👈 evita o TS2742
 
@@ -119,7 +119,7 @@ app.use(logisticaRouter);     // Departamento Logística
 app.use(pdcaRouter);          // Módulo PDCA
 app.use('/melhoria-continua', melhoriaContinuaRouter); // Melhoria Contínua
 app.use(reuniaoDiariaRouter); // Reunião Diária SQDCP
-app.use(safetyRouter);        // Segurança (BBS)
+app.use(ehsRouter);           // EHS - Segurança (BBS)
 
 // Global error handler — captura erros não tratados
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

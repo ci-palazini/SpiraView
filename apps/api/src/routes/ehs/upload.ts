@@ -4,7 +4,7 @@ import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
 
-export const uploadRouter: Router = Router();
+export const ehsUploadRouter: Router = Router();
 
 // ===== Helpers =====
 
@@ -130,10 +130,10 @@ function detectCol(keys: string[]): Record<string, string | null> {
 // ===== Endpoints =====
 
 /**
- * POST /safety/upload
+ * POST /ehs/upload
  * Recebe linhas parseadas do CSV e insere/atualiza observações BBS.
  */
-uploadRouter.post('/safety/upload', requirePermission('safety', 'editar'), async (req, res) => {
+ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async (req, res) => {
     const client = await pool.connect();
     try {
         const { nomeArquivo, inputRows } = req.body as {
@@ -273,9 +273,9 @@ uploadRouter.post('/safety/upload', requirePermission('safety', 'editar'), async
             await client.query('DELETE FROM safety_observacoes_ksbs WHERE observacao_id = $1', [
                 obsId,
             ]);
-            
+
             if (ksbs.length > 0) {
-                const ksbValues = ksbs.map((_, i) => 
+                const ksbValues = ksbs.map((_, i) =>
                     `($1, $${i * 2 + 2}, $${i * 2 + 3})`
                 ).join(', ');
                 const ksbParams = [obsId, ...ksbs.flatMap(k => [k.categoria, k.resposta])];
@@ -306,8 +306,8 @@ uploadRouter.post('/safety/upload', requirePermission('safety', 'editar'), async
             },
         });
     } catch (e: unknown) {
-        await client.query('ROLLBACK').catch(() => {});
-        logger.error({ err: e }, '[safety/upload] Erro ao processar upload');
+        await client.query('ROLLBACK').catch(() => { });
+        logger.error({ err: e }, '[ehs/upload] Erro ao processar upload');
         res.status(500).json({ error: 'Erro interno ao processar upload de segurança.' });
     } finally {
         client.release();
@@ -315,10 +315,10 @@ uploadRouter.post('/safety/upload', requirePermission('safety', 'editar'), async
 });
 
 /**
- * GET /safety/uploads
+ * GET /ehs/uploads
  * Lista histórico de uploads de segurança.
  */
-uploadRouter.get('/safety/uploads', requirePermission('safety', 'ver'), async (_req, res) => {
+ehsUploadRouter.get('/ehs/uploads', requirePermission('safety', 'ver'), async (_req, res) => {
     try {
         const result = await pool.query(
             `SELECT su.id, su.nome_arquivo, su.total_linhas, su.registros_novos,
@@ -331,7 +331,7 @@ uploadRouter.get('/safety/uploads', requirePermission('safety', 'ver'), async (_
         );
         res.json(result.rows);
     } catch (e: unknown) {
-        logger.error({ err: e }, '[safety/uploads] Erro ao listar uploads');
+        logger.error({ err: e }, '[ehs/uploads] Erro ao listar uploads');
         res.status(500).json({ error: 'Erro interno.' });
     }
 });
