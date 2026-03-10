@@ -192,7 +192,7 @@ princ1Router.get(
             const latestUpload = await pool.query(
                 `SELECT u.id, u.nome_arquivo, u.criado_em, u.upload_por_email, usr.nome as upload_por_nome
                  FROM logistica_princ1_uploads u
-                 LEFT JOIN usuarios usr ON usr.email = u.upload_por_email
+                 LEFT JOIN usuarios usr ON LOWER(usr.email) = LOWER(u.upload_por_email)
                  WHERE u.ativo = true
                  ORDER BY u.criado_em DESC LIMIT 1`
             );

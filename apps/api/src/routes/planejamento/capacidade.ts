@@ -579,7 +579,7 @@ capacidadeRouter.get(
                     COALESCE(u.nome, pu.upload_por_email) AS "uploadPorNome",
                     pu.criado_em AS "criadoEm"
                 FROM planejamento_uploads pu
-                LEFT JOIN usuarios u ON u.email = pu.upload_por_email
+                LEFT JOIN usuarios u ON LOWER(u.email) = LOWER(pu.upload_por_email)
                 ORDER BY pu.criado_em DESC
                 LIMIT 20
             `);
