@@ -7,6 +7,7 @@ import { FiPlus, FiEdit, FiTrash2, FiBarChart2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '../../../shared/components/Skeleton';
+import PageHeader from '../../../shared/components/PageHeader';
 import {
     listarUsuarios,
     criarUsuario,
@@ -276,23 +277,17 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
     return (
         <>
-            {/* Header padrão (cardzinho) */}
-            <header className={styles.pageHeader}>
-                <div className={styles.pageHeaderLeft}>
-                    <h1 className={styles.pageTitle}>{t('users.title')}</h1>
-                    <p className={styles.subtitle}>
-                        {t(
-                            'users.subtitle',
-                            'Gerencie os usuários do sistema, seus papéis e credenciais internas.'
-                        )}
-                    </p>
-                </div>
-
-                <Button size="sm" onClick={abrirModalCriacao}>
-                    <FiPlus />
-                    {t('users.actions.create')}
-                </Button>
-            </header>
+            {/* Header padrão */}
+            <PageHeader
+                title={t('users.title')}
+                subtitle={t('users.subtitle', 'Gerencie os usuários do sistema, seus papéis e credenciais internas.')}
+                actions={
+                    <Button size="sm" onClick={abrirModalCriacao}>
+                        <FiPlus />
+                        {t('users.actions.create')}
+                    </Button>
+                }
+            />
 
             {/* Card principal de conteúdo */}
             <div className={styles.userListContainer}>

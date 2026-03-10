@@ -1,39 +1,3 @@
-/* GerirUtilizadoresPage.module.css - Notion-style */
-
-/* ==================== PAGE HEADER ==================== */
-.pageHeader {
-  margin: var(--spacing-4);
-  margin-bottom: 0;
-  padding: var(--spacing-5);
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
-  border: 1px solid var(--color-neutral-200);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-}
-
-.pageHeaderLeft {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-neutral-900);
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--color-neutral-500);
-  font-size: var(--font-size-sm);
-}
-
 /* ==================== BUTTON ==================== */
 .button {
   padding: var(--spacing-2) var(--spacing-4);

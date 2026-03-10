@@ -1,20 +1,3 @@
-/* Header da página em card branco (padrão das outras telas) */
-.pageHeader {
-  margin: 16px;
-  margin-bottom: 0;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-}
-
 /* Mesmo container branco usado em MeusChamados */
 .listContainer {
   background: #fff;

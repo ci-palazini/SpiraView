@@ -7,6 +7,7 @@ import { getMaquinas, criarChamado, listarChamadosPorMaquina } from "../../../..
 import styles from "./AbrirChamadoManutentor.module.css";
 import type { User } from "../../../../App";
 import usePermissions from "../../../../hooks/usePermissions";
+import PageHeader from "../../../../shared/components/PageHeader";
 
 interface Maquina {
     id: string;
@@ -207,9 +208,9 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
     if (!podeAbrir) {
         return (
             <>
-                <header className={styles.pageHeader}>
-                    <h1 className={styles.pageTitle}>{t("techOpen.header.title")}</h1>
-                </header>
+                <PageHeader
+                    title={t("techOpen.header.title")}
+                />
                 <div className={styles.listContainer}>
                     <p className={styles.helper}>{t("techOpen.noAccess")}</p>
                 </div>
@@ -275,9 +276,9 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
                 </div>
             )}
 
-            <header className={styles.pageHeader}>
-                <h1 className={styles.pageTitle}>{t("techOpen.header.title")}</h1>
-            </header>
+            <PageHeader
+                title={t("techOpen.header.title")}
+            />
 
             <div className={styles.listContainer}>
                 <form onSubmit={handleSubmit} className={styles.form}>
