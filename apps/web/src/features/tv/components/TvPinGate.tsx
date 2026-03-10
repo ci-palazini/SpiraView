@@ -11,6 +11,11 @@ const PIN_LENGTH = 4;
 
 function getTvToken(): string | null {
     try {
+        const userRaw = localStorage.getItem('usuario');
+        if (userRaw) {
+            const userObj = JSON.parse(userRaw);
+            if (userObj?.token) return String(userObj.token).trim();
+        }
         return sessionStorage.getItem(TV_TOKEN_KEY);
     } catch {
         return null;
