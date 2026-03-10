@@ -142,6 +142,24 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     useSSE('chamados', refreshChamadoCounts);
     useSSE('agendamentos', refreshSoonDue);
 
+    // Efeito para centralizar o item expandido na sidebar
+    useEffect(() => {
+        const openedGroupId = Object.entries(openGroups).find(([_, isOpen]) => isOpen)?.[0];
+        if (openedGroupId) {
+            // Pequeno delay para garantir que o conteúdo expandido já foi renderizado
+            const timer = setTimeout(() => {
+                const element = document.getElementById(`sidebar-group-${openedGroupId}`);
+                if (element) {
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [openGroups]);
+
     const getDashboardTitle = (): string => {
         const roleNorm = (user?.role || '').toLowerCase();
         let title = user?.role || '—';

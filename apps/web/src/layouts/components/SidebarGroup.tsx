@@ -20,7 +20,7 @@ const SidebarGroup = ({
     children
 }: SidebarGroupProps) => {
     return (
-        <div className={styles.sidebarGroup}>
+        <div id={`sidebar-group-${id}`} className={styles.sidebarGroup}>
             <button
                 className={`${styles.groupHeader} ${isOpen ? styles.expanded : ''}`}
                 onClick={(e) => {
