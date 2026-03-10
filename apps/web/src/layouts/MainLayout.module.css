@@ -88,10 +88,30 @@
   transition: background var(--transition-fast);
   margin-top: var(--spacing-2);
   text-align: left;
+  position: relative;
 }
 
 .groupHeader:hover {
   background: var(--color-neutral-100);
+}
+
+.groupHeader.expanded {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.05);
+}
+
+.groupHeader.expanded::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--spacing-3));
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: var(--color-primary-500);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
 }
 
 .groupHeaderLabel {
@@ -122,8 +142,17 @@
 }
 
 .groupContent.open {
-  max-height: 800px;
+  max-height: 2000px;
+  /* Increased for very long menus */
   opacity: 1;
+  border-left: 2px solid var(--color-neutral-100);
+  margin-left: var(--spacing-4);
+  padding-left: var(--spacing-1);
+  transition: all 0.3s ease-in-out;
+}
+
+.groupContent.open:hover {
+  border-left-color: var(--color-neutral-200);
 }
 
 /* Sub-labels dentro de grupos (ex: Refugo/Quarentena, Retrabalho) */
@@ -174,7 +203,7 @@
 .activeLink::before {
   content: '';
   position: absolute;
-  left: 0;
+  left: calc(-1 * var(--spacing-3));
   top: 50%;
   transform: translateY(-50%);
   width: 4px;
