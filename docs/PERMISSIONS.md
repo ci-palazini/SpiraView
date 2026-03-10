@@ -101,6 +101,8 @@ const MyComponent = () => {
 
 | PageKey | Módulo | Descrição | Níveis Usados |
 |---------|--------|-----------|---------------|
+| `inicio` | Shared | Acesso à tela de apresentação / Dashboard principal | `ver`, `editar` |
+| `reuniao_diaria` | Shared | Permissão de visualização do dashboard DMS | `ver` |
 | `maquinas` | Shared | Cadastro de máquinas/ativos | `ver`, `editar` |
 | `maquinas_config` | Shared | Configuração global de máquinas (escopos, setor, hierarquia) | `ver`, `editar` |
 
@@ -108,10 +110,16 @@ const MyComponent = () => {
 
 | PageKey | Módulo | Descrição | Níveis Usados |
 |---------|--------|-----------|---------------|
+| `abrir_chamado` | Manutenção | Permissão específica para registrar um chamado | `ver`, `editar` |
 | `meus_chamados` | Manutenção | Chamados do próprio usuário (operador) | `ver`, `editar` |
 | `chamados_abertos` | Manutenção | Todos os chamados (visão gerencial) | `ver`, `editar` |
+| `chamados_gestao` | Manutenção | Visão de indicadores e relatórios de chamados | `ver`, `editar` |
+| `historico_chamados` | Manutenção | Consulta de chamados já encerrados | `ver`, `editar` |
+| `estoque` | Manutenção | Acesso à área de suprimentos | `ver`, `editar` |
+| `movimentacoes` | Manutenção | Logs de entrada/saída de peças | `ver`, `editar` |
+| `calendario` | Manutenção | Módulo de Manutenções Preventivas e calendário | `ver`, `editar` |
 | `pecas` | Manutenção | Gestão de peças de reposição | `ver`, `editar` |
-| `checklists` | Manutenção | Checklists diários | `ver`, `editar` |
+| `checklists_diarios` | Manutenção | Checklists diários | `ver`, `editar` |
 | `checklists_pendencias` | Manutenção | Justificativa de pendências de checklist | `ver`, `editar` |
 
 ### Produção
@@ -121,6 +129,7 @@ const MyComponent = () => {
 | `producao_dashboard` | Produção | Dashboard de produção | `ver` |
 | `producao_config` | Produção | Configurações (aliases, metas) | `ver`, `editar` |
 | `producao_upload` | Produção | Upload de arquivos de produção | `editar` |
+| `producao_colaboradores` | Produção | Gestão de colaboradores e metas individuais | `ver`, `editar` |
 
 ### Planejamento
 
@@ -139,13 +148,8 @@ const MyComponent = () => {
 | `qualidade_lancamento` | Qualidade | Lançamento de novos refugos | `ver`, `editar` |
 | `qualidade_analitico` | Qualidade | Análise detalhada de custos e tendências | `ver` |
 | `qualidade_desempenho` | Qualidade | Análise de desempenho individual | `ver` |
+| `qualidade_comparativo` | Qualidade | Comparativo temporal e de turnos | `ver` |
 | `qualidade_config` | Qualidade | Configurações do módulo (origens, motivos, responsáveis) | `ver`, `editar` |
-
-### Produção (Adicional)
-
-| PageKey | Módulo | Descrição | Níveis Usados |
-|---------|--------|-----------|---------------|
-| `producao_colaboradores` | Produção | Gestão de colaboradores e metas individuais | `ver`, `editar` |
 
 ### Logística
 
@@ -160,6 +164,8 @@ const MyComponent = () => {
 |---------|--------|-----------|---------------|
 | `pdca_dashboard` | PDCA | Dashboard consolidado do PDCA | `ver` |
 | `pdca_planos` | PDCA | Gestão de planos de ação e causas | `ver`, `editar` |
+| `causas_raiz` | PDCA | Cadastro matriz de causas | `ver`, `editar` |
+| `analise_falhas` | PDCA | Relatório de Análises 5 Porquês | `ver`, `editar` |
 
 ### Melhoria Contínua
 

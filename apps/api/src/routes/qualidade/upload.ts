@@ -9,7 +9,7 @@ export const uploadRouter: Router = Router();
  * POST /qualidade/refugos/upload
  * Recebe array de refugos já parseados do Excel
  */
-uploadRouter.post('/qualidade/refugos/upload', requirePermission('qualidade', 'editar'), async (req, res) => {
+uploadRouter.post('/qualidade/refugos/upload', requirePermission('qualidade_lancamento', 'editar'), async (req, res) => {
     try {
         const { items } = req.body;
         const auth = (req as any).user || {};
