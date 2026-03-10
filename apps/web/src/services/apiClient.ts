@@ -1225,6 +1225,58 @@ export async function saveLogisticaMeta(mes: number, ano: number, meta_financeir
     return http.put<LogisticaMeta>(`/logistica/metas/${mes}/${ano}`, { data: { meta_financeira }, auth });
 }
 
+// ===== LOGÍSTICA — NOTAS DE EMBARQUE (PAINEL) =====
+
+export interface NotaEmbarque {
+    id: string;
+    upload_id: string;
+    ordem_venda: string;
+    nome_cliente: string;
+    transportadora: string;
+    nota_fiscal: string;
+    valor_net: number;
+    peso_bruto: number;
+    qtd_volume: number;
+    data_emissao: string;
+    tipo_operacao: string;
+    condicoes_entrega: string;
+    tipo_frete: string;
+    valor_moeda: number;
+    dias_atraso: number;
+    uploaded_at: string;
+    uploaded_by: string | null;
+}
+
+export interface NotasEmbarqueUploadResult {
+    uploadId: string;
+    inserted: number;
+    errors: { linha: number; erro: string }[];
+    message: string;
+}
+
+export interface NotasEmbarqueResponse {
+    items: NotaEmbarque[];
+    uploadInfo: {
+        uploadId: string;
+        uploadedAt: string;
+        uploadedBy: string | null;
+        uploaderName: string | null;
+        totalRows: number;
+    } | null;
+}
+
+export async function uploadNotasEmbarque(rows: Record<string, unknown>[], auth: AuthParams = {}): Promise<NotasEmbarqueUploadResult> {
+    return http.post<NotasEmbarqueUploadResult>('/logistica/notas-embarque/upload', { data: { rows }, auth });
+}
+
+export async function getNotasEmbarque(auth: AuthParams = {}): Promise<NotasEmbarqueResponse> {
+    return http.get<NotasEmbarqueResponse>('/logistica/notas-embarque', { auth });
+}
+
+export async function deleteNotasEmbarque(uploadId: string, auth: AuthParams = {}): Promise<{ deleted: number }> {
+    return http.delete<{ deleted: number }>(`/logistica/notas-embarque/${uploadId}`, { auth });
+}
+
 // ---------- Melhoria Contínua - Kaizen ----------
 export async function listarKaizens(
     params: { maquinaId?: string; status?: string; page?: number; limit?: number } = {},

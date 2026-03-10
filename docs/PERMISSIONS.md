@@ -157,6 +157,7 @@ const MyComponent = () => {
 |---------|--------|-----------|---------------|
 | `logistica_dashboard` | Logística | Dashboard de logística | `ver` |
 | `logistica_kpis` | Logística | Gerenciamento de indicadores/metas | `ver`, `editar` |
+| `logistica_painel` | Logística | Painel de notas de embarque | `ver`, `editar` |
 
 ### PDCA
 

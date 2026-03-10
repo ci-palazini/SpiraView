@@ -5,12 +5,12 @@ import { FiLock, FiUnlock } from 'react-icons/fi';
 import PageHeader from '../../../shared/components/PageHeader';
 import { Button, Input } from '../../../shared/components';
 import usePermissions from '../../../hooks/usePermissions';
-import { getTvConfig, setTvPin, deleteTvPin } from '../../../services/apiClient';
+import { getTvConfig, setTvPin, deleteTvPin, type NivelPermissao } from '../../../services/apiClient';
 import Skeleton from '../../../shared/components/Skeleton';
 import styles from './TvSettingsPage.module.css';
 
 interface TvSettingsPageProps {
-    user: { role?: string; email?: string; permissoes?: Record<string, string> };
+    user: { role?: string; email?: string; permissoes?: Record<string, NivelPermissao> };
 }
 
 export default function TvSettingsPage({ user }: TvSettingsPageProps) {

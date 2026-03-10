@@ -526,28 +526,49 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
             }
 
             {/* Logística - novo departamento */}
-            {
-                perm.canViewAny(['logistica_dashboard']) && (
-                    <SidebarGroup
-                        id="logistics"
-                        label={t('layout.sections.logistics', 'Logística')}
-                        icon={FiPackage}
-                        isOpen={openGroups.logistics}
-                        onToggle={toggleGroup}
-                    >
-                        {perm.canView('logistica_dashboard') && (
-                            <NavLink
-                                to="/logistica/dashboard"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <LuLayoutDashboard className={styles.navIcon} />
-                                <span>{t('nav.logisticsDashboard', 'Dashboard')}</span>
-                            </NavLink>
-                        )}
-                    </SidebarGroup>
-                )
+            {perm.canViewAny(['logistica_dashboard', 'logistica_painel']) && (
+                <SidebarGroup
+                    id="logistics"
+                    label={t('layout.sections.logistics', 'Logística')}
+                    icon={FiPackage}
+                    isOpen={openGroups.logistics}
+                    onToggle={toggleGroup}
+                >
+                    {perm.canView('logistica_dashboard') && (
+                        <NavLink
+                            to="/logistica/dashboard"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <LuLayoutDashboard className={styles.navIcon} />
+                            <span>{t('nav.logisticsDashboard', 'Dashboard')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canView('logistica_painel') && (
+                        <NavLink
+                            to="/logistica/painel"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiFileText className={styles.navIcon} />
+                            <span>{t('nav.logisticsPainel', 'Painel Logístico')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canEdit('logistica_painel') && (
+                        <NavLink
+                            to="/logistica/notas-upload"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUploadCloud className={styles.navIcon} />
+                            <span>{t('nav.logisticsPainelUpload', 'Upload Notas')}</span>
+                        </NavLink>
+                    )}
+                </SidebarGroup>
+            )
             }
 
             {/* PDCA - Melhoria Contínua (admin bypass via role==='admin' in usePermissions) */}
@@ -704,7 +725,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                                 <span>{t('nav.machinesConfig', 'Config. Máquinas')}</span>
                             </NavLink>
                         )}
-                        {perm.canView('roles') && (
+                        {perm.canView('tv_config') && (
                             <NavLink
                                 to="/configuracoes/tv"
                                 className={({ isActive }) =>

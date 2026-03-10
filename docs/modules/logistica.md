@@ -96,5 +96,56 @@ Apontamentos diários de logística.
 
 ## Links Relacionados
 
-- [Schema](../DATABASE.md) - Tabelas `logistica_metas`, `logistica_kpis_diario`
-- [Permissões](../PERMISSIONS.md) - `logistica_dashboard`, `logistica_kpis`
+- [Schema](../DATABASE.md) - Tabelas `logistica_metas`, `logistica_kpis_diario`, `logistica_notas_embarque`
+- [Permissões](../PERMISSIONS.md) - `logistica_dashboard`, `logistica_kpis`, `logistica_painel`
+
+---
+
+## Painel Logístico (Notas de Embarque)
+
+Painel de gestão de notas fiscais de embarque com foco em análise de atrasos. Dados importados via upload de CSV (`;`-delimited).
+
+### Rotas API (Painel)
+
+**Arquivo**: `apps/api/src/routes/logistica/painel.ts`
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| POST | `/logistica/notas-embarque/upload` | `logistica_painel` (editar) | Upload CSV (JSON parseado pelo frontend) |
+| GET | `/logistica/notas-embarque` | `logistica_painel` (ver) | Lista notas do último upload |
+| DELETE | `/logistica/notas-embarque/:uploadId` | `logistica_painel` (editar) | Remove upload e notas |
+
+### Páginas Frontend (Painel)
+
+| Página | Arquivo | Rota | Permissão |
+|--------|---------|------|-----------|
+| **Painel Logístico** | `PainelLogisticoPage.tsx` | `/logistica/painel` | `logistica_painel` (ver) |
+| **Upload Notas** | `PainelUploadPage.tsx` | `/logistica/painel/upload` | `logistica_painel` (editar) |
+
+### Permissão
+
+| PageKey | Descrição | Níveis |
+|---------|-----------|--------|
+| `logistica_painel` | Painel de notas de embarque | `ver`, `editar` |
+
+### Entidade: `logistica_notas_embarque`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `upload_id` | UUID | Agrupa linhas de um mesmo upload |
+| `ordem_venda` | TEXT | Código da OV |
+| `nome_cliente` | TEXT | Nome do cliente |
+| `transportadora` | TEXT | Transportadora |
+| `nota_fiscal` | TEXT | Número da NF |
+| `valor_net` | DECIMAL(15,2) | Valor NET |
+| `peso_bruto` | DECIMAL(12,2) | Peso bruto (kg) |
+| `qtd_volume` | INTEGER | Quantidade de volumes |
+| `data_emissao` | DATE | Data de emissão |
+| `tipo_operacao` | TEXT | Tipo de operação de venda |
+| `condicoes_entrega` | TEXT | Condições de entrega |
+| `tipo_frete` | TEXT | Tipo de frete |
+| `valor_moeda` | DECIMAL(15,2) | Valor na moeda |
+| `dias_atraso` | INTEGER | Dias em atraso |
+| `uploaded_at` | TIMESTAMPTZ | Data/hora do upload |
+| `uploaded_by` | UUID | FK → usuarios.id |

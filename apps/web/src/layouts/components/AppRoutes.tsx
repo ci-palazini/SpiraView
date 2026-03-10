@@ -38,6 +38,8 @@ import QualidadeDesempenhoPage from '../../features/qualidade/pages/QualidadeDes
 import RetrabalhoPage from '../../features/qualidade/pages/RetrabalhoPage';
 import RetrabalhoAnalisePage from '../../features/qualidade/pages/RetrabalhoAnalisePage';
 import LogisticaDashboardPage from '../../features/logistica/pages/LogisticaDashboardPage';
+import PainelLogisticoPage from '../../features/logistica/pages/PainelLogisticoPage';
+import PainelUploadPage from '../../features/logistica/pages/PainelUploadPage';
 import ConfiguracaoNotificacoesPage from '../../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../../features/ehs/pages/SafetyUploadPage';
 import TvSettingsPage from '../../features/configuracoes/pages/TvSettingsPage';
@@ -168,7 +170,7 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
 
             <Route
                 path="/configuracoes/tv"
-                element={<TvSettingsPage user={user} />}
+                element={canAccessPage('tv_config', <TvSettingsPage user={user} />)}
             />
 
             <Route
@@ -252,6 +254,14 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/logistica/dashboard"
                 element={canAccessPage('logistica_dashboard', <LogisticaDashboardPage />)}
+            />
+            <Route
+                path="/logistica/painel"
+                element={canAccessPage('logistica_painel', <PainelLogisticoPage />)}
+            />
+            <Route
+                path="/logistica/notas-upload"
+                element={perm.canEdit('logistica_painel') ? <PainelUploadPage /> : <Navigate to="/" replace />}
             />
 
             {/* Rotas PDCA */}

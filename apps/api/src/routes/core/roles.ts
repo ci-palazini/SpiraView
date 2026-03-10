@@ -13,6 +13,7 @@ const rolesRouter: RouterType = Router();
 const PAGINAS_DISPONIVEIS = [
     // Geral
     { key: 'inicio', nome: 'Início / Dashboard', grupo: 'Geral' },
+    { key: 'reuniao_diaria', nome: 'Reunião Diária SQDCP', grupo: 'Geral' },
     // Manutenção
     { key: 'chamados_abertos', nome: 'Chamados em Aberto', grupo: 'Manutenção' },
     { key: 'historico_chamados', nome: 'Histórico de Chamados', grupo: 'Manutenção' },
@@ -43,17 +44,23 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'qualidade_lancamento', nome: 'Lançamento de Refugo', grupo: 'Qualidade' },
     { key: 'qualidade_config', nome: 'Configurações de Qualidade', grupo: 'Qualidade' },
     { key: 'qualidade_retrabalho', nome: 'Retrabalho', grupo: 'Qualidade' },
+    { key: 'qualidade_analitico', nome: 'Análise Qualidade', grupo: 'Qualidade' },
     // Logística
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
+    { key: 'logistica_painel', nome: 'Painel Logístico', grupo: 'Logística' },
     // PDCA
     { key: 'pdca_dashboard', nome: 'Dashboard PDCA', grupo: 'PDCA' },
     { key: 'pdca_planos', nome: 'Planos de Ação', grupo: 'PDCA' },
     // Melhoria Contínua
     { key: 'melhoria_continua', nome: 'Kaizens & Kamishibai', grupo: 'Melhoria Contínua' },
+    // EHS
+    { key: 'safety', nome: 'EHS / Segurança', grupo: 'EHS' },
     // Configurações
     { key: 'usuarios', nome: 'Gestão de Usuários', grupo: 'Configurações' },
     { key: 'roles', nome: 'Gestão de Níveis de Acesso', grupo: 'Configurações' },
     { key: 'maquinas_config', nome: 'Configuração Global de Máquinas', grupo: 'Configurações' },
+    { key: 'notificacoes_config', nome: 'Notificações', grupo: 'Configurações' },
+    { key: 'tv_config', nome: 'Modo TV', grupo: 'Configurações' },
 ];
 
 // GET /roles/pages - Listar páginas disponíveis para permissões
