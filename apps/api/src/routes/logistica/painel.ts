@@ -54,6 +54,14 @@ function parsePtBrNumber(raw: unknown): number {
  */
 function parseDate(raw: unknown): string | null {
     if (!raw) return null;
+
+    // Se for número (provavelmente data serial do Excel)
+    if (typeof raw === 'number') {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const dt = new Date(excelEpoch.getTime() + raw * 86400000);
+        return dt.toISOString().substring(0, 10);
+    }
+
     const s = String(raw).trim();
     // DD/MM/YYYY
     const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -63,7 +71,7 @@ function parseDate(raw: unknown): string | null {
         return `${m[3]}-${mm}-${dd}`;
     }
     // Already YYYY-MM-DD?
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2}(\s|T)?/.test(s)) return s.substring(0, 10);
     return null;
 }
 

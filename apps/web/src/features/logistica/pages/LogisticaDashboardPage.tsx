@@ -9,8 +9,8 @@ const LogisticaDashboardPage = () => {
     return (
         <div className={styles.container}>
             <PageHeader
-                title={t('logistics.dashboardTitle')}
-                subtitle={t('logistics.dashboardSubtitle')}
+                title={t('logistics.dashboardTitle', 'Faturamento')}
+                subtitle={t('logistics.dashboardSubtitle', 'Acompanhamento diário de faturamento')}
             />
 
             <div className={styles.content}>

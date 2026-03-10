@@ -40,6 +40,8 @@ import RetrabalhoAnalisePage from '../../features/qualidade/pages/RetrabalhoAnal
 import LogisticaDashboardPage from '../../features/logistica/pages/LogisticaDashboardPage';
 import PainelLogisticoPage from '../../features/logistica/pages/PainelLogisticoPage';
 import PainelUploadPage from '../../features/logistica/pages/PainelUploadPage';
+import LogisticaPrinc1DashboardPage from '../../features/logistica/pages/LogisticaPrinc1DashboardPage';
+import LogisticaPrinc1UploadPage from '../../features/logistica/pages/LogisticaPrinc1UploadPage';
 import ConfiguracaoNotificacoesPage from '../../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../../features/ehs/pages/SafetyUploadPage';
 import TvSettingsPage from '../../features/configuracoes/pages/TvSettingsPage';
@@ -262,6 +264,14 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/logistica/notas-upload"
                 element={perm.canEdit('logistica_painel') ? <PainelUploadPage /> : <Navigate to="/" replace />}
+            />
+            <Route
+                path="/logistica/princ1/dashboard"
+                element={canAccessPage('logistica_princ1', <LogisticaPrinc1DashboardPage />)}
+            />
+            <Route
+                path="/logistica/princ1/upload"
+                element={canAccessPage('logistica_princ1', <LogisticaPrinc1UploadPage />)}
             />
 
             {/* Rotas PDCA */}

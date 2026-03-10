@@ -37,6 +37,14 @@
     "qualitySubOverview": "Visão Geral",
     "qualitySubRefugo": "Refugo / Quarentena",
     "qualitySubRetrabalho": "Retrabalho",
+    "logisticsSubOverview": "Visão Geral",
+    "logisticsSubShipping": "Notas de Embarque",
+    "logisticsSubPrinc1": "Princ. 1",
+    "logisticsDashboard": "Faturamento",
+    "logisticsPainel": "Dashboard",
+    "logisticsPainelUpload": "Upload Notas",
+    "logisticsPrinc1Dashboard": "Dashboard Princ. 1",
+    "logisticsPrinc1Upload": "Upload Princ. 1",
     "maintSubOverview": "Visão Geral",
     "maintSubActions": "Ações & Meus Itens",
     "maintSubRoutine": "Rotina & Planejamento",
@@ -122,10 +130,10 @@
     "production_efficiency": "Eficiência de Produção"
   },
   "logistics": {
-    "dashboardTitle": "Painel de Logística",
+    "dashboardTitle": "Painel de Faturamento",
     "dashboardSubtitle": "Acompanhamento diário de KPIs financeiros e operacionais",
     "controls": {
-      "title": "Dashboard de Logística",
+      "title": "Dashboard de Faturamento",
       "titleFullscreen": "PERFORMANCE DO FATURAMENTO - {{month}} - {{year}}",
       "firstFortnight": "1ª Quinzena",
       "secondFortnight": "2ª Quinzena",
@@ -198,6 +206,51 @@
       "meta": "Meta {{date}}",
       "returns": "Devoluções {{date}}",
       "ottrYtd": "OTTR YTD {{date}}"
+    }
+  },
+  "logisticaPrinc1": {
+    "title": "Painel Princ. 1",
+    "subtitle": "Gestão e análise de atrasos na entrada de itens do Princ. 1",
+    "noData": "Nenhum dado carregado",
+    "uploadNew": "Upload",
+    "rows": "registros",
+    "empty": "Nenhum dado do Princ. 1 encontrado. Faça upload para começar.",
+    "days": "dias",
+    "delayDistribution": "Distribuição de Itens por Atraso",
+    "detailTable": "Detalhamento do Estoque Princ. 1",
+    "results": "resultados",
+    "search": "Buscar item, lote ou série...",
+    "kpi": {
+      "totalRegistros": "Total de Itens",
+      "estoqueTotal": "Estoque Físico Total",
+      "atrasadas": "Itens em Atraso (3d+)",
+      "atrasoMedio": "Atraso Médio"
+    },
+    "upload": {
+      "title": "Upload - Princ. 1",
+      "subtitle": "Importe o arquivo Excel/CSV de controle do Princ. 1",
+      "errorNotExcel": "Por favor, selecione um arquivo Excel ou CSV.",
+      "errorRead": "Erro ao ler arquivo.",
+      "errorUpload": "Erro ao processar upload.",
+      "confirmDelete": "Tem certeza que deseja remover este upload do Princ 1?",
+      "deleteSuccess": "Upload removido com sucesso.",
+      "deleteError": "Erro ao remover upload.",
+      "dropzone": "Arraste o arquivo aqui, ou clique para selecionar",
+      "dropzoneHint": "Formatos suportados: .xlsx, .xls, .csv",
+      "preview": "Pré-visualização",
+      "confirm": "Confirmar Upload",
+      "lineError": "Linha",
+      "moreErrors": "mais erros",
+      "colHint": "Colunas esperadas: Nº do item, Nome do item, Data de entrada...",
+      "viewPainel": "Ver painel Princ. 1",
+      "newUpload": "Novo upload",
+      "history": "Último Upload Ativo",
+      "noUploads": "Nenhum upload encontrado.",
+      "linesCount": "Registros",
+      "uploadedAt": "Enviado em",
+      "uploadedBy": "Enviado por",
+      "status": "Status",
+      "deleteUpload": "Remover upload"
     }
   },
   "status": {
@@ -328,8 +381,8 @@
         "desc": "Gerencie capacidade hora/máquina."
       },
       "logisticsDashboard": {
-        "title": "Logística: Dashboard",
-        "desc": "Acompanhe KPIs e faturamento em tempo real."
+        "title": "Faturamento: Dashboard",
+        "desc": "Acompanhe indicadores de faturamento e OTTR em tempo real."
       },
       "qualityDashboard": {
         "title": "Qualidade: Dashboard",

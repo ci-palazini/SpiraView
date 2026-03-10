@@ -1277,6 +1277,54 @@ export async function deleteNotasEmbarque(uploadId: string, auth: AuthParams = {
     return http.delete<{ deleted: number }>(`/logistica/notas-embarque/${uploadId}`, { auth });
 }
 
+// ===== LOGÍSTICA — PRINC 1 =====
+
+export interface Princ1Item {
+    id: string;
+    upload_id: string;
+    numero_item: string;
+    nome_item: string;
+    configuracao: string;
+    estoque_fisico: number;
+    deposito: string;
+    localizacao: string;
+    numero_lote: string;
+    numero_serie: string;
+    data_entrada: string;
+    dias_atraso: number;
+}
+
+export interface Princ1UploadResult {
+    uploadId: string;
+    inserted: number;
+    errors: { linha: number; erro: string }[];
+    message: string;
+}
+
+export interface Princ1Response {
+    items: Princ1Item[];
+    uploadInfo: {
+        uploadId: string;
+        nomeArquivo: string;
+        criadoEm: string;
+        uploadPorEmail: string | null;
+        uploadPorNome: string | null;
+        totalRows: number;
+    } | null;
+}
+
+export async function uploadPrinc1(rows: Record<string, unknown>[], fileName: string, auth: AuthParams = {}): Promise<Princ1UploadResult> {
+    return http.post<Princ1UploadResult>('/logistica/princ1/upload', { data: { rows, fileName }, auth });
+}
+
+export async function getPrinc1(auth: AuthParams = {}): Promise<Princ1Response> {
+    return http.get<Princ1Response>('/logistica/princ1', { auth });
+}
+
+export async function deletePrinc1(uploadId: string, auth: AuthParams = {}): Promise<{ deleted: number }> {
+    return http.delete<{ deleted: number }>(`/logistica/princ1/${uploadId}`, { auth });
+}
+
 // ---------- Melhoria Contínua - Kaizen ----------
 export async function listarKaizens(
     params: { maquinaId?: string; status?: string; page?: number; limit?: number } = {},
