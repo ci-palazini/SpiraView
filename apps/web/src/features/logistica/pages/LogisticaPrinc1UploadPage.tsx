@@ -322,7 +322,7 @@ export default function LogisticaPrinc1UploadPage() {
                                 <tr>
                                     <td>{currentUpload.totalRows}</td>
                                     <td>{formatDateTimeShort(currentUpload.criadoEm)}</td>
-                                    <td>{currentUpload.uploadPorEmail || '—'}</td>
+                                    <td>{currentUpload.uploadPorNome || currentUpload.uploadPorEmail || '—'}</td>
                                     <td>
                                         <span style={{ color: '#16a34a', fontWeight: 500 }}>
                                             {t('common.active', 'Ativo')}
