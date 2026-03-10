@@ -405,6 +405,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             {/* Manutenção - usa permissões granulares */}
             {perm.canViewAny(['maquinas', 'chamados_abertos', 'meus_chamados', 'abrir_chamado', 'calendario', 'checklists_diarios', 'checklists_pendencias', 'historico_chamados', 'estoque', 'movimentacoes', 'analise_falhas', 'causas_raiz']) && (
                 <SidebarGroup id="maintenance" label={t('layout.sections.maintenance', 'Manutenção')} icon={FiServer}>
+                    {perm.canViewAny(['maquinas', 'chamados_abertos']) && (
+                        <div className={styles.groupSublabel}>{t('nav.maintSubOverview', 'Visão Geral')}</div>
+                    )}
                     {perm.canView('maquinas') && (
                         <NavLink
                             to="/maquinas"
@@ -435,6 +438,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['meus_chamados', 'abrir_chamado']) && (
+                        <div className={styles.groupSublabel}>{t('nav.maintSubActions', 'Ações & Meus Itens')}</div>
+                    )}
                     {perm.canView('meus_chamados') && (
                         <NavLink
                             to="/meus-chamados"
@@ -470,6 +476,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['calendario', 'checklists_diarios', 'checklists_pendencias']) && (
+                        <div className={styles.groupSublabel}>{t('nav.maintSubRoutine', 'Rotina & Planejamento')}</div>
+                    )}
                     {perm.canView('calendario') && (
                         <NavLink
                             to="/calendario-geral"
@@ -509,6 +518,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['historico_chamados']) && (
+                        <div className={styles.groupSublabel}>{t('nav.maintSubHistory', 'Histórico & Documentação')}</div>
+                    )}
                     {perm.canView('historico_chamados') && (
                         <NavLink
                             to="/historico"
@@ -521,6 +533,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['estoque', 'movimentacoes']) && (
+                        <div className={styles.groupSublabel}>{t('nav.maintSubMaterials', 'Materiais')}</div>
+                    )}
                     {perm.canView('estoque') && (
                         <NavLink
                             to="/estoque"
@@ -548,7 +563,7 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                     {/* Analytics dentro de Manutenção */}
                     {perm.canViewAny(['analise_falhas', 'causas_raiz']) && (
                         <>
-                            <div style={{ margin: '8px 0', borderTop: '1px solid #e2e8f0' }} />
+                            <div className={styles.groupSublabel}>{t('nav.maintSubAnalytics', 'Analytics')}</div>
                             {perm.canView('analise_falhas') && (
                                 <NavLink
                                     to="/analise-falhas"
@@ -582,6 +597,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             {/* Produção - usa permissões granulares */}
             {perm.canViewAny(['producao_upload', 'producao_dashboard', 'producao_colaboradores', 'producao_config']) && (
                 <SidebarGroup id="production" label={t('layout.sections.production', 'Produção')} icon={PiFactoryBold}>
+                    {perm.canViewAny(['producao_dashboard']) && (
+                        <div className={styles.groupSublabel}>{t('nav.prodSubOverview', 'Visão Geral')}</div>
+                    )}
                     {perm.canView('producao_dashboard') && (
                         <NavLink
                             to="/producao/dashboard"
@@ -594,6 +612,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['producao_colaboradores', 'producao_upload']) && (
+                        <div className={styles.groupSublabel}>{t('nav.prodSubOperational', 'Operacional')}</div>
+                    )}
                     {perm.canView('producao_colaboradores') && (
                         <NavLink
                             to="/producao/colaboradores"
@@ -618,6 +639,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         </NavLink>
                     )}
 
+                    {perm.canViewAny(['producao_config']) && (
+                        <div className={styles.groupSublabel}>{t('nav.prodSubConfig', 'Configurações')}</div>
+                    )}
                     {perm.canView('producao_config') && (
                         <NavLink
                             to="/producao/config"
@@ -635,6 +659,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
             {/* Planejamento - novo departamento */}
             {perm.canViewAny(['planejamento_dashboard', 'planejamento_upload', 'planejamento_config']) && (
                 <SidebarGroup id="planejamento" label={t('layout.sections.planejamento', 'Planejamento')} icon={FiCalendar}>
+                    {perm.canViewAny(['planejamento_dashboard']) && (
+                        <div className={styles.groupSublabel}>{t('nav.planSubOverview', 'Visão Geral')}</div>
+                    )}
                     {perm.canView('planejamento_dashboard') && (
                         <NavLink
                             to="/planejamento/dashboard"
@@ -646,6 +673,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             <span>{t('nav.planejamentoDashboard', 'Dashboard')}</span>
                         </NavLink>
                     )}
+                    {perm.canViewAny(['planejamento_upload']) && (
+                        <div className={styles.groupSublabel}>{t('nav.planSubOperational', 'Operacional')}</div>
+                    )}
                     {perm.canView('planejamento_upload') && (
                         <NavLink
                             to="/planejamento/upload"
@@ -656,6 +686,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                             <FiUploadCloud className={styles.navIcon} />
                             <span>{t('nav.planejamentoUpload', 'Upload Capacidade')}</span>
                         </NavLink>
+                    )}
+                    {perm.canViewAny(['planejamento_config']) && (
+                        <div className={styles.groupSublabel}>{t('nav.planSubConfig', 'Configurações')}</div>
                     )}
                     {perm.canView('planejamento_config') && (
                         <NavLink
@@ -892,6 +925,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
                         </h3>
+                        {perm.canViewAny(['usuarios', 'roles']) && (
+                            <div className={styles.groupSublabel}>{t('nav.adminSubAccess', 'Acessos & Usuários')}</div>
+                        )}
                         {perm.canView('usuarios') && (
                             <NavLink
                                 to="/gerir-utilizadores"
@@ -913,6 +949,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
                                 <FiShield className={styles.navIcon} />
                                 <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
                             </NavLink>
+                        )}
+                        {perm.canViewAny(['notificacoes_config', 'maquinas_config', 'roles']) && (
+                            <div className={styles.groupSublabel}>{t('nav.adminSubSystem', 'Sistema')}</div>
                         )}
                         {perm.canView('notificacoes_config') && (
                             <NavLink

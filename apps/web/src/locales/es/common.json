@@ -16,7 +16,21 @@
     "startShift": "Inicio de turno",
     "dailyChecklists": "Checklists diarios",
     "pzinibot": "Pzini",
-    "openTickets": "Tickets abiertos"
+    "openTickets": "Tickets abiertos",
+    "maintSubOverview": "Visión General",
+    "maintSubActions": "Acciones y Mis Ítems",
+    "maintSubRoutine": "Rutina y Planificación",
+    "maintSubHistory": "Historial y Documentación",
+    "maintSubMaterials": "Materiales",
+    "maintSubAnalytics": "Analítica",
+    "prodSubOverview": "Visión General",
+    "prodSubOperational": "Operativo",
+    "prodSubConfig": "Configuraciones",
+    "planSubOverview": "Visión General",
+    "planSubOperational": "Operativo",
+    "planSubConfig": "Configuraciones",
+    "adminSubAccess": "Accesos y Usuarios",
+    "adminSubSystem": "Sistema"
   },
   "status": {
     "open": "Abierta",
