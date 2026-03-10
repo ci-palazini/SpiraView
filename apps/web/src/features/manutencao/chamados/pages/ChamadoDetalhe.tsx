@@ -1,5 +1,5 @@
 // src/features/chamados/pages/ChamadoDetalhe.tsx
-import React, { useEffect, useState, useMemo, ChangeEvent, FormEvent } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, ChangeEvent, FormEvent } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -142,7 +142,6 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const [chamado, setChamado] = useState<ChamadoMapped | null>(null);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState(false);
-    const [reloadTick, setReloadTick] = useState(0);
 
     // edição / conclusão
     const [solucao, setSolucao] = useState('');
@@ -184,73 +183,70 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     );
 
     // --------- carregar chamado ---------
-    useEffect(() => {
+    const loadChamado = useCallback(async (silent = false) => {
         if (!id) return;
-        let alive = true;
-        (async () => {
+        try {
+            if (!silent) setLoading(true);
+            const c: ApiChamado = await getChamado(id);
+
+            // normaliza responsabilidades do chamado
+            const normId = c.manutentor_id ?? null;
+            const normNome = c.manutentor ?? '';
+            const normEmail = (c.manutentor_email ?? '').toLowerCase();
+
+            const mapped: ChamadoMapped = {
+                id: c.id,
+                maquina: c.maquina || '',
+                descricao: c.descricao || '',
+                status: c.status || '',
+                tipo: c.tipo || '',
+                causa: c.causa || '',
+                solucao: c.solucao || '',
+                checklist: [],
+                operadorNome: c.operadorNome ?? c.criado_por ?? '',
+                dataAbertura: c.dataAbertura ?? c.criado_em ?? null,
+                dataConclusao: c.dataConclusao ?? c.concluido_em ?? null,
+
+                manutentorId: normId,
+                manutentorNome: normNome,
+                manutentorEmail: normEmail,
+
+                manutentores: (c.manutentores || []) as ChamadoMapped['manutentores'],
+
+                observacoes: (c.observacoes || []).map(o => ({
+                    autor: o.autor || '',
+                    data: o.criado_em || o.data || null,
+                    texto: o.texto || '',
+                })),
+            };
+
+            const list = Array.isArray(c.checklist)
+                ? c.checklist.map(normChecklistItem).filter(x => x.item)
+                : [];
+
+            setChamado(mapped);
+            setCausa(mapped.causa || '');
+            setChecklist(list);
+            if (mapped.manutentorId) setSelectedManutentor(mapped.manutentorId);
+
+            // carrega fotos deste chamado
             try {
-                setLoading(true);
-                const c: ApiChamado = await getChamado(id);
-
-                // normaliza responsabilidades do chamado
-                const normId = c.manutentor_id ?? null;
-                const normNome = c.manutentor ?? '';
-                const normEmail = (c.manutentor_email ?? '').toLowerCase();
-
-                const mapped: ChamadoMapped = {
-                    id: c.id,
-                    maquina: c.maquina || '',
-                    descricao: c.descricao || '',
-                    status: c.status || '',
-                    tipo: c.tipo || '',
-                    causa: c.causa || '',
-                    solucao: c.solucao || '',
-                    checklist: [],
-                    operadorNome: c.operadorNome ?? c.criado_por ?? '',
-                    dataAbertura: c.dataAbertura ?? c.criado_em ?? null,
-                    dataConclusao: c.dataConclusao ?? c.concluido_em ?? null,
-
-                    manutentorId: normId,
-                    manutentorNome: normNome,
-                    manutentorEmail: normEmail,
-
-                    manutentores: (c.manutentores || []) as ChamadoMapped['manutentores'],
-
-                    observacoes:(c.observacoes || []).map(o => ({
-                        autor: o.autor || '',
-                        data: o.criado_em || o.data || null,
-                        texto: o.texto || '',
-                    })),
-                };
-
-                const list = Array.isArray(c.checklist)
-                    ? c.checklist.map(normChecklistItem).filter(x => x.item)
-                    : [];
-
-                if (!alive) return;
-                setChamado(mapped);
-                setCausa(mapped.causa || '');
-                setChecklist(list);
-                if (mapped.manutentorId) setSelectedManutentor(mapped.manutentorId);
-
-                // carrega fotos deste chamado
-                try {
-                    const fotosLista = await listarFotosChamado(id as string);
-                    if (alive) {
-                        setFotos(Array.isArray(fotosLista) ? fotosLista : []);
-                    }
-                } catch (errFotos) {
-                    console.error('Erro ao listar fotos do chamado:', errFotos);
-                }
-            } catch (e) {
-                console.error(e);
-                toast.error(t('chamadoDetalhe.toasts.loadError'));
-            } finally {
-                if (alive) setLoading(false);
+                const fotosLista = await listarFotosChamado(id as string);
+                setFotos(Array.isArray(fotosLista) ? fotosLista : []);
+            } catch (errFotos) {
+                console.error('Erro ao listar fotos do chamado:', errFotos);
             }
-        })();
-        return () => { alive = false; };
-    }, [id, t, reloadTick]);
+        } catch (e) {
+            console.error(e);
+            toast.error(t('chamadoDetalhe.toasts.loadError'));
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }, [id, t]);
+
+    useEffect(() => {
+        loadChamado();
+    }, [loadChamado]);
 
 
     // --------- lightbox keyboard support ---------
@@ -407,7 +403,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             const alvo = manutentores.find((m) => m.uid === selectedManutentor);
             await atribuirChamado(id as string, { manutentorEmail: alvo?.email || '', role: user.role, email: user.email });
             toast.success(t('chamadoDetalhe.toasts.assigned'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.assignError'));
@@ -422,7 +418,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             await removerAtribuicao(id as string, { role: user.role, email: user.email });
             setSelectedManutentor('');
             toast.success(t('chamadoDetalhe.toasts.unassigned'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.unassignError'));
@@ -440,7 +436,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         try {
             await atenderChamado(id as string, { role: user.role, email: user.email });
             toast.success(t('chamadoDetalhe.toasts.taken'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.takeError'));
@@ -454,7 +450,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         try {
             await entrarChamado(id as string, { role: user.role, email: user.email });
             toast.success(t('chamadoDetalhe.toasts.joined'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.joinError'));
@@ -468,7 +464,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
         try {
             await sairChamado(id as string, { role: user.role, email: user.email });
             toast.success(t('chamadoDetalhe.toasts.left'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.leaveError'));
@@ -498,7 +494,7 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
             await adicionarObservacao(id as string, { texto, role: user.role, email: user.email });
             setNovaObservacao('');
             toast.success(t('chamadoDetalhe.toasts.noteAdded'));
-            setReloadTick(n => n + 1);
+            loadChamado(true);
         } catch (e) {
             console.error(e);
             toast.error(t('chamadoDetalhe.toasts.noteError'));
@@ -566,6 +562,10 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
 
     return (
         <div className={styles.container}>
+            <button className={styles.backButton} onClick={() => navigate(-1)}>
+                <ChevronLeft size={18} />
+                {t('common.back', 'Voltar')}
+            </button>
             <header className={styles.header}>
                 <h1>{t('chamadoDetalhe.header.machine', { name: chamado.maquina })}</h1>
                 <small>
