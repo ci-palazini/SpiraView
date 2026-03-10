@@ -62,18 +62,18 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
 
     const [editState, setEditState] = useState<EditState | null>(null);
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const data = await listarMaquinas();
             setMaquinas(data as Maquina[]);
         } catch (err) {
             console.error(err);
             toast.error(t('maquinasConfig.loadError', 'Erro ao carregar máquinas.'));
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         loadData();
@@ -125,7 +125,7 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
 
             toast.success(t('maquinasConfig.saveSuccess', 'Configurações salvas com sucesso!'));
             setEditState(null);
-            loadData();
+            loadData(true);
         } catch (err: unknown) {
             console.error(err);
             const msg = err instanceof Error ? err.message : t('maquinasConfig.saveError', 'Erro ao salvar alterações');
@@ -334,13 +334,13 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
                                         </td>
                                         <td>
                                             {canEdit('maquinas_config') && (
-                                            <button
-                                                className={styles.iconButton}
-                                                onClick={() => openEditModal(m)}
-                                                title={t('maquinasConfig.table.editMachine', 'Editar configurações globais')}
-                                            >
-                                                <FiEdit2 />
-                                            </button>
+                                                <button
+                                                    className={styles.iconButton}
+                                                    onClick={() => openEditModal(m)}
+                                                    title={t('maquinasConfig.table.editMachine', 'Editar configurações globais')}
+                                                >
+                                                    <FiEdit2 />
+                                                </button>
                                             )}
                                         </td>
                                     </tr>

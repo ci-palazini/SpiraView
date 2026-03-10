@@ -33,16 +33,16 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
     const [editAliases, setEditAliases] = useState('');
     const [editSetorPlanejamento, setEditSetorPlanejamento] = useState('');
 
-    const fetchMaquinas = useCallback(async () => {
+    const fetchMaquinas = useCallback(async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const data = await listarMaquinasPlanejamento({ role: user?.role, email: user?.email });
             setMaquinas(data);
         } catch (err) {
             console.error('Erro ao buscar máquinas:', err);
             toast.error(t('planejamento.config.loadError', 'Erro ao carregar máquinas'));
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, [t, user]);
 
@@ -73,7 +73,7 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                 { role: user?.role, email: user?.email }
             );
             toast.success(t('planejamento.config.scopeToggled', 'Status no planejamento atualizado!'));
-            fetchMaquinas();
+            fetchMaquinas(true);
         } catch (err: any) {
             toast.error(err.message || t('planejamento.config.saveError', 'Erro ao salvar'));
         } finally {
@@ -106,7 +106,7 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
             );
             toast.success(t('planejamento.config.saved', 'Capacidade salva com sucesso'));
             cancelEditing();
-            fetchMaquinas();
+            fetchMaquinas(true);
         } catch (err: any) {
             toast.error(err.message || t('planejamento.config.saveError', 'Erro ao salvar'));
         } finally {
