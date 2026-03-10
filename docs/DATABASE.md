@@ -58,7 +58,7 @@ Usuários do sistema com credenciais e papel.
 |--------|------|-----------|
 | `id` | UUID | PK |
 | `nome` | VARCHAR | Nome completo |
-| `email` | VARCHAR | Email único (login) |
+| `email` | VARCHAR | Email real do usuário (opcional, único) |
 | `usuario` | VARCHAR | Username alternativo |
 | `senha_hash` | VARCHAR | Hash da senha (bcrypt) |
 | `matricula` | VARCHAR | Matrícula funcional |

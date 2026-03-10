@@ -170,13 +170,7 @@ export default function ConfiguracaoNotificacoesPage({ user }: ConfiguracaoNotif
                                         <div className={styles.userInfo}>
                                             <span className={styles.userName}>{user.nome}</span>
                                             <span className={styles.userEmail}>
-                                                {user.email_real ? (
-                                                    <span title="Email Real Configurado">{user.email_real}</span>
-                                                ) : (
-                                                    <span className={styles.fakeEmail} title="Este usuário não tem email real configurado. A notificação pode falhar.">
-                                                        {user.email} (Email de Login) ⚠️
-                                                    </span>
-                                                )}
+                                                {user.email || <span className={styles.fakeEmail}>Sem email configurado ⚠️</span>}
                                             </span>
                                         </div>
                                         <button

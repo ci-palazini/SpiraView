@@ -110,7 +110,7 @@ export async function checkMissingChecklists(targetDateStr?: string) {
 
         // Buscar destinatarios
         const { rows: users } = await pool.query(
-            `SELECT u.email, u.nome, u.email_real 
+            `SELECT u.email, u.nome
              FROM notificacoes_config nc
              JOIN usuarios u ON u.id = nc.usuario_id
              WHERE nc.evento = $1`,
@@ -123,7 +123,7 @@ export async function checkMissingChecklists(targetDateStr?: string) {
         }
 
         const emailsValidos = users
-            .map((u) => u.email_real || u.email)
+            .map((u) => u.email)
             .filter((e): e is string => !!e && e.includes('@'));
 
         if (emailsValidos.length === 0) {

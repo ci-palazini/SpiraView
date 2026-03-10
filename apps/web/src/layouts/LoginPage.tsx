@@ -70,16 +70,13 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            let identifier = (userInput || '').trim();
-            if (identifier && !identifier.includes('@')) {
-                identifier = `${identifier}@m.continua.tpm`;
-            }
+            const identifier = (userInput || '').trim();
 
             const user = await login({ userOrEmail: identifier, senha });
 
             const normalized: StoredUser = {
                 ...user,
-                email: String(user?.email || identifier).trim().toLowerCase(),
+                email: String(user?.email || '').trim().toLowerCase(),
                 role: String(user?.role || '').trim().toLowerCase(),
                 token: user?.token, // <--- Armazena o token
             };

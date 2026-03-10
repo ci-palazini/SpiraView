@@ -33,7 +33,6 @@ interface UserRow {
     nome: string;
     usuario?: string;
     email?: string;
-    email_real?: string;
     role?: string;
     funcao?: string;
     matricula?: string;
@@ -64,7 +63,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     // form
     const [nome, setNome] = useState('');
     const [usuario, setUsuario] = useState('');
-    const [emailReal, setEmailReal] = useState('');
+    const [emailInput, setEmailInput] = useState('');
     const [senha, setSenha] = useState('');
     const [role, setRole] = useState('operador');
     const [matricula, setMatricula] = useState('');
@@ -131,7 +130,6 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         }
 
         const nomeUsuario = (usuario || '').trim() || nomeCompleto.toLowerCase().replace(/\s+/g, '.');
-        const emailGerado = `${nomeUsuario}@spiraview.ci`;
 
         // Busca o nome correto do role para usar como "funcao" e armazena na API
         const roleObj = roles.find(r => r.nome.toLowerCase() === role.toLowerCase());
@@ -140,10 +138,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setIsSaving(true);
         try {
             if (modoEdicao && usuarioEditandoId) {
-                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string; email_real?: string } = {
+                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string; email?: string } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
-                    email_real: emailReal.trim() || undefined,
+                    email: emailInput.trim() || undefined,
                     role,
                     funcao,
                 };
@@ -165,8 +163,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 const payload: {
                     nome: string;
                     usuario: string;
-                    email: string;
-                    email_real?: string;
+                    email?: string;
                     role: string;
                     funcao: string;
                     senha?: string;
@@ -174,8 +171,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
-                    email: emailGerado,
-                    email_real: emailReal.trim() || undefined,
+                    email: emailInput.trim() || undefined,
                     role,
                     funcao,
                 };
@@ -204,7 +200,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setIsSaving(false);
             setNome('');
             setUsuario('');
-            setEmailReal('');
+            setEmailInput('');
             setSenha('');
             setRole('operador');
             setMatricula('');
@@ -224,7 +220,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setUsuarioEditandoId(null);
         setNome('');
         setUsuario('');
-        setEmailReal('');
+        setEmailInput('');
         setSenha('');
         setRole('operador'); // Default seguro
         setMatricula('');
@@ -233,7 +229,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const abrirModalEdicao = (userRow: UserRow) => {
         setNome(userRow.nome || '');
         setUsuario(userRow.usuario || '');
-        setEmailReal(userRow.email_real || '');
+        setEmailInput(userRow.email || '');
         setRole(userRow.role || 'operador');
         setMatricula(userRow.matricula || '');
         setModoEdicao(true);
@@ -456,11 +452,11 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     />
 
                     <Input
-                        id="emailReal"
-                        label={t('users.form.emailReal', 'Email Real (Opcional)')}
+                        id="email"
+                        label={t('users.form.email', 'Email')}
                         type="email"
-                        value={emailReal}
-                        onChange={(e) => setEmailReal(e.target.value)}
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
                         placeholder="nome@exemplo.com"
                     />
 

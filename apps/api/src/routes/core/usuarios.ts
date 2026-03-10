@@ -11,8 +11,7 @@ import { logAudit } from '../../utils/audit';
 const createUsuarioSchema = z.object({
   nome: z.string().min(1, 'Nome obrigatório.').max(120).trim(),
   usuario: z.string().min(1, 'Usuário obrigatório.').max(60).trim().toLowerCase(),
-  email: z.string().email('E-mail inválido.').max(254).trim().toLowerCase(),
-  email_real: z.string().email().max(254).optional().nullable(),
+  email: z.string().email('E-mail inválido.').max(254).trim().toLowerCase().optional(),
   role: z.string().min(1, 'Role obrigatório.').max(60).trim().toLowerCase(),
   funcao: z.string().max(80).optional().default(''),
   senha: z.string().min(6).max(128).optional(),
@@ -23,7 +22,6 @@ const updateUsuarioSchema = z.object({
   nome: z.string().min(1).max(120).trim().optional(),
   usuario: z.string().min(1).max(60).trim().toLowerCase().optional(),
   email: z.string().email().max(254).trim().toLowerCase().optional(),
-  email_real: z.string().email().max(254).nullable().optional(),
   role: z.string().min(1).max(60).trim().toLowerCase().optional(),
   funcao: z.string().max(80).optional(),
   senha: z.string().min(6).max(128).optional(),
@@ -107,7 +105,6 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
          u.nome,
          u.usuario,
          u.email,
-         u.email_real,
          r.nome AS role,
          u.role_id,
          COALESCE(
@@ -171,7 +168,7 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
 // POST /usuarios - criar usuário (requer editar)
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), validateBody(createUsuarioSchema), async (req, res) => {
   try {
-    const { nome, usuario, email, email_real, role, funcao: funcaoRaw, senha, matricula } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula } = req.body;
     const funcao = funcaoRaw || roleToFuncao(role);
 
     // senha_hash (opcional)
@@ -190,10 +187,10 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
     // Inserção com audit log
     const novoUsuario = await withTx(async (client) => {
       const { rows } = await client.query(
-        `INSERT INTO usuarios (nome, usuario, email, email_real, role_id, funcao, senha_hash, matricula)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-         RETURNING id, nome, usuario, email, email_real, role_id, funcao, matricula`,
-        [nome, usuario, email, email_real, roleId, funcao, senha_hash, matricula]
+        `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
+        [nome, usuario, email, roleId, funcao, senha_hash, matricula]
       );
       await logAudit(client, {
         tabela: 'usuarios', registroId: rows[0].id, acao: 'CREATE',
@@ -219,7 +216,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
   try {
     const id = String(req.params.id);
 
-    const { nome, usuario, email, email_real, role, funcao: funcaoRaw, senha, matricula, ativo } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, ativo } = req.body;
 
     // Monta SET dinâmico
     const sets: string[] = [];
@@ -229,7 +226,6 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
     if (nome !== undefined) add('nome', nome);
     if (usuario !== undefined) add('usuario', usuario);
     if (email !== undefined) add('email', email);
-    if (email_real !== undefined) add('email_real', email_real);
     if (role !== undefined) {
       // Buscar role_id a partir do nome do role
       const { rows: roleRows } = await pool.query(

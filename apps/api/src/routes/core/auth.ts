@@ -103,7 +103,7 @@ authRouter.post('/auth/login', loginLimiter, validateBody(loginSchema), async (r
       `SELECT u.id, u.nome, u.email,
               COALESCE(r.nome, 'Operador') AS role,
               COALESCE(u.funcao, 'Colaborador') AS funcao,
-              COALESCE(u.usuario, split_part(LOWER(u.email),'@',1)) AS usuario,
+              COALESCE(u.usuario, split_part(LOWER(COALESCE(u.email,'')), '@', 1)) AS usuario,
               u.senha_hash,
               r.id AS role_id,
               r.nome AS role_nome,
@@ -198,8 +198,8 @@ authRouter.post('/auth/login', loginLimiter, validateBody(loginSchema), async (r
  */
 authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
   try {
-    const email = req.user?.email;
-    if (!email) {
+    const userId = req.user?.id;
+    if (!userId) {
       return res.status(401).json({ error: 'Não autenticado.' });
     }
 
@@ -207,15 +207,15 @@ authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
       `SELECT u.id, u.nome, u.email,
               COALESCE(r.nome, 'Operador') AS role,
               COALESCE(u.funcao, 'Colaborador') AS funcao,
-              COALESCE(u.usuario, split_part(LOWER(u.email),'@',1)) AS usuario,
+              COALESCE(u.usuario, split_part(LOWER(COALESCE(u.email,'')), '@', 1)) AS usuario,
               r.id AS role_id,
               r.nome AS role_nome,
               r.permissoes
          FROM usuarios u
          LEFT JOIN roles r ON u.role_id = r.id
-        WHERE LOWER(u.email) = LOWER($1)
+        WHERE u.id = $1
         LIMIT 1`,
-      [email]
+      [userId]
     );
 
     if (!rows.length) {
@@ -244,23 +244,18 @@ authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
 authRouter.post('/auth/change-password', requireAuth, validateBody(changePasswordSchema), async (req, res) => {
   try {
     const bodyEmail = req.body.email ? String(req.body.email).trim().toLowerCase() : '';
+    const userId = req.user?.id;
     const userEmail = req.user?.email;
-    const isAdmin = req.isAdmin === true; // Setado pelo middleware requirePermission ou userFromHeader (se aplicável), mas aqui pode não ter passado por lá.
-    // Melhor: verificar role do token ou do banco. Como change-password é autenticado, req.user existe.
-    // Mas req.user.role vem do token. O ideal é confiar no que tá no token "por enquanto" OU buscar no banco se quisermos ser ultra seguros.
-    // Como a task diz "blindar rota", vamos assumir:
-    // 1. Se tem bodyEmail e é diferente de userEmail -> Só permite se for Admin.
 
-    let targetEmail = userEmail;
+    let targetId: string | undefined = userId;
 
     if (bodyEmail && bodyEmail !== userEmail) {
-      // Tentativa de mudar senha de outrem
-      // Verificar se quem está pedindo é admin REAL (buscando no banco pra garantir)
+      // Tentativa de mudar senha de outrem — só Admin pode
       const { rows: adminCheck } = await pool.query(
         `SELECT r.nome FROM usuarios u 
              JOIN roles r ON u.role_id = r.id 
-             WHERE u.email = $1`,
-        [userEmail]
+             WHERE u.id = $1`,
+        [userId]
       );
 
       const isRealAdmin = adminCheck.length > 0 && adminCheck[0].nome.toLowerCase() === 'admin';
@@ -268,19 +263,24 @@ authRouter.post('/auth/change-password', requireAuth, validateBody(changePasswor
       if (!isRealAdmin) {
         return res.status(403).json({ error: 'Apenas administradores podem alterar senhas de outros usuários.' });
       }
-      targetEmail = bodyEmail;
+
+      // Buscar o ID do alvo pelo email informado
+      const { rows: targetRows } = await pool.query(
+        `SELECT id FROM usuarios WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+        [bodyEmail]
+      );
+      if (!targetRows.length) return res.status(404).json({ error: 'Usuário alvo não encontrado.' });
+      targetId = targetRows[0].id;
     }
 
-    if (!targetEmail) return res.status(401).json({ error: 'Não autenticado.' });
+    if (!targetId) return res.status(401).json({ error: 'Não autenticado.' });
 
     const senhaAtual = String(req.body.senhaAtual || '');
     const novaSenha = String(req.body.novaSenha);
 
-    // novaSenha min-length already enforced by schema
-
     const { rows } = await pool.query(
-      `SELECT id, senha_hash FROM usuarios WHERE LOWER(email)=LOWER($1) LIMIT 1`,
-      [targetEmail]
+      `SELECT id, senha_hash FROM usuarios WHERE id = $1 LIMIT 1`,
+      [targetId]
     );
     if (!rows.length) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
@@ -365,7 +365,7 @@ authRouter.post('/auth/forgot-password', forgotPasswordLimiter, validateBody(for
     const emailInput = req.body.email.trim().toLowerCase();
 
     const { rows } = await pool.query(
-      `SELECT id, nome, email, email_real, senha_hash FROM usuarios WHERE LOWER(email) = LOWER($1) OR LOWER(email_real) = LOWER($1) LIMIT 1`,
+      `SELECT id, nome, email, senha_hash FROM usuarios WHERE LOWER(email) = LOWER($1) LIMIT 1`,
       [emailInput]
     );
 
@@ -374,7 +374,7 @@ authRouter.post('/auth/forgot-password', forgotPasswordLimiter, validateBody(for
     }
 
     const u = rows[0];
-    const targetEmail = u.email_real || u.email;
+    const targetEmail = u.email;
 
     const secret = env.auth.jwtSecret + (u.senha_hash || '');
     const token = jwt.sign(

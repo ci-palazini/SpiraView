@@ -18,7 +18,6 @@ interface RecipientRow {
   usuario_id: string;
   nome: string;
   email: string | null;
-  email_real: string | null;
 }
 
 const TZ = 'America/Sao_Paulo';
@@ -37,8 +36,7 @@ async function getRecipients(evento: ReminderEvent): Promise<RecipientRow[]> {
     `SELECT
        nc.usuario_id,
        u.nome,
-       u.email,
-       u.email_real
+       u.email
      FROM notificacoes_config nc
      JOIN usuarios u ON u.id = nc.usuario_id
      WHERE nc.evento = $1`,
@@ -192,7 +190,7 @@ async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRef
     const emailsValidos: string[] = [];
 
     for (const recipient of recipients) {
-      const emailDestino = recipient.email_real || recipient.email;
+      const emailDestino = recipient.email;
       if (!emailDestino || !emailDestino.includes('@')) continue;
 
       const lockId = await reserveNotification(evento, item.id, recipient.usuario_id, dataRefLocal);

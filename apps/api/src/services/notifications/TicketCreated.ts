@@ -12,7 +12,7 @@ export const TicketCreatedNotification = {
             logger.info(`[TicketCreated] Buscando inscritos para 'NOVO_CHAMADO'...`);
             // 1. Buscar inscritos
             const { rows: recipients } = await pool.query(
-                `SELECT u.email, u.nome, u.email_real 
+                `SELECT u.email, u.nome
                  FROM notificacoes_config nc
                  JOIN usuarios u ON u.id = nc.usuario_id
                  WHERE nc.evento = 'NOVO_CHAMADO'`
@@ -41,7 +41,7 @@ export const TicketCreatedNotification = {
 
             // 3. Coletar todos os emails válidos e enviar um único email
             const emailsValidos = recipients
-                .map((u) => u.email_real || u.email)
+                .map((u) => u.email)
                 .filter((e): e is string => !!e && e.includes('@'));
 
             if (emailsValidos.length === 0) {

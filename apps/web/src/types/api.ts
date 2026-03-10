@@ -370,7 +370,6 @@ export interface NotificacaoConfigUser {
     usuario_id: string;
     nome: string;
     email: string;
-    email_real?: string;
 }
 
 // ---------- Melhoria Contínua ----------

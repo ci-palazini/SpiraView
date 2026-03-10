@@ -22,8 +22,7 @@ notificacoesConfigRouter.get('/config/:evento', requirePermission('notificacoes_
                 nc.evento, 
                 nc.usuario_id, 
                 u.nome, 
-                u.email, 
-                u.email_real
+                u.email
              FROM notificacoes_config nc
              JOIN usuarios u ON nc.usuario_id = u.id
              WHERE nc.evento = $1

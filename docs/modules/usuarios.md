@@ -27,7 +27,7 @@ flowchart LR
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| POST | `/auth/login` | Login com email/senha |
+| POST | `/auth/login` | Login com usuario/matrícula + senha |
 | POST | `/auth/reset-password` | Resetar senha |
 | GET | `/auth/me` | Dados do usuário logado |
 | POST | `/auth/operator-login` | Login por matrícula (operadores) |
@@ -84,7 +84,7 @@ flowchart LR
 
 ## Fluxo de Autenticação
 
-1. **Login**: POST `/auth/login` com `email` + `senha`
+1. **Login**: POST `/auth/login` com `usuario`/`matrícula` + `senha`
 2. **Validação**: bcrypt compara hash
 3. **Token**: Retorna JWT + dados do usuário + permissões do role
 4. **Storage**: Frontend salva em `localStorage['usuario']`
