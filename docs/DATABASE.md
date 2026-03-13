@@ -411,6 +411,41 @@ Apontamentos diários de logística.
 | `is_dia_util` | BOOLEAN | (Default true) Se conta para meta |
 | `updated_at` | TIMESTAMP | Última atualização |
 
+#### `logistica_proposto_uploads`
+Controle de uploads do relatório HTML de faturamento proposto.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `nome_arquivo` | VARCHAR | Nome do arquivo enviado |
+| `linhas_total` | INTEGER | Quantidade total de linhas recebidas |
+| `upload_por_email` | VARCHAR | Email do usuário que fez upload |
+| `ativo` | BOOLEAN | Marca o upload atualmente ativo |
+| `criado_em` | TIMESTAMPTZ | Data/hora de criação do upload |
+
+#### `logistica_proposto_dados`
+Linhas detalhadas extraídas do relatório HTML "Faturamento Proposto".
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `upload_id` | UUID | FK → logistica_proposto_uploads.id |
+| `canal_vendas` | INTEGER | Código do canal de vendas |
+| `canal_descricao` | TEXT | Descrição do canal de vendas |
+| `roteiro_separacao` | VARCHAR | Código do roteiro de separação |
+| `data_hora` | TIMESTAMPTZ | Data/hora do registro no relatório |
+| `ordem_venda` | VARCHAR | Código da ordem de venda (OV) |
+| `conta_cliente` | VARCHAR | Código da conta do cliente |
+| `nome_cliente` | TEXT | Nome do cliente |
+| `numero_item` | VARCHAR | Número do item |
+| `configuracao` | VARCHAR | Configuração do item |
+| `filial` | TEXT | Filial associada |
+| `tipo_destino` | VARCHAR | Tipo de destino/logística |
+| `localizacao` | VARCHAR | Localização do item |
+| `valor_net` | DECIMAL(15,2) | Valor NET da linha |
+| `cidade` | VARCHAR | Cidade de destino |
+| `estado` | VARCHAR(10) | Estado (UF) |
+
 ---
 
 ### PDCA

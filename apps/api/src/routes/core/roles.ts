@@ -49,6 +49,7 @@ const PAGINAS_DISPONIVEIS = [
     { key: 'logistica_dashboard', nome: 'Dashboard de Logística', grupo: 'Logística' },
     { key: 'logistica_painel', nome: 'Painel Logístico', grupo: 'Logística' },
     { key: 'logistica_princ1', nome: 'Controle Princ. 1', grupo: 'Logística' },
+    { key: 'logistica_proposto', nome: 'Faturamento Proposto', grupo: 'Logística' },
     // PDCA
     { key: 'pdca_dashboard', nome: 'Dashboard PDCA', grupo: 'PDCA' },
     { key: 'pdca_planos', nome: 'Planos de Ação', grupo: 'PDCA' },

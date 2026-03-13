@@ -42,6 +42,8 @@ import PainelLogisticoPage from '../../features/logistica/pages/PainelLogisticoP
 import PainelUploadPage from '../../features/logistica/pages/PainelUploadPage';
 import LogisticaPrinc1DashboardPage from '../../features/logistica/pages/LogisticaPrinc1DashboardPage';
 import LogisticaPrinc1UploadPage from '../../features/logistica/pages/LogisticaPrinc1UploadPage';
+import LogisticaPropostoDashboardPage from '../../features/logistica/pages/LogisticaPropostoDashboardPage';
+import LogisticaPropostoUploadPage from '../../features/logistica/pages/LogisticaPropostoUploadPage';
 import ConfiguracaoNotificacoesPage from '../../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../../features/ehs/pages/SafetyUploadPage';
 import TvSettingsPage from '../../features/configuracoes/pages/TvSettingsPage';
@@ -272,6 +274,14 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/logistica/princ1/upload"
                 element={canAccessPage('logistica_princ1', <LogisticaPrinc1UploadPage />)}
+            />
+            <Route
+                path="/logistica/proposto/dashboard"
+                element={canAccessPage('logistica_proposto', <LogisticaPropostoDashboardPage />)}
+            />
+            <Route
+                path="/logistica/proposto/upload"
+                element={perm.canEdit('logistica_proposto') ? <LogisticaPropostoUploadPage /> : <Navigate to="/" replace />}
             />
 
             {/* Rotas PDCA */}

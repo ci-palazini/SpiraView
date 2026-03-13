@@ -526,7 +526,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
             }
 
             {/* Logística - com sub-seções */}
-            {perm.canViewAny(['logistica_dashboard', 'logistica_painel', 'logistica_princ1']) && (
+            {perm.canViewAny(['logistica_dashboard', 'logistica_painel', 'logistica_princ1', 'logistica_proposto']) && (
                 <SidebarGroup
                     id="logistics"
                     label={t('layout.sections.logistics', 'Logística')}
@@ -601,6 +601,33 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                         >
                             <FiUploadCloud className={styles.navIcon} />
                             <span>{t('nav.logisticsPrinc1Upload', 'Upload Princ. 1')}</span>
+                        </NavLink>
+                    )}
+
+                    {/* ── Faturamento Proposto ── */}
+                    {perm.canViewAny(['logistica_proposto']) && (
+                        <div className={styles.groupSublabel}>{t('nav.logisticsSubProposto', 'Faturamento Proposto')}</div>
+                    )}
+                    {perm.canView('logistica_proposto') && (
+                        <NavLink
+                            to="/logistica/proposto/dashboard"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <LuLayoutDashboard className={styles.navIcon} />
+                            <span>{t('nav.logisticsPropostoDashboard', 'Dashboard Proposto')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canEdit('logistica_proposto') && (
+                        <NavLink
+                            to="/logistica/proposto/upload"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUploadCloud className={styles.navIcon} />
+                            <span>{t('nav.logisticsPropostoUpload', 'Upload Proposto')}</span>
                         </NavLink>
                     )}
                 </SidebarGroup>

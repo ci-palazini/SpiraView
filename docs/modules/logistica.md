@@ -96,8 +96,8 @@ Apontamentos diários de logística.
 
 ## Links Relacionados
 
-- [Schema](../DATABASE.md) - Tabelas `logistica_metas`, `logistica_kpis_diario`, `logistica_notas_embarque`
-- [Permissões](../PERMISSIONS.md) - `logistica_dashboard`, `logistica_kpis`, `logistica_painel`
+- [Schema](../DATABASE.md) - Tabelas `logistica_metas`, `logistica_kpis_diario`, `logistica_notas_embarque`, `logistica_proposto_uploads`, `logistica_proposto_dados`
+- [Permissões](../PERMISSIONS.md) - `logistica_dashboard`, `logistica_kpis`, `logistica_painel`, `logistica_proposto`
 
 ---
 
@@ -149,3 +149,37 @@ Painel de gestão de notas fiscais de embarque com foco em análise de atrasos. 
 | `dias_atraso` | INTEGER | Dias em atraso |
 | `uploaded_at` | TIMESTAMPTZ | Data/hora do upload |
 | `uploaded_by` | UUID | FK → usuarios.id |
+
+---
+
+## Painel Logístico (Faturamento Proposto HTML)
+
+Painel para leitura e análise do relatório HTML "Faturamento Proposto", exportado do Dynamics. O frontend extrai as linhas relevantes do documento (`.htm/.html`) e envia JSON parseado para persistência.
+
+### Rotas API (Painel Proposto)
+
+**Arquivo**: `apps/api/src/routes/logistica/proposto.ts`
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| POST | `/logistica/proposto/upload` | `logistica_proposto` (editar) | Upload do relatório HTML parseado no frontend |
+| GET | `/logistica/proposto` | `logistica_proposto` (ver) | Lista linhas do último upload ativo |
+| DELETE | `/logistica/proposto/:uploadId` | `logistica_proposto` (editar) | Remove upload e linhas associadas |
+
+### Páginas Frontend (Painel Proposto)
+
+| Página | Arquivo | Rota | Permissão |
+|--------|---------|------|-----------|
+| **Dashboard Proposto** | `LogisticaPropostoDashboardPage.tsx` | `/logistica/proposto/dashboard` | `logistica_proposto` (ver) |
+| **Upload Proposto** | `LogisticaPropostoUploadPage.tsx` | `/logistica/proposto/upload` | `logistica_proposto` (editar) |
+
+### Permissão
+
+| PageKey | Descrição | Níveis |
+|---------|-----------|--------|
+| `logistica_proposto` | Painel de faturamento proposto (HTML) | `ver`, `editar` |
+
+### Entidades: `logistica_proposto_uploads` e `logistica_proposto_dados`
+
+- `logistica_proposto_uploads`: controla o último arquivo ativo por contexto do painel.
+- `logistica_proposto_dados`: armazena linhas detalhadas (canal, OV, cliente, valor NET, cidade/UF, etc.) para dashboard e filtros.

@@ -1325,6 +1325,64 @@ export async function deletePrinc1(uploadId: string, auth: AuthParams = {}): Pro
     return http.delete<{ deleted: number }>(`/logistica/princ1/${uploadId}`, { auth });
 }
 
+// ===== LOGÍSTICA — FATURAMENTO PROPOSTO (HTML) =====
+
+export interface LogisticaPropostoItem {
+    id: string;
+    upload_id: string;
+    canal_vendas: number | null;
+    canal_descricao: string;
+    roteiro_separacao: string;
+    data_hora: string | null;
+    ordem_venda: string;
+    conta_cliente: string;
+    nome_cliente: string;
+    numero_item: string;
+    configuracao: string;
+    filial: string;
+    tipo_destino: string;
+    localizacao: string;
+    valor_net: number;
+    cidade: string;
+    estado: string;
+    dias_desde_proposta: number;
+}
+
+export interface LogisticaPropostoUploadResult {
+    uploadId: string | null;
+    inserted: number;
+    errors: { linha: number; erro: string }[];
+    message: string;
+}
+
+export interface LogisticaPropostoResponse {
+    items: LogisticaPropostoItem[];
+    uploadInfo: {
+        uploadId: string;
+        nomeArquivo: string;
+        criadoEm: string;
+        uploadPorEmail: string | null;
+        uploadPorNome: string | null;
+        totalRows: number;
+    } | null;
+}
+
+export async function uploadLogisticaProposto(
+    rows: Record<string, unknown>[],
+    fileName: string,
+    auth: AuthParams = {}
+): Promise<LogisticaPropostoUploadResult> {
+    return http.post<LogisticaPropostoUploadResult>('/logistica/proposto/upload', { data: { rows, fileName }, auth });
+}
+
+export async function getLogisticaProposto(auth: AuthParams = {}): Promise<LogisticaPropostoResponse> {
+    return http.get<LogisticaPropostoResponse>('/logistica/proposto', { auth });
+}
+
+export async function deleteLogisticaProposto(uploadId: string, auth: AuthParams = {}): Promise<{ deleted: number }> {
+    return http.delete<{ deleted: number }>(`/logistica/proposto/${uploadId}`, { auth });
+}
+
 // ---------- Melhoria Contínua - Kaizen ----------
 export async function listarKaizens(
     params: { maquinaId?: string; status?: string; page?: number; limit?: number } = {},
