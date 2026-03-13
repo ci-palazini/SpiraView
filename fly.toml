@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for spiraview on 2026-02-20T17:33:31Z
+# fly.toml app configuration file generated for ci-spiraview on 2026-03-13T14:15:46Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'spiraview'
-primary_region = 'gru'
+app = 'ci-spiraview'
+primary_region = 'ams'
 
 [build]
 
