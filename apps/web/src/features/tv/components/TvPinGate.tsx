@@ -16,7 +16,7 @@ function getTvToken(): string | null {
             const userObj = JSON.parse(userRaw);
             if (userObj?.token) return String(userObj.token).trim();
         }
-        return sessionStorage.getItem(TV_TOKEN_KEY);
+        return localStorage.getItem(TV_TOKEN_KEY);
     } catch {
         return null;
     }
@@ -24,7 +24,7 @@ function getTvToken(): string | null {
 
 function saveTvToken(token: string): void {
     try {
-        sessionStorage.setItem(TV_TOKEN_KEY, token);
+        localStorage.setItem(TV_TOKEN_KEY, token);
     } catch { }
 }
 

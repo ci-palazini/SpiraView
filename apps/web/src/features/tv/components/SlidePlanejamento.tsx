@@ -13,7 +13,7 @@ import {
     Cell,
     LabelList,
 } from 'recharts';
-import { type ResumoCapacidade, BASE } from '../../../services/apiClient';
+import { type ResumoCapacidade, getCapacidadeResumoTv } from '../../../services/apiClient';
 import styles from './SlidePlanejamento.module.css';
 
 interface DiaData {
@@ -87,9 +87,7 @@ export default function SlidePlanejamento({ currentSlide, diasProducao }: SlideP
     const fetchCapacidade = useCallback(async () => {
         try {
             setLoading(true);
-            // Use public TV endpoint (no auth required)
-            const r = await fetch(`${BASE}/planejamento/capacidade/resumo/tv`);
-            const data = await r.json();
+            const data = await getCapacidadeResumoTv();
             setCapacidadeData(data.items || []);
             if (data.calculation) {
                 setCalculation(data.calculation);

@@ -51,6 +51,7 @@ const UserMenu = ({ user }: UserMenuProps) => {
         try {
             localStorage.removeItem('usuario');
             localStorage.removeItem('dadosTurno');
+            localStorage.removeItem('tv_token');
         } catch { /* ignore */ }
         window.dispatchEvent(new Event('auth-user-changed'));
         navigate('/login', { replace: true });

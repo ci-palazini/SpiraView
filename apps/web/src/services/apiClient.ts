@@ -147,9 +147,9 @@ function getLoggedUserToken(): string {
             if (obj?.token) return String(obj.token).trim();
         }
     } catch { }
-    // Fallback: token do Modo TV (sessionStorage)
+    // Fallback: token do Modo TV (localStorage)
     try {
-        const tvToken = sessionStorage.getItem('tv_token');
+        const tvToken = localStorage.getItem('tv_token');
         if (tvToken) return tvToken.trim();
     } catch { }
     return '';
@@ -1123,6 +1123,29 @@ export async function listarResumoCapacidade(auth: AuthParams, uploadId?: string
         params: uploadId ? { uploadId } : {},
         auth,
     });
+}
+
+// 📺 Versão pública para TV (autorizada via tvLogin/token)
+
+export async function getCapacidadeResumoTv(): Promise<{
+    items: ResumoCapacidade[];
+    calculation?: {
+        totalBusinessDays: number;
+        remainingBusinessDays: number;
+        passedBusinessDays: number;
+        currentDate: string;
+    };
+}> {
+    return http.get('/planejamento/capacidade/resumo/tv');
+}
+
+export async function getUltimoUploadPlanejamentoTv(): Promise<{
+    upload?: {
+        id: string;
+        criadoEm: string;
+    }
+}> {
+    return http.get('/planejamento/capacidade/uploads/tv/ultimo');
 }
 
 // Listar uploads de capacidade

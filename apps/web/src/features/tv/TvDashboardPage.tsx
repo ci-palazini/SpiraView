@@ -7,7 +7,10 @@ import {
     listarMetasProducao,
     listarResumoDiarioProducao,
     buscarUltimoUploadProducao,
+    getUltimoUploadPlanejamentoTv,
+    getCapacidadeResumoTv,
     BASE,
+    http,
     type ProducaoMeta,
     type ProducaoResumoDiario,
 } from '../../services/apiClient';
@@ -198,8 +201,7 @@ export default function TvDashboardPage() {
 
             if (scope === 'planejamento') {
                 // Para planejamento, buscar último upload de planejamento
-                const response = await fetch(`${BASE}/planejamento/capacidade/uploads/tv/ultimo`);
-                const data = await response.json();
+                const data = await getUltimoUploadPlanejamentoTv();
                 const ultimoUpload = data.upload;
 
                 if (ultimoUpload?.criadoEm) {
