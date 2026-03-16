@@ -3,6 +3,8 @@ import styles from '../MainLayout.module.css';
 import LanguageMenu from '../LanguageMenu';
 import UserMenu from './UserMenu';
 import type { User } from '../../App';
+import { isFallbackActive } from '../../services/apiClient';
+import { useState, useEffect } from 'react';
 
 interface HeaderProps {
     isMobileMenuOpen: boolean;
@@ -12,6 +14,21 @@ interface HeaderProps {
 }
 
 const Header = ({ isMobileMenuOpen, setIsMobileMenuOpen, title, user }: HeaderProps) => {
+    const [isFallback, setIsFallback] = useState(isFallbackActive());
+
+    useEffect(() => {
+        const onFallback = () => setIsFallback(true);
+        const onRestore = () => setIsFallback(false);
+
+        window.addEventListener('api-fallback-activated' as any, onFallback);
+        window.addEventListener('api-primary-restored' as any, onRestore);
+
+        return () => {
+            window.removeEventListener('api-fallback-activated' as any, onFallback);
+            window.removeEventListener('api-primary-restored' as any, onRestore);
+        };
+    }, []);
+
     return (
         <header className={styles.header}>
             <button
@@ -20,7 +37,17 @@ const Header = ({ isMobileMenuOpen, setIsMobileMenuOpen, title, user }: HeaderPr
             >
                 {isMobileMenuOpen ? <FiX /> : <FiMenu />}
             </button>
-            <h1>{title}</h1>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <h1>{title}</h1>
+                {isFallback && (
+                    <span 
+                        className={styles.fallbackBadge} 
+                        title="Servidor Principal instável. Usando modo de reserva (Render)."
+                    >
+                        Servidor Reserva
+                    </span>
+                )}
+            </div>
 
             <div className={styles.headerRight}>
                 <LanguageMenu className={styles.langMenu} />

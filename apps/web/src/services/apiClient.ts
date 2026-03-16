@@ -88,6 +88,8 @@ function getLastPrimaryFail(): number {
 // Global active base for use in requests
 export let BASE = getActiveBase();
 
+export const isFallbackActive = () => getActiveBase() === FALLBACK_BASE;
+
 // Silent probe for recovery
 async function probePrimary(): Promise<void> {
     if (isProbingPrimary || getActiveBase() === PRIMARY_BASE) return;
