@@ -21,16 +21,11 @@ import type {
     Causa,
     Submissao,
     SubmissaoDiariaCreate,
-    ChecklistDiarioItem,
     Foto,
     ParetoResponse,
-    AiChatSqlResponse,
-    AiTextSearchResponse,
     LoginPayload,
     LoginResponse,
     ChangePasswordPayload,
-    SSEMessage,
-    SSEHandlers,
     ConcluirChamadoPayload,
     LogisticaKpi,
     LogisticaMeta,
@@ -43,12 +38,85 @@ import type {
     KamishibaiDashboardData
 } from '../types/api';
 
-// ===== BASE =====
-export const BASE = (
+// ===== BASE / FALLBACK CONFIG =====
+export const PRIMARY_BASE = (
     import.meta.env?.VITE_API_URL ||
     import.meta.env?.VITE_API_BASE ||
     "http://localhost:3000"
 ).replace(/\/+$/, "");
+
+export const FALLBACK_BASE = (
+    import.meta.env?.VITE_API_URL_FALLBACK ||
+    "http://localhost:3000" // Em dev local pode ser o mesmo
+).replace(/\/+$/, "");
+
+// Session Keys
+const STORAGE_KEY_ACTIVE_API = 'spira_active_api';
+const STORAGE_KEY_LAST_FAIL = 'spira_last_primary_fail';
+
+// In-memory state
+let isProbingPrimary = false;
+
+// Helper to get active API base with safe initialization
+function getActiveBase(): string {
+    const saved = sessionStorage.getItem(STORAGE_KEY_ACTIVE_API);
+    if (saved === FALLBACK_BASE) return FALLBACK_BASE;
+    // Default or explicitly Primary
+    return PRIMARY_BASE;
+}
+
+function setActiveBase(base: string) {
+    sessionStorage.setItem(STORAGE_KEY_ACTIVE_API, base);
+    if (base === PRIMARY_BASE) {
+        sessionStorage.removeItem(STORAGE_KEY_LAST_FAIL);
+    }
+}
+
+function setPrimaryFailure() {
+    sessionStorage.setItem(STORAGE_KEY_LAST_FAIL, Date.now().toString());
+    if (getActiveBase() !== FALLBACK_BASE) {
+        console.warn(`API fallback activated: Primary failed at ${new Date().toLocaleTimeString()}`);
+        setActiveBase(FALLBACK_BASE);
+    }
+}
+
+function getLastPrimaryFail(): number {
+    return Number(sessionStorage.getItem(STORAGE_KEY_LAST_FAIL) || 0);
+}
+
+// Global active base for use in requests
+export let BASE = getActiveBase();
+
+// Silent probe for recovery
+async function probePrimary(): Promise<void> {
+    if (isProbingPrimary || getActiveBase() === PRIMARY_BASE) return;
+
+    const lastFail = getLastPrimaryFail();
+    const tenMinutes = 10 * 60 * 1000;
+    if (Date.now() - lastFail < tenMinutes) return;
+
+    isProbingPrimary = true;
+    try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 2000); // 2s timeout for probe
+        const res = await fetch(`${PRIMARY_BASE}/health`, { signal: ctrl.signal, cache: 'no-store' });
+        clearTimeout(t);
+
+        if (res.ok) {
+            console.info('API primary restored: Fly.io is back online.');
+            setActiveBase(PRIMARY_BASE);
+            BASE = PRIMARY_BASE;
+        } else {
+            // Se falhou (mesmo sendo um erro 5xx), atualiza o timestamp de falha
+            setPrimaryFailure();
+        }
+    } catch {
+        // Falha silenciosa de rede
+        setPrimaryFailure();
+    } finally {
+        isProbingPrimary = false;
+    }
+}
 
 // Tenta descobrir o e-mail salvo pelo app
 function getLoggedUserEmail(): string {
@@ -123,7 +191,14 @@ interface ApiFetchOptions {
 
 async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): Promise<T> {
     const { method = "GET", headers = {}, body, auth } = opts;
-    const url = `${BASE}${path}`;
+
+    // Tenta retorno ao primário em background se estiver no fallback
+    if (getActiveBase() === FALLBACK_BASE) {
+        probePrimary();
+    }
+
+    let currentBase = getActiveBase();
+
     const h: Record<string, string> = { ...buildAuthHeaders(auth), ...headers };
     const init: RequestInit = { method, headers: h, cache: 'no-store' };
 
@@ -132,15 +207,49 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
         init.body = typeof body === "string" ? body : JSON.stringify(body);
     }
 
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 30_000);
-    init.signal = ctrl.signal;
+    // Tenta executar a request
+    const doFetch = async (targetBase: string, timeoutMs: number): Promise<Response> => {
+        const url = `${targetBase}${path}`;
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), timeoutMs);
+        try {
+            return await fetch(url, { ...init, signal: ctrl.signal });
+        } finally {
+            clearTimeout(t);
+        }
+    };
 
     let res: Response;
     try {
-        res = await fetch(url, init);
-    } finally {
-        clearTimeout(t);
+        // Se for o primário, usamos um timeout curto (3s) para detectar bloqueios rapidamente
+        // Se já estiver no fallback, usamos o padrão (30s)
+        const isPrimary = (currentBase === PRIMARY_BASE);
+        const firstTimeout = isPrimary ? 3_000 : 30_000;
+
+        try {
+            res = await doFetch(currentBase, firstTimeout);
+        } catch (err: any) {
+            // Se falhou no primário por timeout ou erro de rede, tenta o fallback
+            if (isPrimary && (err.name === 'AbortError' || err.name === 'TypeError' || String(err).includes('NetworkError'))) {
+                const cause = err.name === 'AbortError' ? 'timeout' : 'network error';
+                console.warn(`API fallback activated: ${cause} on primary. Retrying on Render...`);
+                setPrimaryFailure();
+                BASE = FALLBACK_BASE; // Atualiza a variável global exportada
+                res = await doFetch(FALLBACK_BASE, 30_000);
+            } else {
+                throw err;
+            }
+        }
+
+        // Se o primário respondeu mas com erro de gateway (502, 503, 504)
+        if (isPrimary && [502, 503, 504].includes(res.status)) {
+            console.warn(`API fallback activated: HTTP ${res.status} on primary. Retrying on Render...`);
+            setPrimaryFailure();
+            BASE = FALLBACK_BASE;
+            res = await doFetch(FALLBACK_BASE, 30_000);
+        }
+    } catch (err) {
+        throw err;
     }
 
     const ct = String(res.headers.get("content-type") || "");

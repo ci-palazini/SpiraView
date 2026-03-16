@@ -247,11 +247,28 @@ formatDateTimeShort(value) // DD/MM/AAAA, HH:MM
 
 ## 10. Ambientes
 
-| Ambiente | URL | Uso |
-|----------|-----|-----|
-| **Development** | `localhost:5173` (web), `localhost:3000` (api) | Desenvolvimento local |
-| **Production** | Vercel / Cloud Run | Produção |
+| **Production** | Fly.io (Primary) / Render (Fallback) | Produção |
 | **Database** | Supabase | Instância única |
+
+---
+
+## 11. Alta Disponibilidade (API Fallback)
+
+Para garantir a resiliência contra bloqueios de rede (como Cisco Umbrella/OpenDNS) ou indisponibilidade do provedor principal, o frontend implementa uma estratégia de **Fallback Automático**.
+
+| Componente | Detalhes |
+|------------|----------|
+| **Principal (Primary)** | [Fly.io](https://fly.io) — Prioritário por performance. |
+| **Reserva (Fallback)** | [Render](https://render.com) — Acionado em caso de falha de infraestrutura. |
+
+### Mecanismo de Funcionamento:
+1. **Detecção**: Toda requisição ao primário tem um timeout de **3 segundos**.
+2. **Fallback**: Se houver timeout, erro de rede ou erro de gateway (502/503/504), a requisição é repetida automaticamente no Render.
+3. **Persistência**: Uma vez ativado, o fallback é mantido no `sessionStorage` para evitar novos timeouts na sessão atual.
+4. **Recuperação (Recovery)**: A cada **10 minutos**, o sistema realiza um *silent probe* (`GET /health`) no Fly.io. Se houver sucesso, a aplicação retorna automaticamente para a rota principal.
+5. **Logs**: Ativações de fallback e restaurações são registradas no console do browser para auditoria.
+
+---
 
 ---
 
