@@ -1,7 +1,7 @@
 // src/App.tsx
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import UserContext from './contexts/UserContext';
@@ -138,13 +138,31 @@ export default function App() {
         });
     }, []); // Roda somente no mount (F5) — lê localStorage diretamente, sem closure stale
 
-    // Multi-aba: se outra aba fizer login/logout (aqui o 'storage' funciona)
+    // 🌐 Notificações de Fallback/Restore da API
     useEffect(() => {
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === 'usuario') setUser(readStoredUser());
+        const onFallback = (e: any) => {
+            const cause = e.detail?.cause || 'erro de rede';
+            toast.error(`Conexão instável (${cause}). Usando servidor de reserva (pode ficar mais lento).`, {
+                id: 'api-fallback',
+                duration: 6000
+            });
         };
-        window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
+        const onRestore = () => {
+            toast.success('Servidor principal restaurado. Performance normalizada.', {
+                id: 'api-restore',
+                duration: 4000
+            });
+            // Remove o toast de fallback anterior se ainda estiver aberto
+            toast.dismiss('api-fallback');
+        };
+
+        window.addEventListener('api-fallback-activated' as any, onFallback);
+        window.addEventListener('api-primary-restored' as any, onRestore);
+
+        return () => {
+            window.removeEventListener('api-fallback-activated' as any, onFallback);
+            window.removeEventListener('api-primary-restored' as any, onRestore);
+        };
     }, []);
 
     const role = (user?.role || '').trim().toLowerCase();

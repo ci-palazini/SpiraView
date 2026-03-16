@@ -72,11 +72,12 @@ function setActiveBase(base: string) {
     }
 }
 
-function setPrimaryFailure() {
+function setPrimaryFailure(cause: string) {
     sessionStorage.setItem(STORAGE_KEY_LAST_FAIL, Date.now().toString());
     if (getActiveBase() !== FALLBACK_BASE) {
-        console.warn(`API fallback activated: Primary failed at ${new Date().toLocaleTimeString()}`);
+        console.warn(`API fallback activated: ${cause} on primary at ${new Date().toLocaleTimeString()}`);
         setActiveBase(FALLBACK_BASE);
+        window.dispatchEvent(new CustomEvent('api-fallback-activated', { detail: { cause } }));
     }
 }
 
@@ -106,13 +107,14 @@ async function probePrimary(): Promise<void> {
             console.info('API primary restored: Fly.io is back online.');
             setActiveBase(PRIMARY_BASE);
             BASE = PRIMARY_BASE;
+            window.dispatchEvent(new CustomEvent('api-primary-restored'));
         } else {
             // Se falhou (mesmo sendo um erro 5xx), atualiza o timestamp de falha
-            setPrimaryFailure();
+            setPrimaryFailure('probe failed');
         }
     } catch {
         // Falha silenciosa de rede
-        setPrimaryFailure();
+        setPrimaryFailure('probe network error');
     } finally {
         isProbingPrimary = false;
     }
@@ -232,8 +234,7 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
             // Se falhou no primário por timeout ou erro de rede, tenta o fallback
             if (isPrimary && (err.name === 'AbortError' || err.name === 'TypeError' || String(err).includes('NetworkError'))) {
                 const cause = err.name === 'AbortError' ? 'timeout' : 'network error';
-                console.warn(`API fallback activated: ${cause} on primary. Retrying on Render...`);
-                setPrimaryFailure();
+                setPrimaryFailure(cause);
                 BASE = FALLBACK_BASE; // Atualiza a variável global exportada
                 res = await doFetch(FALLBACK_BASE, 30_000);
             } else {
@@ -243,8 +244,7 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
 
         // Se o primário respondeu mas com erro de gateway (502, 503, 504)
         if (isPrimary && [502, 503, 504].includes(res.status)) {
-            console.warn(`API fallback activated: HTTP ${res.status} on primary. Retrying on Render...`);
-            setPrimaryFailure();
+            setPrimaryFailure(`HTTP ${res.status}`);
             BASE = FALLBACK_BASE;
             res = await doFetch(FALLBACK_BASE, 30_000);
         }
