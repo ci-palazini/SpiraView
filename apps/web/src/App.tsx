@@ -165,6 +165,15 @@ export default function App() {
         };
     }, []);
 
+    // 🔄 Multi-aba: se outra aba fizer login/logout (ou se disparado manualmente)
+    useEffect(() => {
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'usuario') setUser(readStoredUser());
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
     const role = (user?.role || '').trim().toLowerCase();
 
     return (

@@ -85,6 +85,7 @@ export default function LoginPage() {
 
             try {
                 window.dispatchEvent(new StorageEvent('storage', { key: 'usuario' }));
+                window.dispatchEvent(new CustomEvent('auth-user-changed'));
             } catch { /* ignore */ }
 
             const isOperador = (normalized.role || '').toLowerCase() === 'operador';
@@ -113,6 +114,7 @@ export default function LoginPage() {
 
         try {
             window.dispatchEvent(new StorageEvent('storage', { key: 'usuario' }));
+            window.dispatchEvent(new CustomEvent('auth-user-changed'));
         } catch { /* ignore */ }
 
         navigate('/inicio-turno', { replace: true });
