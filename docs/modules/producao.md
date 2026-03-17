@@ -47,6 +47,7 @@ flowchart LR
 | POST | `/producao/metas` | `producao_config: editar` | Criar meta |
 | PUT | `/producao/metas/:id` | `producao_config: editar` | Atualizar |
 | DELETE | `/producao/metas/:id` | `producao_config: editar` | Excluir |
+| GET | `/producao/indicadores/funcionarios/resumo` | `producao_colaboradores: ver` | Snapshot único (metas + realizado dia + realizado mês) para a tela de colaboradores |
 
 ---
 

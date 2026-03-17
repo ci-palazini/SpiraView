@@ -24,6 +24,7 @@ import ProducaoConfigPage from '../../features/producao/pages/ProducaoConfigPage
 import ProducaoUploadDetalhePage from '../../features/producao/pages/ProducaoUploadDetalhePage';
 import ProducaoDashboardPage from '../../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../../features/producao/pages/ProducaoColaboradoresPage';
+import ProducaoColaboradorDetalhePage from '../../features/producao/pages/ProducaoColaboradorDetalhePage';
 import RolesPage from '../../features/configuracoes/pages/RolesPage';
 import MaquinasConfigPage from '../../features/configuracoes/pages/MaquinasConfigPage';
 import PlanejamentoDashboardPage from '../../features/planejamento/pages/PlanejamentoDashboardPage';
@@ -205,6 +206,11 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/producao/colaboradores"
                 element={canAccessPage('producao_colaboradores', <ProducaoColaboradoresPage user={user} />)}
+            />
+
+            <Route
+                path="/producao/colaboradores/:matricula"
+                element={canAccessPage('producao_colaboradores', <ProducaoColaboradorDetalhePage user={user} />)}
             />
 
             {/* Planejamento */}

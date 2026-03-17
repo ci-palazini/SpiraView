@@ -236,6 +236,7 @@ interface ParsedRow {
     observacao: string | null;
     excelRow: number;
     matriculaOperador: string | null; // Adicionado
+    numeroOP: string | null; // Adicionado
 }
 
 // Tipo de erro de processamento
@@ -350,7 +351,13 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
         const colObs = detectCol(headers, ['obs', 'observacao', 'observação', 'observacoes', 'nota', 'notas', 'comentario', 'comentário']);
 
         // Nova coluna: Matrícula / Colaborador
-        const colMatricula = detectCol(headers, ['matricula', 'matrícula', 'funcionario', 'funcionário', 'colaborador', 'operador', 'op']);
+        const colMatricula = detectCol(headers, ['matricula', 'matrícula', 'funcionario', 'funcionário', 'colaborador', 'operador']);
+
+        // Nova coluna: OP (Produção)
+        const colOP = detectCol(headers, [
+            'op', 'ordem producao', 'ordem de producao',
+            'ordem produção', 'ordem de produção', 'numero op', 'numero_op', 'op num', 'wbs'
+        ]);
 
         if (!colData || !colMaquina || !colHoras) {
             const missing = [
@@ -471,6 +478,9 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 }
             }
 
+            // OP (Opcional)
+            const numeroOP = colOP ? String(raw[colOP] || '').trim() || null : null;
+
             parsed.push({
                 dataRef,
                 maquinaId: maq.id,
@@ -479,7 +489,8 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 horasRealizadas: horas,
                 observacao,
                 excelRow,
-                matriculaOperador // Adicionado
+                matriculaOperador,
+                numeroOP
             });
         }
 
@@ -551,16 +562,17 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 // Se as horas não mudaram, preservamos o timestamp antigo
                 const horasAtuaisRes = await client.query(
                     `SELECT maquina_id, turno, COALESCE(matricula_operador, '') as matricula_operador, 
+                            COALESCE(numero_op, '') as numero_op,
                             horas_realizadas, horas_referencia_em
                      FROM producao_lancamentos 
                      WHERE data_ref = $1`,
                     [dataRef]
                 );
 
-                // Mapa: "maquinaId|turno|matricula" -> { horas, refEm }
+                // Mapa: "maquinaId|turno|matricula|numeroOP" -> { horas, refEm }
                 const horasAntigas = new Map<string, { horas: number; refEm: string | null }>();
                 for (const row of horasAtuaisRes.rows) {
-                    const key = `${row.maquina_id}|${row.turno || ''}|${row.matricula_operador}`;
+                    const key = `${row.maquina_id}|${row.turno || ''}|${row.matricula_operador}|${row.numero_op}`;
                     horasAntigas.set(key, {
                         horas: Number(row.horas_realizadas) || 0,
                         refEm: row.horas_referencia_em,
@@ -578,6 +590,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 const lancadoPorNomes: (string | null)[] = [];
                 const lancadoPorEmails: (string | null)[] = [];
                 const matriculasOperador: (string | null)[] = [];
+                const numerosOP: (string | null)[] = []; // NOVO: numero da OP
                 const horasReferenciaEm: (string | null)[] = []; // NOVO: timestamp de referência
 
                 const agora = new Date().toISOString();
@@ -593,9 +606,10 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                     lancadoPorNomes.push(auth.nome || null);
                     lancadoPorEmails.push(auth.email || null);
                     matriculasOperador.push(row.matriculaOperador || null);
+                    numerosOP.push(row.numeroOP || null);
 
                     // 3. Lógica de justiça: preservar timestamp se horas não mudaram
-                    const key = `${row.maquinaId}|${row.turno || ''}|${row.matriculaOperador || ''}`;
+                    const key = `${row.maquinaId}|${row.turno || ''}|${row.matriculaOperador || ''}|${row.numeroOP || ''}`;
                     const antiga = horasAntigas.get(key);
 
                     if (antiga && antiga.horas === row.horasRealizadas && antiga.refEm) {
@@ -607,15 +621,15 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                     }
                 }
 
-                // 4. Batch INSERT com horas_referencia_em
+                // 4. Batch INSERT com horas_referencia_em e numero_op
                 await client.query(
                     `INSERT INTO producao_lancamentos 
-                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador, horas_referencia_em)
+                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador, numero_op, horas_referencia_em)
                      SELECT * FROM UNNEST(
                          $1::uuid[], $2::date[], $3::text[], $4::numeric[], $5::text[], 
-                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[], $11::timestamptz[]
+                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[], $11::text[], $12::timestamptz[]
                      )
-                     ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''))
+                     ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''), COALESCE(numero_op, ''))
                      DO UPDATE SET 
                        horas_realizadas = EXCLUDED.horas_realizadas,
                        observacao = EXCLUDED.observacao,
@@ -633,6 +647,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                         lancadoPorNomes,
                         lancadoPorEmails,
                         matriculasOperador,
+                        numerosOP,
                         horasReferenciaEm
                     ]
                 );

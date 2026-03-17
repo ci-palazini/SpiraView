@@ -267,8 +267,12 @@ metasRouter.get('/producao/indicadores/funcionarios/dia', async (req, res) => {
             `SELECT
                 pl.data_ref AS "data_wip",
                 pl.matricula_operador AS "matricula",
-                SUM(pl.horas_realizadas) AS "produzido_h"
+                SUM(pl.horas_realizadas) AS "produzido_h",
+                COUNT(DISTINCT pl.maquina_id) AS "total_maquinas",
+                COUNT(DISTINCT pl.numero_op) FILTER (WHERE pl.numero_op IS NOT NULL) AS "total_ops",
+                ARRAY_AGG(DISTINCT m.nome ORDER BY m.nome) AS "maquinas_list"
              FROM producao_lancamentos pl
+             JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref = $1
                AND pl.matricula_operador IS NOT NULL
              GROUP BY pl.data_ref, pl.matricula_operador`,
@@ -302,8 +306,13 @@ metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
             `SELECT
                 to_char(pl.data_ref, 'YYYY-MM') AS "ano_mes",
                 pl.matricula_operador AS "matricula",
-                SUM(pl.horas_realizadas) AS "produzido_h"
+                SUM(pl.horas_realizadas) AS "produzido_h",
+                COUNT(DISTINCT pl.maquina_id) AS "total_maquinas",
+                COUNT(DISTINCT pl.numero_op) FILTER (WHERE pl.numero_op IS NOT NULL) AS "total_ops",
+                COUNT(DISTINCT pl.data_ref) AS "dias_trabalhados",
+                ARRAY_AGG(DISTINCT m.nome ORDER BY m.nome) AS "maquinas_list"
              FROM producao_lancamentos pl
+             JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
                AND pl.matricula_operador IS NOT NULL
              GROUP BY 1, 2`,
@@ -315,3 +324,245 @@ metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
         res.status(500).json({ error: String(e) });
     }
 });
+
+// GET /producao/indicadores/funcionarios/resumo - Snapshot único para tela de colaboradores
+metasRouter.get('/producao/indicadores/funcionarios/resumo', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
+    try {
+        const data = (req.query.data as string || '').trim(); // YYYY-MM-DD
+        const anoMesRaw = (req.query.anoMes as string || '').trim(); // YYYY-MM ou YYYY-MM-DD
+
+        if (!data || !anoMesRaw) {
+            return res.status(400).json({ error: 'Data e anoMes são obrigatórios.' });
+        }
+
+        const anoMesMatch = anoMesRaw.match(/^(\d{4})-(\d{2})/);
+        if (!anoMesMatch) {
+            return res.status(400).json({ error: 'Formato inválido para anoMes. Use YYYY-MM.' });
+        }
+
+        const year = Number(anoMesMatch[1]);
+        const month = Number(anoMesMatch[2]); // 1-12
+        if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+            return res.status(400).json({ error: 'Mês inválido.' });
+        }
+
+        const start = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        const [metasRows, diaRows, mesRows] = await Promise.all([
+            pool.query(
+                `SELECT
+                    m.id,
+                    m.matricula,
+                    u.nome,
+                    m.meta_diaria_horas,
+                    m.ativo,
+                    m.atualizado_em
+                 FROM producao_colaborador_metas m
+                 LEFT JOIN usuarios u ON u.matricula = m.matricula
+                 ORDER BY u.nome NULLS LAST, m.matricula`
+            ).then((r) => r.rows),
+            pool.query(
+                `SELECT
+                    pl.data_ref AS "data_wip",
+                    pl.matricula_operador AS "matricula",
+                    SUM(pl.horas_realizadas) AS "produzido_h",
+                    COUNT(DISTINCT pl.maquina_id) AS "total_maquinas",
+                    COUNT(DISTINCT pl.numero_op) FILTER (WHERE pl.numero_op IS NOT NULL) AS "total_ops",
+                    ARRAY_AGG(DISTINCT m.nome ORDER BY m.nome) AS "maquinas_list"
+                 FROM producao_lancamentos pl
+                 JOIN maquinas m ON m.id = pl.maquina_id
+                 WHERE pl.data_ref = $1
+                   AND pl.matricula_operador IS NOT NULL
+                 GROUP BY pl.data_ref, pl.matricula_operador`,
+                [data]
+            ).then((r) => r.rows),
+            pool.query(
+                `SELECT
+                    to_char(pl.data_ref, 'YYYY-MM') AS "ano_mes",
+                    pl.matricula_operador AS "matricula",
+                    SUM(pl.horas_realizadas) AS "produzido_h",
+                    COUNT(DISTINCT pl.maquina_id) AS "total_maquinas",
+                    COUNT(DISTINCT pl.numero_op) FILTER (WHERE pl.numero_op IS NOT NULL) AS "total_ops",
+                    COUNT(DISTINCT pl.data_ref) AS "dias_trabalhados",
+                    ARRAY_AGG(DISTINCT m.nome ORDER BY m.nome) AS "maquinas_list"
+                 FROM producao_lancamentos pl
+                 JOIN maquinas m ON m.id = pl.maquina_id
+                 WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
+                   AND pl.matricula_operador IS NOT NULL
+                 GROUP BY 1, 2`,
+                [start, end]
+            ).then((r) => r.rows),
+        ]);
+
+        res.json({
+            metas: metasRows,
+            dia: diaRows,
+            mes: mesRows,
+        });
+    } catch (e: any) {
+        logger.error({ err: e }, 'Erro na rota');
+        res.status(500).json({ error: String(e) });
+    }
+});
+
+// GET /producao/indicadores/funcionarios/detalhe-dia - Detalhe de lançamentos de um colaborador em um dia
+metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
+    try {
+        const matricula = (req.query.matricula as string || '').trim();
+        const data = (req.query.data as string || '').trim(); // YYYY-MM-DD
+
+        if (!matricula || !data) {
+            return res.status(400).json({ error: 'Matrícula e data são obrigatórias.' });
+        }
+
+        type DetalheDiaRow = {
+            id: string;
+            maquinaNome: string;
+            turno: string | null;
+            horasRealizadas: number | string;
+            numeroOP: string | null;
+            observacao: string | null;
+            horasReferenciaEm: string | null;
+        };
+
+        const { rows } = await pool.query<DetalheDiaRow>(
+            `SELECT
+                pl.id,
+                m.nome AS "maquinaNome",
+                pl.turno,
+                pl.horas_realizadas AS "horasRealizadas",
+                pl.numero_op AS "numeroOP",
+                pl.observacao,
+                pl.horas_referencia_em AS "horasReferenciaEm"
+             FROM producao_lancamentos pl
+             JOIN maquinas m ON m.id = pl.maquina_id
+             WHERE pl.data_ref = $1
+               AND pl.matricula_operador = $2
+             ORDER BY m.nome ASC, pl.numero_op ASC`,
+            [data, matricula]
+        );
+
+        const totalHoras = rows.reduce((sum, r) => sum + Number(r.horasRealizadas || 0), 0);
+        const totalMaquinas = new Set(rows.map((r) => r.maquinaNome)).size;
+        const totalOPs = new Set(rows.filter((r) => r.numeroOP).map((r) => r.numeroOP)).size;
+
+        res.json({
+            matricula,
+            data,
+            lancamentos: rows,
+            resumo: {
+                totalHoras,
+                totalMaquinas,
+                totalOPs,
+                totalLancamentos: rows.length,
+            }
+        });
+    } catch (e: any) {
+        logger.error({ err: e }, 'Erro na rota');
+        res.status(500).json({ error: String(e) });
+    }
+});
+
+// GET /producao/indicadores/funcionarios/detalhe-mes - Detalhe de lançamentos de um colaborador em todo o mês
+metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
+    try {
+        const matricula = (req.query.matricula as string || '').trim();
+        const anoMes = (req.query.anoMes as string || '').trim(); // YYYY-MM
+
+        if (!matricula || !anoMes) {
+            return res.status(400).json({ error: 'Matrícula e mês (anoMes) são obrigatórios.' });
+        }
+
+        if (!/^\d{4}-\d{2}$/.test(anoMes)) {
+            return res.status(400).json({ error: 'Formato inválido para anoMes. Use YYYY-MM.' });
+        }
+
+        const [yyyy, mm] = anoMes.split('-').map(Number);
+        if (!Number.isInteger(yyyy) || !Number.isInteger(mm) || mm < 1 || mm > 12) {
+            return res.status(400).json({ error: 'Mês inválido.' });
+        }
+
+        const start = `${yyyy}-${String(mm).padStart(2, '0')}-01`;
+        const lastDay = new Date(yyyy, mm, 0).getDate();
+        const end = `${yyyy}-${String(mm).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        // Get operator name
+        const { rows: workerRows } = await pool.query(
+            'SELECT nome FROM usuarios WHERE matricula = $1 LIMIT 1',
+            [matricula]
+        );
+        const nome = workerRows[0]?.nome || matricula;
+
+        const { rows: metaRows } = await pool.query<{ meta_diaria_horas: number | string }>(
+            'SELECT meta_diaria_horas FROM producao_colaborador_metas WHERE matricula = $1 LIMIT 1',
+            [matricula]
+        );
+        const metaDiariaHoras = Number(metaRows[0]?.meta_diaria_horas || 0);
+        const diasUteisMes = (() => {
+            let count = 0;
+            for (let d = 1; d <= lastDay; d += 1) {
+                const wd = new Date(yyyy, mm - 1, d).getDay();
+                if (wd >= 1 && wd <= 5) count += 1;
+            }
+            return count;
+        })();
+        const metaMensalHoras = metaDiariaHoras * diasUteisMes;
+
+        type DetalheMesRow = {
+            id: string;
+            dataRef: string;
+            maquinaNome: string;
+            turno: string | null;
+            horasRealizadas: number | string;
+            numeroOP: string | null;
+            observacao: string | null;
+            horasReferenciaEm: string | null;
+        };
+
+        const { rows } = await pool.query<DetalheMesRow>(
+            `SELECT
+                pl.id,
+                pl.data_ref::text AS "dataRef",
+                m.nome AS "maquinaNome",
+                pl.turno,
+                pl.horas_realizadas AS "horasRealizadas",
+                pl.numero_op AS "numeroOP",
+                pl.observacao,
+                pl.horas_referencia_em AS "horasReferenciaEm"
+             FROM producao_lancamentos pl
+             JOIN maquinas m ON m.id = pl.maquina_id
+             WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
+               AND pl.matricula_operador = $3
+             ORDER BY pl.data_ref ASC, m.nome ASC, pl.numero_op ASC`,
+            [start, end, matricula]
+        );
+
+        const totalHoras = rows.reduce((sum, r) => sum + Number(r.horasRealizadas || 0), 0);
+        const totalMaquinas = new Set(rows.map((r) => r.maquinaNome)).size;
+        const totalOPs = new Set(rows.filter((r) => r.numeroOP).map((r) => r.numeroOP)).size;
+        const diasTrabalhados = new Set(rows.map((r) => String(r.dataRef).slice(0, 10))).size;
+
+        res.json({
+            matricula,
+            nome,
+            anoMes,
+            lancamentos: rows,
+            resumo: {
+                totalHoras,
+                totalMaquinas,
+                totalOPs,
+                totalLancamentos: rows.length,
+                diasTrabalhados,
+                metaDiariaHoras,
+                metaMensalHoras,
+                diasUteisMes,
+            }
+        });
+    } catch (e: any) {
+        logger.error({ err: e }, 'Erro na rota');
+        res.status(500).json({ error: String(e) });
+    }
+});
+

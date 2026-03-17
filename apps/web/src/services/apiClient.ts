@@ -962,8 +962,88 @@ export async function fetchFuncionariosMes(anoMesISO: string): Promise<any[]> {
     return http.get<any[]>('/producao/indicadores/funcionarios/mes', { params: { anoMes: anoMesISO } });
 }
 
+export interface FuncionarioIndicadorDia {
+    data_wip: string;
+    matricula: string;
+    produzido_h: number | string;
+}
+
+export interface FuncionarioIndicadorMes {
+    ano_mes: string;
+    matricula: string;
+    produzido_h: number | string;
+}
+
+export interface FuncionariosResumoColaboradores {
+    metas: FuncionarioMeta[];
+    dia: FuncionarioIndicadorDia[];
+    mes: FuncionarioIndicadorMes[];
+}
+
+export async function fetchFuncionariosResumo(dataISO: string, anoMesISO: string): Promise<FuncionariosResumoColaboradores> {
+    return http.get<FuncionariosResumoColaboradores>('/producao/indicadores/funcionarios/resumo', {
+        params: { data: dataISO, anoMes: anoMesISO }
+    });
+}
+
 export async function upsertFuncionarioMeta(payload: FuncionarioMeta, auth: AuthParams = {}): Promise<unknown> {
     return http.post('/producao/metas/funcionarios', { data: payload, auth });
+}
+
+// Detalhe diário de um colaborador (máquinas + OPs)
+export interface FuncionarioDetalheLancamento {
+    id: string;
+    maquinaNome: string;
+    turno: string | null;
+    horasRealizadas: number;
+    numeroOP: string | null;
+    observacao: string | null;
+    horasReferenciaEm: string | null;
+}
+
+export interface FuncionarioDetalheResumo {
+    totalHoras: number;
+    totalMaquinas: number;
+    totalOPs: number;
+    totalLancamentos: number;
+}
+
+export interface FuncionarioDetalheDia {
+    matricula: string;
+    data: string;
+    lancamentos: FuncionarioDetalheLancamento[];
+    resumo: FuncionarioDetalheResumo;
+}
+
+export async function fetchFuncionarioDetalheDia(matricula: string, dataISO: string): Promise<FuncionarioDetalheDia> {
+    return http.get<FuncionarioDetalheDia>('/producao/indicadores/funcionarios/detalhe-dia', {
+        params: { matricula, data: dataISO }
+    });
+}
+
+export interface FuncionarioDetalheMesLancamento extends FuncionarioDetalheLancamento {
+    dataRef: string;
+}
+
+export interface FuncionarioDetalheMesResumo extends FuncionarioDetalheResumo {
+    diasTrabalhados: number;
+    metaDiariaHoras: number;
+    metaMensalHoras: number;
+    diasUteisMes: number;
+}
+
+export interface FuncionarioDetalheMes {
+    matricula: string;
+    nome?: string;
+    anoMes: string;
+    lancamentos: FuncionarioDetalheMesLancamento[];
+    resumo: FuncionarioDetalheMesResumo;
+}
+
+export async function fetchFuncionarioDetalheMes(matricula: string, anoMesISO: string): Promise<FuncionarioDetalheMes> {
+    return http.get<FuncionarioDetalheMes>('/producao/indicadores/funcionarios/detalhe-mes', {
+        params: { matricula, anoMes: anoMesISO }
+    });
 }
 
 // Detalhe de um upload de produção

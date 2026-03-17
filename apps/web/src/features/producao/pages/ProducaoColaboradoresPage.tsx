@@ -1,5 +1,6 @@
 // src/features/producao/pages/ProducaoColaboradoresPage.tsx
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -11,19 +12,19 @@ import {
     FiUserPlus,
     FiEdit2,
     FiSearch,
-    FiCheck
+    FiCheck,
+    FiBarChart2
 } from 'react-icons/fi';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import Modal from '../../../shared/components/Modal';
 import {
-    fetchFuncionariosMeta,
-    fetchFuncionariosDia,
-    fetchFuncionariosMes,
+    fetchFuncionariosResumo,
     upsertFuncionarioMeta,
     listarUsuarios,
 } from '../../../services/apiClient';
 import type { Usuario } from '../../../types/api';
+
 import styles from './ProducaoColaboradoresPage.module.css';
 
 /* ==========================
@@ -174,6 +175,7 @@ interface ProducaoColaboradoresPageProps {
    ========================== */
 export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradoresPageProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const today = startOfDayLocal(new Date());
 
     // Estados de filtro
@@ -216,30 +218,32 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
     const carregarDados = useCallback(async () => {
         setLoading(true);
         try {
-            const [metasResp, diaResp, mesResp] = await Promise.all([
-                fetchFuncionariosMeta(),
-                fetchFuncionariosDia(dateToISO(diaRef)),
-                fetchFuncionariosMes(monthToAnoMesISO(mesRef)),
-            ]);
+            const resumo = await fetchFuncionariosResumo(
+                dateToISO(diaRef),
+                monthToAnoMesISO(mesRef),
+            );
+            const metasResp = resumo?.metas ?? [];
+            const diaResp = resumo?.dia ?? [];
+            const mesResp = resumo?.mes ?? [];
 
             setMetas(
-                (metasResp ?? []).map((m: any) => ({
+                metasResp.map((m) => ({
                     id: m.id,
                     matricula: m.matricula,
-                    nome: m.nome,
+                    nome: m.nome || m.matricula,
                     meta_diaria_horas: Number(m.meta_diaria_horas) || 0,
                     ativo: Boolean(m.ativo),
                 }))
             );
             setDadosDia(
-                (diaResp ?? []).map((r: any) => ({
+                diaResp.map((r) => ({
                     data_wip: r.data_wip,
                     matricula: r.matricula,
                     produzido_h: Number(r.produzido_h) || 0,
                 }))
             );
             setDadosMes(
-                (mesResp ?? []).map((r: any) => ({
+                mesResp.map((r) => ({
                     ano_mes: r.ano_mes,
                     matricula: r.matricula,
                     produzido_h: Number(r.produzido_h) || 0,
@@ -322,6 +326,12 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
         } finally {
             setSaving(false);
         }
+    };
+
+    /* --- Abrir detalhe de um colaborador (Navegar) --- */
+    const abrirDetalhe = (f: LinhaUI) => {
+        const anoMes = ymKeyFromDate(mesRef);
+        navigate(`/producao/colaboradores/${f.matricula}?mes=${anoMes}`);
     };
 
     /* --- Modal de edição handlers --- */
@@ -548,7 +558,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                 <th className={styles.alignRight}>{t('producao.colaboradores.table.perfDay', 'Perf. Dia')}</th>
                                 <th className={styles.alignRight}>{t('producao.colaboradores.table.perfMonth', 'Perf. Mês')}</th>
                                 <th className={styles.alignCenter}>{t('producao.colaboradores.table.status', 'Status')}</th>
-                                <th style={{ width: 60 }}></th>
+                                <th style={{ width: 80 }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -589,9 +599,12 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                         </span>
                                     </td>
                                     <td>
-                                        <button className={styles.iconButton} onClick={() => abrirEditar(l)} title={t('producao.colaboradores.table.editTitle', 'Editar meta')}>
-                                            <FiEdit2 />
-                                        </button>
+                                        <div style={{ display: 'flex', gap: 4 }}>
+                                            <button className={styles.iconButton} onClick={() => abrirDetalhe(l)} title={t('producao.colaboradores.table.viewDetails', 'Ver detalhes')} style={{ color: 'var(--color-primary)' }}><FiBarChart2 /></button>
+                                            <button className={styles.iconButton} onClick={() => abrirEditar(l)} title={t('producao.colaboradores.table.editTitle', 'Editar meta')}>
+                                                <FiEdit2 />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -773,3 +786,4 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
         </>
     );
 }
+

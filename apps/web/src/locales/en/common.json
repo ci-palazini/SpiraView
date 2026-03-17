@@ -1329,6 +1329,7 @@
         "status": "Status",
         "active": "Active",
         "inactive": "Inactive",
+        "viewDetails": "View details",
         "totals": "Totals",
         "empty": {
           "title": "No monitored operators",
@@ -1361,6 +1362,41 @@
         "addError": "Error adding operator",
         "updateSuccess": "Goal updated successfully!",
         "saveError": "Error saving"
+      }
+    },
+    "colaboradorDetalhe": {
+      "title": "Operator Detail",
+      "subtitle": "Detailed analysis of production, OPs, and machines.",
+      "back": "Back",
+      "filters": {
+        "period": "Analysis Period"
+      },
+      "stats": {
+        "totalHours": "Total Hours",
+        "dailyGoal": "Daily Goal",
+        "monthlyGoal": "Monthly Goal",
+        "totalMachines": "Machines",
+        "totalOps": "Worked OPs",
+        "daysWorked": "Days Worked"
+      },
+      "chart": {
+        "title": "Daily Production (h)",
+        "goalLine": "Daily goal"
+      },
+      "table": {
+        "title": "Production Logs",
+        "date": "Date",
+        "machine": "Machine",
+        "turn": "Shift",
+        "op": "OP",
+        "hours": "Hours"
+      },
+      "messages": {
+        "loading": "Loading operator details...",
+        "noPermissions": "You do not have permission to view operator details.",
+        "loadError": "Error loading operator details.",
+        "selectDay": "Select a day in the chart to see detailed logs.",
+        "noDataDay": "No production recorded on this day."
       }
     },
     "dashboard": {

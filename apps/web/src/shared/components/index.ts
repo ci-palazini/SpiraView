@@ -2,8 +2,10 @@
 export { Button } from './Button';
 
 export { Card, CardHeader } from './Card';
-
+export { default as Modal } from './Modal';
 export { Badge } from './Badge';
+export { default as Skeleton } from './Skeleton';
+export { default as PageHeader } from './PageHeader';
 
 export { Input } from './Input';
 

@@ -1444,6 +1444,7 @@
         "status": "Status",
         "active": "Ativo",
         "inactive": "Inativo",
+        "viewDetails": "Ver detalhes",
         "totals": "Totais",
         "empty": {
           "title": "Nenhum operador monitorado",
@@ -1476,6 +1477,41 @@
         "addError": "Erro ao adicionar operador",
         "updateSuccess": "Meta atualizada com sucesso!",
         "saveError": "Erro ao salvar"
+      }
+    },
+    "colaboradorDetalhe": {
+      "title": "Detalhe do Colaborador",
+      "subtitle": "Análise detalhada de produção, OPs e máquinas.",
+      "back": "Voltar",
+      "filters": {
+        "period": "Período de Análise"
+      },
+      "stats": {
+        "totalHours": "Total de Horas",
+        "dailyGoal": "Meta Diária",
+        "monthlyGoal": "Meta Mensal",
+        "totalMachines": "Máquinas",
+        "totalOps": "OPs Trabalhadas",
+        "daysWorked": "Dias Trabalhados"
+      },
+      "chart": {
+        "title": "Produção Diária (h)",
+        "goalLine": "Meta diária"
+      },
+      "table": {
+        "title": "Histórico de Lançamentos",
+        "date": "Data",
+        "machine": "Máquina",
+        "turn": "Turno",
+        "op": "OP",
+        "hours": "Horas"
+      },
+      "messages": {
+        "loading": "Carregando detalhes do colaborador...",
+        "noPermissions": "Você não tem permissão para ver detalhes de colaboradores.",
+        "loadError": "Erro ao carregar detalhes do colaborador.",
+        "selectDay": "Selecione um dia no gráfico para ver os lançamentos detalhados.",
+        "noDataDay": "Nenhuma produção registrada neste dia."
       }
     },
     "dashboard": {
