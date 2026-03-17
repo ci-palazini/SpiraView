@@ -95,8 +95,8 @@ async function probePrimary(): Promise<void> {
     if (isProbingPrimary || getActiveBase() === PRIMARY_BASE) return;
 
     const lastFail = getLastPrimaryFail();
-    const tenMinutes = 10 * 60 * 1000;
-    if (Date.now() - lastFail < tenMinutes) return;
+    const recoveryInterval = 5 * 60 * 1000; // 5 minutes
+    if (Date.now() - lastFail < recoveryInterval) return;
 
     isProbingPrimary = true;
     try {
