@@ -69,7 +69,7 @@ reuniaoDiariaRouter.get(
             const nextQYear = effectiveQualityMonth === 12 ? effectiveQualityYear + 1 : effectiveQualityYear;
             const effectiveQualityMonthEnd = `${nextQYear}-${String(nextQMonth).padStart(2, '0')}-01`;
 
-            const [refugosRes, retrabalhoRes, custoMesRes, topCausaRes, breakdownRes, rpnRes, internoExternoRes, topNcRes, causas4mRes, topSolicitanteRes, retrabalhoStatsRes] = await Promise.all([
+            const [refugosRes, retrabalhoRes, custoMesRes, topCausaRes, breakdownRes, rpnRes, internoExternoRes, topNcRes, causas4mRes, topSolicitanteRes, retrabalhoStatsRes, lastUpdatedRefugoRes, lastUpdatedRetrabalhoRes] = await Promise.all([
                 pool.query(
                     `SELECT qr.data_ocorrencia, qr.descricao_item, qr.motivo_defeito,
                   qr.quantidade, qr.custo, qr.origem, qr.responsavel_nome, qr.tipo_lancamento,
@@ -98,14 +98,15 @@ reuniaoDiariaRouter.get(
            WHERE data_ocorrencia >= $1 AND data_ocorrencia < $2`,
                     [effectiveQualityMonthStart, effectiveQualityMonthEnd]
                 ),
-                // Top causa Pareto (mês efetivo)
+                // Top causa Pareto — apenas INTERNO (mês efetivo)
                 pool.query(
-                    `SELECT motivo_defeito AS causa, COUNT(*)::int AS ocorrencias,
-                            COALESCE(SUM(quantidade), 0)::int AS quantidade_total
-                     FROM qualidade_refugos
-                     WHERE data_ocorrencia >= $1 AND data_ocorrencia < $2
-                       AND motivo_defeito IS NOT NULL AND btrim(motivo_defeito) <> ''
-                     GROUP BY motivo_defeito
+                    `SELECT qr.motivo_defeito AS causa, COUNT(*)::int AS ocorrencias,
+                            COALESCE(SUM(qr.quantidade), 0)::int AS quantidade_total
+                     FROM qualidade_refugos qr
+                     JOIN qualidade_origens qo ON qo.nome = qr.origem AND qo.tipo = 'INTERNO'
+                     WHERE qr.data_ocorrencia >= $1 AND qr.data_ocorrencia < $2
+                       AND qr.motivo_defeito IS NOT NULL AND btrim(qr.motivo_defeito) <> ''
+                     GROUP BY qr.motivo_defeito
                      ORDER BY ocorrencias DESC
                      LIMIT 5`,
                     [effectiveQualityMonthStart, effectiveQualityMonthEnd]
@@ -205,12 +206,26 @@ reuniaoDiariaRouter.get(
                      WHERE data >= $1 AND data < $2`,
                     [effectiveQualityMonthStart, effectiveQualityMonthEnd]
                 ),
+                // Última atualização de refugo/quarentena no mês efetivo
+                pool.query(
+                    `SELECT MAX(created_at) AS last_updated FROM qualidade_refugos
+                     WHERE data_ocorrencia >= $1 AND data_ocorrencia < $2`,
+                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                ),
+                // Última atualização de retrabalho no mês efetivo
+                pool.query(
+                    `SELECT MAX(created_at) AS last_updated FROM qualidade_retrabalho
+                     WHERE data >= $1 AND data < $2`,
+                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                ),
             ]);
 
             const breakdownRow = breakdownRes.rows[0] || {};
             const horasRow = rpnRes.rows[0] || {};
             const ieRow = internoExternoRes.rows[0] || {};
             const statsRow = retrabalhoStatsRes.rows[0] || {};
+            const lastUpdatedRefugo = lastUpdatedRefugoRes.rows[0]?.last_updated ?? null;
+            const lastUpdatedRetrabalho = lastUpdatedRetrabalhoRes.rows[0]?.last_updated ?? null;
 
             const quality = {
                 refugos: refugosRes.rows,
@@ -259,6 +274,8 @@ reuniaoDiariaRouter.get(
                 })),
                 mesReferencia: effectiveQualityMonth,
                 anoReferencia: effectiveQualityYear,
+                lastUpdatedRefugo,
+                lastUpdatedRetrabalho,
             };
 
             // ============================================================
@@ -309,6 +326,17 @@ reuniaoDiariaRouter.get(
                 prevOttr = prevMonthOttrRes.rows[0]?.ottr_ytd ? Number(prevMonthOttrRes.rows[0].ottr_ytd) : null;
             }
 
+            // Calcular meta MTD (Month To Date)
+            let metaMtd: number | null = null;
+            let pctMetaMtd: number | null = null;
+            if (metaFinanceira && metaFinanceira > 0 && lastKpi) {
+                const kpiDate = new Date(lastKpi.data);
+                const daysInMonth = new Date(kpiDate.getFullYear(), kpiDate.getMonth() + 1, 0).getDate();
+                const currentDay = kpiDate.getDate();
+                metaMtd = (metaFinanceira / daysInMonth) * currentDay;
+                pctMetaMtd = Math.round((Number(lastKpi.faturado_acumulado) / metaMtd) * 1000) / 10;
+            }
+
             const faturamento = lastKpi
                 ? {
                     dataRef: lastKpi.data,
@@ -321,11 +349,117 @@ reuniaoDiariaRouter.get(
                     ottrUltimoMes: prevOttr,
                     ottrYtd: Number(lastKpi.ottr_ytd),
                     metaFinanceira,
+                    metaMtd,
                     pctMeta: metaFinanceira && metaFinanceira > 0
                         ? Math.round((Number(lastKpi.faturado_acumulado) / metaFinanceira) * 1000) / 10
                         : null,
+                    pctMetaMtd,
                 }
                 : null;
+
+            // --- Logística delivery (nichado logistica) ---
+            let logisticaDelivery: unknown = null;
+
+            if (dep === 'logistica') {
+                // 1. Buscar upload_ids em paralelo
+                const [latestNotas, latestPrinc1, latestProposto] = await Promise.all([
+                    pool.query(`SELECT upload_id, uploaded_at FROM logistica_notas_embarque ORDER BY uploaded_at DESC LIMIT 1`),
+                    pool.query(`SELECT id, criado_em FROM logistica_princ1_uploads WHERE ativo = true ORDER BY criado_em DESC LIMIT 1`),
+                    pool.query(`SELECT id, criado_em FROM logistica_proposto_uploads WHERE ativo = true ORDER BY criado_em DESC LIMIT 1`),
+                ]);
+                const notasUploadId = latestNotas.rows[0]?.upload_id ?? null;
+                const notasUploadedAt = latestNotas.rows[0]?.uploaded_at ?? null;
+                const princ1UploadId = latestPrinc1.rows[0]?.id ?? null;
+                const princ1CreatedAt = latestPrinc1.rows[0]?.criado_em ?? null;
+                const propostoUploadId = latestProposto.rows[0]?.id ?? null;
+                const propostoCreatedAt = latestProposto.rows[0]?.criado_em ?? null;
+
+                // 2. Buscar KPIs em paralelo (só se houver upload_id)
+                const [notasRes, princ1Res, propostoRes] = await Promise.all([
+                    notasUploadId ? pool.query(
+                        `SELECT
+                            COUNT(*)::int AS total_notas,
+                            COALESCE(SUM(valor_net), 0) AS valor_total_net,
+                            COUNT(CASE WHEN dias_atraso >= 3 THEN 1 END)::int AS notas_atrasadas,
+                            COALESCE(SUM(CASE WHEN dias_atraso >= 3 THEN valor_net END), 0) AS valor_risco,
+                            COUNT(CASE WHEN dias_atraso BETWEEN 0 AND 2 THEN 1 END)::int AS faixa_0_2,
+                            COUNT(CASE WHEN dias_atraso BETWEEN 3 AND 7 THEN 1 END)::int AS faixa_3_7,
+                            COUNT(CASE WHEN dias_atraso BETWEEN 8 AND 14 THEN 1 END)::int AS faixa_8_14,
+                            COUNT(CASE WHEN dias_atraso BETWEEN 15 AND 30 THEN 1 END)::int AS faixa_15_30,
+                            COUNT(CASE WHEN dias_atraso > 30 THEN 1 END)::int AS faixa_30_mais
+                        FROM logistica_notas_embarque
+                        WHERE upload_id = $1`,
+                        [notasUploadId]
+                    ) : Promise.resolve({ rows: [] }),
+                    princ1UploadId ? pool.query(
+                        `SELECT
+                            COUNT(*)::int AS total_itens,
+                            COALESCE(SUM(estoque_fisico), 0) AS estoque_total,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) >= 3 THEN 1 END)::int AS qtd_atrasados,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) >= 15 THEN 1 END)::int AS qtd_criticos,
+                            ROUND(AVG(CURRENT_DATE - data_entrada), 1)::numeric AS atraso_medio,
+                            MAX(CURRENT_DATE - data_entrada)::int AS maior_atraso,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) BETWEEN 0 AND 2 THEN 1 END)::int AS faixa_0_2,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) BETWEEN 3 AND 7 THEN 1 END)::int AS faixa_3_7,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) BETWEEN 8 AND 14 THEN 1 END)::int AS faixa_8_14,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) BETWEEN 15 AND 30 THEN 1 END)::int AS faixa_15_30,
+                            COUNT(CASE WHEN (CURRENT_DATE - data_entrada) > 30 THEN 1 END)::int AS faixa_30_mais
+                        FROM logistica_princ1_dados
+                        WHERE upload_id = $1`,
+                        [princ1UploadId]
+                    ) : Promise.resolve({ rows: [] }),
+                    propostoUploadId ? pool.query(
+                        `SELECT
+                            COUNT(*)::int AS total_registros,
+                            COALESCE(SUM(valor_net), 0) AS valor_total_proposto,
+                            COUNT(DISTINCT ordem_venda)::int AS ovs_unicas,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) >= 31 THEN 1 END)::int AS itens_criticos,
+                            COALESCE(SUM(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) >= 31 THEN valor_net END), 0) AS valor_critico,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) BETWEEN 0 AND 2 THEN 1 END)::int AS faixa_0_2,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) BETWEEN 3 AND 7 THEN 1 END)::int AS faixa_3_7,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) BETWEEN 8 AND 14 THEN 1 END)::int AS faixa_8_14,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) BETWEEN 15 AND 30 THEN 1 END)::int AS faixa_15_30,
+                            COUNT(CASE WHEN GREATEST(0, CURRENT_DATE - DATE(data_hora)) > 30 THEN 1 END)::int AS faixa_30_mais
+                        FROM logistica_proposto_dados
+                        WHERE upload_id = $1`,
+                        [propostoUploadId]
+                    ) : Promise.resolve({ rows: [] }),
+                ]);
+
+                const nr = notasRes.rows[0];
+                const p1 = princ1Res.rows[0];
+                const po = propostoRes.rows[0];
+
+                logisticaDelivery = {
+                    notasEmbarque: nr ? {
+                        totalNotas: Number(nr.total_notas),
+                        valorTotalNet: Number(nr.valor_total_net),
+                        notasAtrasadas: Number(nr.notas_atrasadas),
+                        valorRisco: Number(nr.valor_risco),
+                        uploadedAt: notasUploadedAt,
+                        distribuicao: { faixa0_2: Number(nr.faixa_0_2), faixa3_7: Number(nr.faixa_3_7), faixa8_14: Number(nr.faixa_8_14), faixa15_30: Number(nr.faixa_15_30), faixa30Mais: Number(nr.faixa_30_mais) },
+                    } : null,
+                    princ1: p1 ? {
+                        totalItens: Number(p1.total_itens),
+                        estoqueTotal: Number(p1.estoque_total),
+                        qtdAtrasados: Number(p1.qtd_atrasados),
+                        qtdCriticos: Number(p1.qtd_criticos),
+                        atrasoMedio: Number(p1.atraso_medio),
+                        maiorAtraso: Number(p1.maior_atraso),
+                        uploadedAt: princ1CreatedAt,
+                        distribuicao: { faixa0_2: Number(p1.faixa_0_2), faixa3_7: Number(p1.faixa_3_7), faixa8_14: Number(p1.faixa_8_14), faixa15_30: Number(p1.faixa_15_30), faixa30Mais: Number(p1.faixa_30_mais) },
+                    } : null,
+                    proposto: po ? {
+                        totalRegistros: Number(po.total_registros),
+                        valorTotalProposto: Number(po.valor_total_proposto),
+                        ovsUnicas: Number(po.ovs_unicas),
+                        itensCriticos: Number(po.itens_criticos),
+                        valorCritico: Number(po.valor_critico),
+                        uploadedAt: propostoCreatedAt,
+                        distribuicao: { faixa0_2: Number(po.faixa_0_2), faixa3_7: Number(po.faixa_3_7), faixa8_14: Number(po.faixa_8_14), faixa15_30: Number(po.faixa_15_30), faixa30Mais: Number(po.faixa_30_mais) },
+                    } : null,
+                };
+            }
 
             // --- Eficiência de produção (nichado usinagem/montagem) ---
             let eficiencia: unknown = null;
@@ -544,6 +678,7 @@ reuniaoDiariaRouter.get(
                 safetyTopCausasRes,
                 safetyFeedbackRes,
                 safetyStopWorkRes,
+                safetyLastUploadRes,
             ] = await Promise.all([
                 // Total observações mês atual (ou último mês com dados)
                 pool.query(
@@ -633,6 +768,10 @@ reuniaoDiariaRouter.get(
                      WHERE data_observacao >= $1`,
                     [effectiveMonthStart]
                 ),
+                // Último upload EHS
+                pool.query(
+                    `SELECT criado_em FROM safety_uploads ORDER BY criado_em DESC LIMIT 1`
+                ),
             ]);
 
             const safetyFbRow = safetyFeedbackRes.rows[0] || {};
@@ -674,6 +813,7 @@ reuniaoDiariaRouter.get(
                                 ) / 10
                               : null,
                       stopWorkCount: Number(safetyStopWorkRes.rows[0]?.total || 0),
+                      lastUpload: safetyLastUploadRes.rows[0]?.criado_em ?? null,
                   }
                 : null;
 
@@ -688,6 +828,7 @@ reuniaoDiariaRouter.get(
                 deliveryCost: {
                     faturamento,
                     eficiencia,
+                    logisticaDelivery,
                     custoRefugoMes: quality.custoTotalMes,
                     qtdRefugoMes: quality.qtdTotalMes,
                 },

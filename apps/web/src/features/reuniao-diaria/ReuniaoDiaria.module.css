@@ -1253,20 +1253,20 @@
 .logisticaTvBox {
     display: flex;
     flex-direction: column;
-    text-align: center;
+    text-align: left;
 }
 
 .logisticaTvBoxValue {
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 900;
     margin: 0;
     color: #0f172a;
     line-height: 1.1;
-    letter-spacing: -0.5px;
+    letter-spacing: -1px;
 }
 
 .logisticaTvBoxLabel {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: #94a3b8;
     font-weight: 700;
     text-transform: uppercase;

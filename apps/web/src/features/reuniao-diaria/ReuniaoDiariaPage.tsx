@@ -14,6 +14,9 @@ import {
     FiAlertCircle,
     FiTrendingUp,
     FiTrendingDown,
+    FiCheckCircle,
+    FiSearch,
+    FiRefreshCw,
 } from 'react-icons/fi';
 import { http } from '../../services/apiClient';
 import styles from './ReuniaoDiaria.module.css';
@@ -117,7 +120,9 @@ interface FaturamentoData {
     ottrUltimoMes: number | null;
     ottrYtd: number;
     metaFinanceira: number | null;
+    metaMtd?: number | null;
     pctMeta: number | null;
+    pctMetaMtd?: number | null;
 }
 
 interface EficienciaData {
@@ -125,6 +130,27 @@ interface EficienciaData {
     isAggregated?: boolean;
     maquinas: MaquinaEficiencia[];
     eficienciaGeral: number | null;
+}
+
+interface LogisticaDist5 {
+    faixa0_2: number; faixa3_7: number; faixa8_14: number; faixa15_30: number; faixa30Mais: number;
+}
+interface LogisticaNotasEmbarque {
+    totalNotas: number; valorTotalNet: number; notasAtrasadas: number; valorRisco: number;
+    uploadedAt: string | null; distribuicao: LogisticaDist5;
+}
+interface LogisticaPrinc1 {
+    totalItens: number; estoqueTotal: number; qtdAtrasados: number; qtdCriticos: number;
+    atrasoMedio: number; maiorAtraso: number; uploadedAt: string | null; distribuicao: LogisticaDist5;
+}
+interface LogisticaProposto {
+    totalRegistros: number; valorTotalProposto: number; ovsUnicas: number;
+    itensCriticos: number; valorCritico: number; uploadedAt: string | null; distribuicao: LogisticaDist5;
+}
+interface LogisticaDelivery {
+    notasEmbarque: LogisticaNotasEmbarque | null;
+    princ1: LogisticaPrinc1 | null;
+    proposto: LogisticaProposto | null;
 }
 
 interface SafetyKsb {
@@ -154,6 +180,7 @@ interface SafetyData {
     topCausas: SafetyCausa[];
     feedbackPct: number | null;
     stopWorkCount: number;
+    lastUpload?: string | null;
 }
 
 interface DailyData {
@@ -175,10 +202,13 @@ interface DailyData {
         topSolicitantes: TopSolicitanteData[];
         mesReferencia?: number;
         anoReferencia?: number;
+        lastUpdatedRefugo?: string | null;
+        lastUpdatedRetrabalho?: string | null;
     };
     deliveryCost: {
         faturamento: FaturamentoData | null;
         eficiencia: EficienciaData | null;
+        logisticaDelivery: LogisticaDelivery | null;
         custoRefugoMes: number;
         qtdRefugoMes: number;
     };
@@ -223,6 +253,16 @@ function formatDateBR(iso: string): string {
     return `${d}/${m}/${y}`;
 }
 
+function formatDateTimeBR(iso: string | null | undefined): string {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+    });
+}
+
 function formatCurrency(value: number): string {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -230,7 +270,7 @@ function formatCurrency(value: number): string {
 function formatK(value: number): string {
     if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
     if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}k`;
-    return formatCurrency(value);
+    return `R$ ${value.toFixed(0)}`;
 }
 
 function efficiencyColor(pct: number | null): string {
@@ -245,6 +285,31 @@ function rpnColor(rpn: number | null): string {
     if (rpn <= 20) return '#16a34a';
     if (rpn <= 50) return '#d97706';
     return '#dc2626';
+}
+
+function formatLastUpdate(dateString: string | null): string {
+    if (!dateString) return 'Sem data';
+    try {
+        const date = new Date(dateString);
+        const today = new Date();
+        const todayDate = today.toLocaleDateString('pt-BR');
+        const dateOnly = date.toLocaleDateString('pt-BR');
+
+        // Se for hoje, mostra apenas a hora
+        if (dateOnly === todayDate) {
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Se for outro dia, mostra data e hora
+        return date.toLocaleString('pt-BR', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return 'Sem data';
+    }
 }
 
 // ===== COMPONENT =====
@@ -316,7 +381,6 @@ export default function ReuniaoDiariaPage() {
         if (!data?.safety) {
             return (
                 <div className={styles.placeholder}>
-                    <div className={styles.placeholderIcon}>🛡️</div>
                     <div className={styles.placeholderText}>
                         {t('reuniao_diaria.safety_no_data')}
                     </div>
@@ -350,6 +414,12 @@ export default function ReuniaoDiariaPage() {
                         <span>Exibindo dados de {displayMonth}/{s.anoReferencia} (sem dados no mês atual)</span>
                     </div>
                 )}
+
+                {/* Última atualização EHS */}
+                <div className={styles.lastUpdatedRow}>
+                    <FiRefreshCw size={15} />
+                    <span>Última atualização EHS: <strong>{formatDateTimeBR(s.lastUpload)}</strong></span>
+                </div>
 
                 <div className={styles.safetyTvGrid}>
                     {/* ===== COLUNA ESQUERDA: KPIs + Ratio ===== */}
@@ -428,8 +498,12 @@ export default function ReuniaoDiariaPage() {
                         {/* Top KSBs Seguros */}
                         {s.topKsbsSeguros.length > 0 && (
                             <div className={styles.safetyTvParetoCard}>
-                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#16a34a' }}>
-                                    ✅ {t('reuniao_diaria.safety_top_ksbs_safe')}
+                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <FiCheckCircle size={15} />
+                                    {t('reuniao_diaria.safety_top_ksbs_safe')}
+                                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 400, color: '#64748b' }}>
+                                        Total: {s.ratio.seguros}
+                                    </span>
                                 </h4>
                                 <div className={styles.safetyTvParetoList}>
                                     {s.topKsbsSeguros.map((k, i) => {
@@ -456,8 +530,12 @@ export default function ReuniaoDiariaPage() {
                         {/* Top KSBs Arriscados */}
                         {s.topKsbsArriscados.length > 0 && (
                             <div className={styles.safetyTvParetoCard}>
-                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#dc2626' }}>
-                                    ⚠️ {t('reuniao_diaria.safety_top_ksbs_atrisk')}
+                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <FiAlertTriangle size={15} />
+                                    {t('reuniao_diaria.safety_top_ksbs_atrisk')}
+                                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 400, color: '#64748b' }}>
+                                        Total: {s.ratio.arriscados}
+                                    </span>
                                 </h4>
                                 <div className={styles.safetyTvParetoList}>
                                     {s.topKsbsArriscados.map((k, i) => {
@@ -484,8 +562,9 @@ export default function ReuniaoDiariaPage() {
                         {/* Top Causas */}
                         {s.topCausas.length > 0 && (
                             <div className={styles.safetyTvParetoCard}>
-                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#f59e0b' }}>
-                                    🔍 {t('reuniao_diaria.safety_top_causas')}
+                                <h4 className={styles.safetyTvSectionLabel} style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <FiSearch size={15} />
+                                    {t('reuniao_diaria.safety_top_causas')}
                                 </h4>
                                 <div className={styles.safetyTvParetoList}>
                                     {s.topCausas.map((c, i) => {
@@ -520,7 +599,8 @@ export default function ReuniaoDiariaPage() {
             refugos, retrabalhos, custoTotalMes, qtdTotalMes, topCausas,
             breakdown, horasRetrabalho, internoExterno,
             retrabalhoStats, topNCs, causas4M, topSolicitantes,
-            mesReferencia, anoReferencia
+            mesReferencia, anoReferencia,
+            lastUpdatedRefugo, lastUpdatedRetrabalho,
         } = data.quality;
         const totalBreakdown = breakdown.qtdRefugo + breakdown.qtdQuarentena;
         const pctRefugo = totalBreakdown > 0 ? Math.round((breakdown.qtdRefugo / totalBreakdown) * 100) : 0;
@@ -556,9 +636,15 @@ export default function ReuniaoDiariaPage() {
                 <div className={styles.qualityTvGrid}>
                     {/* ===== COLUNA ESQUERDA: Refugo / Quarentena ===== */}
                     <div className={styles.qualityTvCol}>
-                        <p className={styles.qualityTvColTitle} style={{ borderColor: '#dc2626', color: '#dc2626' }}>
-                            Refugo / Quarentena
-                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+                            <p className={styles.qualityTvColTitle} style={{ borderColor: '#dc2626', color: '#dc2626', marginBottom: 0 }}>
+                                Refugo / Quarentena
+                            </p>
+                            <span className={styles.lastUpdatedInline}>
+                                <FiRefreshCw size={13} />
+                                Atualizado: {formatDateTimeBR(lastUpdatedRefugo)}
+                            </span>
+                        </div>
 
                         <div className={styles.qualityTvGroups}>
                             {/* Novo Card TOTAIS com Bar Chart integrado */}
@@ -636,7 +722,7 @@ export default function ReuniaoDiariaPage() {
                         <div className={styles.qualityTvInsights} style={{ gridTemplateColumns: '1fr' }}>
                             {topCausas.length > 0 && (
                                 <div className={styles.insightCard}>
-                                    <h4 className={styles.insightTitle}>Top Causas</h4>
+                                    <h4 className={styles.insightTitle}>Top Causas — Interno</h4>
                                     <div className={styles.paretoList}>
                                         {topCausas.slice(0, 4).map((c, i) => {
                                             const barPct = topCausas[0].ocorrencias > 0 ? (c.ocorrencias / topCausas[0].ocorrencias) * 100 : 0;
@@ -699,9 +785,15 @@ export default function ReuniaoDiariaPage() {
 
                     {/* ===== COLUNA DIREITA: Retrabalho ===== */}
                     <div className={styles.qualityTvCol}>
-                        <p className={styles.qualityTvColTitle} style={{ borderColor: '#7c3aed', color: '#7c3aed' }}>
-                            Retrabalho
-                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+                            <p className={styles.qualityTvColTitle} style={{ borderColor: '#7c3aed', color: '#7c3aed', marginBottom: 0 }}>
+                                Retrabalho
+                            </p>
+                            <span className={styles.lastUpdatedInline}>
+                                <FiRefreshCw size={13} />
+                                Atualizado: {formatDateTimeBR(lastUpdatedRetrabalho)}
+                            </span>
+                        </div>
 
                         {/* 3 mini-cards de contexto */}
                         <div className={styles.qualityTvStatRow}>
@@ -842,7 +934,7 @@ export default function ReuniaoDiariaPage() {
                     </div>
                 )}
                 {/* Row 1: KPI cards — faturamento (always visible) */}
-                <div className={styles.kpiGrid}>
+                <div className={`${styles.kpiGrid} ${data?.departamento === 'logistica' ? styles.kpiGridCompact : ''}`}>
                     <div className={styles.kpiCard}>
                         <p className={styles.kpiValue} style={{ color: '#16a34a' }}>
                             {fat ? formatK(fat.faturadoAcumulado * 1000) : '—'}
@@ -851,29 +943,67 @@ export default function ReuniaoDiariaPage() {
                             {t('reuniao_diaria.billing_acum', 'Faturamento Acumulado')}
                         </p>
                     </div>
-                    <div className={styles.kpiCard}>
-                        <p className={styles.kpiValue} style={{ color: fat ? efficiencyColor(fat.pctMeta) : '#64748b' }}>
-                            {fat?.pctMeta !== null && fat?.pctMeta !== undefined ? `${fat.pctMeta}%` : '—'}
-                        </p>
-                        <p className={styles.kpiLabel}>
-                            {t('reuniao_diaria.vs_meta', 'Aderência à Meta')}
-                        </p>
-                        {fat?.metaFinanceira && (
-                            <>
-                                <div className={styles.metaProgressWrap}>
-                                    <div
-                                        className={styles.metaProgressFill}
-                                        style={{
-                                            width: `${Math.min(fat.pctMeta || 0, 100)}%`,
-                                            background: efficiencyColor(fat.pctMeta),
-                                        }}
-                                    />
-                                </div>
-                                <p className={styles.kpiSub}>
-                                    Meta: {formatK(fat.metaFinanceira * 1000)}
-                                </p>
-                            </>
-                        )}
+                    {/* Meta Goals Container - 2 Columns */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: data?.departamento === 'logistica' ? '0' : '0.6rem' }}>
+                        {/* MTD Card */}
+                        <div className={styles.kpiCard} style={{ padding: data?.departamento === 'logistica' ? '0.75rem' : '1.5rem' }}>
+                            <p className={styles.kpiLabel} style={{ margin: data?.departamento === 'logistica' ? '0 0 0.5rem' : '0 0 1rem', fontSize: '0.85rem' }}>
+                                {t('reuniao_diaria.mtd_goal', 'Meta MTD')}
+                            </p>
+                            <p className={styles.kpiValue} style={{
+                                color: fat?.pctMetaMtd !== null && fat?.pctMetaMtd !== undefined ? efficiencyColor(fat.pctMetaMtd) : '#64748b',
+                                margin: data?.departamento === 'logistica' ? '0 0 0.4rem' : '0 0 0.8rem',
+                                fontSize: data?.departamento === 'logistica' ? '2.2rem' : '3.2rem'
+                            }}>
+                                {fat?.pctMetaMtd !== null && fat?.pctMetaMtd !== undefined ? `${fat.pctMetaMtd}%` : '—'}
+                            </p>
+                            {fat?.metaMtd && (
+                                <>
+                                    <div className={styles.metaProgressWrap} style={{ height: '10px', marginBottom: data?.departamento === 'logistica' ? '0.4rem' : '0.8rem' }}>
+                                        <div
+                                            className={styles.metaProgressFill}
+                                            style={{
+                                                width: `${Math.min(fat.pctMetaMtd ?? 0, 100)}%`,
+                                                background: efficiencyColor(fat.pctMetaMtd ?? null),
+                                            }}
+                                        />
+                                    </div>
+                                    <p className={styles.kpiSub} style={{ margin: 0, fontSize: '0.8rem', fontWeight: 500 }}>
+                                        <strong>{formatK(fat.faturadoAcumulado * 1000)}</strong> / {formatK(fat.metaMtd * 1000)}
+                                    </p>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Total Goal Card */}
+                        <div className={styles.kpiCard} style={{ padding: data?.departamento === 'logistica' ? '0.75rem' : '1.5rem' }}>
+                            <p className={styles.kpiLabel} style={{ margin: data?.departamento === 'logistica' ? '0 0 0.5rem' : '0 0 1rem', fontSize: '0.85rem' }}>
+                                {t('reuniao_diaria.total_goal', 'Meta Total')}
+                            </p>
+                            <p className={styles.kpiValue} style={{
+                                color: fat ? efficiencyColor(fat.pctMeta) : '#64748b',
+                                margin: data?.departamento === 'logistica' ? '0 0 0.4rem' : '0 0 0.8rem',
+                                fontSize: data?.departamento === 'logistica' ? '2.2rem' : '3.2rem'
+                            }}>
+                                {fat?.pctMeta !== null && fat?.pctMeta !== undefined ? `${fat.pctMeta}%` : '—'}
+                            </p>
+                            {fat?.metaFinanceira && (
+                                <>
+                                    <div className={styles.metaProgressWrap} style={{ height: '10px', marginBottom: data?.departamento === 'logistica' ? '0.4rem' : '0.8rem' }}>
+                                        <div
+                                            className={styles.metaProgressFill}
+                                            style={{
+                                                width: `${Math.min(fat.pctMeta || 0, 100)}%`,
+                                                background: efficiencyColor(fat.pctMeta),
+                                            }}
+                                        />
+                                    </div>
+                                    <p className={styles.kpiSub} style={{ margin: 0, fontSize: '0.8rem', fontWeight: 500 }}>
+                                        <strong>{formatK(fat.faturadoAcumulado * 1000)}</strong> / {formatK(fat.metaFinanceira * 1000)}
+                                    </p>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <div className={styles.kpiCard}>
                         <p className={styles.kpiValue} style={{ color: '#2563eb' }}>
@@ -884,7 +1014,7 @@ export default function ReuniaoDiariaPage() {
                 </div>
 
                 {/* Row 2: Secondary KPIs */}
-                <div className={styles.kpiGrid}>
+                <div className={`${styles.kpiGrid} ${data?.departamento === 'logistica' ? styles.kpiGridCompact : ''}`}>
                     <div className={styles.kpiCard}>
                         <p className={styles.kpiValue} style={{ color: '#d97706' }}>
                             {fat ? formatK(fat.exportacaoAcumulado * 1000) : '—'}
@@ -1050,6 +1180,306 @@ export default function ReuniaoDiariaPage() {
                             ))}
                         </div>
                     </>
+                )}
+
+                {/* Logistics panels for logistica department */}
+                {data?.departamento === 'logistica' && dc.logisticaDelivery && (
+                    <div className={styles.logisticaTvLayout}>
+                        {/* Panel 1: Notas de Embarque */}
+                        <div className={styles.logisticaTvPanel}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                                <p className={styles.logisticaTvPanelTitle} style={{ borderColor: '#f59e0b', color: '#f59e0b', margin: 0, paddingBottom: 0, borderBottom: 'none', flex: 1 }}>
+                                    {t('reuniao_diaria.notas_embarque_title', 'Notas de Embarque')}
+                                </p>
+                                {dc.logisticaDelivery.notasEmbarque?.uploadedAt && (
+                                    <p className={styles.logisticaTvUpdateLabel}>
+                                        {formatLastUpdate(dc.logisticaDelivery.notasEmbarque.uploadedAt)}
+                                    </p>
+                                )}
+                            </div>
+                            <div style={{ height: '2px', background: '#f59e0b', borderRadius: '1px', marginBottom: '0.5rem' }} />
+                            {dc.logisticaDelivery.notasEmbarque ? (
+                                <>
+                                    <div>
+                                        <p className={styles.logisticaTvBigValue} style={{ color: '#0f172a' }}>
+                                            {dc.logisticaDelivery.notasEmbarque.totalNotas}
+                                        </p>
+                                        <p className={styles.logisticaTvLabel}>
+                                            {t('reuniao_diaria.total_notas', 'Total de Notas')}
+                                        </p>
+                                    </div>
+
+                                    <div className={styles.logisticaTvInferiorGrid}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div>
+                                                <p className={styles.logisticaTvMidValue} style={{ color: dc.logisticaDelivery.notasEmbarque.notasAtrasadas > 0 ? '#dc2626' : '#64748b' }}>
+                                                    {dc.logisticaDelivery.notasEmbarque.notasAtrasadas}
+                                                </p>
+                                                <p className={styles.logisticaTvLabel}>
+                                                    {t('reuniao_diaria.notas_atrasadas', 'Em Atraso (3d+)')}
+                                                </p>
+                                            </div>
+                                            {dc.logisticaDelivery.notasEmbarque.valorRisco > 0 ? (
+                                                <div>
+                                                    <p className={styles.logisticaTvMidValue} style={{ color: '#dc2626', fontSize: '1.6rem' }}>
+                                                        {formatK(dc.logisticaDelivery.notasEmbarque.valorRisco)}
+                                                    </p>
+                                                    <p className={styles.logisticaTvLabel}>
+                                                        {t('reuniao_diaria.valor_risco', 'Valor em Risco')}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div style={{ visibility: 'hidden' }}>
+                                                    <p className={styles.logisticaTvMidValue}>0</p>
+                                                    <p className={styles.logisticaTvLabel}>Placeholder</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue}>
+                                                    {formatK(dc.logisticaDelivery.notasEmbarque.valorTotalNet)}
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.valor_total', 'Valor Total')}
+                                                </p>
+                                            </div>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue} style={{ color: dc.logisticaDelivery.notasEmbarque.totalNotas > 0 && (dc.logisticaDelivery.notasEmbarque.notasAtrasadas / dc.logisticaDelivery.notasEmbarque.totalNotas) * 100 > 20 ? '#dc2626' : '#0f172a' }}>
+                                                    {dc.logisticaDelivery.notasEmbarque.totalNotas > 0 ? `${((dc.logisticaDelivery.notasEmbarque.notasAtrasadas / dc.logisticaDelivery.notasEmbarque.totalNotas) * 100).toFixed(0)}%` : '0%'}
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.pct_atraso', '% Atraso')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className={styles.logisticaTvDistHeader}>
+                                            {t('reuniao_diaria.dist_atraso', 'Distribuição por Atraso')}
+                                        </p>
+                                        {[
+                                            { key: 'faixa0_2', label: '0–2 dias', color: '#22c55e' },
+                                            { key: 'faixa3_7', label: '3–7 dias', color: '#f59e0b' },
+                                            { key: 'faixa8_14', label: '8–14 dias', color: '#f97316' },
+                                            { key: 'faixa15_30', label: '15–30 dias', color: '#ef4444' },
+                                            { key: 'faixa30Mais', label: '30+ dias', color: '#8b5cf6' },
+                                        ].map(f => {
+                                            const count = dc.logisticaDelivery!.notasEmbarque!.distribuicao[f.key as keyof typeof dc.logisticaDelivery.notasEmbarque.distribuicao];
+                                            const total = dc.logisticaDelivery!.notasEmbarque!.totalNotas;
+                                            const pct = total > 0 ? (count / total) * 100 : 0;
+                                            return (
+                                                <div key={f.key} className={styles.logisticaTvDistRow}>
+                                                    <span className={styles.logisticaTvDistLabel}>{f.label}</span>
+                                                    <div className={styles.logisticaTvDistBar}>
+                                                        <div className={styles.logisticaTvDistBarFill} style={{ width: `${pct}%`, background: f.color }} />
+                                                    </div>
+                                                    <span className={styles.logisticaTvDistCount}>{count}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            ) : (
+                                <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                                    {t('reuniao_diaria.sem_dados_painel', 'Sem dados carregados')}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Panel 2: Princ. 1 */}
+                        <div className={styles.logisticaTvPanel}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                                <p className={styles.logisticaTvPanelTitle} style={{ borderColor: '#3b82f6', color: '#3b82f6', margin: 0, paddingBottom: 0, borderBottom: 'none', flex: 1 }}>
+                                    {t('reuniao_diaria.princ1_title', 'Princ. 1 (Estoque)')}
+                                </p>
+                                {dc.logisticaDelivery.princ1?.uploadedAt && (
+                                    <p className={styles.logisticaTvUpdateLabel}>
+                                        {formatLastUpdate(dc.logisticaDelivery.princ1.uploadedAt)}
+                                    </p>
+                                )}
+                            </div>
+                            <div style={{ height: '2px', background: '#3b82f6', borderRadius: '1px', marginBottom: '0.5rem' }} />
+                            {dc.logisticaDelivery.princ1 ? (
+                                <>
+                                    <div>
+                                        <p className={styles.logisticaTvBigValue} style={{ color: '#0f172a' }}>
+                                            {dc.logisticaDelivery.princ1.totalItens}
+                                        </p>
+                                        <p className={styles.logisticaTvLabel}>
+                                            {t('reuniao_diaria.total_itens', 'Total de Itens')}
+                                        </p>
+                                    </div>
+
+                                    <div className={styles.logisticaTvInferiorGrid}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div>
+                                                <p className={styles.logisticaTvMidValue} style={{ color: dc.logisticaDelivery.princ1.qtdAtrasados > 0 ? '#dc2626' : '#64748b' }}>
+                                                    {dc.logisticaDelivery.princ1.qtdAtrasados}
+                                                </p>
+                                                <p className={styles.logisticaTvLabel}>
+                                                    {t('reuniao_diaria.qtd_atrasados', 'Itens Atrasados')}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className={styles.logisticaTvMidValue} style={{ color: dc.logisticaDelivery.princ1.qtdCriticos > 0 ? '#dc2626' : '#64748b' }}>
+                                                    {dc.logisticaDelivery.princ1.qtdCriticos}
+                                                </p>
+                                                <p className={styles.logisticaTvLabel}>
+                                                    {t('reuniao_diaria.qtd_criticos', 'Críticos (15d+)')}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue}>
+                                                    {dc.logisticaDelivery.princ1.estoqueTotal}
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.estoque_total', 'Estoque Total')}
+                                                </p>
+                                            </div>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue}>
+                                                    {dc.logisticaDelivery.princ1.atrasoMedio}d
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.atraso_medio_label', 'Atraso Médio')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className={styles.logisticaTvDistHeader}>
+                                            {t('reuniao_diaria.dist_atraso', 'Distribuição por Atraso')}
+                                        </p>
+                                        {[
+                                            { key: 'faixa0_2', label: '0–2 dias', color: '#22c55e' },
+                                            { key: 'faixa3_7', label: '3–7 dias', color: '#f59e0b' },
+                                            { key: 'faixa8_14', label: '8–14 dias', color: '#f97316' },
+                                            { key: 'faixa15_30', label: '15–30 dias', color: '#ef4444' },
+                                            { key: 'faixa30Mais', label: '30+ dias', color: '#8b5cf6' },
+                                        ].map(f => {
+                                            const count = dc.logisticaDelivery!.princ1!.distribuicao[f.key as keyof typeof dc.logisticaDelivery.princ1.distribuicao];
+                                            const total = dc.logisticaDelivery!.princ1!.totalItens;
+                                            const pct = total > 0 ? (count / total) * 100 : 0;
+                                            return (
+                                                <div key={f.key} className={styles.logisticaTvDistRow}>
+                                                    <span className={styles.logisticaTvDistLabel}>{f.label}</span>
+                                                    <div className={styles.logisticaTvDistBar}>
+                                                        <div className={styles.logisticaTvDistBarFill} style={{ width: `${pct}%`, background: f.color }} />
+                                                    </div>
+                                                    <span className={styles.logisticaTvDistCount}>{count}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            ) : (
+                                <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                                    {t('reuniao_diaria.sem_dados_painel', 'Sem dados carregados')}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Panel 3: Proposto */}
+                        <div className={styles.logisticaTvPanel}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                                <p className={styles.logisticaTvPanelTitle} style={{ borderColor: '#22c55e', color: '#22c55e', margin: 0, paddingBottom: 0, borderBottom: 'none', flex: 1 }}>
+                                    {t('reuniao_diaria.proposto_title', 'Fat. Proposto')}
+                                </p>
+                                {dc.logisticaDelivery.proposto?.uploadedAt && (
+                                    <p className={styles.logisticaTvUpdateLabel}>
+                                        {formatLastUpdate(dc.logisticaDelivery.proposto.uploadedAt)}
+                                    </p>
+                                )}
+                            </div>
+                            <div style={{ height: '2px', background: '#22c55e', borderRadius: '1px', marginBottom: '0.5rem' }} />
+                            {dc.logisticaDelivery.proposto ? (
+                                <>
+                                    <div>
+                                        <p className={styles.logisticaTvBigValue} style={{ color: '#0f172a' }}>
+                                            {dc.logisticaDelivery.proposto.totalRegistros}
+                                        </p>
+                                        <p className={styles.logisticaTvLabel}>
+                                            {t('reuniao_diaria.total_registros', 'Total de Registros')}
+                                        </p>
+                                    </div>
+
+                                    <div className={styles.logisticaTvInferiorGrid}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div>
+                                                <p className={styles.logisticaTvMidValue} style={{ color: '#0f172a' }}>
+                                                    {dc.logisticaDelivery.proposto.ovsUnicas}
+                                                </p>
+                                                <p className={styles.logisticaTvLabel}>
+                                                    {t('reuniao_diaria.ovs_unicas', 'OVs Únicas')}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className={styles.logisticaTvMidValue} style={{ color: dc.logisticaDelivery.proposto.itensCriticos > 0 ? '#dc2626' : '#64748b' }}>
+                                                    {dc.logisticaDelivery.proposto.itensCriticos}
+                                                </p>
+                                                <p className={styles.logisticaTvLabel}>
+                                                    {t('reuniao_diaria.itens_criticos_31', 'Críticos (31d+)')}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue}>
+                                                    {formatK(dc.logisticaDelivery.proposto.valorTotalProposto)}
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.valor_proposto', 'Valor Proposto')}
+                                                </p>
+                                            </div>
+                                            <div className={styles.logisticaTvBox}>
+                                                <p className={styles.logisticaTvBoxValue} style={{ color: dc.logisticaDelivery.proposto.totalRegistros > 0 && (dc.logisticaDelivery.proposto.itensCriticos / dc.logisticaDelivery.proposto.totalRegistros) * 100 > 20 ? '#dc2626' : '#0f172a' }}>
+                                                    {dc.logisticaDelivery.proposto.totalRegistros > 0 ? `${((dc.logisticaDelivery.proposto.itensCriticos / dc.logisticaDelivery.proposto.totalRegistros) * 100).toFixed(0)}%` : '0%'}
+                                                </p>
+                                                <p className={styles.logisticaTvBoxLabel}>
+                                                    {t('reuniao_diaria.pct_critico', '% Crítico')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className={styles.logisticaTvDistHeader}>
+                                            {t('reuniao_diaria.dist_atraso', 'Distribuição por Atraso')}
+                                        </p>
+                                        {[
+                                            { key: 'faixa0_2', label: '0–2 dias', color: '#22c55e' },
+                                            { key: 'faixa3_7', label: '3–7 dias', color: '#f59e0b' },
+                                            { key: 'faixa8_14', label: '8–14 dias', color: '#f97316' },
+                                            { key: 'faixa15_30', label: '15–30 dias', color: '#ef4444' },
+                                            { key: 'faixa30Mais', label: '30+ dias', color: '#8b5cf6' },
+                                        ].map(f => {
+                                            const count = dc.logisticaDelivery!.proposto!.distribuicao[f.key as keyof typeof dc.logisticaDelivery.proposto.distribuicao];
+                                            const total = dc.logisticaDelivery!.proposto!.totalRegistros;
+                                            const pct = total > 0 ? (count / total) * 100 : 0;
+                                            return (
+                                                <div key={f.key} className={styles.logisticaTvDistRow}>
+                                                    <span className={styles.logisticaTvDistLabel}>{f.label}</span>
+                                                    <div className={styles.logisticaTvDistBar}>
+                                                        <div className={styles.logisticaTvDistBarFill} style={{ width: `${pct}%`, background: f.color }} />
+                                                    </div>
+                                                    <span className={styles.logisticaTvDistCount}>{count}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            ) : (
+                                <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                                    {t('reuniao_diaria.sem_dados_painel', 'Sem dados carregados')}
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
         );
