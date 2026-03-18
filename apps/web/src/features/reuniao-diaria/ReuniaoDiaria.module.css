@@ -499,6 +499,25 @@
     margin-bottom: 1.2rem;
 }
 
+.kpiGridCompact {
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.kpiGridCompact .kpiCard {
+    padding: 0.75rem 0.5rem;
+}
+
+.kpiGridCompact .kpiValue {
+    font-size: 2.2rem;
+}
+
+.kpiGridCompact .kpiLabel {
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
 .kpiCard {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -1152,6 +1171,156 @@
     color: #16a34a;
 }
 
+/* ========== LOGISTICS TV LAYOUT (D&C slide) ========== */
+.logisticaTvLayout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0;
+    flex: 1;
+    min-height: 0;
+}
+
+.logisticaTvPanel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    min-height: 0;
+}
+
+.logisticaTvPanelTitle {
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    padding-bottom: 6px;
+    border-bottom: 3px solid;
+    flex-shrink: 0;
+}
+
+.logisticaTvUpdateLabel {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 0;
+    padding: 2px 6px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.logisticaTvBigValue {
+    font-size: 3.2rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -1.3px;
+    line-height: 1;
+}
+
+.logisticaTvMidValue {
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -0.9px;
+    line-height: 1;
+}
+
+.logisticaTvLabel {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 2px 0 0;
+}
+
+.logisticaTvInferiorGrid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 0.8rem;
+    align-items: stretch;
+}
+
+.logisticaTvBox {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.logisticaTvBoxValue {
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin: 0;
+    color: #0f172a;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.logisticaTvBoxLabel {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 3px 0 0;
+}
+
+.logisticaTvDistHeader {
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #475569;
+    margin: 0.9rem 0 0.6rem;
+    flex-shrink: 0;
+}
+
+.logisticaTvDistRow {
+    display: grid;
+    grid-template-columns: 80px 1fr 38px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+}
+
+.logisticaTvDistLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.logisticaTvDistBar {
+    height: 20px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.logisticaTvDistBarFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    min-width: 3px;
+}
+
+.logisticaTvDistCount {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #334155;
+    text-align: right;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .menuTitle {
@@ -1423,4 +1592,34 @@
     font-weight: 800;
     color: #334155;
     text-align: right;
+}
+
+.lastUpdatedRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: #475569;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    flex-shrink: 0;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.lastUpdatedInline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    color: #64748b;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 500;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 3px 8px;
 }
