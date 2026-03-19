@@ -90,6 +90,15 @@ export let BASE = getActiveBase();
 
 export const isFallbackActive = () => getActiveBase() === FALLBACK_BASE;
 
+// Probe imediato no init — se a página recarregar com estado de fallback na sessionStorage,
+// verifica o primário sem esperar o cooldown, para não deixar a badge presa.
+if (isFallbackActive()) {
+    setTimeout(() => {
+        sessionStorage.removeItem(STORAGE_KEY_LAST_FAIL); // libera o cooldown só para este probe
+        probePrimary();
+    }, 800);
+}
+
 // Silent probe for recovery
 async function probePrimary(): Promise<void> {
     if (isProbingPrimary || getActiveBase() === PRIMARY_BASE) return;
