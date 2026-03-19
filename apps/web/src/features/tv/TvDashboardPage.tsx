@@ -141,6 +141,9 @@ export default function TvDashboardPage() {
     const [resumos, setResumos] = useState<ProducaoResumoDiario[]>([]);
     const [historicoRaw, setHistoricoRaw] = useState<ProducaoResumoDiario[]>([]); // Dados brutos do histórico
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
+    const failCountRef = useRef(0);
+    const MAX_FAILURES = 5;
 
     // Carrossel
     const [currentPage, setCurrentPage] = useState(0);
@@ -193,6 +196,7 @@ export default function TvDashboardPage() {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
+            setFetchError(false);
 
             // Buscar último upload baseado no scope
             let refDate: string;
@@ -333,12 +337,20 @@ export default function TvDashboardPage() {
 
             // Salvar dados brutos do histórico (processamento será feito no useMemo com filtro por scope)
             setHistoricoRaw(historicoData);
+            failCountRef.current = 0;
         } catch (err) {
             console.error('Erro ao carregar dados TV:', err);
+            failCountRef.current += 1;
+            setFetchError(true);
+            if (failCountRef.current >= MAX_FAILURES) {
+                // Forçar re-autenticação após falhas consecutivas
+                localStorage.removeItem('tv_token');
+                navigate('/tv');
+            }
         } finally {
             setLoading(false);
         }
-    }, [scope]);
+    }, [scope, navigate]);
 
     useEffect(() => {
         fetchData();
@@ -353,6 +365,13 @@ export default function TvDashboardPage() {
         const id = setInterval(fetchData, REFRESH_INTERVAL);
         return () => clearInterval(id);
     }, [fetchData]);
+
+    // Retry acelerado (2 min) quando em estado de erro
+    useEffect(() => {
+        if (!fetchError) return;
+        const id = setInterval(fetchData, 2 * 60 * 1000);
+        return () => clearInterval(id);
+    }, [fetchError, fetchData]);
 
     // ==================== DATA PROCESSING ====================
     const metasByMaquina = useMemo(() => {
@@ -751,6 +770,15 @@ export default function TvDashboardPage() {
 
             {/* Main Content */}
             <main className={styles.main}>
+                {fetchError && !loading && (
+                    <div className={styles.errorBanner}>
+                        <span className={styles.errorBannerIcon}>⚠</span>
+                        <span>Falha ao carregar dados. Tentando novamente automaticamente...</span>
+                        <button className={styles.errorBannerRetry} onClick={fetchData}>
+                            Tentar agora
+                        </button>
+                    </div>
+                )}
                 {loading ? (
                     <div className={styles.loadingContainer}>
                         <div className={styles.spinner} />

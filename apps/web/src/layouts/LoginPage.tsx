@@ -61,6 +61,11 @@ export default function LoginPage() {
             const isOperador = (u.role || '').toLowerCase() === 'operador';
             const next = isOperador ? '/inicio-turno' : redirectTo;
             navigate(next, { replace: true });
+        } else {
+            // Limpar sessão TV ao retornar ao login — garante sessão fresca no próximo acesso
+            localStorage.removeItem('tv_token');
+            sessionStorage.removeItem('spira_active_api');
+            sessionStorage.removeItem('spira_last_primary_fail');
         }
     }, [navigate, redirectTo]);
 

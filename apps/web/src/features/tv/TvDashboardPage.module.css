@@ -228,6 +228,43 @@
     overflow: hidden;
 }
 
+/* ==================== ERROR BANNER ==================== */
+.errorBanner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    margin-bottom: 12px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    color: #92400e;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.errorBannerIcon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.errorBannerRetry {
+    margin-left: auto;
+    padding: 6px 16px;
+    background: #f59e0b;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.errorBannerRetry:hover {
+    background: #d97706;
+}
+
 .loadingContainer {
     flex: 1;
     display: flex;
