@@ -42,6 +42,7 @@ async function getRecipients(evento: ReminderEvent): Promise<RecipientRow[]> {
      WHERE nc.evento = $1`,
     [evento],
   );
+  logger.info({ evento, totalEncontrados: rows.length }, '[PreventiveReminder] Verificando recipients na DB');
   return rows;
 }
 
@@ -62,6 +63,7 @@ async function getSchedulesByOffset(daysFromToday: number): Promise<PreventiveSc
      ORDER BY a.start_ts ASC`,
     [TZ, daysFromToday],
   );
+  logger.info({ daysFromToday, totalEncontrados: rows.length }, '[PreventiveReminder] Agendamentos preventivos encontrados');
   return rows;
 }
 
@@ -177,12 +179,18 @@ function buildEmailContent(evento: ReminderEvent, row: PreventiveScheduleRow) {
 
 async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRefLocal: string): Promise<void> {
   const schedules = await getSchedulesByOffset(daysFromToday);
-  logger.info({ evento, totalAgendamentos: schedules.length }, '[PreventiveReminder] Agendamentos encontrados');
-  if (!schedules.length) return;
+  logger.info({ evento, daysFromToday, totalAgendamentos: schedules.length }, '[PreventiveReminder] Agendamentos encontrados');
+  if (!schedules.length) {
+    logger.warn({ evento, daysFromToday }, '[PreventiveReminder] Nenhum agendamento encontrado para este offset');
+    return;
+  }
 
   const recipients = await getRecipients(evento);
   logger.info({ evento, totalDestinatarios: recipients.length }, '[PreventiveReminder] Destinatarios encontrados');
-  if (!recipients.length) return;
+  if (!recipients.length) {
+    logger.warn({ evento }, '[PreventiveReminder] Nenhum destinatario configurado para este evento');
+    return;
+  }
 
   for (const item of schedules) {
     // Reservar locks e coletar emails dos destinatários ainda não notificados
@@ -191,19 +199,34 @@ async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRef
 
     for (const recipient of recipients) {
       const emailDestino = recipient.email;
-      if (!emailDestino || !emailDestino.includes('@')) continue;
+      if (!emailDestino || !emailDestino.includes('@')) {
+        logger.warn({ usuario: recipient.nome, evento }, '[PreventiveReminder] Usuário sem email válido, pulando');
+        continue;
+      }
 
       const lockId = await reserveNotification(evento, item.id, recipient.usuario_id, dataRefLocal);
-      if (!lockId) continue; // Já notificado
+      if (!lockId) {
+        logger.debug({ usuario: recipient.nome, agendamento: item.id, evento }, '[PreventiveReminder] Usuário já notificado nesta data');
+        continue; // Já notificado
+      }
 
       lockedIds.push(lockId);
       emailsValidos.push(emailDestino);
     }
 
-    if (!emailsValidos.length) continue;
+    if (!emailsValidos.length) {
+      logger.warn({ agendamento: item.id, evento }, '[PreventiveReminder] Nenhum email válido para este agendamento');
+      continue;
+    }
 
     const toField = emailsValidos.join(';');
     const { subject, body } = buildEmailContent(evento, item);
+
+    logger.info(
+      { evento, agendamentoId: item.id, totalDestinatarios: emailsValidos.length, to: toField },
+      '[PreventiveReminder] Tentando enviar email',
+    );
+
     try {
       await sendEmailViaMSForms(
         { to: toField, subject, body },
@@ -219,7 +242,7 @@ async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRef
       );
       logger.info(
         { evento, agendamentoId: item.id, totalDestinatarios: emailsValidos.length },
-        '[PreventiveReminder] Email enviado',
+        '[PreventiveReminder] Email enviado com sucesso',
       );
       await sleep(300);
     } catch (err) {
@@ -228,7 +251,7 @@ async function notifyEvent(evento: ReminderEvent, daysFromToday: number, dataRef
         await releaseNotificationLock(lockId);
       }
       logger.error(
-        { err, evento, agendamentoId: item.id, toField },
+        { err, evento, agendamentoId: item.id, toField, formId: env.msForms.formId },
         '[PreventiveReminder] Falha ao enviar email',
       );
     }
