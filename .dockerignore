@@ -1,6 +1,14 @@
 **/node_modules
+**/.pnpm
+**/.pnpm-store
 .git
-.env
+**/.gitignore
+**/.env
+**/.env.*
 .DS_Store
-dist
-coverage
+**/dist
+**/coverage
+**/*.log
+.pnpm-debug.log
+apps/web
+apps/web/**
