@@ -224,6 +224,20 @@ authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
 
     const u = rows[0];
 
+    // Emite novo token com permissões frescas — resolve stale JWT após mudanças de role
+    const freshToken = jwt.sign(
+      {
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        nome: u.nome,
+        usuario: u.usuario,
+        permissoes: u.permissoes || {},
+      },
+      env.auth.jwtSecret,
+      { expiresIn: '7d' }
+    );
+
     return res.json({
       id: u.id,
       nome: u.nome,
@@ -233,7 +247,8 @@ authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
       usuario: u.usuario,
       roleId: u.role_id,
       roleNome: u.role_nome,
-      permissoes: u.permissoes || {}
+      permissoes: u.permissoes || {},
+      token: freshToken,
     });
   } catch (e: any) {
     logger.error({ err: e }, '[AUTH ME ERROR]');

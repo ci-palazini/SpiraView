@@ -112,7 +112,12 @@ export default function App() {
             me()
                 .then((freshUser: Record<string, unknown>) => {
                     if (freshUser.email === storedUser.email) {
+                        // Preserva o token do storedUser se a API não retornou um novo
                         const merged = { ...storedUser, ...freshUser };
+                        // Se /auth/me retornou novo token (permissões frescas), usa ele
+                        if (!freshUser.token) {
+                            merged.token = storedUser.token;
+                        }
                         localStorage.setItem('usuario', JSON.stringify(merged));
                         setUser(merged as User);
                     } else {
