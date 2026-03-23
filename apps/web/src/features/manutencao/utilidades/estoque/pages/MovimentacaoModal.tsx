@@ -2,7 +2,7 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { registrarMovimentacao } from '../../../../../services/apiClient';
-import type { Peca } from '../../../../../types/api';
+import type { Peca } from '@spiraview/shared';
 import styles from './MovimentacaoModal.module.css';
 import Modal from '../../../../../shared/components/Modal';
 import toast from 'react-hot-toast';

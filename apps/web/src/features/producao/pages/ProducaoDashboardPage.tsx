@@ -13,7 +13,7 @@ import {
     type ProducaoMeta,
     type ProducaoResumoDiario,
 } from '../../../services/apiClient';
-import type { Maquina } from '../../../types/api';
+import type { Maquina } from '@spiraview/shared';
 import styles from './ProducaoDashboardPage.module.css';
 import { useTranslation } from 'react-i18next';
 

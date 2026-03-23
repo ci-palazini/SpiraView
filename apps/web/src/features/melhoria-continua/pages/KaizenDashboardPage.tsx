@@ -9,7 +9,7 @@ import {
     listarKaizens,
     getKamishibaiDashboard
 } from '../../../services/apiClient';
-import type { Kaizen, KamishibaiDashboardData } from '../../../types/api';
+import type { Kaizen, KamishibaiDashboardData } from '@spiraview/shared';
 import KaizenFormModal from '../components/KaizenFormModal';
 import KaizenDetailsModal from '../components/KaizenDetailsModal';
 import KamishibaiConfigModal from '../components/KamishibaiConfigModal';

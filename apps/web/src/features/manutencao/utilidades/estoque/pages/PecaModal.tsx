@@ -2,7 +2,7 @@
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { criarPeca, atualizarPeca } from '../../../../../services/apiClient';
-import type { Peca } from '../../../../../types/api';
+import type { Peca } from '@spiraview/shared';
 import Modal from '../../../../../shared/components/Modal';
 import toast from 'react-hot-toast';
 import styles from './PecaModal.module.css';

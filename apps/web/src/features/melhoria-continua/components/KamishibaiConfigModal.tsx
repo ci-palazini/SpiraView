@@ -5,7 +5,7 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
 import Modal from '../../../shared/components/Modal';
 import { getKamishibaiPerguntas, configKamishibaiPerguntas } from '../../../services/apiClient';
-import type { Kaizen, KamishibaiPergunta } from '../../../types/api';
+import type { Kaizen, KamishibaiPergunta } from '@spiraview/shared';
 import styles from './KamishibaiConfigModal.module.css';
 
 interface User {

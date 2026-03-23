@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiEdit2, FiCheckSquare, FiSettings, FiImage } from 'react-icons/fi';
 import Modal from '../../../shared/components/Modal';
-import type { Kaizen } from '../../../types/api';
+import type { Kaizen } from '@spiraview/shared';
 import styles from './KaizenDetailsModal.module.css';
 
 interface KaizenDetailsModalProps {

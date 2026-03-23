@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 import {
     getLogisticaKpis, saveLogisticaKpi, saveLogisticaMeta
 } from '../../../services/apiClient';
-import { LogisticaKpi, LogisticaDashboardData } from '../../../types/api';
+import { LogisticaKpi, LogisticaDashboardData } from '@spiraview/shared';
 import styles from './LogisticsGrid.module.css';
 import { format, subMonths, addMonths, getDaysInMonth, isWeekend } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

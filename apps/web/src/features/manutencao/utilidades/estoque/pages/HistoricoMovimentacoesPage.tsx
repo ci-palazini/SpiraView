@@ -1,7 +1,7 @@
 // src/features/estoque/pages/HistoricoMovimentacoesPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { listarMovimentacoes, listarPecas, MovimentacaoHistorico } from '../../../../../services/apiClient';
-import type { Peca } from '../../../../../types/api';
+import type { Peca } from '@spiraview/shared';
 import styles from './HistoricoMovimentacoesPage.module.css';
 import PageHeader from '../../../../../shared/components/PageHeader';
 import ExportButtons from '../../../../../shared/components/ExportButtons';

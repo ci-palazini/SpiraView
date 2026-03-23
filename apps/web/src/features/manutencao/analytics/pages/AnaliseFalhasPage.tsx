@@ -17,7 +17,7 @@ import {
 
 import { useTranslation } from 'react-i18next';
 import { listarChamados } from '../../../../services/apiClient';
-import type { Chamado } from '../../../../types/api';
+import type { Chamado } from '@spiraview/shared';
 import PageHeader from '../../../../shared/components/PageHeader';
 import Skeleton from '../../../../shared/components/Skeleton';
 

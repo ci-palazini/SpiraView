@@ -1,5 +1,15 @@
-// src/types/api.ts
-// Tipos compartilhados para a API
+// Tipos de resposta da API — fonte de verdade compartilhada entre API e frontend
+
+// ---------- Tipos locais (usados internamente neste arquivo) ----------
+type ChamadoStatus = 'Aberto' | 'Em Andamento' | 'Concluido';
+
+interface ChecklistItem {
+    key?: string;
+    texto?: string;
+    item?: string;
+    ok?: boolean;
+    resposta?: string | null;
+}
 
 // ---------- Auth ----------
 export interface AuthParams {
@@ -10,7 +20,6 @@ export interface AuthParams {
 
 // ---------- Chamados ----------
 export type ChamadoTipo = 'corretiva' | 'preventiva' | 'preditiva';
-export type ChamadoStatus = 'Aberto' | 'Em Andamento' | 'Concluido';
 
 export interface Chamado {
     id: string;
@@ -45,14 +54,6 @@ export interface ChamadoCreate {
     item?: string;
     status?: string;
     criadoPorEmail?: string;
-}
-
-export interface ChecklistItem {
-    key?: string;
-    texto?: string;
-    item?: string;
-    ok?: boolean;
-    resposta?: string | null;
 }
 
 export interface Observacao {

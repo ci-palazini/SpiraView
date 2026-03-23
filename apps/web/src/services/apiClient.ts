@@ -36,7 +36,7 @@ import type {
     KamishibaiAudit,
     PerformAuditPayload,
     KamishibaiDashboardData
-} from '../types/api';
+} from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
 export const PRIMARY_BASE = (

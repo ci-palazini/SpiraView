@@ -5,7 +5,7 @@ import {
     removerNotificacaoConfig,
     listarUsuarios
 } from '../../../services/apiClient';
-import type { NotificacaoConfigUser, Usuario } from '../../../types/api';
+import type { NotificacaoConfigUser, Usuario } from '@spiraview/shared';
 import PageHeader from '../../../shared/components/PageHeader';
 import { Select, Button } from '../../../shared/components';
 import styles from './ConfiguracaoNotificacoesPage.module.css';

@@ -14,7 +14,7 @@ import {
     type ProducaoMeta,
     type ProducaoResumoDiario,
 } from '../../services/apiClient';
-import type { Maquina } from '../../types/api';
+import type { Maquina } from '@spiraview/shared';
 import SlideResumo from './components/SlideResumo';
 import useSSE from '../../hooks/useSSE';
 import SlidePlanejamento from './components/SlidePlanejamento';

@@ -23,7 +23,7 @@ import {
     upsertFuncionarioMeta,
     listarUsuarios,
 } from '../../../services/apiClient';
-import type { Usuario } from '../../../types/api';
+import type { Usuario } from '@spiraview/shared';
 
 import styles from './ProducaoColaboradoresPage.module.css';
 

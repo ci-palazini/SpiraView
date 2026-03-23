@@ -21,7 +21,7 @@ import {
     atualizarEscopoMaquina,
     atualizarMaquinaPai,
 } from '../../../services/apiClient';
-import { type Maquina } from '../../../types/api';
+import { type Maquina } from '@spiraview/shared';
 import styles from './MaquinasConfigPage.module.css';
 
 interface User {

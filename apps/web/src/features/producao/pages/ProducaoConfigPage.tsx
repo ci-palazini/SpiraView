@@ -29,7 +29,7 @@ import {
     deletarMaquina,
     type ProducaoMeta
 } from '../../../services/apiClient';
-import { type Maquina } from '../../../types/api';
+import { type Maquina } from '@spiraview/shared';
 import styles from './ProducaoConfigPage.module.css';
 
 // --- Interfaces ---

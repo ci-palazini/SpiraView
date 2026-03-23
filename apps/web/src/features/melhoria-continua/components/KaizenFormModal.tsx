@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 import Modal from '../../../shared/components/Modal';
 import { criarKaizen, atualizarKaizen, listarMaquinas, uploadKaizenThumbnail } from '../../../services/apiClient';
-import type { Kaizen, Maquina } from '../../../types/api';
+import type { Kaizen, Maquina } from '@spiraview/shared';
 import styles from './KaizenFormModal.module.css';
 
 interface User {

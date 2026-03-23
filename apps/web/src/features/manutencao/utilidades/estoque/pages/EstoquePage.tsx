@@ -1,7 +1,7 @@
 // src/features/estoque/pages/EstoquePage.tsx
 import React, { useState, useEffect } from 'react';
 import { listarPecas, excluirPeca } from '../../../../../services/apiClient';
-import type { Peca } from '../../../../../types/api';
+import type { Peca } from '@spiraview/shared';
 
 import styles from './EstoquePage.module.css';
 import MovimentacaoModal from './MovimentacaoModal';
