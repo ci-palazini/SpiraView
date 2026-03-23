@@ -71,7 +71,7 @@ export default function KaizenDashboardPage({ user }: KaizenDashboardPageProps) 
                 listarKaizens(statusFilter ? { status: statusFilter } : {}),
                 getKamishibaiDashboard()
             ]);
-            setKaizens(kData.data);
+            setKaizens(kData.items);
             setDashboardData(dashData);
         } catch (err) {
             console.error(err);

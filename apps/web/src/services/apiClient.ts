@@ -1610,7 +1610,7 @@ export async function deleteLogisticaProposto(uploadId: string, auth: AuthParams
 export async function listarKaizens(
     params: { maquinaId?: string; status?: string; page?: number; limit?: number } = {},
     auth: AuthParams = {}
-): Promise<{ data: Kaizen[]; meta: { total: number; page: number; limit: number } }> {
+): Promise<{ items: Kaizen[]; total: number; page: number; pageSize: number; hasNext: boolean }> {
     return http.get('/melhoria-continua/kaizens', { params, auth });
 }
 

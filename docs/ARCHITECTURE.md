@@ -276,4 +276,4 @@ Para garantir a resiliência contra bloqueios de rede (como Cisco Umbrella/OpenD
 
 - [Sistema de Permissões](PERMISSIONS.md)
 - [Padrões de API](API.md)
-- [Contexto para Agentes](./../.agent/CONTEXT.md)
+- [Contexto para Agentes](CONTEXT.md)

@@ -37,7 +37,7 @@ Thumbs.db
 .idea/
 
 # AI Agent context (local only)
-.agent/
+docs/CONTEXT.md
 .gemini/
 AGENTS.md
 .copilot/

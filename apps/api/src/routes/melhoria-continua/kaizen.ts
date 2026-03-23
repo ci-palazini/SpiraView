@@ -3,6 +3,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { pool, withTx } from "../../db";
 import { requirePermission } from "../../middlewares/requirePermission";
+import { paginatedResponse } from "../../utils/response";
 import multer from "multer";
 import { storageProvider } from "../../utils/storage";
 
@@ -115,14 +116,7 @@ kaizenRouter.get("/", requirePermission("melhoria_continua", "ver"), async (req,
             return k;
         });
 
-        res.json({
-            data: kaizensWithUrl,
-            meta: {
-                total: parseInt(countRows[0].count, 10),
-                page: pageNum,
-                limit: limitNum,
-            },
-        });
+        paginatedResponse(res, kaizensWithUrl, parseInt(countRows[0].count, 10), pageNum, limitNum);
     } catch (error) {
         console.error("Erro ao listar kaizens:", error);
         res.status(500).json({ error: "Erro ao buscar kaizens." });
