@@ -30,6 +30,9 @@ import MaquinasConfigPage from '../../features/configuracoes/pages/MaquinasConfi
 import PlanejamentoDashboardPage from '../../features/planejamento/pages/PlanejamentoDashboardPage';
 import CapacidadeUploadPage from '../../features/planejamento/pages/CapacidadeUploadPage';
 import CapacidadeConfigPage from '../../features/planejamento/pages/CapacidadeConfigPage';
+import { ProducaoEstruturaPage } from '../../features/producao/pages/ProducaoEstruturaPage';
+import { ProducaoMetasCalendarioPage } from '../../features/producao/pages/ProducaoMetasCalendarioPage';
+import { ProducaoResultadosPage } from '../../features/producao/pages/ProducaoResultadosPage';
 import RefugoFormPage from '../../features/qualidade/pages/RefugoFormPage';
 import QualidadeDashboardGeralPage from '../../features/qualidade/pages/QualidadeDashboardGeralPage';
 import QualidadeDashboardPage from '../../features/qualidade/pages/QualidadeDashboardPage';
@@ -211,6 +214,21 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/producao/colaboradores/:matricula"
                 element={canAccessPage('producao_colaboradores', <ProducaoColaboradorDetalhePage user={user} />)}
+            />
+            
+            <Route
+                path="/producao/estrutura"
+                element={canAccessPage('producao_config', <ProducaoEstruturaPage />)}
+            />
+
+            <Route
+                path="/producao/metas"
+                element={canAccessPage('producao_config', <ProducaoMetasCalendarioPage />)}
+            />
+
+            <Route
+                path="/producao/resultados"
+                element={canAccessPage('producao_resultados', <ProducaoResultadosPage />)}
             />
 
             {/* Planejamento */}

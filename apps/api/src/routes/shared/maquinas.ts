@@ -274,6 +274,52 @@ maquinasRouter.patch('/maquinas/:id/nome-producao', requirePermission('producao_
   }
 });
 
+// GET /maquinas/producao-config - Listar configuração de máquinas para produção
+maquinasRouter.get('/maquinas/producao-config', requirePermission('producao_config', 'ver'), async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, nome, nome_producao AS "nomeProducao", setor_producao_id AS "setorProducaoId", 
+              ordem_producao AS "ordemProducao", escopo_producao AS "escopoProducao"
+       FROM maquinas
+       ORDER BY escopo_producao DESC, ordem_producao ASC, nome ASC`
+    );
+    res.json(rows);
+  } catch (e: any) {
+    logger.error({ err: e }, 'Erro na rota producao-config');
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// PATCH /maquinas/:id/producao-config - Atualizar configuração de produção de uma máquina
+maquinasRouter.patch('/maquinas/:id/producao-config', requirePermission('producao_config', 'editar'), async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const { setorProducaoId, ordemProducao, exibirProducao } = req.body || {};
+
+    const upd = await pool.query(
+      `UPDATE maquinas 
+       SET setor_producao_id = $2, 
+           ordem_producao = $3, 
+           escopo_producao = $4,
+           atualizado_em = NOW()
+       WHERE id = $1::uuid
+       RETURNING id, nome, nome_producao AS "nomeProducao", setor_producao_id AS "setorProducaoId", 
+                 ordem_producao AS "ordemProducao", escopo_producao AS "escopoProducao"`,
+      [id, setorProducaoId || null, typeof ordemProducao === 'number' ? ordemProducao : 0, !!exibirProducao]
+    );
+
+    if (!upd.rowCount) {
+      return res.status(404).json({ error: 'Máquina não encontrada.' });
+    }
+
+    sseBroadcast({ topic: 'maquinas', action: 'updated', id });
+    res.json(upd.rows[0]);
+  } catch (e: any) {
+    logger.error({ err: e }, 'Erro na rota producao-config');
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 maquinasRouter.get('/maquinas/:id', requireAuth, async (req, res) => {
   try {
     const id = String(req.params.id);
@@ -596,7 +642,7 @@ maquinasRouter.delete('/maquinas/:id', requirePermission('maquinas', 'editar'), 
       else if (detail.includes('chamados') || detail.includes('fk_chamados_maquina')) msg = 'Esta máquina possui chamados de manutenção.';
       else if (detail.includes('agendamentos_preventivos')) msg = 'Esta máquina possui agendamentos preventivos.';
       else if (detail.includes('planejamento_reservas')) msg = 'Esta máquina possui reservas no planejamento.';
-      else if (detail.includes('producao_metas')) msg = 'Esta máquina possui metas de produção definidas.';
+      else if (detail.includes('producao_metas_padrao') || detail.includes('producao_metas_dia')) msg = 'Esta máquina possui metas de produção definidas.';
       else if (detail.includes('producao_lancamentos')) msg = 'Esta máquina possui lançamentos de produção.';
       else if (detail.includes('maquinas_parent_maquina_id_fkey')) msg = 'Esta máquina possui máquinas filhas vinculadas via hierarquia.';
 

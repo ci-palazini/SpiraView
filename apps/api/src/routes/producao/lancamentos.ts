@@ -328,11 +328,14 @@ lancamentosRouter.get('/producao/resumo-diario', async (req, res) => {
                 pl.data_ref AS "dataRef",
                 SUM(pl.horas_realizadas) AS "horasDia",
                 COALESCE((
-                    SELECT pm.horas_meta FROM producao_metas pm 
-                    WHERE pm.maquina_id = pl.maquina_id 
-                    AND pm.data_inicio <= pl.data_ref 
-                    AND (pm.data_fim IS NULL OR pm.data_fim >= pl.data_ref)
-                    ORDER BY pm.data_inicio DESC LIMIT 1
+                    SELECT COALESCE(md.horas_meta, mp.horas_meta)
+                    FROM (VALUES (1)) v(x)
+                    LEFT JOIN producao_metas_dia md
+                        ON md.maquina_id = pl.maquina_id AND md.data_ref = pl.data_ref
+                    LEFT JOIN producao_metas_padrao mp
+                        ON mp.maquina_id = pl.maquina_id
+                        AND mp.ano = EXTRACT(YEAR FROM pl.data_ref)::integer
+                        AND mp.mes = EXTRACT(MONTH FROM pl.data_ref)::integer
                 ), 0) AS "metaDia",
                 COUNT(*) AS "qtdLancamentos",
                 MAX(pl.horas_referencia_em) AS "ultimaAtualizacaoEm"

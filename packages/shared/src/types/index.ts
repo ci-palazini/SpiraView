@@ -449,3 +449,81 @@ export interface KamishibaiDashboardData {
     totalNOK: number;
     totalPendente: number;
 }
+
+// ---------- Produção (Novo Módulo Metas) ----------
+export interface ProducaoSetor {
+    id: string;
+    nome: string;
+    ordem: number;
+    ativo: boolean;
+    criadoEm: string;
+    atualizadoEm?: string;
+}
+
+export interface ProducaoSetorCreate {
+    nome: string;
+    ordem?: number;
+    ativo?: boolean;
+}
+
+export interface ProducaoMetaPadrao {
+    id: string;
+    maquinaId: string;
+    ano: number;
+    mes: number;
+    horasMeta: number;
+    atualizadoEm?: string;
+}
+
+export interface ProducaoMetaDia {
+    id: string;
+    maquinaId: string;
+    dataRef: string; // YYYY-MM-DD
+    horasMeta: number;
+    atualizadoEm?: string;
+}
+
+export interface MetaUpsertPayload {
+    maquinaId: string;
+    ano?: number; // Para padrão
+    mes?: number; // Para padrão
+    dataRef?: string; // Para dia (YYYY-MM-DD)
+    horasMeta: number | null; // null para remover override do dia
+}
+
+export interface ResultadoDia {
+    dia: string;
+    horasRealizadas: number;
+    horasMeta: number | null;
+}
+
+export interface ResultadoMaquina {
+    maquinaId: string;
+    maquinaNome: string;
+    dias: ResultadoDia[];
+    totalRealizado: number;
+    totalMeta: number;
+}
+
+export interface ResultadoSetor {
+    setorId: string | null;
+    setorNome: string;
+    maquinas: ResultadoMaquina[];
+}
+
+export interface ResultadosMensais {
+    ano: number;
+    mes: number;
+    diasMes: string[];
+    setores: ResultadoSetor[];
+}
+
+export interface MaquinaProducaoConfig {
+    id: string;
+    nome: string;
+    nomeProducao?: string;
+    setorProducaoId: string | null;
+    ordemProducao: number;
+    escopoProducao: boolean;
+}
+

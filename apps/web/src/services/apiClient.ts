@@ -35,7 +35,14 @@ import type {
     KamishibaiPergunta,
     KamishibaiAudit,
     PerformAuditPayload,
-    KamishibaiDashboardData
+    KamishibaiDashboardData,
+    ProducaoSetor,
+    ProducaoSetorCreate,
+    ProducaoMetaPadrao,
+    ProducaoMetaDia,
+    MetaUpsertPayload,
+    ResultadosMensais,
+    MaquinaProducaoConfig
 } from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
@@ -1688,4 +1695,64 @@ export async function getKamishibaiHistorico(kaizenId?: string, auth: AuthParams
     const url = kaizenId ? `/melhoria-continua/kamishibai/historico/${kaizenId}` : '/melhoria-continua/kamishibai/historico';
     const res = await http.get<any[]>(url, { auth });
     return res || [];
+}
+
+// ---------- Produção (Novo Módulo Metas) ----------
+
+// Setores
+export async function listarSetoresProducao(auth: AuthParams = {}): Promise<ProducaoSetor[]> {
+    const data = await http.get<{ items?: ProducaoSetor[] } | ProducaoSetor[]>('/producao/setores', { auth });
+    return Array.isArray((data as { items?: ProducaoSetor[] })?.items) 
+           ? (data as { items: ProducaoSetor[] }).items 
+           : (Array.isArray(data) ? data as ProducaoSetor[] : []);
+}
+
+export async function criarSetorProducao(data: ProducaoSetorCreate, auth: AuthParams = {}): Promise<ProducaoSetor> {
+    return http.post<ProducaoSetor>('/producao/setores', { data, auth });
+}
+
+export async function atualizarSetorProducao(id: string, data: ProducaoSetorCreate, auth: AuthParams = {}): Promise<ProducaoSetor> {
+    return http.put<ProducaoSetor>(`/producao/setores/${id}`, { data, auth });
+}
+
+export async function deletarSetorProducao(id: string, auth: AuthParams = {}): Promise<{ ok: boolean }> {
+    return http.delete<{ ok: boolean }>(`/producao/setores/${id}`, { auth });
+}
+
+// Metas
+export async function listarMetasPadrao(ano: number, mes: number, auth: AuthParams = {}): Promise<ProducaoMetaPadrao[]> {
+    return http.get<ProducaoMetaPadrao[]>('/producao/metas/padrao', { params: { ano, mes }, auth });
+}
+
+export async function upsertMetaPadrao(data: MetaUpsertPayload, auth: AuthParams = {}): Promise<ProducaoMetaPadrao> {
+    return http.put<ProducaoMetaPadrao>('/producao/metas/padrao', { data, auth });
+}
+
+export async function listarMetasDia(dataInicio: string, dataFim: string, auth: AuthParams = {}): Promise<ProducaoMetaDia[]> {
+    return http.get<ProducaoMetaDia[]>('/producao/metas/dia', { params: { dataInicio, dataFim }, auth });
+}
+
+export async function upsertMetaDia(data: MetaUpsertPayload, auth: AuthParams = {}): Promise<ProducaoMetaDia | { ok: boolean }> {
+    return http.put<ProducaoMetaDia | { ok: boolean }>('/producao/metas/dia', { data, auth });
+}
+
+// Resultados
+export async function getResultadosMensais(ano: number, mes: number, auth: AuthParams = {}): Promise<ResultadosMensais> {
+    return http.get<ResultadosMensais>('/producao/resultados', { params: { ano, mes }, auth });
+}
+
+// Configuração de Máquinas (Escopo Produção)
+export async function listarMaquinasProducaoConfig(auth: AuthParams = {}): Promise<MaquinaProducaoConfig[]> {
+    const data = await http.get<{ items?: MaquinaProducaoConfig[] } | MaquinaProducaoConfig[]>('/maquinas/producao-config', { auth });
+    return Array.isArray((data as { items?: MaquinaProducaoConfig[] })?.items) 
+           ? (data as { items: MaquinaProducaoConfig[] }).items 
+           : (Array.isArray(data) ? data as MaquinaProducaoConfig[] : []);
+}
+
+export async function atualizarMaquinaProducaoConfig(id: string, config: { setorProducaoId: string | null; ordemProducao: number; exibirProducao: boolean }, auth: AuthParams = {}): Promise<MaquinaProducaoConfig> {
+    return apiFetch<MaquinaProducaoConfig>(`/maquinas/${id}/producao-config`, {
+        method: 'PATCH',
+        body: config,
+        auth
+    });
 }

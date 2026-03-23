@@ -282,7 +282,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
             )}
 
             {/* Produção - usa permissões granulares */}
-            {perm.canViewAny(['producao_upload', 'producao_dashboard', 'producao_colaboradores', 'producao_config']) && (
+            {perm.canViewAny(['producao_upload', 'producao_dashboard', 'producao_colaboradores', 'producao_config', 'producao_resultados']) && (
                 <SidebarGroup
                     id="production"
                     label={t('layout.sections.production', 'Produção')}
@@ -290,7 +290,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                     isOpen={openGroups.production}
                     onToggle={toggleGroup}
                 >
-                    {perm.canViewAny(['producao_dashboard']) && (
+                    {perm.canViewAny(['producao_dashboard', 'producao_resultados']) && (
                         <div className={styles.groupSublabel}>{t('nav.prodSubOverview', 'Visão Geral')}</div>
                     )}
                     {perm.canView('producao_dashboard') && (
@@ -302,6 +302,17 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                         >
                             <LuLayoutDashboard className={styles.navIcon} />
                             <span>{t('nav.productionDashboard', 'Dashboard')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canView('producao_resultados') && (
+                        <NavLink
+                            to="/producao/resultados"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiBarChart2 className={styles.navIcon} />
+                            <span>{t('nav.productionResults', 'Resultados Mensais')}</span>
                         </NavLink>
                     )}
 
@@ -336,15 +347,35 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                         <div className={styles.groupSublabel}>{t('nav.prodSubConfig', 'Configurações')}</div>
                     )}
                     {perm.canView('producao_config') && (
-                        <NavLink
-                            to="/producao/config"
-                            className={({ isActive }) =>
-                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                            }
-                        >
-                            <FiServer className={styles.navIcon} />
-                            <span>{t('nav.productionConfig', 'Config. Máquinas')}</span>
-                        </NavLink>
+                        <>
+                            <NavLink
+                                to="/producao/estrutura"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiServer className={styles.navIcon} />
+                                <span>{t('nav.productionStructure', 'Estrutura')}</span>
+                            </NavLink>
+                            <NavLink
+                                to="/producao/metas"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiCalendar className={styles.navIcon} />
+                                <span>{t('nav.productionTargets', 'Metas')}</span>
+                            </NavLink>
+                            <NavLink
+                                to="/producao/config"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiSettings className={styles.navIcon} />
+                                <span>{t('nav.productionConfig', 'Config. Máquinas Antiga')}</span>
+                            </NavLink>
+                        </>
                     )}
                 </SidebarGroup>
             )}

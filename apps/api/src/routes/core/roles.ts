@@ -31,6 +31,7 @@ const PAGINAS_DISPONIVEIS = [
     // Produção
     { key: 'producao_upload', nome: 'Upload de Produção', grupo: 'Produção' },
     { key: 'producao_dashboard', nome: 'Dashboard de Produção', grupo: 'Produção' },
+    { key: 'producao_resultados', nome: 'Resultados de Produção', grupo: 'Produção' },
     { key: 'producao_colaboradores', nome: 'Colaboradores', grupo: 'Produção' },
     { key: 'producao_config', nome: 'Configurações de Produção', grupo: 'Produção' },
     // Planejamento

@@ -96,6 +96,8 @@ Cadastro de máquinas/ativos.
 | `aliases_producao` | TEXT[] | Aliases para match de produção |
 | `aliases_planejamento` | TEXT[] | Aliases para match de planejamento |
 | `capacidade_horas` | DECIMAL | Horas de capacidade |
+| `setor_producao_id` | UUID | FK → producao_setores.id (agrupamento no painel de produção) |
+| `ordem_producao` | INTEGER | Ordem de exibição da máquina no setor |
 
 #### `chamados`
 Sistema de chamados de manutenção.
@@ -232,16 +234,37 @@ Lançamentos diários de produção.
 | `horas_produzidas` | DECIMAL | Horas |
 | `motivo_parada` | TEXT | Descrição de paradas |
 
-#### `producao_metas`
-Metas mensais de produção.
+#### `producao_setores`
+Setores ou áreas lógicas do chão de fábrica.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `nome` | VARCHAR | Nome do setor (ex: "Usinagem Pesada") |
+| `ordem` | INTEGER | Ordem de exibição do setor |
+
+#### `producao_metas_padrao`
+Meta mensal padrão para uma máquina.
 
 | Coluna | Tipo | Descrição |
 |--------|------|-----------|
 | `id` | UUID | PK |
 | `maquina_id` | UUID | FK → maquinas.id |
-| `mes` | INTEGER | Mês (1-12) |
-| `ano` | INTEGER | Ano |
-| `meta_horas` | DECIMAL | Meta de horas |
+| `meta_diaria_horas` | DECIMAL | Target default diário (em horas) |
+| `created_at` | TIMESTAMPTZ | Data de criação |
+
+#### `producao_metas_dia`
+Overrides de meta ou bloqueios (dia não útil) para datas específicas.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `maquina_id` | UUID | FK → maquinas.id |
+| `data` | DATE | Data específica |
+| `is_dia_util` | BOOLEAN | Se não útil, o dia deve ser ignorado para métricas gerais |
+| `meta_diaria_horas` | DECIMAL | Meta específica se diferente do padrão (opcional) |
+| `motivo_bloqueio` | TEXT | Motivo se dia não for útil |
+| `created_at` | TIMESTAMPTZ | Data de criação |
 
 #### `producao_upload_historico`
 Histórico de uploads de produção.

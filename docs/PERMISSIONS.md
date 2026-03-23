@@ -130,6 +130,7 @@ const MyComponent = () => {
 | `producao_config` | Produção | Configurações (aliases, metas) | `ver`, `editar` |
 | `producao_upload` | Produção | Upload de arquivos de produção | `editar` |
 | `producao_colaboradores` | Produção | Gestão de colaboradores e metas individuais | `ver`, `editar` |
+| `producao_resultados` | Produção | Resultados mensais de produção | `ver` |
 
 ### Planejamento
 

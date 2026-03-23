@@ -3,6 +3,8 @@ import { Router } from 'express';
 import { metasRouter } from './metas';
 import { lancamentosRouter } from './lancamentos';
 import { uploadRouter } from './upload';
+import { setoresRouter } from './setores';
+import { resultadosRouter } from './resultados';
 
 export const producaoRouter: Router = Router();
 
@@ -10,4 +12,6 @@ export const producaoRouter: Router = Router();
 producaoRouter.use(metasRouter);
 producaoRouter.use(lancamentosRouter);
 producaoRouter.use(uploadRouter);
+producaoRouter.use(setoresRouter);
+producaoRouter.use(resultadosRouter);
 

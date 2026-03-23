@@ -43,11 +43,26 @@ flowchart LR
 
 | Método | Rota | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| GET | `/producao/metas` | `producao_config: ver` | Listar metas |
-| POST | `/producao/metas` | `producao_config: editar` | Criar meta |
-| PUT | `/producao/metas/:id` | `producao_config: editar` | Atualizar |
-| DELETE | `/producao/metas/:id` | `producao_config: editar` | Excluir |
-| GET | `/producao/indicadores/funcionarios/resumo` | `producao_colaboradores: ver` | Snapshot único (metas + realizado dia + realizado mês) para a tela de colaboradores |
+| GET | `/producao/metas-padrao` | `producao_config: ver` | Listar metas mensais padrão |
+| POST | `/producao/metas-padrao` | `producao_config: editar` | Salvar meta padrão |
+| GET | `/producao/metas-dia` | `producao_config: ver` | Listar metas específicas por dia (override) |
+| POST | `/producao/metas-dia` | `producao_config: editar` | Salvar meta específica por dia |
+| GET | `/producao/indicadores/funcionarios/resumo` | `producao_colaboradores: ver` | Snapshot único para a tela de colaboradores |
+
+### Setores (`setores.ts`)
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| GET | `/producao/setores` | `producao_config: ver` | Listar setores de produção |
+| POST | `/producao/setores` | `producao_config: editar` | Criar setor |
+| PUT | `/producao/setores/:id` | `producao_config: editar` | Atualizar setor |
+| DELETE | `/producao/setores/:id` | `producao_config: editar` | Excluir setor |
+
+### Resultados (`resultados.ts`)
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| GET | `/producao/resultados` | `producao_resultados: ver` | Resultados aglutinados mês a mês |
 
 ---
 
@@ -60,7 +75,10 @@ flowchart LR
 | **Dashboard** | `ProducaoDashboardPage.tsx` | Visão geral com gráficos |
 | **Upload** | `ProducaoUploadPage.tsx` | Upload de Excel |
 | **Detalhe Upload** | `ProducaoUploadDetalhePage.tsx` | Linhas processadas |
-| **Configurações** | `ProducaoConfigPage.tsx` | Aliases e metas |
+| **Configurações Antiga** | `ProducaoConfigPage.tsx` | Aliases das máquinas |
+| **Estrutura** | `ProducaoEstruturaPage.tsx` | Cadastro de setores e configuração de máquinas |
+| **Metas de Produção** | `ProducaoMetasCalendarioPage.tsx` | Configuração de meta mês e diárias |
+| **Resultados** | `ProducaoResultadosPage.tsx` | Análise de horas apontadas vs metas por setor |
 | **Colaboradores** | `ProducaoColaboradoresPage.tsx` | Análise por responsável |
 
 ---

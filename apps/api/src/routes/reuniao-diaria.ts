@@ -500,13 +500,14 @@ reuniaoDiariaRouter.get(
                          FROM maquinas m
                          LEFT JOIN producao_lancamentos pl ON pl.maquina_id = m.id AND pl.data_ref = ANY($2::date[])
                          LEFT JOIN LATERAL (
-                             SELECT mt2.horas_meta
-                             FROM producao_metas mt2
-                             WHERE mt2.maquina_id = m.id 
-                               AND mt2.data_inicio <= $3 
-                               AND (mt2.data_fim IS NULL OR mt2.data_fim >= $3)
-                             ORDER BY mt2.data_inicio DESC
-                             LIMIT 1
+                             SELECT COALESCE(md.horas_meta, mp.horas_meta) AS horas_meta
+                             FROM (VALUES (1)) v(x)
+                             LEFT JOIN producao_metas_dia md 
+                                 ON md.maquina_id = m.id AND md.data_ref = $3::date
+                             LEFT JOIN producao_metas_padrao mp 
+                                 ON mp.maquina_id = m.id 
+                                 AND mp.ano = EXTRACT(YEAR FROM $3::date)::integer 
+                                 AND mp.mes = EXTRACT(MONTH FROM $3::date)::integer
                          ) mt ON true
                          WHERE m.setor = $1 AND m.escopo_producao = true
                          GROUP BY m.id, m.parent_maquina_id, m.is_maquina_mae, m.exibir_filhos_dashboard, m.nome_producao, m.nome, mt.horas_meta, pl.data_ref`,

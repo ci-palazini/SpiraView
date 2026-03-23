@@ -1,12 +1,170 @@
 import { Router } from 'express';
 import { pool } from '../../db';
-import { logger } from '../../logger';
-import { requireAuth } from '../../middlewares/requireAuth';
 import { requirePermission } from '../../middlewares/requirePermission';
+import { logger } from '../../logger';
 
 export const metasRouter: Router = Router();
 
-// Helper: verificar permissão granular inline
+// GET /producao/metas/padrao?ano=2026&mes=3
+metasRouter.get('/producao/metas/padrao', requirePermission('producao_config', 'ver'), async (req, res) => {
+  try {
+    const ano = parseInt(req.query.ano as string, 10);
+    const mes = parseInt(req.query.mes as string, 10);
+
+    if (!ano || !mes) {
+      return res.status(400).json({ error: 'ano e mes sao obrigatorios.' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT id, maquina_id AS "maquinaId", ano, mes, horas_meta AS "horasMeta", atualizado_em AS "atualizadoEm"
+       FROM producao_metas_padrao
+       WHERE ano = $1 AND mes = $2`,
+      [ano, mes]
+    );
+    res.json(rows);
+  } catch (e: unknown) {
+    logger.error({ err: e }, 'Erro ao buscar metas padrao');
+    res.status(500).json({ error: 'Erro ao buscar metas.' });
+  }
+});
+
+// PUT /producao/metas/padrao - Salvar meta padrão (upsert)
+metasRouter.put('/producao/metas/padrao', requirePermission('producao_config', 'editar'), async (req, res) => {
+  try {
+    const { maquinaId, ano, mes, horasMeta } = req.body;
+
+    if (!maquinaId || !ano || !mes || horasMeta === undefined) {
+      return res.status(400).json({ error: 'Campos obrigatórios: maquinaId, ano, mes, horasMeta.' });
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO producao_metas_padrao (maquina_id, ano, mes, horas_meta)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (maquina_id, ano, mes) 
+       DO UPDATE SET horas_meta = EXCLUDED.horas_meta, atualizado_em = NOW()
+       RETURNING id, maquina_id AS "maquinaId", ano, mes, horas_meta AS "horasMeta"`,
+      [maquinaId, ano, mes, horasMeta]
+    );
+    res.json(rows[0]);
+  } catch (e: unknown) {
+    logger.error({ err: e }, 'Erro ao salvar meta padrao');
+    res.status(500).json({ error: 'Erro ao salvar meta.' });
+  }
+});
+
+// ============================================================================
+// METAS LEGADAS (Retrocompatibilidade para Modo TV e Dashboard antigo)
+// ============================================================================
+metasRouter.get('/producao/metas', async (req, res) => {
+    try {
+        const maquinaId = req.query.maquinaId as string;
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth() + 1;
+        const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+        let query = `
+            WITH padrao AS (
+                SELECT maquina_id, horas_meta 
+                FROM producao_metas_padrao 
+                WHERE ano = $1 AND mes = $2
+            ),
+            dia AS (
+                SELECT maquina_id, horas_meta 
+                FROM producao_metas_dia 
+                WHERE data_ref = $3
+            )
+            SELECT 
+                m.id AS "maquina_id",
+                COALESCE(d.horas_meta, p.horas_meta, 0) AS "horas_meta"
+            FROM maquinas m
+            LEFT JOIN padrao p ON p.maquina_id = m.id
+            LEFT JOIN dia d ON d.maquina_id = m.id
+            WHERE 1=1
+        `;
+        const params: any[] = [ano, mes, dataStr];
+        
+        if (maquinaId) {
+            params.push(maquinaId);
+            query += ` AND m.id = $4`;
+        }
+
+        const { rows } = await pool.query(query, params);
+
+        const items = rows.map(r => ({
+            id: r.maquina_id,
+            maquinaId: r.maquina_id,
+            dataInicio: dataStr,
+            horasMeta: r.horas_meta,
+            ativo: true,
+            atualizadoEm: new Date().toISOString()
+        }));
+
+        res.json({ items });
+    } catch (e: unknown) {
+        logger.error({ err: e }, 'Erro ao buscar metas compatíveis');
+        res.status(500).json({ error: 'Erro ao buscar metas.' });
+    }
+});
+
+// GET /producao/metas/dia?dataInicio=2026-03-01&dataFim=2026-03-31
+metasRouter.get('/producao/metas/dia', requirePermission('producao_config', 'ver'), async (req, res) => {
+  try {
+    const dataInicio = req.query.dataInicio as string;
+    const dataFim = req.query.dataFim as string;
+
+    if (!dataInicio || !dataFim) {
+      return res.status(400).json({ error: 'dataInicio e dataFim sao obrigatorios.' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT id, maquina_id AS "maquinaId", to_char(data_ref, 'YYYY-MM-DD') AS "dataRef", horas_meta AS "horasMeta", atualizado_em AS "atualizadoEm"
+       FROM producao_metas_dia
+       WHERE data_ref BETWEEN $1::date AND $2::date`,
+      [dataInicio, dataFim]
+    );
+    res.json(rows);
+  } catch (e: unknown) {
+    logger.error({ err: e }, 'Erro ao buscar metas do dia');
+    res.status(500).json({ error: 'Erro ao buscar metas.' });
+  }
+});
+
+// PUT /producao/metas/dia - Salvar/override meta de um dia específico (upsert ou delete se null)
+metasRouter.put('/producao/metas/dia', requirePermission('producao_config', 'editar'), async (req, res) => {
+  try {
+    const { maquinaId, dataRef, horasMeta } = req.body;
+
+    if (!maquinaId || !dataRef) {
+      return res.status(400).json({ error: 'Campos obrigatórios: maquinaId, dataRef.' });
+    }
+
+    if (horasMeta === null) {
+      // Remover override
+      await pool.query(
+        'DELETE FROM producao_metas_dia WHERE maquina_id = $1 AND data_ref = $2',
+        [maquinaId, dataRef]
+      );
+      return res.json({ ok: true, deleted: true });
+    }
+
+    // Upsert
+    const { rows } = await pool.query(
+      `INSERT INTO producao_metas_dia (maquina_id, data_ref, horas_meta)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (maquina_id, data_ref) 
+       DO UPDATE SET horas_meta = EXCLUDED.horas_meta, atualizado_em = NOW()
+       RETURNING id, maquina_id AS "maquinaId", to_char(data_ref, 'YYYY-MM-DD') AS "dataRef", horas_meta AS "horasMeta"`,
+      [maquinaId, dataRef, horasMeta]
+    );
+    res.json(rows[0]);
+  } catch (e: unknown) {
+    logger.error({ err: e }, 'Erro ao salvar meta do dia');
+    res.status(500).json({ error: 'Erro ao salvar meta do dia.' });
+  }
+});
+
+// Helper: verificar permiss├úo granular inline
 async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
     if (!userId) return false;
     const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
@@ -23,169 +181,10 @@ async function checkPermission(userId: string, pageKey: string, level: 'ver' | '
 }
 
 // ============================================================================
-// METAS DE MÁQUINAS (producao_metas) - Metas de produção por máquina
+// METAS DE FUNCION├üRIOS (producao_colaborador_metas)
 // ============================================================================
 
-// GET /producao/metas - Listar metas de produção por máquina
-metasRouter.get('/producao/metas', requireAuth, async (req, res) => {
-    try {
-        const maquinaId = req.query.maquinaId as string | undefined;
-        const vigente = req.query.vigente === 'true';
-
-        const params: any[] = [];
-        let where = 'm.escopo_producao = true';
-
-        if (maquinaId) {
-            params.push(maquinaId);
-            where += ` AND pm.maquina_id = $${params.length}`;
-        }
-
-        if (vigente) {
-            where += ` AND (pm.data_fim IS NULL OR pm.data_fim >= CURRENT_DATE)`;
-            where += ` AND pm.data_inicio <= CURRENT_DATE`;
-        }
-
-        const { rows } = await pool.query(
-            `SELECT
-                pm.id,
-                pm.maquina_id AS "maquinaId",
-                m.nome AS "maquinaNome",
-                pm.data_inicio AS "dataInicio",
-                pm.data_fim AS "dataFim",
-                pm.horas_meta AS "horasMeta",
-                pm.criado_em AS "criadoEm",
-                pm.atualizado_em AS "atualizadoEm"
-            FROM producao_metas pm
-            JOIN maquinas m ON m.id = pm.maquina_id
-            WHERE ${where}
-            ORDER BY m.nome ASC, pm.data_inicio DESC`,
-            params
-        );
-
-        res.json({ items: rows });
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro na rota');
-        res.status(500).json({ error: String(e) });
-    }
-});
-
-// POST /producao/metas - Criar meta de produção
-metasRouter.post('/producao/metas', requirePermission('producao_config', 'editar'), async (req, res) => {
-    try {
-        const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
-            return res.status(403).json({ error: 'Sem permissão para criar metas.' });
-        }
-
-        const { maquinaId, dataInicio, dataFim, horasMeta } = req.body || {};
-
-        if (!maquinaId || !dataInicio || horasMeta === undefined) {
-            return res.status(400).json({ error: 'Informe maquinaId, dataInicio e horasMeta.' });
-        }
-
-        if (Number(horasMeta) < 0) {
-            return res.status(400).json({ error: 'horasMeta não pode ser negativo.' });
-        }
-
-        // Verificar se máquina existe e tem escopo de produção
-        const maqCheck = await pool.query(
-            'SELECT id, escopo_producao FROM maquinas WHERE id = $1',
-            [maquinaId]
-        );
-        if (!maqCheck.rows.length) {
-            return res.status(404).json({ error: 'Máquina não encontrada.' });
-        }
-        if (!maqCheck.rows[0].escopo_producao) {
-            return res.status(400).json({ error: 'Máquina não está habilitada para produção.' });
-        }
-
-        const { rows } = await pool.query(
-            `INSERT INTO producao_metas (maquina_id, data_inicio, data_fim, horas_meta)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id`,
-            [maquinaId, dataInicio, dataFim || null, horasMeta]
-        );
-
-        res.status(201).json({ id: rows[0].id, ok: true });
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro na rota');
-        res.status(500).json({ error: String(e) });
-    }
-});
-
-// PUT /producao/metas/:id - Atualizar meta de produção
-metasRouter.put('/producao/metas/:id', async (req, res) => {
-    try {
-        const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
-            return res.status(403).json({ error: 'Sem permissão para atualizar metas.' });
-        }
-
-        const id = String(req.params.id);
-        const { dataInicio, dataFim, horasMeta } = req.body || {};
-
-        if (!dataInicio || horasMeta === undefined) {
-            return res.status(400).json({ error: 'Informe dataInicio e horasMeta.' });
-        }
-
-        if (Number(horasMeta) < 0) {
-            return res.status(400).json({ error: 'horasMeta não pode ser negativo.' });
-        }
-
-        const { rowCount } = await pool.query(
-            `UPDATE producao_metas
-             SET data_inicio = $2, data_fim = $3, horas_meta = $4, atualizado_em = NOW()
-             WHERE id = $1`,
-            [id, dataInicio, dataFim || null, horasMeta]
-        );
-
-        if (!rowCount) {
-            return res.status(404).json({ error: 'Meta não encontrada.' });
-        }
-
-        res.json({ ok: true });
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro na rota');
-        res.status(500).json({ error: String(e) });
-    }
-});
-
-// DELETE /producao/metas/:id - Excluir meta de produção
-metasRouter.delete('/producao/metas/:id', async (req, res) => {
-    try {
-        const auth = (req as any).user || {};
-        const userRole = (auth.role || '').toLowerCase();
-        const isAdmin = userRole === 'admin';
-
-        if (!isAdmin && !await checkPermission(auth.id, 'producao_config', 'editar')) {
-            return res.status(403).json({ error: 'Sem permissão para excluir metas.' });
-        }
-
-        const id = String(req.params.id);
-        const { rowCount } = await pool.query('DELETE FROM producao_metas WHERE id = $1', [id]);
-
-        if (!rowCount) {
-            return res.status(404).json({ error: 'Meta não encontrada.' });
-        }
-
-        res.json({ ok: true });
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro na rota');
-        res.status(500).json({ error: String(e) });
-    }
-});
-
-// ============================================================================
-// METAS DE FUNCIONÁRIOS (producao_colaborador_metas)
-// ============================================================================
-
-// GET /producao/metas/funcionarios - Listar metas de funcionários
+// GET /producao/metas/funcionarios - Listar metas de funcion├írios
 metasRouter.get('/producao/metas/funcionarios', async (req, res) => {
     try {
         const { rows } = await pool.query(
@@ -215,7 +214,7 @@ metasRouter.post('/producao/metas/funcionarios', async (req, res) => {
         const isAdmin = userRole === 'admin';
 
         if (!isAdmin && !await checkPermission(auth.id, 'producao_colaboradores', 'editar')) {
-            return res.status(403).json({ error: 'Sem permissão para definir metas de funcionários.' });
+            return res.status(403).json({ error: 'Sem permiss├úo para definir metas de funcion├írios.' });
         }
 
         let { id, matricula, meta_diaria_horas, ativo } = req.body;
@@ -224,10 +223,10 @@ metasRouter.post('/producao/metas/funcionarios', async (req, res) => {
         const meta = Number(meta_diaria_horas);
 
         if (!matricula) {
-            return res.status(400).json({ error: 'Matrícula obrigatória.' });
+            return res.status(400).json({ error: 'Matr├¡cula obrigat├│ria.' });
         }
         if (isNaN(meta) || meta < 0) {
-            return res.status(400).json({ error: 'Meta inválida.' });
+            return res.status(400).json({ error: 'Meta inv├ílida.' });
         }
 
         // Upsert
@@ -254,14 +253,14 @@ metasRouter.post('/producao/metas/funcionarios', async (req, res) => {
 
 
 // ============================================================================
-// AGREGADOS PARA DASHBOARD (Dia/Mês)
+// AGREGADOS PARA DASHBOARD (Dia/M├¬s)
 // ============================================================================
 
-// GET /producao/indicadores/funcionarios/dia - Produção por funcionário em um dia
+// GET /producao/indicadores/funcionarios/dia - Produ├º├úo por funcion├írio em um dia
 metasRouter.get('/producao/indicadores/funcionarios/dia', async (req, res) => {
     try {
         const data = req.query.data as string; // YYYY-MM-DD
-        if (!data) return res.status(400).json({ error: 'Data obrigatória' });
+        if (!data) return res.status(400).json({ error: 'Data obrigat├│ria' });
 
         const { rows } = await pool.query(
             `SELECT
@@ -285,21 +284,21 @@ metasRouter.get('/producao/indicadores/funcionarios/dia', async (req, res) => {
     }
 });
 
-// GET /producao/indicadores/funcionarios/mes - Produção por funcionário no mês
+// GET /producao/indicadores/funcionarios/mes - Produ├º├úo por funcion├írio no m├¬s
 metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
     try {
         const anoMes = req.query.anoMes as string; // YYYY-MM-DD (usaremos apenas ano/mes)
-        if (!anoMes) return res.status(400).json({ error: 'Data obrigatória' });
+        if (!anoMes) return res.status(400).json({ error: 'Data obrigat├│ria' });
 
         // Parse manual para evitar problemas de timezone
         const [yyyy, mm] = anoMes.split('-').map(Number);
         const year = yyyy;
         const month = mm; // 1-12
 
-        // Primeiro dia do mês
+        // Primeiro dia do m├¬s
         const start = `${year}-${String(month).padStart(2, '0')}-01`;
-        // Último dia do mês
-        const lastDay = new Date(year, month, 0).getDate(); // month aqui é 1-13, Date interpreta corretamente
+        // ├Ültimo dia do m├¬s
+        const lastDay = new Date(year, month, 0).getDate(); // month aqui ├® 1-13, Date interpreta corretamente
         const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
         const { rows } = await pool.query(
@@ -325,25 +324,25 @@ metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
     }
 });
 
-// GET /producao/indicadores/funcionarios/resumo - Snapshot único para tela de colaboradores
+// GET /producao/indicadores/funcionarios/resumo - Snapshot ├║nico para tela de colaboradores
 metasRouter.get('/producao/indicadores/funcionarios/resumo', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
     try {
         const data = (req.query.data as string || '').trim(); // YYYY-MM-DD
         const anoMesRaw = (req.query.anoMes as string || '').trim(); // YYYY-MM ou YYYY-MM-DD
 
         if (!data || !anoMesRaw) {
-            return res.status(400).json({ error: 'Data e anoMes são obrigatórios.' });
+            return res.status(400).json({ error: 'Data e anoMes s├úo obrigat├│rios.' });
         }
 
         const anoMesMatch = anoMesRaw.match(/^(\d{4})-(\d{2})/);
         if (!anoMesMatch) {
-            return res.status(400).json({ error: 'Formato inválido para anoMes. Use YYYY-MM.' });
+            return res.status(400).json({ error: 'Formato inv├ílido para anoMes. Use YYYY-MM.' });
         }
 
         const year = Number(anoMesMatch[1]);
         const month = Number(anoMesMatch[2]); // 1-12
         if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
-            return res.status(400).json({ error: 'Mês inválido.' });
+            return res.status(400).json({ error: 'M├¬s inv├ílido.' });
         }
 
         const start = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -407,14 +406,14 @@ metasRouter.get('/producao/indicadores/funcionarios/resumo', requirePermission('
     }
 });
 
-// GET /producao/indicadores/funcionarios/detalhe-dia - Detalhe de lançamentos de um colaborador em um dia
+// GET /producao/indicadores/funcionarios/detalhe-dia - Detalhe de lan├ºamentos de um colaborador em um dia
 metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
     try {
         const matricula = (req.query.matricula as string || '').trim();
         const data = (req.query.data as string || '').trim(); // YYYY-MM-DD
 
         if (!matricula || !data) {
-            return res.status(400).json({ error: 'Matrícula e data são obrigatórias.' });
+            return res.status(400).json({ error: 'Matr├¡cula e data s├úo obrigat├│rias.' });
         }
 
         type DetalheDiaRow = {
@@ -465,23 +464,23 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermiss
     }
 });
 
-// GET /producao/indicadores/funcionarios/detalhe-mes - Detalhe de lançamentos de um colaborador em todo o mês
+// GET /producao/indicadores/funcionarios/detalhe-mes - Detalhe de lan├ºamentos de um colaborador em todo o m├¬s
 metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermission('producao_colaboradores', 'ver'), async (req, res) => {
     try {
         const matricula = (req.query.matricula as string || '').trim();
         const anoMes = (req.query.anoMes as string || '').trim(); // YYYY-MM
 
         if (!matricula || !anoMes) {
-            return res.status(400).json({ error: 'Matrícula e mês (anoMes) são obrigatórios.' });
+            return res.status(400).json({ error: 'Matr├¡cula e m├¬s (anoMes) s├úo obrigat├│rios.' });
         }
 
         if (!/^\d{4}-\d{2}$/.test(anoMes)) {
-            return res.status(400).json({ error: 'Formato inválido para anoMes. Use YYYY-MM.' });
+            return res.status(400).json({ error: 'Formato inv├ílido para anoMes. Use YYYY-MM.' });
         }
 
         const [yyyy, mm] = anoMes.split('-').map(Number);
         if (!Number.isInteger(yyyy) || !Number.isInteger(mm) || mm < 1 || mm > 12) {
-            return res.status(400).json({ error: 'Mês inválido.' });
+            return res.status(400).json({ error: 'M├¬s inv├ílido.' });
         }
 
         const start = `${yyyy}-${String(mm).padStart(2, '0')}-01`;
