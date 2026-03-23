@@ -15,6 +15,7 @@ import { storageProvider } from "../../utils/storage";
 import { TicketCreatedNotification } from "../../services/notifications/TicketCreated";
 import { PreventiveMaintenanceNotification } from "../../services/notifications/PreventiveMaintenance";
 import { logger } from '../../logger';
+import { checkPermission, getChamadoSummary } from './chamados.service';
 
 export const chamadosRouter: Router = Router();
 
@@ -718,22 +719,6 @@ chamadosRouter.post(
   }
 );
 
-// Helper: verificar permissão granular inline
-async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
-  if (!userId) return false;
-  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
-    `SELECT r.permissoes FROM usuarios u
-       JOIN roles r ON u.role_id = r.id
-       WHERE u.id = $1 LIMIT 1`,
-    [userId]
-  );
-  const permissions = rows[0]?.permissoes || {};
-  const userPerm = permissions[pageKey];
-  if (!userPerm || userPerm === 'nenhum') return false;
-  if (level === 'ver') return userPerm === 'ver' || userPerm === 'editar';
-  return userPerm === 'editar';
-}
-
 // ---------- Chamados: concluir ----------
 chamadosRouter.post(
   "/chamados/:id/concluir",
@@ -1229,38 +1214,14 @@ chamadosRouter.post("/chamados", async (req, res) => {
 
     const chamadoId = created[0].id;
 
-    // resposta no formato consumido pela UI
-    const { rows } = await pool.query(
-      `SELECT
-         c.id,
-         m.nome  AS maquina,
-         c.tipo,
-         c.status,
-         CASE
-           WHEN LOWER(c.status) LIKE 'abert%'       THEN 'aberto'
-           WHEN LOWER(c.status) LIKE 'em andament%' THEN 'em_andamento'
-           WHEN LOWER(c.status) LIKE 'conclu%'      THEN 'concluido'
-           WHEN LOWER(c.status) LIKE 'cancel%'      THEN 'cancelado'
-           ELSE 'aberto'
-         END AS status_key,
-         c.descricao,
-         u.nome  AS criado_por,
-         um.nome AS manutentor,
-         to_char(c.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
-       FROM public.chamados c
-       JOIN public.maquinas  m  ON m.id  = c.maquina_id
-       JOIN public.usuarios  u  ON u.id  = c.criado_por_id
-       LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-       WHERE c.id = $1`,
-      [chamadoId]
-    );
+    const chamado = await getChamadoSummary(chamadoId);
 
     try { sseBroadcast?.({ topic: "chamados", action: "created", id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
 
     // Dispara notificação de email (fire-and-forget)
-    void TicketCreatedNotification.handle(rows[0]);
+    void TicketCreatedNotification.handle(chamado);
 
-    return res.status(201).json(rows[0]);
+    return res.status(201).json(chamado);
 
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');
@@ -1345,23 +1306,9 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
       return res.status(404).json({ error: "Chamado não encontrado ou manutentor inexistente." });
     }
 
-    const { rows } = await pool.query(
-      `SELECT
-         c.id, m.nome AS maquina, c.tipo, c.status, c.descricao,
-         u.nome AS criado_por, um.nome AS manutentor,
-         to_char(c.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
-       FROM chamados c
-       JOIN maquinas  m  ON m.id  = c.maquina_id
-       JOIN usuarios  u  ON u.id  = c.criado_por_id
-       LEFT JOIN usuarios um ON um.id = c.manutentor_id
-       WHERE c.id = $1`,
-      [id]
-    );
-
-    // SSE broadcast
     sseBroadcast({ topic: "chamados", action: "updated", id });
 
-    res.json(rows[0]);
+    res.json(await getChamadoSummary(id));
   } catch (e: any) {
     logger.error({ err: e }, 'Erro na rota');
     res.status(500).json({ error: String(e) });
@@ -1412,33 +1359,8 @@ chamadosRouter.post(
         [chamadoId, manutentorId, novoStatus]
       );
 
-      const { rows } = await pool.query(
-        `SELECT
-           c.id,
-           m.nome AS maquina,
-           c.tipo,
-           c.status,
-           CASE
-             WHEN LOWER(c.status) LIKE 'abert%'       THEN 'aberto'
-             WHEN LOWER(c.status) LIKE 'em andament%' THEN 'em_andamento'
-             WHEN LOWER(c.status) LIKE 'conclu%'      THEN 'concluido'
-             WHEN LOWER(c.status) LIKE 'cancel%'      THEN 'cancelado'
-             ELSE 'aberto'
-           END AS status_key,
-           c.descricao,
-           u.nome  AS criado_por,
-           um.nome AS manutentor,
-           to_char(c.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
-         FROM public.chamados c
-         JOIN public.maquinas  m  ON m.id  = c.maquina_id
-         JOIN public.usuarios  u  ON u.id  = c.criado_por_id
-         LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-         WHERE c.id = $1`,
-        [chamadoId]
-      );
-
       try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
-      return res.json(rows[0]);
+      return res.json(await getChamadoSummary(chamadoId));
     } catch (e: any) {
       logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
@@ -1463,85 +1385,8 @@ chamadosRouter.delete(
         [chamadoId, CHAMADO_STATUS.ABERTO]
       );
 
-      const { rows } = await pool.query(
-        `SELECT
-           c.id,
-           m.nome AS maquina,
-           c.tipo,
-           c.status,
-           CASE
-             WHEN LOWER(c.status) LIKE 'abert%'       THEN 'aberto'
-             WHEN LOWER(c.status) LIKE 'em andament%' THEN 'em_andamento'
-             WHEN LOWER(c.status) LIKE 'conclu%'      THEN 'concluido'
-             WHEN LOWER(c.status) LIKE 'cancel%'      THEN 'cancelado'
-             ELSE 'aberto'
-           END AS status_key,
-           c.descricao,
-           u.nome  AS criado_por,
-           um.nome AS manutentor,
-           to_char(c.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
-         FROM public.chamados c
-         JOIN public.maquinas  m  ON m.id  = c.maquina_id
-         JOIN public.usuarios  u  ON u.id  = c.criado_por_id
-         LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-         WHERE c.id = $1`,
-        [chamadoId]
-      );
-
       try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
-      return res.json(rows[0]);
-    } catch (e: any) {
-      logger.error({ err: e }, 'Erro na rota');
-      return res.status(500).json({ error: String(e) });
-    }
-  }
-);
-
-chamadosRouter.post(
-  '/chamados/:id/atender',
-  requireAnyPermission(['maquinas', 'meus_chamados'], 'editar'),
-  async (req, res) => {
-    try {
-      const chamadoId = String(req.params.id || '').trim();
-      const me = (req as any).user;
-      if (!me?.id) return res.status(401).json({ error: 'USUARIO_NAO_CADASTRADO' });
-
-      await pool.query(
-        `UPDATE public.chamados
-            SET manutentor_id = $2,
-                status = $3,
-                atualizado_em = NOW()
-          WHERE id = $1`,
-        [chamadoId, me.id, CHAMADO_STATUS.EM_ANDAMENTO]
-      );
-
-      const { rows } = await pool.query(
-        `SELECT
-           c.id,
-           m.nome AS maquina,
-           c.tipo,
-           c.status,
-           CASE
-             WHEN LOWER(c.status) LIKE 'abert%'       THEN 'aberto'
-             WHEN LOWER(c.status) LIKE 'em andament%' THEN 'em_andamento'
-             WHEN LOWER(c.status) LIKE 'conclu%'      THEN 'concluido'
-             WHEN LOWER(c.status) LIKE 'cancel%'      THEN 'cancelado'
-             ELSE 'aberto'
-           END AS status_key,
-           c.descricao,
-           u.nome  AS criado_por,
-           um.nome AS manutentor,
-           to_char(c.criado_em, 'YYYY-MM-DD HH24:MI') AS criado_em
-         FROM public.chamados c
-         JOIN public.maquinas  m  ON m.id  = c.maquina_id
-         JOIN public.usuarios  u  ON u.id  = c.criado_por_id
-         LEFT JOIN public.usuarios um ON um.id = c.manutentor_id
-         WHERE c.id = $1`,
-        [chamadoId]
-      );
-
-      try { sseBroadcast?.({ topic: 'chamados', action: 'updated', id: chamadoId }); } catch (e) { logger.warn({ err: e }, 'sseBroadcast falhou (fire-and-forget)'); }
-      return res.json(rows[0]);
+      return res.json(await getChamadoSummary(chamadoId));
     } catch (e: any) {
       logger.error({ err: e }, 'Erro na rota');
       return res.status(500).json({ error: String(e) });
