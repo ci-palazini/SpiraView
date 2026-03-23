@@ -29,17 +29,6 @@ resultadosRouter.get(
           SELECT d::date AS dia
           FROM generate_series($1::date, $2::date, '1 day'::interval) d
         ),
-        maquinas_prod AS (
-          SELECT m.id AS maquina_id,
-                 COALESCE(m.nome_producao, m.nome) AS maquina_nome,
-                 m.setor_producao_id,
-                 ps.nome AS setor_nome,
-                 ps.ordem AS setor_ordem,
-                 m.ordem_producao
-          FROM maquinas m
-          LEFT JOIN producao_setores ps ON ps.id = m.setor_producao_id
-          WHERE m.escopo_producao = true
-        ),
         lancamentos_agg AS (
           SELECT pl.maquina_id,
                  pl.data_ref,
@@ -47,6 +36,18 @@ resultadosRouter.get(
           FROM producao_lancamentos pl
           WHERE pl.data_ref BETWEEN $1::date AND $2::date
           GROUP BY pl.maquina_id, pl.data_ref
+        ),
+        maquinas_prod AS (
+          SELECT DISTINCT m.id AS maquina_id,
+                 COALESCE(m.nome_producao, m.nome) AS maquina_nome,
+                 m.setor_producao_id,
+                 ps.nome AS setor_nome,
+                 ps.ordem AS setor_ordem,
+                 m.ordem_producao
+          FROM maquinas m
+          LEFT JOIN producao_setores ps ON ps.id = m.setor_producao_id
+          LEFT JOIN lancamentos_agg la ON la.maquina_id = m.id
+          WHERE la.maquina_id IS NOT NULL
         ),
         metas_padrao AS (
           SELECT maquina_id, horas_meta
@@ -58,7 +59,7 @@ resultadosRouter.get(
           FROM producao_metas_dia
           WHERE data_ref BETWEEN $1::date AND $2::date
         )
-        SELECT 
+        SELECT
           mp.maquina_id,
           mp.maquina_nome,
           mp.setor_producao_id,
