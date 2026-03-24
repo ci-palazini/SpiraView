@@ -366,15 +366,6 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                                 <FiCalendar className={styles.navIcon} />
                                 <span>{t('nav.productionTargets', 'Metas')}</span>
                             </NavLink>
-                            <NavLink
-                                to="/producao/config"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiSettings className={styles.navIcon} />
-                                <span>{t('nav.productionConfig', 'Config. Máquinas Antiga')}</span>
-                            </NavLink>
                         </>
                     )}
                 </SidebarGroup>

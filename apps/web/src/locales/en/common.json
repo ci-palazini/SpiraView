@@ -1062,6 +1062,12 @@
     "title": "User Management",
     "subtitle": "Manage system users, their roles, and internal credentials.",
     "loading": "Loading users...",
+    "count": "{{total}} users",
+    "countFiltered": "{{shown}} of {{total}}",
+    "search": {
+      "placeholder": "Search by name, username or email...",
+      "noResults": "No users found for \"{{busca}}\""
+    },
     "actions": {
       "create": "Create New User",
       "edit": "Edit",
@@ -1103,7 +1109,11 @@
       "createUser": "Create User",
       "matricula": "Badge Number",
       "matriculaPlaceholder": "E.g.: 1234",
-      "matriculaHint": "4-digit number for simplified login"
+      "matriculaHint": "4-digit number for simplified login",
+      "checkingUsername": "Checking availability...",
+      "usernameAvailable": "✓ Available",
+      "usernameTaken": "✗ Already taken.",
+      "usernameSuggestions": "Suggestions:"
     },
     "roles": {
       "all": "All",
@@ -1112,7 +1122,8 @@
       "manager": "Manager"
     },
     "validation": {
-      "fullName": "Enter first and last name."
+      "fullName": "Enter first and last name.",
+      "duplicateName": "Warning: a user with a similar name already exists ({{nome}})"
     },
     "confirm": {
       "delete": "Delete user {{name}}?"
@@ -1643,6 +1654,41 @@
         "title": "Entries",
         "machine": "Machine",
         "hours": "Hours"
+      }
+    },
+    "resultados": {
+      "title": "Production Results",
+      "subtitle": "Monitor daily rhythm and monthly accumulation",
+      "export": {
+        "button": "Export Excel"
+      },
+      "kpi": {
+        "dayMeta": "Daily Target",
+        "dayReal": "Realized Daily",
+        "accMeta": "Accumulated Target",
+        "accPct": "% Monthly Achievement"
+      },
+      "ritmo": {
+        "title": "Daily Rhythm"
+      },
+      "detalhes": {
+        "title": "Production Details",
+        "accumulator": "Accumulated until {{day}}"
+      },
+      "table": {
+        "day": "Day",
+        "meta": "Target",
+        "real": "Actual",
+        "structure": "Structure",
+        "meta_day": "Target Day",
+        "real_day": "Actual Day",
+        "delta_day": "Δ Day",
+        "meta_acc": "Target Acc.",
+        "real_acc": "Actual Acc.",
+        "delta_acc": "Δ Acc.",
+        "pct_day": "% Day",
+        "pct_month": "% Month",
+        "total_general": "GRAND TOTAL"
       }
     }
   },

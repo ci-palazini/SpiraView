@@ -37,17 +37,33 @@ resultadosRouter.get(
           WHERE pl.data_ref BETWEEN $1::date AND $2::date
           GROUP BY pl.maquina_id, pl.data_ref
         ),
+        -- Lançamentos das filhas agrupados pela mãe.
+        -- Remover este CTE (e o JOIN/COALESCE abaixo) caso o conceito de
+        -- máquina mãe seja descontinuado no futuro.
+        lancamentos_mae_agg AS (
+          SELECT m.parent_maquina_id AS maquina_id,
+                 pl.data_ref,
+                 SUM(pl.horas_realizadas) AS horas_realizadas
+          FROM producao_lancamentos pl
+          JOIN maquinas m ON m.id = pl.maquina_id
+          WHERE pl.data_ref BETWEEN $1::date AND $2::date
+            AND m.parent_maquina_id IS NOT NULL
+          GROUP BY m.parent_maquina_id, pl.data_ref
+        ),
         maquinas_prod AS (
           SELECT DISTINCT m.id AS maquina_id,
                  COALESCE(m.nome_producao, m.nome) AS maquina_nome,
                  m.setor_producao_id,
                  ps.nome AS setor_nome,
                  ps.ordem AS setor_ordem,
-                 m.ordem_producao
+                 m.ordem_producao,
+                 m.is_maquina_mae
           FROM maquinas m
           LEFT JOIN producao_setores ps ON ps.id = m.setor_producao_id
           LEFT JOIN lancamentos_agg la ON la.maquina_id = m.id
-          WHERE la.maquina_id IS NOT NULL
+          LEFT JOIN lancamentos_mae_agg lma ON lma.maquina_id = m.id
+          WHERE (la.maquina_id IS NOT NULL OR lma.maquina_id IS NOT NULL)
+            AND m.setor_producao_id IS NOT NULL
         ),
         metas_padrao AS (
           SELECT maquina_id, horas_meta
@@ -66,12 +82,17 @@ resultadosRouter.get(
           mp.setor_nome,
           mp.setor_ordem,
           mp.ordem_producao,
+          mp.is_maquina_mae,
           d.dia,
-          COALESCE(la.horas_realizadas, 0) AS horas_realizadas,
-          COALESCE(md.horas_meta, mpad.horas_meta) AS horas_meta
+          COALESCE(la.horas_realizadas, lma.horas_realizadas, 0) AS horas_realizadas,
+          CASE
+            WHEN EXTRACT(DOW FROM d.dia) IN (0, 6) THEN COALESCE(md.horas_meta, 0)
+            ELSE COALESCE(md.horas_meta, mpad.horas_meta)
+          END AS horas_meta
         FROM maquinas_prod mp
         CROSS JOIN dias d
         LEFT JOIN lancamentos_agg la ON la.maquina_id = mp.maquina_id AND la.data_ref = d.dia
+        LEFT JOIN lancamentos_mae_agg lma ON lma.maquina_id = mp.maquina_id AND lma.data_ref = d.dia
         LEFT JOIN metas_dia md ON md.maquina_id = mp.maquina_id AND md.data_ref = d.dia
         LEFT JOIN metas_padrao mpad ON mpad.maquina_id = mp.maquina_id
         ORDER BY mp.setor_ordem ASC NULLS LAST, mp.setor_nome ASC NULLS LAST, mp.ordem_producao ASC, mp.maquina_nome ASC, d.dia ASC
@@ -89,6 +110,7 @@ resultadosRouter.get(
       interface MaquinaResult {
         maquinaId: string;
         maquinaNome: string;
+        isMaquinaMae: boolean;
         dias: DiaResult[];
         totalRealizado: number;
         totalMeta: number;
@@ -114,21 +136,29 @@ resultadosRouter.get(
         const setor = setoresMap.get(setorKey)!;
         let maquina = setor.maquinas.find((m) => m.maquinaId === row.maquina_id);
         if (!maquina) {
-          maquina = {
+          const nova: MaquinaResult = {
             maquinaId: row.maquina_id,
             maquinaNome: row.maquina_nome,
+            isMaquinaMae: row.is_maquina_mae ?? false,
             dias: [],
             totalRealizado: 0,
             totalMeta: 0,
           };
-          setor.maquinas.push(maquina);
+          setor.maquinas.push(nova);
+          maquina = nova;
         }
 
         const horasRealizadas = Number(row.horas_realizadas) || 0;
         const horasMeta = row.horas_meta != null ? Number(row.horas_meta) : null;
+        // pg driver retorna DATE como objeto Date JS (ex: 2026-03-01T03:00:00.000Z).
+        // Normaliza para 'YYYY-MM-DD' usando toISOString() ou fatiando a string.
+        const rawDia = row.dia;
+        const dia = rawDia instanceof Date
+          ? rawDia.toISOString().slice(0, 10)
+          : String(rawDia).slice(0, 10);
 
         maquina.dias.push({
-          dia: row.dia,
+          dia,
           horasRealizadas,
           horasMeta,
         });

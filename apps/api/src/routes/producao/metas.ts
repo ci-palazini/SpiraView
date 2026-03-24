@@ -74,13 +74,13 @@ metasRouter.get('/producao/metas', async (req, res) => {
                 FROM producao_metas_dia 
                 WHERE data_ref = $3
             )
-            SELECT 
+            SELECT
                 m.id AS "maquina_id",
                 COALESCE(d.horas_meta, p.horas_meta, 0) AS "horas_meta"
             FROM maquinas m
             LEFT JOIN padrao p ON p.maquina_id = m.id
             LEFT JOIN dia d ON d.maquina_id = m.id
-            WHERE 1=1
+            WHERE m.setor IS NOT NULL
         `;
         const params: any[] = [ano, mes, dataStr];
         
@@ -274,6 +274,7 @@ metasRouter.get('/producao/indicadores/funcionarios/dia', async (req, res) => {
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref = $1
                AND pl.matricula_operador IS NOT NULL
+               AND m.setor IS NOT NULL
              GROUP BY pl.data_ref, pl.matricula_operador`,
             [data]
         );
@@ -314,6 +315,7 @@ metasRouter.get('/producao/indicadores/funcionarios/mes', async (req, res) => {
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
                AND pl.matricula_operador IS NOT NULL
+               AND m.setor IS NOT NULL
              GROUP BY 1, 2`,
             [start, end]
         );
@@ -374,6 +376,7 @@ metasRouter.get('/producao/indicadores/funcionarios/resumo', requirePermission('
                  JOIN maquinas m ON m.id = pl.maquina_id
                  WHERE pl.data_ref = $1
                    AND pl.matricula_operador IS NOT NULL
+                   AND m.setor IS NOT NULL
                  GROUP BY pl.data_ref, pl.matricula_operador`,
                 [data]
             ).then((r) => r.rows),
@@ -390,6 +393,7 @@ metasRouter.get('/producao/indicadores/funcionarios/resumo', requirePermission('
                  JOIN maquinas m ON m.id = pl.maquina_id
                  WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
                    AND pl.matricula_operador IS NOT NULL
+                   AND m.setor IS NOT NULL
                  GROUP BY 1, 2`,
                 [start, end]
             ).then((r) => r.rows),
@@ -439,6 +443,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermiss
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref = $1
                AND pl.matricula_operador = $2
+               AND m.setor IS NOT NULL
              ORDER BY m.nome ASC, pl.numero_op ASC`,
             [data, matricula]
         );
@@ -534,6 +539,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermiss
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref >= $1 AND pl.data_ref <= $2
                AND pl.matricula_operador = $3
+               AND m.setor IS NOT NULL
              ORDER BY pl.data_ref ASC, m.nome ASC, pl.numero_op ASC`,
             [start, end, matricula]
         );

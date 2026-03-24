@@ -175,6 +175,10 @@ export interface UsuarioCreate {
     senha?: string;
 }
 
+export interface UsuarioVerificarResponse {
+    disponivel: boolean;
+}
+
 // ---------- Peças / Estoque ----------
 export interface Peca {
     id: string;
@@ -500,6 +504,7 @@ export interface ResultadoDia {
 export interface ResultadoMaquina {
     maquinaId: string;
     maquinaNome: string;
+    isMaquinaMae?: boolean;
     dias: ResultadoDia[];
     totalRealizado: number;
     totalMeta: number;

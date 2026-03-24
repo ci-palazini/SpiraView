@@ -9,7 +9,8 @@ import {
     FiSettings,
     FiBox,
     FiGrid,
-    FiCalendar
+    FiCalendar,
+    FiTrash2
 } from 'react-icons/fi';
 import Skeleton from '../../../shared/components/Skeleton';
 
@@ -20,6 +21,8 @@ import {
     listarMaquinas,
     atualizarEscopoMaquina,
     atualizarMaquinaPai,
+    renomearMaquina,
+    deletarMaquina,
 } from '../../../services/apiClient';
 import { type Maquina } from '@spiraview/shared';
 import styles from './MaquinasConfigPage.module.css';
@@ -35,6 +38,7 @@ interface MaquinasConfigPageProps {
 
 interface EditState {
     maquina: Maquina;
+    nome: string;
     escopoManutencao: boolean;
     escopoProducao: boolean;
     escopoPlanejamento: boolean;
@@ -59,6 +63,7 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const [editState, setEditState] = useState<EditState | null>(null);
 
@@ -82,6 +87,7 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
     const openEditModal = useCallback((maquina: Maquina) => {
         setEditState({
             maquina,
+            nome: maquina.nome,
             escopoManutencao: maquina.escopo_manutencao ?? true,
             escopoProducao: maquina.escopo_producao ?? false,
             escopoPlanejamento: maquina.escopo_planejamento ?? false,
@@ -98,6 +104,7 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
         try {
             const { maquina } = editState;
 
+            const nomeChanged = editState.nome !== maquina.nome;
             const escoposChanged =
                 editState.escopoManutencao !== maquina.escopo_manutencao ||
                 editState.escopoProducao !== maquina.escopo_producao ||
@@ -107,6 +114,10 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
                 editState.isMaquinaMae !== (maquina.is_maquina_mae ?? false) ||
                 editState.exibirFilhosDashboard !== (maquina.exibir_filhos_dashboard ?? true);
             const parentChanged = (editState.parentId || null) !== (maquina.parent_maquina_id || null);
+
+            if (nomeChanged) {
+                await renomearMaquina(maquina.id, { nome: editState.nome }, { role: user.role, email: user.email });
+            }
 
             if (escoposChanged || setorChanged || motherConfigChanged) {
                 await atualizarEscopoMaquina(maquina.id, {
@@ -134,6 +145,21 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
             setSaving(false);
         }
     }, [editState, user, loadData]);
+
+    const handleDeleteMaquina = useCallback(async (maquinaId: string) => {
+        setDeletingId(maquinaId);
+        try {
+            await deletarMaquina(maquinaId, { role: user.role, email: user.email });
+            toast.success(t('maquinasConfig.deleteSuccess', 'Máquina excluída com sucesso!'));
+            loadData(true);
+        } catch (err: unknown) {
+            console.error(err);
+            const msg = err instanceof Error ? err.message : t('maquinasConfig.deleteError', 'Erro ao excluir máquina');
+            toast.error(msg);
+        } finally {
+            setDeletingId(null);
+        }
+    }, [user, loadData, t]);
 
     const filteredMaquinas = useMemo(() => {
         const list = maquinas.filter(m => {
@@ -250,14 +276,14 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
                                 <th className={styles.centerAlign}>{t('maquinasConfig.table.production', 'Produção')}</th>
                                 <th className={styles.centerAlign}>{t('maquinasConfig.table.planning', 'Planejamento')}</th>
                                 <th>{t('maquinasConfig.table.sector', 'Setor')}</th>
-                                <th>{t('maquinasConfig.table.hierarchy', 'Hierarquia')}</th>
-                                <th style={{ width: 60 }}></th>
+                                <th className={styles.centerAlign}>{t('maquinasConfig.table.isMother', 'Mãe')}</th>
+                                <th style={{ width: 100 }}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {!loading && filteredMaquinas.length === 0 && (
                                 <tr>
-                                    <td colSpan={7}>
+                                    <td colSpan={8}>
                                         <div className={styles.emptyState}>
                                             <FiSearch size={48} />
                                             <h3>{t('maquinasConfig.empty.title', 'Nenhum resultado encontrado')}</h3>
@@ -319,12 +345,8 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
                                                 <span className={styles.dash}>—</span>
                                             )}
                                         </td>
-                                        <td>
-                                            {m.parent_maquina_id ? (
-                                                <span className={styles.hierarchyBadge}>
-                                                    {t('maquinasConfig.table.child', 'Filha')}
-                                                </span>
-                                            ) : m.is_maquina_mae ? (
+                                        <td className={styles.centerAlign}>
+                                            {m.is_maquina_mae ? (
                                                 <span className={styles.hierarchyMaeBadge}>
                                                     {t('maquinasConfig.table.mother', 'Mãe')}
                                                 </span>
@@ -334,13 +356,27 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
                                         </td>
                                         <td>
                                             {canEdit('maquinas_config') && (
-                                                <button
-                                                    className={styles.iconButton}
-                                                    onClick={() => openEditModal(m)}
-                                                    title={t('maquinasConfig.table.editMachine', 'Editar configurações globais')}
-                                                >
-                                                    <FiEdit2 />
-                                                </button>
+                                                <div className={styles.actionsCell}>
+                                                    <button
+                                                        className={styles.iconButton}
+                                                        onClick={() => openEditModal(m)}
+                                                        title={t('maquinasConfig.table.editMachine', 'Editar configurações globais')}
+                                                    >
+                                                        <FiEdit2 />
+                                                    </button>
+                                                    <button
+                                                        className={styles.iconButton}
+                                                        onClick={() => {
+                                                            if (window.confirm(t('maquinasConfig.confirmDelete', `Tem certeza que deseja excluir a máquina "${m.nome}"? Esta ação não pode ser desfeita.`))) {
+                                                                handleDeleteMaquina(m.id);
+                                                            }
+                                                        }}
+                                                        title={t('maquinasConfig.table.deleteMachine', 'Excluir máquina')}
+                                                        disabled={deletingId === m.id}
+                                                    >
+                                                        <FiTrash2 />
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
@@ -359,6 +395,19 @@ export default function MaquinasConfigPage({ user }: MaquinasConfigPageProps) {
             >
                 {editState && (
                     <div className={styles.modalForm}>
+
+                        {/* Nome */}
+                        <div className={styles.modalField}>
+                            <label className={styles.modalLabel}>{t('maquinasConfig.modal.machineName', 'Nome da Máquina')}</label>
+                            <input
+                                type="text"
+                                className={styles.modalInput}
+                                value={editState.nome}
+                                onChange={e => setEditState(prev => prev ? ({ ...prev, nome: e.target.value }) : null)}
+                                disabled={saving}
+                                placeholder={t('maquinasConfig.modal.enterMachineName', 'Digite o nome da máquina')}
+                            />
+                        </div>
 
                         {/* Escopos */}
                         <div className={styles.modalField}>

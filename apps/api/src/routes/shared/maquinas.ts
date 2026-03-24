@@ -502,7 +502,7 @@ maquinasRouter.patch(
            SET nome = $2::text,
                atualizado_em = now()
          WHERE id = $1::uuid
-         RETURNING id, nome, setor, critico
+         RETURNING id, nome, setor
         `,
         [id, novoNome]
       );

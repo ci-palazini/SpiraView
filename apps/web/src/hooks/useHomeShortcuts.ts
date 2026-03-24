@@ -145,15 +145,6 @@ const ALL_SHORTCUTS: ShortcutDefinition[] = [
         descKey: 'inicio.cards.productionUpload.desc',
         icon: FiUploadCloud,
     },
-    {
-        id: 'producao_config',
-        pageKey: 'producao_config',
-        path: '/producao/config',
-        titleKey: 'inicio.cards.productionConfig.title',
-        descKey: 'inicio.cards.productionConfig.desc',
-        icon: FiSettings,
-    },
-
     // ============================================================
     // PLANEJAMENTO (seguindo ordem da sidebar)
     // ============================================================

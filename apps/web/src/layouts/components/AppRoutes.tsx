@@ -20,7 +20,6 @@ import AbrirChamadoManutentor from '../../features/manutencao/chamados/pages/Abr
 import ChecklistOverviewPage from '../../features/manutencao/checklists/pages/ChecklistOverviewPage';
 import ChamadosAbertosPage from '../../features/manutencao/chamados/pages/ChamadosAbertosPage';
 import ProducaoUploadPage from '../../features/producao/pages/ProducaoUploadPage';
-import ProducaoConfigPage from '../../features/producao/pages/ProducaoConfigPage';
 import ProducaoUploadDetalhePage from '../../features/producao/pages/ProducaoUploadDetalhePage';
 import ProducaoDashboardPage from '../../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../../features/producao/pages/ProducaoColaboradoresPage';
@@ -30,9 +29,9 @@ import MaquinasConfigPage from '../../features/configuracoes/pages/MaquinasConfi
 import PlanejamentoDashboardPage from '../../features/planejamento/pages/PlanejamentoDashboardPage';
 import CapacidadeUploadPage from '../../features/planejamento/pages/CapacidadeUploadPage';
 import CapacidadeConfigPage from '../../features/planejamento/pages/CapacidadeConfigPage';
-import { ProducaoEstruturaPage } from '../../features/producao/pages/ProducaoEstruturaPage';
-import { ProducaoMetasCalendarioPage } from '../../features/producao/pages/ProducaoMetasCalendarioPage';
-import { ProducaoResultadosPage } from '../../features/producao/pages/ProducaoResultadosPage';
+import ProducaoEstruturaPage from '../../features/producao/pages/ProducaoEstruturaPage';
+import ProducaoMetasCalendarioPage from '../../features/producao/pages/ProducaoMetasCalendarioPage';
+import ProducaoResultadosPage from '../../features/producao/pages/ProducaoResultadosPage';
 import RefugoFormPage from '../../features/qualidade/pages/RefugoFormPage';
 import QualidadeDashboardGeralPage from '../../features/qualidade/pages/QualidadeDashboardGeralPage';
 import QualidadeDashboardPage from '../../features/qualidade/pages/QualidadeDashboardPage';
@@ -191,10 +190,7 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
                 element={canAccessPage('producao_upload', <ProducaoUploadPage user={user} />)}
             />
 
-            <Route
-                path="/producao/config"
-                element={canAccessPage('producao_config', <ProducaoConfigPage user={user} />)}
-            />
+            <Route path="/producao/config" element={<Navigate to="/producao/estrutura" replace />} />
 
             <Route
                 path="/producao/upload/:uploadId"

@@ -128,6 +128,45 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
   }
 });
 
+/**
+ * @swagger
+ * /usuarios/verificar:
+ *   get:
+ *     summary: Check username availability
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: usuario
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Username to verify
+ *     responses:
+ *       200:
+ *         description: Availability check result
+ *       400:
+ *         $ref: '#/components/schemas/Error'
+ */
+usuariosRouter.get('/usuarios/verificar', requirePermission('usuarios', 'ver'), async (req, res) => {
+  try {
+    const slug = String(req.query.usuario || '').trim().toLowerCase();
+    if (!slug || slug.length < 1 || slug.length > 60) {
+      return res.status(400).json({ error: 'Parâmetro usuario obrigatório.' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT id FROM usuarios WHERE LOWER(usuario) = $1 AND ativo = true LIMIT 1`,
+      [slug]
+    );
+
+    res.json({ disponivel: rows.length === 0 });
+  } catch (e: any) {
+    logger.error({ err: e }, 'Erro na rota');
+    res.status(500).json({ error: String(e) });
+  }
+});
 
 /**
  * @swagger

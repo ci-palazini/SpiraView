@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { FiCalendar, FiSettings, FiSave, FiClock } from 'react-icons/fi';
 import { 
     PageHeader, 
-    Card, 
     Button, 
     Input,
-    Select,
-    Badge,
     Modal
 } from '../../../shared/components';
 import usePermissions from '../../../hooks/usePermissions';
@@ -19,15 +18,14 @@ import {
     upsertMetaDia
 } from '../../../services/apiClient';
 import type { ProducaoSetor, MaquinaProducaoConfig, ProducaoMetaPadrao, ProducaoMetaDia } from '@spiraview/shared';
-import { Calendar, Save, Trash2, Settings, History } from 'lucide-react';
+import { useUsuario } from '../../../contexts/UserContext';
+import styles from './ProducaoMetasCalendarioPage.module.css';
 
-// Ajusta a data para focar no mês selecionado
 function generateCalendarDays(year: number, month: number) {
     const startOfMonth = new Date(year, month - 1, 1);
     const endOfMonth = new Date(year, month, 0);
-    const days = [];
+    const days: (Date | null)[] = [];
     
-    // Fill first week with empty slots if it doesn't start on Sunday
     const startDayOfWeek = startOfMonth.getDay();
     for (let i = 0; i < startDayOfWeek; i++) {
         days.push(null);
@@ -40,10 +38,7 @@ function generateCalendarDays(year: number, month: number) {
     return days;
 }
 
-import { useUsuario } from '../../../contexts/UserContext';
-import styles from './ProducaoMetasCalendarioPage.module.css';
-
-export const ProducaoMetasCalendarioPage: React.FC = () => {
+const ProducaoMetasCalendarioPage: React.FC = () => {
     const { t } = useTranslation('common');
     const user = useUsuario();
     const { canEditAny } = usePermissions(user);
@@ -62,7 +57,7 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
     
     const [isLoading, setIsLoading] = useState(false);
 
-    // Form Meta Padrão Mensal
+    // Form Meta Padrao
     const [padraoLoading, setPadraoLoading] = useState(false);
     const [horasMetaPadrao, setHorasMetaPadrao] = useState<number>(0);
 
@@ -71,14 +66,12 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
     const [horasMetaDia, setHorasMetaDia] = useState<number | ''>('');
     const [isDiaModalOpen, setIsDiaModalOpen] = useState(false);
 
-    // Carregar estrutura básica
     useEffect(() => {
         Promise.all([
             listarSetoresProducao(),
             listarMaquinasProducaoConfig()
         ]).then(([sets, maqs]) => {
             setSetores(sets);
-            // Mostrar apenas máquinas de produção
             const q = maqs.filter(m => m.escopoProducao);
             setMaquinas(q);
             if (q.length > 0 && !selectedMaquinaId) {
@@ -87,7 +80,6 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
         });
     }, []);
 
-    // Carregar metas para o mês/ano selecionado
     useEffect(() => {
         if (!ano || !mes) return;
         setIsLoading(true);
@@ -107,7 +99,6 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
         });
     }, [ano, mes]);
 
-    // Atualiza input com a meta padrão atual da máquina
     useEffect(() => {
         if (selectedMaquinaId) {
             const metaObj = metasPadrao.find(m => m.maquinaId === selectedMaquinaId);
@@ -117,7 +108,6 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
         }
     }, [selectedMaquinaId, metasPadrao]);
 
-    // Handle Salvar Meta Padrão
     const handleSavePadrao = async () => {
         if (!selectedMaquinaId || horasMetaPadrao < 0) return;
         try {
@@ -128,20 +118,19 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
                 mes,
                 horasMeta: horasMetaPadrao
             });
-            // Atualizar lista
             setMetasPadrao(prev => {
                 const filt = prev.filter(p => !(p.maquinaId === selectedMaquinaId && p.ano === ano && p.mes === mes));
                 return [...filt, saved];
             });
-            alert('Meta Mensal salva com sucesso!');
-        } catch (err: any) {
-            alert(err.message || 'Erro ao salvar meta mensal');
+            toast.success(t('producao.metas.toast.standardSaved', 'Meta mensal salva com sucesso'));
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.metas.errors.savePadrao', 'Erro ao salvar meta mensal');
+            toast.error(msg);
         } finally {
             setPadraoLoading(false);
         }
     };
 
-    // Dia Clicks
     const handleDayClick = (date: Date) => {
         if (!canEdit || !selectedMaquinaId) return;
         setSelectedDate(date);
@@ -178,8 +167,10 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
             });
 
             setIsDiaModalOpen(false);
-        } catch (err: any) {
-            alert(err.message || 'Erro ao salvar meta do dia');
+            toast.success(t('producao.metas.toast.daySaved', 'Meta do dia salva'));
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.metas.errors.saveDay', 'Erro ao salvar meta do dia');
+            toast.error(msg);
         }
     };
 
@@ -191,17 +182,18 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
             await upsertMetaDia({
                 maquinaId: selectedMaquinaId,
                 dataRef: dataStr,
-                horasMeta: null // Removers
+                horasMeta: null
             });
             
             setMetasDia(prev => prev.filter(p => !(p.maquinaId === selectedMaquinaId && p.dataRef === dataStr)));
             setIsDiaModalOpen(false);
-        } catch (err: any) {
-            alert(err.message || 'Erro ao remover meta do dia');
+            toast.success(t('producao.metas.toast.dayRemoved', 'Override removido'));
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.metas.errors.removeDay', 'Erro ao remover override');
+            toast.error(msg);
         }
     };
 
-    // Montar Dropdown Grouped
     const maquinaOptions = useMemo(() => {
         const agp = new Map<string, typeof maquinas>();
         maquinas.forEach(m => {
@@ -211,7 +203,6 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
         });
 
         const opts: { label: string; options: { value: string; label: string }[] }[] = [];
-        // Ordenados por ordem do setor
         const sortedSets = [...setores].sort((a,b) => a.ordem - b.ordem);
         
         sortedSets.forEach(s => {
@@ -225,32 +216,42 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
         
         if (agp.has('__none')) {
             opts.push({
-                label: 'Sem Setor',
+                label: t('producao.metas.noSector', 'Sem Setor'),
                 options: agp.get('__none')!.map(x => ({ value: x.id, label: x.nomeProducao || x.nome }))
             });
         }
         return opts;
-    }, [maquinas, setores]);
+    }, [maquinas, setores, t]);
 
     const calendarDays = useMemo(() => generateCalendarDays(ano, mes), [ano, mes]);
     const currentMetaObj = metasPadrao.find(m => m.maquinaId === selectedMaquinaId);
     const hasCurrentMeta = !!currentMetaObj;
 
+    const weekDays = [
+        t('producao.metas.weekdays.sun', 'Dom'),
+        t('producao.metas.weekdays.mon', 'Seg'),
+        t('producao.metas.weekdays.tue', 'Ter'),
+        t('producao.metas.weekdays.wed', 'Qua'),
+        t('producao.metas.weekdays.thu', 'Qui'),
+        t('producao.metas.weekdays.fri', 'Sex'),
+        t('producao.metas.weekdays.sat', 'Sab'),
+    ];
+
     return (
-        <div className={styles.container}>
+        <>
             <PageHeader
-                title="Metas de Produção Calendário"
+                title={t('producao.metas.title', 'Metas de Producao')}
+                subtitle={t('producao.metas.subtitle', 'Defina metas mensais e overrides diarios por maquina')}
             />
 
-            <div className="flex flex-col md:flex-row gap-4 mb-2">
-                <div className={`${styles.card} flex-[2]`} style={{ padding: '24px', margin: 0 }}>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase flex items-center gap-2 mb-4">
-                        <Settings size={16}/> Seleção
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className={styles.filterGroup}>
+            <div className={styles.container}>
+                {/* Top Controls */}
+                <div className={styles.controlsRow}>
+                    <div className={styles.filterCard}>
+                        <div className={styles.filterSection}>
                             <label className={styles.filterLabel}>
-                                Período
+                                <FiCalendar size={14} />
+                                {t('producao.metas.period', 'Periodo')}
                             </label>
                             <input 
                                 type="month"
@@ -262,20 +263,20 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
                                         setMes(Number(m));
                                     }
                                 }}
-                                className="w-full flex-1 rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-600 focus:outline-none transition-all shadow-sm"
+                                className={styles.monthInput}
                             />
                         </div>
-                        <div className={styles.filterGroup}>
+                        <div className={styles.filterSection}>
                             <label className={styles.filterLabel}>
-                                Máquina
+                                <FiSettings size={14} />
+                                {t('producao.metas.machine', 'Maquina')}
                             </label>
-                            {/* Um Select simples que agrupa se possível (o nosso Select basico não suporta optgroup perfeitamente, então fazemos nativo ou convertemos props) */}
                             <select
-                                className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-600 focus:outline-none transition-all shadow-sm"
+                                className={styles.machineSelect}
                                 value={selectedMaquinaId}
                                 onChange={e => setSelectedMaquinaId(e.target.value)}
                             >
-                                <option value="" disabled>Selecione uma máquina</option>
+                                <option value="" disabled>{t('producao.metas.selectMachine', 'Selecione uma maquina')}</option>
                                 {maquinaOptions.map(grp => (
                                     <optgroup key={grp.label} label={grp.label}>
                                         {grp.options.map(o => (
@@ -286,146 +287,163 @@ export const ProducaoMetasCalendarioPage: React.FC = () => {
                             </select>
                         </div>
                     </div>
+
+                    {selectedMaquinaId && (
+                        <div className={styles.standardMetaCard}>
+                            <label className={styles.filterLabel}>
+                                <FiClock size={14} />
+                                {t('producao.metas.standardGoal', 'Meta Mensal Padrao')}
+                            </label>
+                            <div className={styles.standardMetaRow}>
+                                <div className={styles.standardMetaInput}>
+                                    <Input 
+                                        type="number"
+                                        min={0}
+                                        step={0.1}
+                                        value={horasMetaPadrao}
+                                        onChange={e => setHorasMetaPadrao(Number(e.target.value))}
+                                        placeholder="Ex: 8.5"
+                                        disabled={!canEdit}
+                                    />
+                                </div>
+                                {canEdit && (
+                                    <button
+                                        className={styles.saveButton}
+                                        onClick={handleSavePadrao}
+                                        disabled={padraoLoading}
+                                    >
+                                        <FiSave size={14} />
+                                        {padraoLoading ? '...' : t('common.save', 'Salvar')}
+                                    </button>
+                                )}
+                            </div>
+                            <div className={styles.metaInfo}>
+                                {hasCurrentMeta ? (
+                                    <span className={styles.metaActive}>
+                                        {t('producao.metas.currentBase', 'Meta base')}: {currentMetaObj.horasMeta}h
+                                    </span>
+                                ) : (
+                                    <span className={styles.metaEmpty}>
+                                        {t('producao.metas.defineDefault', 'Defina um valor padrao para todos os dias do mes.')}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
+                {/* Calendar */}
                 {selectedMaquinaId && (
-                    <div className={`${styles.card} flex-1`} style={{ padding: '24px', margin: 0, borderLeft: '4px solid #3b82f6' }}>
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase flex items-center gap-2 mb-4">
-                            <History size={16}/> Meta Mensal Padrão
-                        </h3>
-                        <div className="flex gap-2">
-                            <div className="flex-1">
-                                <Input 
-                                    type="number"
-                                    min={0}
-                                    step={0.1}
-                                    value={horasMetaPadrao}
-                                    onChange={e => setHorasMetaPadrao(Number(e.target.value))}
-                                    placeholder="Ex: 8.5"
-                                    disabled={!canEdit}
-                                />
+                    <div className={styles.calendarCard}>
+                        <div className={styles.calendarHeader}>
+                            <h2 className={styles.calendarTitle}>
+                                <FiCalendar size={18} />
+                                {new Date(ano, mes-1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric'})}
+                            </h2>
+                            <div className={styles.legendRow}>
+                                <div className={styles.legendItem}>
+                                    <span className={styles.legendDotOverride}></span>
+                                    {t('producao.metas.legend.override', 'Override')}
+                                </div>
+                                <div className={styles.legendItem}>
+                                    <span className={styles.legendDotDefault}></span>
+                                    {t('producao.metas.legend.default', 'Padrao')}
+                                </div>
                             </div>
-                            {canEdit && (
-                                <button
-                                    className={styles.primaryButton}
-                                    onClick={handleSavePadrao}
-                                    disabled={padraoLoading}
-                                >
-                                    {padraoLoading ? '...' : 'Salvar'}
-                                </button>
-                            )}
                         </div>
-                        <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            {hasCurrentMeta ? (
-                                <span className="text-green-600 dark:text-green-400 font-medium bg-green-50 px-2 py-1 rounded">✨ Meta de base: {currentMetaObj.horasMeta} horas</span>
-                            ) : (
-                                <span>Defina um valor padrão a ser aplicado a todos os dias do mês.</span>
-                            )}
+
+                        <div className={styles.calendarGrid}>
+                            {weekDays.map(day => (
+                                <div key={day} className={styles.weekdayLabel}>{day}</div>
+                            ))}
+                            
+                            {calendarDays.map((date, i) => {
+                                if (!date) return <div key={`empty-${i}`} className={styles.emptyCell} />;
+                                
+                                const dataStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                                const override = metasDia.find(m => m.maquinaId === selectedMaquinaId && m.dataRef === dataStr);
+                                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                                
+                                const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                const isToday = dataStr === todayStr;
+
+                                const effectiveTarget = override
+                                    ? override.horasMeta
+                                    : (isWeekend ? 0 : (currentMetaObj?.horasMeta || 0));
+
+                                return (
+                                    <div 
+                                        key={dataStr}
+                                        onClick={() => handleDayClick(date)}
+                                        className={`${styles.dayCell} ${override ? styles.hasOverride : ''} ${isWeekend ? styles.weekend : ''} ${isToday ? styles.today : ''}`}
+                                    >
+                                        <div className={styles.dayHeader}>
+                                            <span className={`${styles.dayNumber} ${isToday ? styles.dayToday : ''}`}>
+                                                {date.getDate()}
+                                            </span>
+                                            {override && <span className={styles.overrideBadge}>{t('producao.metas.specific', 'Espec.')}</span>}
+                                        </div>
+                                        <div className={styles.dayValue}>
+                                            {Number(effectiveTarget) === 0 ? (
+                                                <span className={styles.noMeta}>{t('producao.metas.noGoal', 'Sem Meta')}</span>
+                                            ) : (
+                                                <span className={`${styles.metaValue} ${override ? styles.metaOverride : ''}`}>
+                                                    {effectiveTarget}h
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
-            </div>
 
-            {selectedMaquinaId && (
-                <div className={styles.card}>
-                    <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>
-                            <Calendar size={20} />
-                            Mapeamento de Dias — {new Date(ano, mes-1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric'})}
-                        </h2>
-                        <div className="text-sm flex gap-4">
-                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#fffbeb] border border-[#fde68a]"></span> Override Específico</div>
-                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-white border border-gray-200"></span> Usa Padrão</div>
-                        </div>
-                    </div>
-
-                    <div className={styles.calendarGrid}>
-                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                            <div key={day} className="text-center font-medium text-sm text-gray-500 py-2">
-                                {day}
-                            </div>
-                        ))}
+                {/* Day Override Modal */}
+                <Modal
+                    isOpen={isDiaModalOpen}
+                    onClose={() => setIsDiaModalOpen(false)}
+                    title={selectedDate ? `${t('producao.metas.modal.dailyGoal', 'Meta Diaria')}: ${selectedDate.toLocaleDateString('pt-BR')}` : ''}
+                >
+                    <div className={styles.modalContent}>
+                        <p className={styles.modalHelp}>
+                            {t('producao.metas.modal.overrideHelp', {
+                                meta: currentMetaObj?.horasMeta || 0,
+                                defaultValue: `Definir um valor especifico substituira a meta mensal padrao (${currentMetaObj?.horasMeta || 0}h) apenas para este dia. Deixe vazio para voltar ao padrao.`
+                            })}
+                        </p>
                         
-                        {calendarDays.map((date, i) => {
-                            if (!date) return <div key={`empty-${i}`} className="p-4" />;
-                            
-                            const dataStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                            const override = metasDia.find(m => m.maquinaId === selectedMaquinaId && m.dataRef === dataStr);
-                            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                            
-                            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                            const isToday = dataStr === todayStr;
+                        <Input 
+                            label={t('producao.metas.modal.hoursLabel', 'Horas de Producao')}
+                            type="number"
+                            min={0}
+                            step={0.1}
+                            value={horasMetaDia === '' ? '' : horasMetaDia}
+                            onChange={e => setHorasMetaDia(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder={t('producao.metas.modal.hoursPlaceholder', 'Ex: 6.5 (ou vazio para cancelar)')}
+                            autoFocus
+                        />
 
-                            const effectiveTarget = override ? override.horasMeta : (currentMetaObj?.horasMeta || 0);
-
-                            const cellClass = `${styles.dayCell} ${override ? styles.hasOverride : ''} ${isWeekend ? 'opacity-60 bg-gray-50' : ''} ${isToday ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`;
-
-                            return (
-                                <div 
-                                    key={dataStr}
-                                    onClick={() => handleDayClick(date)}
-                                    className={cellClass}
-                                >
-                                    <div className={styles.dayHeader}>
-                                        <span className={`${styles.date} ${isToday ? 'text-blue-600 font-bold' : ''}`}>
-                                            {date.getDate()}
-                                        </span>
-                                        {override && <span className={`${styles.badge} ${styles.override}`}>Específico</span>}
-                                    </div>
-                                    <div className="mt-auto text-center flex flex-col gap-1">
-                                        {Number(effectiveTarget) === 0 ? (
-                                            <span className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Sem Meta</span>
-                                        ) : (
-                                            <span className={`text-2xl font-bold ${override ? 'text-amber-600' : 'text-slate-700'}`}>
-                                                {effectiveTarget}h
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            <Modal
-                isOpen={isDiaModalOpen}
-                onClose={() => setIsDiaModalOpen(false)}
-                title={selectedDate ? `Meta Diária: ${selectedDate.toLocaleDateString('pt-BR')}` : ''}
-            >
-                <div className="flex flex-col gap-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-                        Definir um valor específico substituirá a meta mensal padrão ({currentMetaObj?.horasMeta || 0}h) apenas para este dia. Deixe vazio para voltar ao padrão.
-                    </p>
-                    
-                    <Input 
-                        label="Horas de Produção"
-                        type="number"
-                        min={0}
-                        step={0.1}
-                        value={horasMetaDia === '' ? '' : horasMetaDia}
-                        onChange={e => setHorasMetaDia(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="Ex: 6.5 (ou vazio para cancelar)"
-                        autoFocus
-                    />
-
-                    <div className="flex justify-between gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                        {horasMetaDia !== '' && typeof horasMetaDia === 'number' && (
-                            <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" onClick={handleDeleteDiaOverride}>
-                                Rem. Override
-                            </Button>
-                        )}
-                        <div className="flex gap-2 ml-auto">
-                            <Button variant="ghost" onClick={() => setIsDiaModalOpen(false)}>
-                                Cancelar
-                            </Button>
-                            <Button color="primary" onClick={handleSaveDiaOverride}>
-                                Salvar Meta
-                            </Button>
+                        <div className={styles.modalActions}>
+                            {horasMetaDia !== '' && typeof horasMetaDia === 'number' && (
+                                <Button variant="ghost" className={styles.removeButton} onClick={handleDeleteDiaOverride}>
+                                    {t('producao.metas.modal.removeOverride', 'Remover Override')}
+                                </Button>
+                            )}
+                            <div className={styles.modalButtonGroup}>
+                                <Button variant="ghost" onClick={() => setIsDiaModalOpen(false)}>
+                                    {t('common.cancel', 'Cancelar')}
+                                </Button>
+                                <Button color="primary" onClick={handleSaveDiaOverride}>
+                                    {t('common.save', 'Salvar')}
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Modal>
-        </div>
+                </Modal>
+            </div>
+        </>
     );
 };
+
+export default ProducaoMetasCalendarioPage;

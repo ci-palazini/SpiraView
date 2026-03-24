@@ -1,429 +1,575 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-    PageHeader, 
-    Card, 
-    Button, 
-    Input, 
-    Modal, 
-    Select,
+import toast from 'react-hot-toast';
+import { FiLayers, FiSettings, FiPlus, FiEdit2, FiTrash2, FiTag } from 'react-icons/fi';
+import {
+    PageHeader,
+    Button,
+    Input,
+    Modal,
     Badge,
     EmptyState
 } from '../../../shared/components';
 import usePermissions from '../../../hooks/usePermissions';
-import { 
-    listarSetoresProducao, 
-    criarSetorProducao, 
-    atualizarSetorProducao, 
+import {
+    listarSetoresProducao,
+    criarSetorProducao,
+    atualizarSetorProducao,
     deletarSetorProducao,
     listarMaquinasProducaoConfig,
-    atualizarMaquinaProducaoConfig
+    atualizarMaquinaProducaoConfig,
+    listarMaquinas,
+    atualizarAliasesProducao,
+    atualizarNomeProducao
 } from '../../../services/apiClient';
-import type { ProducaoSetor, MaquinaProducaoConfig } from '@spiraview/shared';
-
-
-// Como react-icons não foi garantido, usarei svg em inline styles se necessário, ou ícones padrões se houver.
-// Corrigindo icones:
-import { Plus, Edit2, Trash2, Save, X, Layers, Settings, AlertTriangle } from 'lucide-react'; // Geralmente Lucide é usado no SpiraView
-
+import type { ProducaoSetor, MaquinaProducaoConfig, Maquina } from '@spiraview/shared';
 import { useUsuario } from '../../../contexts/UserContext';
 import styles from './ProducaoEstruturaPage.module.css';
 
-export const ProducaoEstruturaPage: React.FC = () => {
+interface MaquinaModalState {
+    id: string;
+    nome: string;
+    nomeProducao: string;
+    setorProducaoId: string | null;
+    ordemProducao: number;
+    escopoProducao: boolean;
+    aliasesText: string;
+    isSaving: boolean;
+}
+
+const ProducaoEstruturaPage: React.FC = () => {
     const { t } = useTranslation('common');
     const user = useUsuario();
     const { canEditAny } = usePermissions(user);
     const canEdit = canEditAny(['producao_config']);
 
-    const [activeTab, setActiveTab] = useState<'setores' | 'maquinas'>('setores');
-    
+    const [activeTab, setActiveTab] = useState<'maquinas' | 'setores'>('maquinas');
+
     const [setores, setSetores] = useState<ProducaoSetor[]>([]);
     const [maquinas, setMaquinas] = useState<MaquinaProducaoConfig[]>([]);
+    const [aliasesMap, setAliasesMap] = useState<Map<string, string[]>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
+
+    // Modal Máquina
+    const [maquinaModal, setMaquinaModal] = useState<MaquinaModalState | null>(null);
 
     // Modal Setor
     const [isSetorModalOpen, setIsSetorModalOpen] = useState(false);
     const [editingSetor, setEditingSetor] = useState<ProducaoSetor | null>(null);
     const [setorForm, setSetorForm] = useState({ nome: '', ordem: 0, ativo: true });
-    
-    // Edição inline de máquinas
-    const [editingMaquinaId, setEditingMaquinaId] = useState<string | null>(null);
-    const [maquinaForm, setMaquinaForm] = useState<{ setorProducaoId: string | null; ordemProducao: number; exibirProducao: boolean }>({
-        setorProducaoId: null,
-        ordemProducao: 0,
-        exibirProducao: false
-    });
+    const [setorError, setSetorError] = useState<string | null>(null);
 
-    const [error, setError] = useState<string | null>(null);
+    // Delete confirmation
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+    // ── Carregamento ──────────────────────────────────────────────────────────
 
     const loadSetores = async () => {
         try {
-            const data = await listarSetoresProducao();
-            setSetores(data);
-        } catch (err: any) {
+            setSetores(await listarSetoresProducao());
+        } catch (err) {
             console.error(err);
         }
     };
 
     const loadMaquinas = async () => {
         try {
-            const data = await listarMaquinasProducaoConfig();
-            setMaquinas(data);
-        } catch (err: any) {
+            const [configData, fullData] = await Promise.all([
+                listarMaquinasProducaoConfig(),
+                listarMaquinas()
+            ]);
+            setMaquinas(configData);
+            const map = new Map<string, string[]>();
+            for (const m of fullData as Maquina[]) {
+                map.set(m.id, m.aliases_producao || []);
+            }
+            setAliasesMap(map);
+        } catch (err) {
             console.error(err);
         }
     };
 
-    const loadData = async () => {
-        setIsLoading(true);
-        await Promise.all([loadSetores(), loadMaquinas()]);
-        setIsLoading(false);
-    };
-
     useEffect(() => {
-        loadData();
+        setIsLoading(true);
+        Promise.all([loadSetores(), loadMaquinas()]).finally(() => setIsLoading(false));
     }, []);
 
-    // Setores Actions
+    // ── Ações Máquinas ────────────────────────────────────────────────────────
+
+    const handleOpenMaquinaModal = (m: MaquinaProducaoConfig) => {
+        setMaquinaModal({
+            id: m.id,
+            nome: m.nome,
+            nomeProducao: m.nomeProducao || '',
+            setorProducaoId: m.setorProducaoId,
+            ordemProducao: m.ordemProducao,
+            escopoProducao: m.escopoProducao,
+            aliasesText: (aliasesMap.get(m.id) || []).join('\n'),
+            isSaving: false
+        });
+    };
+
+    const handleSaveMaquinaModal = async () => {
+        if (!maquinaModal) return;
+        setMaquinaModal(prev => prev ? { ...prev, isSaving: true } : null);
+        try {
+            const aliases = maquinaModal.aliasesText
+                .split(/[,\n]/)
+                .map(a => a.trim())
+                .filter(Boolean);
+
+            await Promise.all([
+                atualizarMaquinaProducaoConfig(maquinaModal.id, {
+                    setorProducaoId: maquinaModal.setorProducaoId,
+                    ordemProducao: maquinaModal.ordemProducao,
+                    exibirProducao: maquinaModal.escopoProducao
+                }),
+                atualizarNomeProducao(maquinaModal.id, maquinaModal.nomeProducao.trim() || null),
+                atualizarAliasesProducao(maquinaModal.id, aliases)
+            ]);
+
+            setAliasesMap(prev => new Map(prev).set(maquinaModal.id, aliases));
+            setMaquinaModal(null);
+            toast.success(t('producao.estrutura.toast.machineSaved', 'Configuracao salva'));
+            loadMaquinas();
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.estrutura.errors.saveMachine', 'Erro ao salvar');
+            toast.error(msg);
+            setMaquinaModal(prev => prev ? { ...prev, isSaving: false } : null);
+        }
+    };
+
+    // ── Ações Setores ─────────────────────────────────────────────────────────
+
     const handleOpenSetorModal = (setor?: ProducaoSetor) => {
-        setError(null);
+        setSetorError(null);
         if (setor) {
             setEditingSetor(setor);
             setSetorForm({ nome: setor.nome, ordem: setor.ordem, ativo: setor.ativo });
         } else {
             setEditingSetor(null);
-            setSetorForm({ nome: '', ordem: setores.length > 0 ? Math.max(...setores.map(s => s.ordem)) + 10 : 0, ativo: true });
+            setSetorForm({
+                nome: '',
+                ordem: setores.length > 0 ? Math.max(...setores.map(s => s.ordem)) + 10 : 0,
+                ativo: true
+            });
         }
         setIsSetorModalOpen(true);
     };
 
     const handleSaveSetor = async () => {
+        setSetorError(null);
+        if (!setorForm.nome.trim()) {
+            setSetorError(t('producao.estrutura.errors.nameRequired', 'Nome do setor obrigatorio'));
+            return;
+        }
         try {
-            setError(null);
-            if (!setorForm.nome.trim()) {
-                setError('Nome é obrigatório');
-                return;
-            }
             if (editingSetor) {
                 await atualizarSetorProducao(editingSetor.id, setorForm);
             } else {
                 await criarSetorProducao(setorForm);
             }
             setIsSetorModalOpen(false);
+            toast.success(t('producao.estrutura.toast.sectorSaved', 'Setor salvo com sucesso'));
             loadSetores();
-        } catch (err: any) {
-            setError(err.message || 'Erro ao salvar setor');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.estrutura.errors.saveSector', 'Erro ao salvar setor');
+            setSetorError(msg);
         }
     };
 
     const handleDeleteSetor = async (id: string) => {
-        if (!confirm('Deseja realmente excluir este setor?')) return;
         try {
-            setError(null);
             await deletarSetorProducao(id);
+            setDeleteConfirmId(null);
+            toast.success(t('producao.estrutura.toast.sectorDeleted', 'Setor excluido com sucesso'));
             loadSetores();
-        } catch (err: any) {
-            alert(err.message || 'Erro ao excluir setor');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : t('producao.estrutura.errors.deleteSector', 'Erro ao excluir setor');
+            toast.error(msg);
+            setDeleteConfirmId(null);
         }
     };
 
-    // Máquinas Actions
-    const handleStartEditMaquina = (m: MaquinaProducaoConfig) => {
-        setEditingMaquinaId(m.id);
-        setMaquinaForm({
-            setorProducaoId: m.setorProducaoId,
-            ordemProducao: m.ordemProducao,
-            exibirProducao: m.escopoProducao
-        });
-    };
-
-    const handleSaveMaquina = async (id: string) => {
-        try {
-            await atualizarMaquinaProducaoConfig(id, maquinaForm);
-            setEditingMaquinaId(null);
-            loadMaquinas();
-        } catch (err: any) {
-            alert(err.message || 'Erro ao salvar máquina');
-        }
-    };
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     const setorOptions = [
-        { value: '', label: 'Sem Setor' },
+        { value: '', label: t('producao.estrutura.noSector', 'Sem setor') },
         ...setores.map(s => ({ value: s.id, label: s.nome }))
     ];
 
+    // ── Render ────────────────────────────────────────────────────────────────
+
     return (
-        <div className={styles.container}>
+        <>
             <PageHeader
-                title="Estrutura de Produção"
+                title={t('producao.estrutura.title', 'Estrutura de Producao')}
+                subtitle={t('producao.estrutura.subtitle', 'Configure setores e maquinas para o modulo de producao')}
             />
 
-            <div className={styles.headerActions}>
+            <div className={styles.container}>
+                {/* Tab Selector */}
                 <div className={styles.tabsContainer}>
-                    <button
-                        onClick={() => setActiveTab('setores')}
-                        className={`${styles.tab} ${activeTab === 'setores' ? styles.tabActive : ''}`}
-                    >
-                        <Layers size={18} />
-                        Setores (Agrupamento)
-                    </button>
                     <button
                         onClick={() => setActiveTab('maquinas')}
                         className={`${styles.tab} ${activeTab === 'maquinas' ? styles.tabActive : ''}`}
                     >
-                        <Settings size={18} />
-                        Máquinas e Ordenação
+                        <FiSettings />
+                        {t('producao.estrutura.tabs.machines', 'Maquinas')}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('setores')}
+                        className={`${styles.tab} ${activeTab === 'setores' ? styles.tabActive : ''}`}
+                    >
+                        <FiLayers />
+                        {t('producao.estrutura.tabs.sectors', 'Setores')}
                     </button>
                 </div>
-            </div>
 
-            {activeTab === 'setores' && (
-                <div className={styles.card}>
-                    {isLoading ? (
-                        <div className="p-8 flex justify-center text-gray-400">Carregando...</div>
-                    ) : (
-                        <>
-                            <div className={styles.cardHeader}>
-                                <h2 className={styles.cardTitle}>
-                                    Setores de Produção ({setores.length})
-                                </h2>
-                                {canEdit && (
-                                    <button className={styles.addButton} onClick={() => handleOpenSetorModal()}>
-                                        <Plus size={16} /> Novo Setor
-                                    </button>
-                                )}
+                {/* MAQUINAS TAB */}
+                {activeTab === 'maquinas' && (
+                    <div className={styles.card}>
+                        <div className={styles.cardHeader}>
+                            <h2 className={styles.cardTitle}>
+                                {t('producao.estrutura.machines.title', 'Configuracao de Maquinas')}
+                                <span className={styles.countBadge}>{maquinas.length}</span>
+                            </h2>
+                            <div className={styles.headerHint}>
+                                <FiSettings size={14} />
+                                {t('producao.estrutura.machines.hint', 'Apenas maquinas com Escopo Producao ativo aparecerao nos relatorios')}
                             </div>
+                        </div>
 
-                            {setores.length === 0 ? (
-                                <EmptyState 
-                                    title="Nenhum setor cadastrado"
-                                    description="Crie setores para agrupar suas máquinas nos relatórios."
-                                />
-                            ) : (
-                                <div className={styles.tableWrapper}>
-                                    <table className={styles.table}>
-                                        <thead>
-                                            <tr>
-                                                <th className={styles.th}>Nome</th>
-                                                <th className={styles.th} style={{textAlign: 'center', width: '100px'}}>Ordem</th>
-                                                <th className={styles.th} style={{textAlign: 'center', width: '100px'}}>Status</th>
-                                                {canEdit && <th className={styles.th} style={{textAlign: 'center', width: '100px'}}>Ações</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {setores.map(setor => (
-                                                <tr key={setor.id} className={styles.tr}>
+                        {isLoading ? (
+                            <div className={styles.loadingState}>{t('common.loading', 'Carregando...')}</div>
+                        ) : (
+                            <div className={styles.tableWrapper}>
+                                <table className={styles.table} style={{ minWidth: '700px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th className={styles.th}>{t('producao.estrutura.machines.machine', 'Maquina')}</th>
+                                            <th className={styles.th}>{t('producao.estrutura.machines.displayName', 'Nome Exibicao')}</th>
+                                            <th className={styles.th} style={{ width: '12rem' }}>{t('producao.estrutura.machines.sector', 'Setor')}</th>
+                                            <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '6rem' }}>{t('producao.estrutura.machines.order', 'Ordem')}</th>
+                                            <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '8rem' }}>{t('producao.estrutura.machines.scope', 'Escopo Prod.')}</th>
+                                            <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '9rem' }}>Aliases Excel</th>
+                                            {canEdit && <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '5rem' }}>{t('common.actions', 'Acoes')}</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {maquinas.map(m => {
+                                            const setorObj = setores.find(s => s.id === m.setorProducaoId);
+                                            const aliases = aliasesMap.get(m.id) || [];
+                                            return (
+                                                <tr key={m.id} className={`${styles.tr} ${!m.escopoProducao ? styles.inactive : ''}`}>
                                                     <td className={styles.td}>
-                                                        <span className="font-semibold">{setor.nome}</span>
+                                                        <span className={styles.machineName}>{m.nome}</span>
                                                     </td>
-                                                    <td className={styles.td} style={{textAlign: 'center'}}>
-                                                        {setor.ordem}
+                                                    <td className={styles.td}>
+                                                        <span className={styles.displayName}>{m.nomeProducao || m.nome}</span>
                                                     </td>
-                                                    <td className={styles.td} style={{textAlign: 'center'}}>
-                                                        <Badge variant={setor.ativo ? 'success' : 'neutral'}>
-                                                            {setor.ativo ? 'Ativo' : 'Inativo'}
+                                                    <td className={styles.td}>
+                                                        <span className={setorObj ? styles.sectorLabel : styles.sectorEmpty}>
+                                                            {setorObj?.nome || t('producao.estrutura.noSector', 'Sem setor')}
+                                                        </span>
+                                                    </td>
+                                                    <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                        <span className={styles.orderValue}>{m.ordemProducao}</span>
+                                                    </td>
+                                                    <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                        <Badge variant={m.escopoProducao ? 'success' : 'neutral'}>
+                                                            {m.escopoProducao ? t('common.yes', 'SIM') : t('common.no', 'NAO')}
                                                         </Badge>
                                                     </td>
+                                                    <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                        <div className={styles.aliasesCell}>
+                                                            <span className={styles.aliasesBadge}>
+                                                                <FiTag size={11} />
+                                                                {aliases.length}
+                                                            </span>
+                                                        </div>
+                                                    </td>
                                                     {canEdit && (
-                                                        <td className={styles.td}>
-                                                            <div className="flex justify-center gap-2">
-                                                                <button 
-                                                                    onClick={() => handleOpenSetorModal(setor)}
-                                                                    className={styles.actionButton}
-                                                                    title="Editar"
-                                                                >
-                                                                    <Edit2 size={16} />
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => handleDeleteSetor(setor.id)}
-                                                                    className={`${styles.actionButton} ${styles.danger}`}
-                                                                    title="Excluir"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </div>
+                                                        <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                            <button
+                                                                onClick={() => handleOpenMaquinaModal(m)}
+                                                                className={styles.actionButton}
+                                                                title={t('common.edit', 'Editar')}
+                                                            >
+                                                                <FiEdit2 size={15} />
+                                                            </button>
                                                         </td>
                                                     )}
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* SETORES TAB */}
+                {activeTab === 'setores' && (
+                    <div className={styles.card}>
+                        {isLoading ? (
+                            <div className={styles.loadingState}>{t('common.loading', 'Carregando...')}</div>
+                        ) : (
+                            <>
+                                <div className={styles.cardHeader}>
+                                    <h2 className={styles.cardTitle}>
+                                        {t('producao.estrutura.sectors.title', 'Setores de Producao')}
+                                        <span className={styles.countBadge}>{setores.length}</span>
+                                    </h2>
+                                    {canEdit && (
+                                        <button className={styles.addButton} onClick={() => handleOpenSetorModal()}>
+                                            <FiPlus />
+                                            {t('producao.estrutura.sectors.add', 'Novo Setor')}
+                                        </button>
+                                    )}
                                 </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-            {activeTab === 'maquinas' && (
-                <div className={styles.card}>
-                    <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>
-                            Configuração de Máquinas da Produção
-                        </h2>
-                        <div className="text-sm text-gray-500 flex items-center gap-2">
-                            <AlertTriangle size={16} className="text-amber-500" />
-                            Apenas máquinas com Escopo Produção = SIM aparecerão nos relatórios
-                        </div>
+
+                                {setores.length === 0 ? (
+                                    <EmptyState
+                                        title={t('producao.estrutura.sectors.emptyTitle', 'Nenhum setor cadastrado')}
+                                        description={t('producao.estrutura.sectors.emptyDesc', 'Crie setores para agrupar suas maquinas nos relatorios.')}
+                                    />
+                                ) : (
+                                    <div className={styles.tableWrapper}>
+                                        <table className={styles.table}>
+                                            <thead>
+                                                <tr>
+                                                    <th className={styles.th}>{t('producao.estrutura.sectors.name', 'Nome')}</th>
+                                                    <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '100px' }}>{t('producao.estrutura.sectors.order', 'Ordem')}</th>
+                                                    <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '100px' }}>Status</th>
+                                                    {canEdit && <th className={`${styles.th} ${styles.thCenter}`} style={{ width: '100px' }}>{t('common.actions', 'Acoes')}</th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {setores.map(setor => (
+                                                    <tr key={setor.id} className={styles.tr}>
+                                                        <td className={styles.td}>
+                                                            <span className={styles.sectorName}>{setor.nome}</span>
+                                                        </td>
+                                                        <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                            {setor.ordem}
+                                                        </td>
+                                                        <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                            <Badge variant={setor.ativo ? 'success' : 'neutral'}>
+                                                                {setor.ativo ? t('common.active', 'Ativo') : t('common.inactive', 'Inativo')}
+                                                            </Badge>
+                                                        </td>
+                                                        {canEdit && (
+                                                            <td className={`${styles.td} ${styles.tdCenter}`}>
+                                                                <div className={styles.actionGroup}>
+                                                                    <button
+                                                                        onClick={() => handleOpenSetorModal(setor)}
+                                                                        className={styles.actionButton}
+                                                                        title={t('common.edit', 'Editar')}
+                                                                    >
+                                                                        <FiEdit2 size={15} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setDeleteConfirmId(setor.id)}
+                                                                        className={`${styles.actionButton} ${styles.danger}`}
+                                                                        title={t('common.delete', 'Excluir')}
+                                                                    >
+                                                                        <FiTrash2 size={15} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
+                )}
 
-                    <div className={styles.tableWrapper}>
-                        <table className={styles.table} style={{ minWidth: '800px' }}>
-                            <thead>
-                                <tr>
-                                    <th className={styles.th}>Máquina</th>
-                                    <th className={styles.th}>Nome Exibição (Produção)</th>
-                                    <th className={styles.th} style={{ width: '12rem' }}>Setor Agrupador</th>
-                                    <th className={styles.th} style={{ textAlign: 'center', width: '6rem' }}>Ordem</th>
-                                    <th className={styles.th} style={{ textAlign: 'center', width: '8rem' }}>Escopo Prod.</th>
-                                    {canEdit && <th className={styles.th} style={{ textAlign: 'center', width: '6rem' }}>Ações</th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {maquinas.map(m => {
-                                    const isEditing = editingMaquinaId === m.id;
-                                    const setorObj = setores.find(s => s.id === m.setorProducaoId);
+                {/* ── Modal Máquina ─────────────────────────────────────────── */}
+                <Modal
+                    isOpen={!!maquinaModal}
+                    onClose={() => setMaquinaModal(null)}
+                    title={maquinaModal ? `${t('common.edit', 'Editar')} — ${maquinaModal.nome}` : ''}
+                >
+                    {maquinaModal && (
+                        <div className={styles.modalContent}>
+                            <div className={styles.modalGrid}>
 
-                                    return (
-                                        <tr key={m.id} className={`${styles.tr} ${!m.escopoProducao && !isEditing ? 'opacity-50' : ''}`}>
-                                            <td className={styles.td}>
-                                                <span className="font-semibold">{m.nome}</span>
-                                            </td>
-                                            <td className={styles.td}>
-                                                <span className="text-gray-600 dark:text-gray-300">{m.nomeProducao || m.nome}</span>
-                                            </td>
-                                            <td className={styles.td}>
-                                                {isEditing ? (
-                                                    <select
-                                                        value={maquinaForm.setorProducaoId || ''}
-                                                        onChange={e => setMaquinaForm({...maquinaForm, setorProducaoId: e.target.value || null})}
-                                                        className={styles.input}
-                                                        style={{ padding: '8px', fontSize: '0.85rem' }}
-                                                    >
-                                                        {setorOptions.map(opt => (
-                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                        ))}
-                                                    </select>
-                                                ) : (
-                                                    <span className={setorObj ? "text-gray-800 dark:text-gray-200" : "text-gray-400 italic"}>
-                                                        {setorObj?.nome || 'Sem Setor'}
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className={styles.td} style={{ textAlign: 'center' }}>
-                                                {isEditing ? (
-                                                    <Input 
-                                                        type="number"
-                                                        value={maquinaForm.ordemProducao}
-                                                        onChange={e => setMaquinaForm({...maquinaForm, ordemProducao: Number(e.target.value)})}
-                                                        className="w-full text-center text-sm"
-                                                    />
-                                                ) : (
-                                                    <span className="text-gray-600 dark:text-gray-400">{m.ordemProducao}</span>
-                                                )}
-                                            </td>
-                                            <td className={styles.td} style={{ textAlign: 'center' }}>
-                                                {isEditing ? (
-                                                    <label className="flex items-center justify-center cursor-pointer">
-                                                        <input 
-                                                            type="checkbox"
-                                                            checked={maquinaForm.exibirProducao}
-                                                            onChange={e => setMaquinaForm({...maquinaForm, exibirProducao: e.target.checked})}
-                                                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                                        />
-                                                    </label>
-                                                ) : (
-                                                    <Badge variant={m.escopoProducao ? 'success' : 'neutral'}>
-                                                        {m.escopoProducao ? 'SIM' : 'NÃO'}
-                                                    </Badge>
-                                                )}
-                                            </td>
-                                            {canEdit && (
-                                                <td className={styles.td} style={{ textAlign: 'center' }}>
-                                                    {isEditing ? (
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <button 
-                                                                onClick={() => handleSaveMaquina(m.id)}
-                                                                className={`${styles.actionButton} text-green-600 hover:text-green-700`}
-                                                                title="Salvar"
-                                                            >
-                                                                <Save size={18} />
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => setEditingMaquinaId(null)}
-                                                                className={`${styles.actionButton} ${styles.danger}`}
-                                                                title="Cancelar"
-                                                            >
-                                                                <X size={18} />
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <button 
-                                                            onClick={() => handleStartEditMaquina(m)}
-                                                            className={styles.actionButton}
-                                                            title="Editar"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            )}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                                {/* Nome de exibição */}
+                                <div className={styles.modalGridFull}>
+                                    <label className={styles.fieldLabel}>
+                                        {t('producao.estrutura.machines.displayName', 'Nome de Exibicao')}
+                                    </label>
+                                    <input
+                                        className={styles.fieldInput}
+                                        type="text"
+                                        value={maquinaModal.nomeProducao}
+                                        onChange={e => setMaquinaModal(prev => prev ? { ...prev, nomeProducao: e.target.value } : null)}
+                                        placeholder={maquinaModal.nome}
+                                    />
+                                    <p className={styles.fieldHint}>
+                                        {t('producao.estrutura.machines.displayNameHint', 'Deixe vazio para usar o nome original da maquina')}
+                                    </p>
+                                </div>
 
-            <Modal
-                isOpen={isSetorModalOpen}
-                onClose={() => setIsSetorModalOpen(false)}
-                title={editingSetor ? 'Editar Setor' : 'Novo Setor'}
-            >
-                <div className="flex flex-col gap-4">
-                    {error && (
-                        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-md border border-red-100 dark:border-red-900/30">
-                            {error}
+                                {/* Setor */}
+                                <div>
+                                    <label className={styles.fieldLabel}>
+                                        {t('producao.estrutura.machines.sector', 'Setor')}
+                                    </label>
+                                    <select
+                                        className={styles.fieldSelect}
+                                        value={maquinaModal.setorProducaoId || ''}
+                                        onChange={e => setMaquinaModal(prev => prev ? { ...prev, setorProducaoId: e.target.value || null } : null)}
+                                    >
+                                        {setorOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Ordem */}
+                                <div>
+                                    <label className={styles.fieldLabel}>
+                                        {t('producao.estrutura.machines.order', 'Ordem de Exibicao')}
+                                    </label>
+                                    <input
+                                        className={styles.fieldInput}
+                                        type="number"
+                                        value={maquinaModal.ordemProducao}
+                                        onChange={e => setMaquinaModal(prev => prev ? { ...prev, ordemProducao: Number(e.target.value) } : null)}
+                                    />
+                                </div>
+
+                                {/* Escopo Produção */}
+                                <div className={styles.modalGridFull}>
+                                    <label className={styles.toggleRow}>
+                                        <input
+                                            type="checkbox"
+                                            checked={maquinaModal.escopoProducao}
+                                            onChange={e => setMaquinaModal(prev => prev ? { ...prev, escopoProducao: e.target.checked } : null)}
+                                            className={styles.checkbox}
+                                        />
+                                        <span className={styles.toggleLabel}>
+                                            {t('producao.estrutura.machines.scope', 'Exibir nos relatorios de producao')}
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <hr className={styles.modalDivider} />
+
+                                {/* Aliases Excel */}
+                                <div className={styles.modalGridFull}>
+                                    <label className={styles.fieldLabel}>
+                                        <FiTag size={12} style={{ marginRight: 4 }} />
+                                        Aliases Excel
+                                    </label>
+                                    <textarea
+                                        className={styles.aliasesTextarea}
+                                        value={maquinaModal.aliasesText}
+                                        onChange={e => setMaquinaModal(prev => prev ? { ...prev, aliasesText: e.target.value } : null)}
+                                        rows={5}
+                                        placeholder={'USINADORA\nTCN-20\n...'}
+                                    />
+                                    <p className={styles.fieldHint}>
+                                        {t('producao.estrutura.aliases.help', 'Um alias por linha. Estes nomes mapeiam colunas do Excel importado para esta maquina.')}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className={styles.modalActions}>
+                                <Button variant="ghost" onClick={() => setMaquinaModal(null)}>
+                                    {t('common.cancel', 'Cancelar')}
+                                </Button>
+                                <Button color="primary" onClick={handleSaveMaquinaModal} disabled={maquinaModal.isSaving}>
+                                    {maquinaModal.isSaving ? t('common.saving', 'Salvando...') : t('common.save', 'Salvar')}
+                                </Button>
+                            </div>
                         </div>
                     )}
-                    
-                    <Input 
-                        label="Nome do Setor"
-                        value={setorForm.nome}
-                        onChange={e => setSetorForm({...setorForm, nome: e.target.value})}
-                        autoFocus
-                        required
-                    />
-                    
-                    <Input 
-                        label="Ordem de Exibição"
-                        type="number"
-                        value={setorForm.ordem}
-                        onChange={e => setSetorForm({...setorForm, ordem: Number(e.target.value)})}
-                    />
-                    <p className="text-sm text-gray-500 mt-1">Setores com menor ordem aparecem primeiro nos relatórios</p>
+                </Modal>
 
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                        <input 
-                            type="checkbox"
-                            checked={setorForm.ativo}
-                            onChange={e => setSetorForm({...setorForm, ativo: e.target.checked})}
-                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                {/* ── Modal Setor ───────────────────────────────────────────── */}
+                <Modal
+                    isOpen={isSetorModalOpen}
+                    onClose={() => setIsSetorModalOpen(false)}
+                    title={editingSetor ? t('producao.estrutura.modal.editSector', 'Editar Setor') : t('producao.estrutura.modal.newSector', 'Novo Setor')}
+                >
+                    <div className={styles.modalContent}>
+                        {setorError && (
+                            <div className={styles.errorMsg}>{setorError}</div>
+                        )}
+
+                        <Input
+                            label={t('producao.estrutura.modal.sectorName', 'Nome do Setor')}
+                            value={setorForm.nome}
+                            onChange={e => setSetorForm({ ...setorForm, nome: e.target.value })}
+                            autoFocus
+                            required
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Setor Ativo</span>
-                    </label>
 
-                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                        <Button variant="ghost" onClick={() => setIsSetorModalOpen(false)}>
-                            Cancelar
-                        </Button>
-                        <Button color="primary" onClick={handleSaveSetor}>
-                            Salvar
-                        </Button>
+                        <Input
+                            label={t('producao.estrutura.modal.order', 'Ordem de Exibicao')}
+                            type="number"
+                            value={setorForm.ordem}
+                            onChange={e => setSetorForm({ ...setorForm, ordem: Number(e.target.value) })}
+                        />
+                        <p className={styles.helpText}>
+                            {t('producao.estrutura.modal.orderHelp', 'Setores com menor ordem aparecem primeiro nos relatorios')}
+                        </p>
+
+                        <label className={styles.toggleRow}>
+                            <input
+                                type="checkbox"
+                                checked={setorForm.ativo}
+                                onChange={e => setSetorForm({ ...setorForm, ativo: e.target.checked })}
+                                className={styles.checkbox}
+                            />
+                            <span className={styles.toggleLabel}>
+                                {t('producao.estrutura.modal.active', 'Setor Ativo')}
+                            </span>
+                        </label>
+
+                        <div className={styles.modalActions}>
+                            <Button variant="ghost" onClick={() => setIsSetorModalOpen(false)}>
+                                {t('common.cancel', 'Cancelar')}
+                            </Button>
+                            <Button color="primary" onClick={handleSaveSetor}>
+                                {t('common.save', 'Salvar')}
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </Modal>
-        </div>
+                </Modal>
+
+                {/* ── Modal Confirmar Exclusão ──────────────────────────────── */}
+                <Modal
+                    isOpen={!!deleteConfirmId}
+                    onClose={() => setDeleteConfirmId(null)}
+                    title={t('producao.estrutura.modal.confirmDelete', 'Confirmar Exclusao')}
+                >
+                    <div className={styles.modalContent}>
+                        <p className={styles.confirmText}>
+                            {t('producao.estrutura.modal.confirmDeleteDesc', 'Deseja realmente excluir este setor? Esta acao nao pode ser desfeita.')}
+                        </p>
+                        <div className={styles.modalActions}>
+                            <Button variant="ghost" onClick={() => setDeleteConfirmId(null)}>
+                                {t('common.cancel', 'Cancelar')}
+                            </Button>
+                            <Button color="primary" onClick={() => deleteConfirmId && handleDeleteSetor(deleteConfirmId)}>
+                                {t('common.delete', 'Excluir')}
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            </div>
+        </>
     );
 };
+
+export default ProducaoEstruturaPage;

@@ -15,6 +15,7 @@ import type {
     AgendamentoUpdate,
     Usuario,
     UsuarioCreate,
+    UsuarioVerificarResponse,
     Peca,
     PecaCreate,
     Movimentacao,
@@ -681,6 +682,16 @@ export async function removerNotificacaoConfig(evento: string, usuarioId: string
 
 export async function excluirUsuario(id: string, auth: AuthParams): Promise<unknown> {
     return http.delete(`/usuarios/${encodeURIComponent(id)}`, { auth });
+}
+
+export async function verificarDisponibilidadeUsuario(
+    usuario: string,
+    auth: AuthParams = {}
+): Promise<UsuarioVerificarResponse> {
+    return http.get<UsuarioVerificarResponse>('/usuarios/verificar', {
+        params: { usuario },
+        auth,
+    });
 }
 
 export interface EstatisticasUsuario {

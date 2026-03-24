@@ -1,9 +1,9 @@
 // src/features/usuarios/pages/GerirUtilizadoresPage.tsx
-import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent, useMemo, useRef } from 'react';
 import styles from './GerirUtilizadoresPage.module.css';
 import Modal from '../../../shared/components/Modal';
 import { Input, Select, Button } from '../../../shared/components';
-import { FiPlus, FiEdit, FiTrash2, FiBarChart2 } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiBarChart2, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '../../../shared/components/Skeleton';
@@ -15,8 +15,10 @@ import {
     excluirUsuario,
     obterEstatisticasUsuario,
     EstatisticasUsuario,
-    listarRolesOptions
+    listarRolesOptions,
+    verificarDisponibilidadeUsuario
 } from '../../../services/apiClient';
+import useDebounce from '../../../hooks/useDebounce';
 
 // ---------- Types ----------
 interface User {
@@ -47,6 +49,49 @@ const FUNCAO_MAP_FALLBACK: Record<string, string> = {
     operador: 'Operador',
 };
 
+/**
+ * Normalize a full name into a login slug.
+ * "João da Silva" → "joao.silva"
+ * Rules:
+ *   1. NFD decompose → strip combining diacritics (Unicode category Mn)
+ *   2. Lowercase
+ *   3. Remove characters that are not a-z, 0-9, or spaces
+ *   4. Split by whitespace → take first and last word
+ *   5. Join with "."
+ */
+function gerarSlug(nomeCompleto: string): string {
+    const normalizado = nomeCompleto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')   // strip diacritics
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')        // strip non-alphanumeric (keeps spaces)
+        .trim();
+
+    const palavras = normalizado.split(/\s+/).filter(Boolean);
+    if (palavras.length === 0) return '';
+    if (palavras.length === 1) return palavras[0];
+
+    return `${palavras[0]}.${palavras[palavras.length - 1]}`;
+}
+
+function gerarSugestoes(slug: string, existentes: { usuario?: string }[]): string[] {
+    const ocupados = new Set(existentes.map(u => (u.usuario || '').toLowerCase()));
+    const resultado: string[] = [];
+    // Try slug2, slug3, slug4 first
+    for (let i = 2; resultado.length < 3 && i <= 10; i++) {
+        const candidato = `${slug}${i}`;
+        if (!ocupados.has(candidato)) resultado.push(candidato);
+    }
+    // If still need more, try slug.alt, slug.jr, slug.b
+    const extras = ['.alt', '.jr', '.b'];
+    for (const sufixo of extras) {
+        if (resultado.length >= 3) break;
+        const candidato = `${slug}${sufixo}`;
+        if (!ocupados.has(candidato)) resultado.push(candidato);
+    }
+    return resultado.slice(0, 3);
+}
+
 // ---------- Component ----------
 const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const { t } = useTranslation();
@@ -54,6 +99,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [utilizadores, setUtilizadores] = useState<UserRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [roleFiltro, setRoleFiltro] = useState<string>('all');
+    const [busca, setBusca] = useState('');
 
     // modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,6 +114,15 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [role, setRole] = useState('operador');
     const [matricula, setMatricula] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+
+    // Username availability check
+    type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error';
+    const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
+    const [sugestoes, setSugestoes] = useState<string[]>([]);
+
+    // Duplicate name warning
+    const [nomeWarning, setNomeWarning] = useState<string | null>(null);
+    const usuarioManuallyEditedRef = useRef(false);
 
     // stats modal
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -103,6 +158,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         return () => { alive = false; };
     }, [roleFiltro, t, user?.email, user?.role]);
 
+    const utilizadoresFiltrados = useMemo(() => {
+        const termo = busca.trim().toLowerCase();
+        if (!termo) return utilizadores;
+        return utilizadores.filter(u =>
+            u.nome.toLowerCase().includes(termo) ||
+            (u.usuario || '').toLowerCase().includes(termo) ||
+            (u.email || '').toLowerCase().includes(termo)
+        );
+    }, [utilizadores, busca]);
+
     // Helper para obter label do role dinâmico
     const getRoleLabel = (roleSlug?: string) => {
         if (!roleSlug) return '-';
@@ -120,6 +185,77 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         return `hsl(${h}, 70%, 45%)`; // Cor sólida e legível para o DOT
     };
 
+    const handleNomeChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const novoNome = e.target.value;
+        setNome(novoNome);
+
+        // Auto-populate usuario only if the field is still unmodified
+        if (!modoEdicao && !usuarioManuallyEditedRef.current) {
+            setUsuario(gerarSlug(novoNome));
+        }
+
+        // Duplicate name check against already-loaded list
+        const nomeLower = novoNome.trim().toLowerCase();
+        if (nomeLower.length >= 3) {
+            const match = utilizadores.find(
+                u => u.nome.toLowerCase() === nomeLower && u.id !== usuarioEditandoId
+            );
+            setNomeWarning(match ? t('users.validation.duplicateName', { nome: match.nome }) : null);
+        } else {
+            setNomeWarning(null);
+        }
+    };
+
+    const handleUsuarioChange = (e: ChangeEvent<HTMLInputElement>) => {
+        usuarioManuallyEditedRef.current = true;
+        setUsuario(e.target.value);
+    };
+
+    // Debounced availability check effect
+    const debouncedUsuario = useDebounce(usuario, 600);
+
+    useEffect(() => {
+        const slug = debouncedUsuario.trim().toLowerCase();
+
+        // Skip check if: modal is closed, slug is empty, or too short
+        if (!isModalOpen || slug.length < 2) {
+            setUsernameStatus('idle');
+            setSugestoes([]);
+            return;
+        }
+
+        // In edit mode, if the slug is the same as the original, it's "already owned" — show as available
+        if (modoEdicao) {
+            const original = utilizadores.find(u => u.id === usuarioEditandoId);
+            if (original?.usuario?.toLowerCase() === slug) {
+                setUsernameStatus('available');
+                setSugestoes([]);
+                return;
+            }
+        }
+
+        let cancelled = false;
+        setUsernameStatus('checking');
+
+        verificarDisponibilidadeUsuario(slug, { role: user?.role, email: user?.email })
+            .then(result => {
+                if (cancelled) return;
+                if (result.disponivel) {
+                    setUsernameStatus('available');
+                    setSugestoes([]);
+                } else {
+                    setUsernameStatus('taken');
+                    // Generate suggestions client-side using the loaded list
+                    setSugestoes(gerarSugestoes(slug, utilizadores));
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setUsernameStatus('error');
+            });
+
+        return () => { cancelled = true; };
+    }, [debouncedUsuario, isModalOpen, modoEdicao, usuarioEditandoId, utilizadores, user?.role, user?.email]);
+
     const handleSalvarUtilizador = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -129,7 +265,12 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             return;
         }
 
-        const nomeUsuario = (usuario || '').trim() || nomeCompleto.toLowerCase().replace(/\s+/g, '.');
+        if (usernameStatus === 'taken') {
+            toast.error(t('users.form.usernameTaken'));
+            return;
+        }
+
+        const nomeUsuario = (usuario || '').trim() || gerarSlug(nomeCompleto);
 
         // Busca o nome correto do role para usar como "funcao" e armazena na API
         const roleObj = roles.find(r => r.nome.toLowerCase() === role.toLowerCase());
@@ -207,6 +348,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setModoEdicao(false);
             setUsuarioEditandoId(null);
             setIsModalOpen(false);
+            setUsernameStatus('idle');
+            setSugestoes([]);
+            setNomeWarning(null);
+            usuarioManuallyEditedRef.current = false;
         } catch (error) {
             console.error('Falha ao salvar usuário:', error);
             toast.error(t('users.toasts.saveError'));
@@ -224,6 +369,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setSenha('');
         setRole('operador'); // Default seguro
         setMatricula('');
+        setUsernameStatus('idle');
+        setSugestoes([]);
+        setNomeWarning(null);
+        usuarioManuallyEditedRef.current = false;
     };
 
     const abrirModalEdicao = (userRow: UserRow) => {
@@ -236,6 +385,10 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setUsuarioEditandoId(userRow.id);
         setSenha('');
         setIsModalOpen(true);
+        setUsernameStatus('idle');
+        setSugestoes([]);
+        setNomeWarning(null);
+        usuarioManuallyEditedRef.current = true;
     };
 
     const handleExcluirUtilizador = async (uid: string, nomeAlvo: string) => {
@@ -290,6 +443,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 {/* Toolbar de filtro dentro do card */}
                 <div className={styles.userListToolbar}>
                     <div className={styles.filterGroup}>
+                        <div className={styles.searchWrapper}>
+                            <FiSearch className={styles.searchIcon} />
+                            <input
+                                type="text"
+                                className={`${styles.input} ${styles.searchInput}`}
+                                placeholder={t('users.search.placeholder', 'Buscar por nome, usuário ou e-mail...')}
+                                value={busca}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setBusca(e.target.value)}
+                            />
+                        </div>
                         <label htmlFor="roleFiltro" className={styles.filterLabel}>
                             {t('users.form.role')}
                         </label>
@@ -308,6 +471,13 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             ))}
                         </select>
                     </div>
+                    {!loading && (
+                        <span className={styles.userCount}>
+                            {utilizadoresFiltrados.length === utilizadores.length
+                                ? t('users.count', '{{total}} usuários', { total: utilizadores.length })
+                                : t('users.countFiltered', '{{shown}} de {{total}}', { shown: utilizadoresFiltrados.length, total: utilizadores.length })}
+                        </span>
+                    )}
                 </div>
 
                 {loading ? (
@@ -350,7 +520,12 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         </div>
 
                         <ul className={styles.userList}>
-                            {utilizadores.map((userRow) => {
+                            {utilizadoresFiltrados.length === 0 && (
+                                <li className={styles.emptyState}>
+                                    {t('users.search.noResults', 'Nenhum usuário encontrado para "{{busca}}"', { busca })}
+                                </li>
+                            )}
+                            {utilizadoresFiltrados.map((userRow) => {
                                 const r = (userRow.role || '').toLowerCase();
                                 const isStandard = ['gestor industrial', 'manutentor', 'operador'].includes(r);
 
@@ -371,7 +546,12 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
                                 return (
                                     <li key={userRow.id} className={styles.userItem}>
-                                        <strong>{userRow.nome}</strong>
+                                        <div className={styles.nameCell}>
+                                            <strong>{userRow.nome}</strong>
+                                            {userRow.email && (
+                                                <span className={styles.emailSecondary}>{userRow.email}</span>
+                                            )}
+                                        </div>
                                         <span>{userRow.usuario}</span>
                                         <span>
                                             {userRow.matricula ? (
@@ -425,7 +605,13 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             {/* Modal de criação/edição */}
             <Modal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setUsernameStatus('idle');
+                    setSugestoes([]);
+                    setNomeWarning(null);
+                    usuarioManuallyEditedRef.current = false;
+                }}
                 title={
                     modoEdicao
                         ? t('users.modal.editTitle')
@@ -438,18 +624,52 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         label={t('users.form.fullName')}
                         type="text"
                         value={nome}
-                        onChange={(e) => setNome(e.target.value)}
+                        onChange={handleNomeChange}
                         required
                     />
+                    {nomeWarning && (
+                        <p className={styles.fieldWarning}>{nomeWarning}</p>
+                    )}
 
-                    <Input
-                        id="usuario"
-                        label={t('users.form.usernameOptional', 'Nome de usuário (login) – opcional')}
-                        type="text"
-                        value={usuario}
-                        onChange={(e) => setUsuario(e.target.value)}
-                        placeholder={t('users.form.usernamePlaceholder', 'ex: gabriel.palazini')}
-                    />
+                    <div className={styles.fieldGroup}>
+                        <Input
+                            id="usuario"
+                            label={t('users.form.usernameOptional', 'Nome de usuário (login) – opcional')}
+                            type="text"
+                            value={usuario}
+                            onChange={handleUsuarioChange}
+                            placeholder={t('users.form.usernamePlaceholder', 'ex: gabriel.palazini')}
+                        />
+                        {usernameStatus === 'checking' && (
+                            <p className={styles.fieldHint}>{t('users.form.checkingUsername')}</p>
+                        )}
+                        {usernameStatus === 'available' && (
+                            <p className={styles.fieldSuccess}>{t('users.form.usernameAvailable')}</p>
+                        )}
+                        {usernameStatus === 'taken' && (
+                            <p className={styles.fieldError}>
+                                {t('users.form.usernameTaken')}
+                                {sugestoes.length > 0 && (
+                                    <>
+                                        {' '}{t('users.form.usernameSuggestions')}
+                                        {sugestoes.map(s => (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                className={styles.suggestionChip}
+                                                onClick={() => {
+                                                    setUsuario(s);
+                                                    usuarioManuallyEditedRef.current = true;
+                                                }}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </>
+                                )}
+                            </p>
+                        )}
+                    </div>
 
                     <Input
                         id="email"

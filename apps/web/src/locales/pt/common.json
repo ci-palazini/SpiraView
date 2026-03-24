@@ -1176,6 +1176,12 @@
     "title": "Gestão de Usuários",
     "subtitle": "Gerencie os usuários do sistema, seus papéis e credenciais internas.",
     "loading": "Carregando usuários...",
+    "count": "{{total}} usuários",
+    "countFiltered": "{{shown}} de {{total}}",
+    "search": {
+      "placeholder": "Buscar por nome, usuário ou e-mail...",
+      "noResults": "Nenhum usuário encontrado para \"{{busca}}\""
+    },
     "actions": {
       "create": "Criar Novo Usuário",
       "edit": "Editar",
@@ -1218,7 +1224,11 @@
       "createUser": "Criar Usuário",
       "matricula": "Matrícula",
       "matriculaPlaceholder": "Ex: 1234",
-      "matriculaHint": "4 dígitos numéricos para login simplificado"
+      "matriculaHint": "4 dígitos numéricos para login simplificado",
+      "checkingUsername": "Verificando disponibilidade...",
+      "usernameAvailable": "✓ Disponível",
+      "usernameTaken": "✗ Já existe.",
+      "usernameSuggestions": "Sugestões:"
     },
     "roles": {
       "all": "Todos",
@@ -1227,7 +1237,8 @@
       "manager": "Gestor"
     },
     "validation": {
-      "fullName": "Informe nome e sobrenome."
+      "fullName": "Informe nome e sobrenome.",
+      "duplicateName": "Atenção: já existe um usuário com nome semelhante ({{nome}})"
     },
     "confirm": {
       "delete": "Excluir usuário {{name}}?"
@@ -1752,6 +1763,41 @@
         "title": "Lançamentos",
         "machine": "Máquina",
         "hours": "Horas"
+      }
+    },
+    "resultados": {
+      "title": "Resultados de Produção",
+      "subtitle": "Acompanhe o ritmo diário e o acumulado mensal",
+      "export": {
+        "button": "Exportar Excel"
+      },
+      "kpi": {
+        "dayMeta": "Meta do Dia",
+        "dayReal": "Realizado no Dia",
+        "accMeta": "Meta Acumulada",
+        "accPct": "% Atingimento Mensal"
+      },
+      "ritmo": {
+        "title": "Ritmo Diário"
+      },
+      "detalhes": {
+        "title": "Detalhes de Produção",
+        "accumulator": "Acumulado até {{day}}"
+      },
+      "table": {
+        "day": "Dia",
+        "meta": "Meta",
+        "real": "Real",
+        "structure": "Estrutura",
+        "meta_day": "Meta dia",
+        "real_day": "Real dia",
+        "delta_day": "Δ dia",
+        "meta_acc": "Meta acum.",
+        "real_acc": "Real acum.",
+        "delta_acc": "Δ acum.",
+        "pct_day": "% dia",
+        "pct_month": "% mês",
+        "total_general": "TOTAL GERAL"
       }
     }
   },

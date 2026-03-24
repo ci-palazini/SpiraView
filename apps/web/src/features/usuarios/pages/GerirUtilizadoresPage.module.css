@@ -100,6 +100,32 @@
   background: #fff;
 }
 
+/* ==================== SEARCH ==================== */
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  color: var(--color-neutral-400);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 32px !important;
+  min-width: 240px;
+}
+
+.userCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  white-space: nowrap;
+}
+
 /* ==================== USER LIST - NOTION STYLE ==================== */
 .userListHeader {
   display: grid;
@@ -161,6 +187,30 @@
 
 .userItem span {
   color: var(--color-neutral-500);
+  font-size: var(--font-size-sm);
+}
+
+/* ==================== NAME CELL ==================== */
+.nameCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.emailSecondary {
+  font-size: 11px;
+  color: var(--color-neutral-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.emptyState {
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  color: var(--color-neutral-400);
   font-size: var(--font-size-sm);
 }
 
@@ -263,6 +313,66 @@
   font-size: var(--font-size-sm);
 }
 
+/* ==================== FIELD FEEDBACK ==================== */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  margin: 0;
+  padding-left: 2px;
+}
+
+.fieldSuccess {
+  font-size: var(--font-size-xs);
+  color: var(--color-success-600);
+  margin: 0;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger-600);
+  margin: 0;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fieldWarning {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning-600);
+  margin: 0;
+  padding-left: 2px;
+}
+
+.suggestionChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border: 1px solid var(--color-danger-300);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-danger-600);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  font-family: 'SF Mono', 'Roboto Mono', monospace;
+}
+
+.suggestionChip:hover {
+  background: var(--color-danger-50);
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .pageHeader {
@@ -283,11 +393,21 @@
 
   .filterGroup {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .filterSelect {
-    width: 100%;
+    flex: 1;
     min-width: 0;
+  }
+
+  .searchInput {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .searchWrapper {
+    width: 100%;
   }
 }
 
