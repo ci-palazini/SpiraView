@@ -48,6 +48,7 @@ import LogisticaPropostoDashboardPage from '../../features/logistica/pages/Logis
 import LogisticaPropostoUploadPage from '../../features/logistica/pages/LogisticaPropostoUploadPage';
 import ConfiguracaoNotificacoesPage from '../../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../../features/ehs/pages/SafetyUploadPage';
+import SafetyCompliancePage from '../../features/ehs/pages/SafetyCompliancePage';
 import TvSettingsPage from '../../features/configuracoes/pages/TvSettingsPage';
 import PdcaDashboardPage from '../../features/pdca/pages/PdcaDashboardPage';
 import PdcaPlanosPage from '../../features/pdca/pages/PdcaPlanosPage';
@@ -177,6 +178,10 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/ehs/safety-upload"
                 element={canAccessPage('safety', <SafetyUploadPage user={user} />)}
+            />
+            <Route
+                path="/ehs/compliance"
+                element={canAccessPage('safety', <SafetyCompliancePage />)}
             />
 
             <Route

@@ -89,7 +89,8 @@
     "kaizensDashboard": "Kaizen Dashboard",
     "kamishibaiHistory": "Audits (History)",
     "dailyMeeting": "Daily Meeting",
-    "safetyUpload": "Safety Upload (BBS)"
+    "safetyUpload": "Safety Upload (BBS)",
+    "safetyCompliance": "BBS Compliance"
   },
   "reuniao_diaria": {
     "title": "Daily Meeting — SQDCP",
@@ -613,6 +614,31 @@
     "nextPage": "Next Page",
     "lastPage": "Last Page",
     "actions": "Actions"
+  },
+  "ehs": {
+    "resolver": {
+      "title": "Resolve Observers",
+      "open_btn": "Resolve observers ({{count}})",
+      "records": "{{count}} record(s)",
+      "skip": "— Don't map now —",
+      "submit": "Map ({{count}})",
+      "submitting": "Saving...",
+      "success": "{{mappings}} mapping(s) saved, {{observations}} observation(s) updated.",
+      "error": "Error resolving observers.",
+      "empty": "No pending observers."
+    },
+    "compliance": {
+      "title": "Monthly BBS Compliance",
+      "subtitle": "Track monthly BBS observation compliance per user",
+      "year": "Year",
+      "overall": "Overall Compliance",
+      "best_month": "Best Month",
+      "worst_month": "Worst Month",
+      "active_users": "Active Users",
+      "col_name": "Name",
+      "col_function": "Function",
+      "empty": "No active users found."
+    }
   },
   "chamadoDetalhe": {
     "notFound": "Work order not found.",

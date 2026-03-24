@@ -1,0 +1,165 @@
+/* SafetyCompliancePage.module.css */
+.container {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px;
+    margin-top: 12px;
+}
+
+.yearSelector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.yearSelector label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 14px;
+}
+
+.yearSelector select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+}
+
+.yearSelector select:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.summaryBar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.summaryCard {
+    text-align: center;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.summaryValue {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.summaryLabel {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.complianceTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.complianceTable thead {
+    background: #f1f5f9;
+}
+
+.complianceTable th {
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.complianceTable th:first-child,
+.complianceTable th:nth-child(2) {
+    text-align: left;
+}
+
+.complianceTable td {
+    padding: 6px 10px;
+    text-align: center;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+}
+
+.complianceTable td:first-child,
+.complianceTable td:nth-child(2) {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.complianceTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.complianceTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+.cellGood {
+    background: #dcfce7;
+    color: #16a34a;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.cellBad {
+    background: #fee2e2;
+    color: #dc2626;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.cellFuture {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+.cellTotal {
+    font-weight: 700;
+    color: #334155;
+}
+
+.nameCol {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.funcaoCol {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.loading {
+    text-align: center;
+    padding: 48px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 48px;
+    color: #94a3b8;
+    font-size: 14px;
+}

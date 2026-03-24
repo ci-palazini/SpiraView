@@ -43,7 +43,12 @@ import type {
     ProducaoMetaDia,
     MetaUpsertPayload,
     ResultadosMensais,
-    MaquinaProducaoConfig
+    MaquinaProducaoConfig,
+    SafetyUploadResponse,
+    SafetyResolverPayload,
+    SafetyResolverResponse,
+    SafetyComplianceMensal,
+    SafetyUploadHistory
 } from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
@@ -1738,4 +1743,22 @@ export async function atualizarMaquinaProducaoConfig(id: string, config: { setor
         body: config,
         auth
     });
+}
+
+// ===== EHS / SAFETY =====
+export async function ehsUpload(nomeArquivo: string, inputRows: Record<string, unknown>[]): Promise<SafetyUploadResponse> {
+    return http.post<SafetyUploadResponse>('/ehs/upload', { data: { nomeArquivo, inputRows } });
+}
+
+export async function ehsResolverObservadores(payload: SafetyResolverPayload): Promise<SafetyResolverResponse> {
+    return http.post<SafetyResolverResponse>('/ehs/resolver-observadores', { data: payload });
+}
+
+export async function ehsComplianceMensal(ano: number): Promise<{ items: SafetyComplianceMensal[] }> {
+    return http.get<{ items: SafetyComplianceMensal[] }>('/ehs/compliance-mensal', { params: { ano } });
+}
+
+export async function ehsUploads(mes?: string): Promise<SafetyUploadHistory[]> {
+    const url = mes ? `/ehs/uploads?mes=${mes}` : '/ehs/uploads';
+    return http.get<SafetyUploadHistory[]>(url);
 }

@@ -3,8 +3,15 @@ import { Router } from 'express';
 import { pool } from '../../db';
 import { requirePermission } from '../../middlewares/requirePermission';
 import { logger } from '../../logger';
+import { jaroWinkler } from '../../utils/fuzzy';
+import type { SafetyPendente, SafetyCandidato } from '@spiraview/shared';
 
 export const ehsUploadRouter: Router = Router();
+
+// Fuzzy matching thresholds
+const AUTO_MATCH_THRESHOLD = 0.85;
+const CANDIDATE_THRESHOLD = 0.60;
+const MAX_CANDIDATES = 3;
 
 // ===== Helpers =====
 
@@ -154,8 +161,19 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
         }
         if (!cols.data_observacao) {
             return res
-                .status(400)
                 .json({ error: 'Coluna "Data de Observação" não encontrada no CSV.' });
+        }
+
+        let mes_referencia: string | null = null;
+        for (const row of inputRows) {
+            const colObs = cols.data_observacao;
+            if (colObs && row[colObs]) {
+                const dataObs = parseDate(String(row[colObs]));
+                if (dataObs) {
+                    mes_referencia = dataObs.substring(0, 7);
+                    break;
+                }
+            }
         }
 
         // Agrupar por registro_id para deduplicar e coletar KSBs
@@ -289,12 +307,105 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
 
         // Registrar upload no histórico
         await client.query(
-            `INSERT INTO safety_uploads (nome_arquivo, total_linhas, registros_novos, registros_atualizados, enviado_por_id)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [nomeArquivo || 'upload.csv', inputRows.length, novos, atualizados, userId]
+            `INSERT INTO safety_uploads (nome_arquivo, total_linhas, registros_novos, registros_atualizados, enviado_por_id, mes_referencia)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [nomeArquivo || 'upload.csv', inputRows.length, novos, atualizados, userId, mes_referencia]
         );
 
         await client.query('COMMIT');
+
+        // === Post-transaction: fuzzy matching (non-critical, errors are logged but don't fail the upload) ===
+        let pendentes: SafetyPendente[] = [];
+        try {
+            // 1. Collect unique observer texts from this upload batch
+            const observadorTextos = new Set<string>();
+            for (const [, { row }] of grouped) {
+                const obsCol = cols.observador;
+                if (obsCol) {
+                    const val = row[obsCol];
+                    if (val != null && String(val).trim()) {
+                        observadorTextos.add(String(val).trim());
+                    }
+                }
+            }
+
+            if (observadorTextos.size > 0) {
+                const textos = Array.from(observadorTextos);
+
+                // 2. Check cache: existing mappings
+                const { rows: existingMap } = await pool.query(
+                    `SELECT observador_texto, usuario_id FROM safety_observador_mapeamentos
+                     WHERE observador_texto = ANY($1)`,
+                    [textos]
+                );
+                const mapped = new Set(existingMap.map((r: { observador_texto: string }) => r.observador_texto));
+
+                // Auto-apply cached mappings
+                for (const m of existingMap) {
+                    await pool.query(
+                        `UPDATE safety_observacoes SET usuario_id = $1
+                         WHERE observador = $2 AND usuario_id IS NULL`,
+                        [m.usuario_id, m.observador_texto]
+                    );
+                }
+
+                // 3. For unmapped texts, load active users and compute scores
+                const unmapped = textos.filter((t) => !mapped.has(t));
+                if (unmapped.length > 0) {
+                    const { rows: usuarios } = await pool.query(
+                        `SELECT id, nome FROM usuarios WHERE ativo = true`
+                    );
+
+                    for (const texto of unmapped) {
+                        // Count how many observations use this text
+                        const { rows: countRows } = await pool.query(
+                            `SELECT COUNT(*)::int AS cnt FROM safety_observacoes
+                             WHERE observador = $1 AND usuario_id IS NULL`,
+                            [texto]
+                        );
+                        const qtdRegistros = countRows[0]?.cnt || 0;
+
+                        // Compute scores against all users
+                        const scored: SafetyCandidato[] = usuarios
+                            .map((u: { id: string; nome: string }) => ({
+                                usuarioId: u.id,
+                                nome: u.nome,
+                                score: jaroWinkler(texto, u.nome),
+                            }))
+                            .sort((a: SafetyCandidato, b: SafetyCandidato) => b.score - a.score);
+
+                        const best = scored[0];
+
+                        if (best && best.score >= AUTO_MATCH_THRESHOLD) {
+                            // Auto-match: save mapping + update observations
+                            await pool.query(
+                                `INSERT INTO safety_observador_mapeamentos (observador_texto, usuario_id, criado_por_id)
+                                 VALUES ($1, $2, $3)
+                                 ON CONFLICT (observador_texto) DO UPDATE SET usuario_id = EXCLUDED.usuario_id`,
+                                [texto, best.usuarioId, userId]
+                            );
+                            await pool.query(
+                                `UPDATE safety_observacoes SET usuario_id = $1
+                                 WHERE observador = $2 AND usuario_id IS NULL`,
+                                [best.usuarioId, texto]
+                            );
+                            logger.info(
+                                { observador: texto, usuario: best.nome, score: best.score },
+                                '[ehs/upload] Auto-matched observer'
+                            );
+                        } else {
+                            // Return as pending for manual resolution
+                            const candidatos = scored
+                                .filter((c: SafetyCandidato) => c.score >= CANDIDATE_THRESHOLD)
+                                .slice(0, MAX_CANDIDATES);
+                            pendentes.push({ observadorTexto: texto, qtdRegistros, candidatos });
+                        }
+                    }
+                }
+            }
+        } catch (fuzzyErr) {
+            logger.error({ err: fuzzyErr }, '[ehs/upload] Fuzzy matching failed (non-critical)');
+        }
 
         res.json({
             ok: true,
@@ -304,6 +415,7 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
                 novos,
                 atualizados,
             },
+            pendentes,
         });
     } catch (e: unknown) {
         await client.query('ROLLBACK').catch(() => { });
@@ -318,17 +430,25 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
  * GET /ehs/uploads
  * Lista histórico de uploads de segurança.
  */
-ehsUploadRouter.get('/ehs/uploads', requirePermission('safety', 'ver'), async (_req, res) => {
+ehsUploadRouter.get('/ehs/uploads', requirePermission('safety', 'ver'), async (req, res) => {
     try {
-        const result = await pool.query(
-            `SELECT su.id, su.nome_arquivo, su.total_linhas, su.registros_novos,
-                    su.registros_atualizados, su.criado_em,
+        const { mes } = req.query;
+        let query = `
+             SELECT su.id, su.nome_arquivo, su.total_linhas, su.registros_novos,
+                    su.registros_atualizados, su.criado_em, su.mes_referencia,
                     u.nome as enviado_por
              FROM safety_uploads su
              LEFT JOIN usuarios u ON u.id = su.enviado_por_id
-             ORDER BY su.criado_em DESC
-             LIMIT 20`
-        );
+        `;
+        const params: any[] = [];
+        if (typeof mes === 'string' && /^\d{4}-\d{2}$/.test(mes)) {
+            query += ` WHERE su.mes_referencia = $1`;
+            params.push(mes);
+        }
+        
+        query += ` ORDER BY su.criado_em DESC LIMIT 20`;
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (e: unknown) {
         logger.error({ err: e }, '[ehs/uploads] Erro ao listar uploads');

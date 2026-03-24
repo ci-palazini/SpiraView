@@ -748,6 +748,17 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                                 <span>{t('nav.safetyUpload')}</span>
                             </NavLink>
                         )}
+                        {perm.canView('safety') && (
+                            <NavLink
+                                to="/ehs/compliance"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiBarChart2 className={styles.navIcon} />
+                                <span>{t('nav.safetyCompliance', 'Compliance BBS')}</span>
+                            </NavLink>
+                        )}
                     </SidebarGroup>
                 )
             }

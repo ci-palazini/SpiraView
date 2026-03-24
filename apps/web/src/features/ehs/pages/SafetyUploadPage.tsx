@@ -1,31 +1,16 @@
 // src/features/configuracoes/pages/SafetyUploadPage.tsx
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiUploadCloud, FiFile, FiCheck, FiAlertCircle, FiTrash2, FiX } from 'react-icons/fi';
+import { FiUploadCloud, FiFile, FiCheck, FiAlertCircle, FiTrash2, FiX, FiUsers } from 'react-icons/fi';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import PageHeader from '../../../shared/components/PageHeader';
-import { http } from '../../../services/apiClient';
+import { ehsUpload, ehsUploads } from '../../../services/apiClient';
 import { formatDateTime } from '../../../shared/utils/dateUtils';
 import type { User } from '../../../App';
+import type { SafetyPendente, SafetyUploadHistory } from '@spiraview/shared';
+import ResolverObservadoresModal from '../components/ResolverObservadoresModal';
 import styles from './SafetyUploadPage.module.css';
-
-interface UploadResumo {
-    totalLinhasCsv: number;
-    registrosUnicos: number;
-    novos: number;
-    atualizados: number;
-}
-
-interface UploadHistory {
-    id: string;
-    nome_arquivo: string;
-    total_linhas: number;
-    registros_novos: number;
-    registros_atualizados: number;
-    criado_em: string;
-    enviado_por: string | null;
-}
 
 interface SafetyUploadPageProps {
     user: User;
@@ -39,12 +24,18 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
     const [rows, setRows] = useState<Record<string, unknown>[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [result, setResult] = useState<{ ok: boolean; resumo: UploadResumo } | null>(null);
-    const [history, setHistory] = useState<UploadHistory[]>([]);
+    const [result, setResult] = useState<{ ok: boolean; resumo: { totalLinhasCsv: number; registrosUnicos: number; novos: number; atualizados: number } } | null>(null);
+    const [history, setHistory] = useState<SafetyUploadHistory[]>([]);
+    const [pendentes, setPendentes] = useState<SafetyPendente[]>([]);
+    const [showResolver, setShowResolver] = useState(false);
+    const [mesFiltro, setMesFiltro] = useState(() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
 
-    const fetchHistory = useCallback(async () => {
+    const fetchHistory = useCallback(async (mesParam?: string) => {
         try {
-            const data = await http.get<UploadHistory[]>('/ehs/uploads');
+            const data = await ehsUploads(mesParam);
             setHistory(data);
         } catch {
             // ignore
@@ -52,8 +43,8 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
     }, []);
 
     useEffect(() => {
-        fetchHistory();
-    }, [fetchHistory]);
+        fetchHistory(mesFiltro);
+    }, [fetchHistory, mesFiltro]);
 
     const processFile = useCallback((f: File) => {
         setFile(f);
@@ -107,9 +98,7 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
         if (!rows.length) return;
         setUploading(true);
         try {
-            const res = await http.post<{ ok: boolean; resumo: UploadResumo }>('/ehs/upload', {
-                data: { nomeArquivo: file?.name || 'upload.csv', inputRows: rows },
-            });
+            const res = await ehsUpload(file?.name || 'upload.csv', rows);
             setResult(res);
 
             if (res.ok) {
@@ -117,7 +106,12 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
                 setFile(null);
                 setRows([]);
                 if (inputRef.current) inputRef.current.value = '';
-                fetchHistory();
+                fetchHistory(mesFiltro);
+
+                // If there are pendentes, store them for the resolver modal
+                if (res.pendentes && res.pendentes.length > 0) {
+                    setPendentes(res.pendentes);
+                }
             }
         } catch (err: any) {
             toast.error(err?.message || t('safety_upload.upload_error'));
@@ -130,6 +124,7 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
         setFile(null);
         setRows([]);
         setResult(null);
+        setPendentes([]);
         if (inputRef.current) inputRef.current.value = '';
     }, []);
 
@@ -285,19 +280,38 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
                         <button className={styles.newUploadBtn} onClick={handleClear}>
                             {t('safety_upload.new_upload')}
                         </button>
+                        {pendentes.length > 0 && (
+                            <button
+                                className={styles.uploadBtn}
+                                onClick={() => setShowResolver(true)}
+                                style={{ marginLeft: 8 }}
+                            >
+                                <FiUsers />
+                                {t('ehs.resolver.open_btn', { count: pendentes.length })}
+                            </button>
+                        )}
                     </div>
                 )}
 
                 {/* Upload history */}
-                {history.length > 0 && (
-                    <div className={styles.historySection}>
+                <div className={styles.historySection}>
+                    <div className={styles.historyHeaderRow}>
                         <h3 className={styles.historyTitle}>
                             {t('safety_upload.history_title')}
                         </h3>
+                        <input
+                            type="month"
+                            className={styles.monthInput}
+                            value={mesFiltro}
+                            onChange={(e) => setMesFiltro(e.target.value)}
+                        />
+                    </div>
+                    {history.length > 0 ? (
                         <table className={styles.historyTable}>
                             <thead>
                                 <tr>
                                     <th>{t('safety_upload.history_file')}</th>
+                                    <th>{t('safety_upload.history_ref_month', { defaultValue: 'Mês Ref.' })}</th>
                                     <th style={{ textAlign: 'center' }}>{t('safety_upload.history_created')}</th>
                                     <th style={{ textAlign: 'center' }}>{t('safety_upload.history_updated')}</th>
                                     <th>{t('safety_upload.history_uploaded_by')}</th>
@@ -308,6 +322,9 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
                                 {history.map((h) => (
                                     <tr key={h.id}>
                                         <td>{h.nome_arquivo}</td>
+                                        <td>
+                                            {h.mes_referencia ? h.mes_referencia.replace('-', '/') : '—'}
+                                        </td>
                                         <td style={{ textAlign: 'center' }} className={styles.statNew}>
                                             {h.registros_novos}
                                         </td>
@@ -320,15 +337,22 @@ export default function SafetyUploadPage({ user }: SafetyUploadPageProps) {
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                )}
-
-                {history.length === 0 && !file && (
-                    <div className={styles.emptyState}>
-                        {t('safety_upload.history_empty')}
-                    </div>
-                )}
+                    ) : (
+                        <div className={styles.emptyState} style={{ padding: '2rem 0' }}>
+                            {t('safety_upload.history_empty_month', { defaultValue: 'Nenhum upload encontrado para este mês.' })}
+                        </div>
+                    )}
+                </div>
             </div>
+            <ResolverObservadoresModal
+                open={showResolver}
+                pendentes={pendentes}
+                onClose={() => setShowResolver(false)}
+                onResolved={() => {
+                    setPendentes([]);
+                    fetchHistory(mesFiltro);
+                }}
+            />
         </>
     );
 }

@@ -585,6 +585,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <Skeleton variant="text" width={100} height={20} />
                             <Skeleton variant="text" width={60} height={20} />
                             <Skeleton variant="text" width={80} height={20} />
+                            <Skeleton variant="text" width={80} height={20} />
                             <Skeleton variant="text" width={60} height={20} style={{ marginLeft: 'auto' }} />
                         </div>
 
@@ -596,6 +597,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                     <Skeleton variant="text" width="25%" height={20} />
                                     <Skeleton variant="rectangular" width={50} height={24} style={{ borderRadius: '4px' }} />
                                     <Skeleton variant="rectangular" width={80} height={24} style={{ borderRadius: '8px' }} />
+                                    <Skeleton variant="text" width="60%" height={20} />
                                     <div className={styles.actions}>
                                         <Skeleton variant="circular" width={32} height={32} />
                                         <Skeleton variant="circular" width={32} height={32} />
@@ -610,7 +612,8 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <span>{t('users.table.fullName')}</span>
                             <span>{t('users.table.username')}</span>
                             <span>{t('users.table.matricula', 'Matrícula')}</span>
-                            <span>{t('users.table.function')}</span>
+                            <span>{t('users.table.role', 'Tipo de Acesso')}</span>
+                            <span>{t('users.table.function', 'Função')}</span>
                             <span style={{ textAlign: 'right' }}>
                                 {t('users.table.actions')}
                             </span>
@@ -660,6 +663,9 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                         >
                                             {/* O conteúdo é apenas o label, o DOT vem do CSS ::before */}
                                             {getRoleLabel(userRow.role)}
+                                        </span>
+                                        <span className={styles.functionText} title={userRow.funcao || ''}>
+                                            {userRow.funcao || '—'}
                                         </span>
                                         <div className={styles.actions}>
                                             {userRow.role !== 'admin' && (

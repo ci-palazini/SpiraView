@@ -129,7 +129,7 @@
 /* ==================== USER LIST - NOTION STYLE ==================== */
 .userListHeader {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 0.8fr 1fr 100px;
+  grid-template-columns: 2fr 1.2fr 0.8fr 0.8fr 2fr 100px;
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-2) var(--spacing-3);
@@ -148,7 +148,7 @@
 
 .userItem {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 0.8fr 1fr 100px;
+  grid-template-columns: 2fr 1.2fr 0.8fr 0.8fr 2fr 100px;
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-3);
@@ -263,6 +263,15 @@
 
 .roleOperador::before {
   background: var(--color-primary-500);
+}
+
+/* ==================== FUNCTION TEXT ==================== */
+.functionText {
+  color: var(--color-neutral-600);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==================== ACTIONS - MINIMAL ==================== */

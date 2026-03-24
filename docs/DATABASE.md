@@ -43,6 +43,8 @@ erDiagram
     kamishibai_auditorias ||--o{ kamishibai_respostas : "respostas da auditoria"
     
     safety_observacoes ||--o{ safety_observacoes_ksbs : "KSBs observados"
+    usuarios ||--o{ safety_observacoes : "foi observador"
+    usuarios ||--o{ safety_observador_mapeamentos : "reserva nome"
 ```
 
 ---
@@ -623,6 +625,7 @@ Armazena observações comportamentais (BBS) importadas da plataforma externa. C
 |--------|------|-----------|
 | `id` | UUID (PK) | Identificador único |
 | `registro_id` | INTEGER (UNIQUE) | ID de registro na plataforma externa |
+| `usuario_id` | UUID | FK → usuarios.id (Vinculado automático via Fuzzy ou resolução manual) |
 | `data_observacao` | DATE | Data da observação |
 | `observador` | TEXT | Nome do observador |
 | `num_pessoas_observadas` | INTEGER | Número de pessoas observadas |
@@ -651,6 +654,19 @@ Relação N:N entre observações e categorias KSBs (Key Safety Behaviors). Uma 
 | `observacao_id` | UUID (FK → safety_observacoes) | Referência à observação |
 | `categoria` | TEXT | Categoria KSB (EPI, Movendo-se em torno, etc.) |
 | `resposta` | TEXT | Classificação: "Arriscados" ou "Seguros" |
+
+#### `safety_observador_mapeamentos`
+Link persistente usado pelo sistema de Fuzzy Matching para lembrar com quem um nome preenchido incorretamente ("observador") parece mapear no sistema ("usuario_id").
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID (PK) | Identificador único |
+| `nome_observador` | TEXT | Nome literal exato conforme string do arquivo enviado |
+| `usuario_id` | UUID | FK → usuarios.id apontando pro usuário correto |
+| `confianca` | DECIMAL | Score do Fuzzy Match (0.0 até 1.0) |
+| `resolvido_por` | UUID | FK → usuarios.id de quem fez o mapeamento manual |
+| `ignorado` | BOOLEAN | Caso esse observador seja de área terceira e nunca vá ser mapeado |
+| `criado_em` / `atualizado_em` | TIMESTAMPTZ | Timestamps |
 
 #### `safety_uploads`
 Histórico de uploads de relatórios CSV/XLSX de Safety.

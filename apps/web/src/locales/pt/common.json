@@ -74,7 +74,8 @@
     "kaizensDashboard": "Dashboard Kaizen",
     "kamishibaiHistory": "Auditorias (Histórico)",
     "dailyMeeting": "Reunião Diária",
-    "safetyUpload": "Upload Safety (BBS)"
+    "safetyUpload": "Upload Safety (BBS)",
+    "safetyCompliance": "Compliance BBS"
   },
   "reuniao_diaria": {
     "title": "Reunião Diária — SQDCP",
@@ -727,6 +728,31 @@
     "nextPage": "Próxima Página",
     "lastPage": "Última Página",
     "actions": "Ações"
+  },
+  "ehs": {
+    "resolver": {
+      "title": "Resolver Observadores",
+      "open_btn": "Resolver observadores ({{count}})",
+      "records": "{{count}} registro(s)",
+      "skip": "— Não mapear agora —",
+      "submit": "Mapear ({{count}})",
+      "submitting": "Salvando...",
+      "success": "{{mappings}} mapeamento(s) salvo(s), {{observations}} observação(ões) atualizada(s).",
+      "error": "Erro ao resolver observadores.",
+      "empty": "Nenhum observador pendente."
+    },
+    "compliance": {
+      "title": "Compliance BBS Mensal",
+      "subtitle": "Acompanhe a conformidade mensal de observações BBS por utilizador",
+      "year": "Ano",
+      "overall": "Compliance Geral",
+      "best_month": "Melhor Mês",
+      "worst_month": "Pior Mês",
+      "active_users": "Utilizadores Ativos",
+      "col_name": "Nome",
+      "col_function": "Função",
+      "empty": "Nenhum utilizador ativo encontrado."
+    }
   },
   "chamadoDetalhe": {
     "notFound": "Chamado não encontrado.",

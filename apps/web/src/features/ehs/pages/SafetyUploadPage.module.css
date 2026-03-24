@@ -277,11 +277,32 @@
     margin-top: 2rem;
 }
 
+.historyHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .historyTitle {
     font-size: 14px;
     font-weight: 600;
     color: #64748b;
-    margin-bottom: 8px;
+    margin-bottom: 0;
+}
+
+.monthInput {
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #334155;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.monthInput:focus {
+    border-color: #3b82f6;
 }
 
 .historyTable {

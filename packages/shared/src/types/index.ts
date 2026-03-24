@@ -539,3 +539,57 @@ export interface MaquinaProducaoConfig {
     escopoProducao: boolean;
 }
 
+// ---------- EHS / Safety ----------
+export interface SafetyCandidato {
+    usuarioId: string;
+    nome: string;
+    score: number;
+}
+
+export interface SafetyPendente {
+    observadorTexto: string;
+    qtdRegistros: number;
+    candidatos: SafetyCandidato[];
+}
+
+export interface SafetyUploadResumo {
+    totalLinhasCsv: number;
+    registrosUnicos: number;
+    novos: number;
+    atualizados: number;
+}
+
+export interface SafetyUploadResponse {
+    ok: boolean;
+    resumo: SafetyUploadResumo;
+    pendentes: SafetyPendente[];
+}
+
+export interface SafetyResolverPayload {
+    resolucoes: Array<{ observadorTexto: string; usuarioId: string }>;
+}
+
+export interface SafetyResolverResponse {
+    ok: boolean;
+    mapeamentosSalvos: number;
+    observacoesAtualizadas: number;
+}
+
+export interface SafetyComplianceMensal {
+    usuarioId: string;
+    nome: string;
+    funcao: string | null;
+    meses: number[];
+}
+
+export interface SafetyUploadHistory {
+    id: string;
+    nome_arquivo: string;
+    total_linhas: number;
+    registros_novos: number;
+    registros_atualizados: number;
+    criado_em: string;
+    enviado_por: string | null;
+    mes_referencia?: string;
+}
+
