@@ -17,7 +17,6 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 const TvMenuPage = lazy(() => import('./features/tv/TvMenuPage'));
 const TvDashboardPage = lazy(() => import('./features/tv/TvDashboardPage'));
 const TvPinGate = lazy(() => import('./features/tv/components/TvPinGate'));
-const JustificativaChecklistPage = lazy(() => import('./features/manutencao/checklists/pages/JustificativaChecklistPage'));
 
 const AUTH_EVENT = 'auth-user-changed';
 
@@ -29,6 +28,7 @@ export interface User {
     roleId?: string;
     roleNome?: string;
     permissoes?: Record<string, 'nenhum' | 'ver' | 'editar'>;
+    token?: string;
 }
 
 function readStoredUser(): User | null {
