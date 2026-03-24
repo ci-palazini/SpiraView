@@ -754,12 +754,12 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
 
             {/* Configurações - usa permissões granulares */}
             {
-                perm.canViewAny(['usuarios', 'roles', 'notificacoes_config', 'maquinas_config', 'tv_config']) && (
+                perm.canViewAny(['usuarios', 'notificacoes_config', 'maquinas_config', 'tv_config']) && (
                     <>
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
                         </h3>
-                        {perm.canViewAny(['usuarios', 'roles']) && (
+                        {perm.canView('usuarios') && (
                             <div className={styles.groupSublabel}>{t('nav.adminSubAccess', 'Acessos & Usuários')}</div>
                         )}
                         {perm.canView('usuarios') && (
@@ -773,18 +773,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                                 <span>{t('nav.manageUsers')}</span>
                             </NavLink>
                         )}
-                        {perm.canView('roles') && (
-                            <NavLink
-                                to="/configuracoes/roles"
-                                className={({ isActive }) =>
-                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
-                                }
-                            >
-                                <FiShield className={styles.navIcon} />
-                                <span>{t('nav.manageRoles', 'Níveis de Acesso')}</span>
-                            </NavLink>
-                        )}
-                        {perm.canViewAny(['notificacoes_config', 'maquinas_config', 'roles']) && (
+                        {perm.canViewAny(['notificacoes_config', 'maquinas_config']) && (
                             <div className={styles.groupSublabel}>{t('nav.adminSubSystem', 'Sistema')}</div>
                         )}
                         {perm.canView('notificacoes_config') && (

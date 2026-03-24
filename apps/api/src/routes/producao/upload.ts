@@ -293,7 +293,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
 
         // 1. Buscar roles e permissões do banco
         const { rows: permRows } = await pool.query<{ permissoes: Record<string, string>; role_nome: string }>(
-            `SELECT r.permissoes, r.nome as role_nome
+            `SELECT COALESCE(u.permissoes, r.permissoes) as permissoes, r.nome as role_nome
              FROM usuarios u
              LEFT JOIN roles r ON u.role_id = r.id
              WHERE u.id = $1

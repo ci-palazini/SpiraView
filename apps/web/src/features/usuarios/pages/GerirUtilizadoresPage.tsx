@@ -44,14 +44,7 @@ interface UserRow {
     permissoes?: Record<string, NivelPermissao>;
 }
 
-type RoleFilter = 'all' | 'gestor' | 'manutentor' | 'operador';
-
 // ---------- Helpers ----------
-const FUNCAO_MAP_FALLBACK: Record<string, string> = {
-    'gestor industrial': 'Gestor Industrial',
-    manutentor: 'Manutentor',
-    operador: 'Operador',
-};
 
 /**
  * Normalize a full name into a login slug.
@@ -103,6 +96,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [utilizadores, setUtilizadores] = useState<UserRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [roleFiltro, setRoleFiltro] = useState<string>('all');
+    const [funcaoFiltro, setFuncaoFiltro] = useState<string>('');
     const [busca, setBusca] = useState('');
 
     // modal
@@ -116,6 +110,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [emailInput, setEmailInput] = useState('');
     const [senha, setSenha] = useState('');
     const [role, setRole] = useState('operador');
+    const [funcao, setFuncao] = useState('');
     const [matricula, setMatricula] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -172,20 +167,37 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     }, [roleFiltro, t, user?.email, user?.role]);
 
     const utilizadoresFiltrados = useMemo(() => {
+        let result = utilizadores;
+
+        // Filtrar por role
+        if (roleFiltro !== 'all') {
+            result = result.filter(u => (u.role || '').toLowerCase() === roleFiltro.toLowerCase());
+        }
+
+        // Filtrar por funcao
+        if (funcaoFiltro.trim()) {
+            const termo = funcaoFiltro.trim().toLowerCase();
+            result = result.filter(u => (u.funcao || '').toLowerCase().includes(termo));
+        }
+
+        // Filtrar por busca (nome, usuario, email)
         const termo = busca.trim().toLowerCase();
-        if (!termo) return utilizadores;
-        return utilizadores.filter(u =>
-            u.nome.toLowerCase().includes(termo) ||
-            (u.usuario || '').toLowerCase().includes(termo) ||
-            (u.email || '').toLowerCase().includes(termo)
-        );
-    }, [utilizadores, busca]);
+        if (termo) {
+            result = result.filter(u =>
+                u.nome.toLowerCase().includes(termo) ||
+                (u.usuario || '').toLowerCase().includes(termo) ||
+                (u.email || '').toLowerCase().includes(termo)
+            );
+        }
+
+        return result;
+    }, [utilizadores, busca, roleFiltro, funcaoFiltro]);
 
     // Helper para obter label do role dinâmico
     const getRoleLabel = (roleSlug?: string) => {
         if (!roleSlug) return '-';
         const roleObj = roles.find(r => r.nome.toLowerCase() === roleSlug.toLowerCase());
-        return roleObj ? roleObj.nome : (FUNCAO_MAP_FALLBACK[roleSlug.toLowerCase()] || roleSlug);
+        return roleObj ? roleObj.nome : roleSlug;
     };
 
     // Helper para gerar cor consistente baseada no nome do role
@@ -285,9 +297,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
         const nomeUsuario = (usuario || '').trim() || gerarSlug(nomeCompleto);
 
-        // Busca o nome correto do role para usar como "funcao" e armazena na API
-        const roleObj = roles.find(r => r.nome.toLowerCase() === role.toLowerCase());
-        const funcao = roleObj ? roleObj.nome : (FUNCAO_MAP_FALLBACK[role] ?? 'Custom');
+        // funcao é um campo customizável do usuário, não derivado do role
 
         setIsSaving(true);
         try {
@@ -357,6 +367,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setEmailInput('');
             setSenha('');
             setRole('operador');
+            setFuncao('');
             setMatricula('');
             setModoEdicao(false);
             setUsuarioEditandoId(null);
@@ -381,6 +392,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setEmailInput('');
         setSenha('');
         setRole('operador'); // Default seguro
+        setFuncao('');
         setMatricula('');
         setUsernameStatus('idle');
         setSugestoes([]);
@@ -393,6 +405,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setUsuario(userRow.usuario || '');
         setEmailInput(userRow.email || '');
         setRole(userRow.role || 'operador');
+        setFuncao(userRow.funcao || '');
         setMatricula(userRow.matricula || '');
         setModoEdicao(true);
         setUsuarioEditandoId(userRow.id);
@@ -542,6 +555,18 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                 </option>
                             ))}
                         </select>
+
+                        <label htmlFor="funcaoFiltro" className={styles.filterLabel}>
+                            {t('users.form.funcao', 'Função')}
+                        </label>
+                        <input
+                            id="funcaoFiltro"
+                            type="text"
+                            className={`${styles.input} ${styles.filterSelect}`}
+                            placeholder={t('users.search.funcaoPlaceholder', 'Filtrar por função...')}
+                            value={funcaoFiltro}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFuncaoFiltro(e.target.value)}
+                        />
                     </div>
                     {!loading && (
                         <span className={styles.userCount}>
@@ -786,6 +811,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <option value="operador">Carregando...</option>
                         )}
                     </Select>
+
+                    <Input
+                        id="funcao"
+                        label={t('users.form.funcao', 'Função')}
+                        type="text"
+                        value={funcao}
+                        onChange={(e) => setFuncao(e.target.value)}
+                        placeholder={t('users.form.funcaoPlaceholder', 'Ex: Analista, Gerente')}
+                        maxLength={100}
+                    />
 
                     {role.toLowerCase() === 'operador' && (
                         <Input

@@ -1128,18 +1128,6 @@ export interface PaginaPermissao {
     grupo: string;
 }
 
-interface RoleCreate {
-    nome: string;
-    descricao?: string;
-    permissoes: Record<string, NivelPermissao>;
-}
-
-interface RoleUpdate {
-    nome: string;
-    descricao?: string;
-    permissoes: Record<string, NivelPermissao>;
-}
-
 // Listar todas as páginas disponíveis para permissões
 export async function listarPaginasPermissao(auth: AuthParams = {}): Promise<PaginaPermissao[]> {
     const data = await http.get<{ items?: PaginaPermissao[] }>('/roles/pages', { auth });
@@ -1156,21 +1144,6 @@ export async function listarRoles(auth: AuthParams = {}): Promise<Role[]> {
 export async function listarRolesOptions(auth: AuthParams = {}): Promise<{ id: string; nome: string }[]> {
     const data = await http.get<{ items?: { id: string; nome: string }[] }>('/roles/options', { auth });
     return data.items || [];
-}
-
-// Criar novo role
-export async function criarRole(payload: RoleCreate, auth: AuthParams = {}): Promise<Role> {
-    return http.post<Role>('/roles', { data: payload, auth });
-}
-
-// Atualizar role
-export async function atualizarRole(id: string, payload: RoleUpdate, auth: AuthParams = {}): Promise<Role> {
-    return http.put<Role>(`/roles/${id}`, { data: payload, auth });
-}
-
-// Excluir role
-export async function excluirRole(id: string, auth: AuthParams = {}): Promise<void> {
-    await http.delete(`/roles/${id}`, { auth });
 }
 
 // ===== PLANEJAMENTO - CAPACIDADE =====

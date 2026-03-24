@@ -1180,6 +1180,7 @@
     "countFiltered": "{{shown}} de {{total}}",
     "search": {
       "placeholder": "Buscar por nome, usuário ou e-mail...",
+      "funcaoPlaceholder": "Filtrar por função...",
       "noResults": "Nenhum usuário encontrado para \"{{busca}}\""
     },
     "actions": {
@@ -1218,7 +1219,9 @@
       "usernameOptional": "Nome de usuário (login) – opcional",
       "usernamePlaceholder": "ex: gabriel.palazini",
       "emailReal": "Email Real (Opcional)",
-      "role": "Função (Papel)",
+      "role": "Nível de Acesso",
+      "funcao": "Função",
+      "funcaoPlaceholder": "Ex: Analista, Gerente",
       "saving": "Salvando...",
       "saveChanges": "Salvar Alterações",
       "createUser": "Criar Usuário",

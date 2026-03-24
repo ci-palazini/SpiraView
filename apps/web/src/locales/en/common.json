@@ -1066,6 +1066,7 @@
     "countFiltered": "{{shown}} of {{total}}",
     "search": {
       "placeholder": "Search by name, username or email...",
+      "funcaoPlaceholder": "Filter by function...",
       "noResults": "No users found for \"{{busca}}\""
     },
     "actions": {
@@ -1103,7 +1104,9 @@
       "tempPassword": "Temporary Password",
       "usernameOptional": "Username (login) – optional",
       "usernamePlaceholder": "e.g., gabriel.palazini",
-      "role": "Role",
+      "role": "Access Level",
+      "funcao": "Function",
+      "funcaoPlaceholder": "e.g., Analyst, Manager",
       "saving": "Saving...",
       "saveChanges": "Save Changes",
       "createUser": "Create User",

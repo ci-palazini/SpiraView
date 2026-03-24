@@ -24,7 +24,6 @@ import ProducaoUploadDetalhePage from '../../features/producao/pages/ProducaoUpl
 import ProducaoDashboardPage from '../../features/producao/pages/ProducaoDashboardPage';
 import ProducaoColaboradoresPage from '../../features/producao/pages/ProducaoColaboradoresPage';
 import ProducaoColaboradorDetalhePage from '../../features/producao/pages/ProducaoColaboradorDetalhePage';
-import RolesPage from '../../features/configuracoes/pages/RolesPage';
 import MaquinasConfigPage from '../../features/configuracoes/pages/MaquinasConfigPage';
 import PlanejamentoDashboardPage from '../../features/planejamento/pages/PlanejamentoDashboardPage';
 import CapacidadeUploadPage from '../../features/planejamento/pages/CapacidadeUploadPage';
@@ -158,11 +157,6 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/gerir-utilizadores"
                 element={canAccessPage('usuarios', <GerirUtilizadoresPage user={user} />)}
-            />
-
-            <Route
-                path="/configuracoes/roles"
-                element={canAccessPage('roles', <RolesPage user={user} />)}
             />
 
             <Route

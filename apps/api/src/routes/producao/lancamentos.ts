@@ -10,7 +10,8 @@ export const lancamentosRouter: Router = Router();
 async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
     if (!userId) return false;
     const { rows } = await pool.query<{ permissoes: Record<string, string>; role_nome: string }>(
-        `SELECT r.permissoes, r.nome as role_nome FROM usuarios u
+        `SELECT COALESCE(u.permissoes, r.permissoes) as permissoes, r.nome as role_nome
+         FROM usuarios u
          LEFT JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1 LIMIT 1`,
         [userId]

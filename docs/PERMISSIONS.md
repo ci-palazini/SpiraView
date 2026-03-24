@@ -4,19 +4,42 @@ This document describes the implementation and usage of the Granular Permissions
 
 ## Overview
 
-The platform uses a **Role-Based Access Control (RBAC)** system with granular overrides.
-- **Roles**: Define a set of default permissions (e.g., 'Operador', 'Gerente', 'Admin').
-- **Permissions**: Defined per "Page Key" (feature/resource).
+The platform uses a **Role-Based Access Control (RBAC)** system with granular, per-user overrides.
+
+### Structural Roles (Fixed)
+The system has **3 structural roles** that cannot be created or deleted:
+- **`admin`**: Full system access (bypass all permissions)
+- **`operador`**: Machine operator role (may have specific application logic)
+- **`colaborador`**: Generic collaborator (all permissions controlled by granular rules)
+
+### Permissions
+- **Per-User, Granular**: Each user's access is defined by explicit permissions per "Page Key"
+- **Not Role-Based**: Unlike traditional RBAC, users don't inherit permissions from their role
 - **Levels**:
-  - `nenhum`: No access.
-  - `ver`: Read-only access.
-  - `editar`: Read and Write access.
+  - `nenhum`: No access
+  - `ver`: Read-only access
+  - `editar`: Read and Write access
+
+### User Identity
+- **`role`**: One of the 3 structural roles (admin, operador, colaborador)
+- **`funcao`**: Customizable user-friendly label (e.g., "Analista", "Gerente de Produção")
+- **`permissoes`**: JSON object mapping pageKey → permission level
 
 ## Database Schema
 
-Permissions are stored in the `roles` table (or historically `usuarios` overrides).
-The structure is a JSON object:
+### roles table
+- `id`: Role identifier
+- `nome`: Role name (admin, operador, or colaborador)
+- `descricao`: Human-readable description
+- `is_system`: Boolean (true for structural roles)
+- `permissoes`: JSON object (deprecated, not used for access control)
 
+### usuarios table
+- `role_id`: FK to roles table (one of the 3 structural roles)
+- `funcao`: Customizable label/job title (e.g., "Analista de Qualidade")
+- `permissoes`: JSON object with per-user permission overrides
+
+**Permission JSON structure:**
 ```json
 {
   "usuarios": "editar",
@@ -184,36 +207,35 @@ const MyComponent = () => {
 
 ---
 
-## Role Templates (Exemplo)
+## User Permission Examples
 
-Exemplo de configuração de permissões por role:
+Unlike traditional RBAC, permissions are NOT inherited from role. Each user has explicit permissions:
 
-### Operador
+### Example: Analista (role: colaborador)
 ```json
 {
-  "meus_chamados": "editar",
-  "checklists": "editar",
-  "maquinas": "ver",
-  "chamados_abertos": "nenhum",
-  "usuarios": "nenhum"
+  "qualidade_dashboard": "ver",
+  "qualidade_lancamento": "editar",
+  "qualidade_analitico": "ver",
+  "maquinas": "ver"
 }
 ```
 
-### Gerente de Manutenção
+### Example: Gerente de Manutenção (role: colaborador)
 ```json
 {
-  "meus_chamados": "editar",
   "chamados_abertos": "editar",
-  "checklists": "ver",
   "maquinas": "editar",
   "pecas": "editar",
-  "usuarios": "ver"
+  "usuarios": "ver",
+  "relatorios": "ver"
 }
 ```
 
-### Admin
+### Example: Admin (role: admin)
 ```json
-// Bypass automático - todas as permissões são 'editar'
+// No explicit permissions needed - role 'admin' bypasses all checks
+{}
 ```
 
 ---

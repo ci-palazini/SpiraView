@@ -8,12 +8,15 @@ export const pecasRouter: Router = Router();
 // Helper: verificar permissão granular inline
 async function checkPermission(userId: string, pageKey: string, level: 'ver' | 'editar'): Promise<boolean> {
   if (!userId) return false;
-  const { rows } = await pool.query<{ permissoes: Record<string, string> }>(
-    `SELECT r.permissoes FROM usuarios u
+  const { rows } = await pool.query<{ permissoes: Record<string, string>; role_nome: string }>(
+    `SELECT COALESCE(u.permissoes, r.permissoes) as permissoes, r.nome as role_nome
+         FROM usuarios u
          JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1 LIMIT 1`,
     [userId]
   );
+  if (!rows.length) return false;
+  if ((rows[0].role_nome || '').toLowerCase() === 'admin') return true;
   const permissions = rows[0]?.permissoes || {};
   const userPerm = permissions[pageKey];
   if (!userPerm || userPerm === 'nenhum') return false;
