@@ -3,7 +3,7 @@ import React, { useState, useEffect, FormEvent, ChangeEvent, useMemo, useRef } f
 import styles from './GerirUtilizadoresPage.module.css';
 import Modal from '../../../shared/components/Modal';
 import { Input, Select, Button } from '../../../shared/components';
-import { FiPlus, FiEdit, FiTrash2, FiBarChart2, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiBarChart2, FiSearch, FiShield } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Skeleton from '../../../shared/components/Skeleton';
@@ -467,7 +467,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
 
             // Se as permissões do usuário logado foram alteradas, fazer logout automático
             // para forçar re-autenticação com as novas permissões
-            if (usuarioEditandoPermissoes.id === user?.email) {
+            if (usuarioEditandoPermissoes.email === user?.email) {
                 setTimeout(() => {
                     window.location.href = '/logout';
                 }, 1500);
@@ -654,7 +654,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                                 title={t('users.actions.permissions', 'Editar permissões')}
                                                 onClick={() => handleEditarPermissoes(userRow)}
                                             >
-                                                <FiEdit style={{ transform: 'rotate(90deg)' }} />
+                                                <FiShield />
                                             </button>
                                             <button
                                                 className={styles.actionButton}

@@ -115,7 +115,8 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
            'Colaborador'
          ) AS funcao,
          u.ativo,
-         u.matricula
+         u.matricula,
+         COALESCE(u.permissoes, r.permissoes) AS permissoes
        FROM usuarios u
        LEFT JOIN roles r ON u.role_id = r.id
        ${whereSQL}

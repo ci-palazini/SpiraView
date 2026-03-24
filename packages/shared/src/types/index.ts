@@ -175,6 +175,8 @@ export interface UsuarioCreate {
     role?: string;
     funcao?: string;
     senha?: string;
+    matricula?: string;
+    permissoes?: Record<string, NivelPermissao>;
 }
 
 export interface UsuarioVerificarResponse {
