@@ -63,10 +63,9 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
 
 
     const email = user?.email;
-    const role = user?.role;
     const perm = usePermissions(user as any);
 
-    const isManutentorLike = role === 'manutentor' || role === 'gestor industrial' || role === 'admin' || perm.canEdit('meus_chamados');
+    const isManutentorLike = perm.canEdit('meus_chamados') || perm.canEdit('chamados_gestao');
 
     const dtFmt = useMemo(
         () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }),
@@ -105,7 +104,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         }
 
         // Load chamados created by user (for non-manutentores)
-        if (role !== 'manutentor') {
+        if (!isManutentorLike) {
             try {
                 const res = await listarChamadosPorCriador(email, 1, 100);
                 const rows = (res.items ?? res) as ApiChamado[];
@@ -123,7 +122,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
         } else {
             setDocsAtendidos([]);
         }
-    }, [email, role, isManutentorLike]);
+    }, [email, isManutentorLike]);
 
     useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -131,7 +130,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
 
     const chamados = useMemo(() => {
         const map = new Map<string, Chamado>();
-        const fonte = role === 'manutentor' ? docsAssigned : [...docsAssigned, ...docsAtendidos];
+        const fonte = isManutentorLike ? docsAssigned : [...docsAssigned, ...docsAtendidos];
         fonte.forEach(c => map.set(c.id, c));
         let arr = Array.from(map.values());
 
@@ -154,7 +153,7 @@ export default function MeusChamados({ user }: MeusChamadosProps) {
 
         arr.sort(byRecent);
         return arr;
-    }, [docsAssigned, docsAtendidos, statusFiltro, busca, role]);
+    }, [docsAssigned, docsAtendidos, statusFiltro, busca, isManutentorLike]);
 
     if (!email) {
         return (

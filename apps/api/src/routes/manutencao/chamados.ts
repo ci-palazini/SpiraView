@@ -930,9 +930,8 @@ chamadosRouter.post(
       }
 
       const atual = rows[0];
-      const role = String(user.role || "").toLowerCase();
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
-      const isGestorLike = role === "gestor industrial" || role === "admin" || hasGestao;
+      const isGestorLike = hasGestao;
 
       if (!isGestorLike && String(atual.manutentor_id) !== String(user.id)) {
         const { rows: cmRows } = await pool.query(
@@ -1044,7 +1043,7 @@ chamadosRouter.patch(
 
       // manutentor/gestor: se não for gestor, precisa estar associado
       const hasGestao = await checkPermission(user.id, 'chamados_gestao', 'editar');
-      const isGestorLike = (user.role || '').toLowerCase() === "gestor industrial" || user.role === "admin" || hasGestao;
+      const isGestorLike = hasGestao;
 
       if (!isGestorLike && String(atual.manutentor_id) !== String(user.id)) {
         const { rows: cmRows } = await pool.query(
@@ -1111,13 +1110,9 @@ chamadosRouter.post("/chamados", async (req, res) => {
 
     // normalizações
     const tipo = (data.tipo ?? "corretiva") === "preventiva" ? "preventiva" : "corretiva";
-    const role = (auth?.role || "gestor").toLowerCase();
-
-    // Verifica permissão granular para decidir se pode criar chamados avançados (atribuir)
-    // Se for operador (role) e NÃO tiver permissão, só pode abrir
-    // Se tiver permissão 'chamados_gestao' (editar), pode tudo
     const hasGestao = auth?.id ? await checkPermission(auth.id, 'chamados_gestao', 'editar') : false;
-    const canManage = role === 'manutentor' || role === 'gestor industrial' || role === 'admin' || hasGestao;
+    const hasManutentor = auth?.id ? await checkPermission(auth.id, 'meus_chamados', 'editar') : false;
+    const canManage = hasGestao || hasManutentor;
 
     // normaliza status informado, mas ele pode ser sobrescrito adiante
     let statusNorm = normalizeChamadoStatus(data.status) ?? CHAMADO_STATUS.ABERTO;
@@ -1244,8 +1239,7 @@ chamadosRouter.post("/chamados", async (req, res) => {
  */
 chamadosRouter.patch("/chamados/:id", async (req, res) => {
   try {
-    const user = (req as any).user as { role?: string; email?: string } | undefined;
-    const role = user?.role ?? "gestor"; // ambiente dev: default libera
+    const user = (req as any).user as { id?: string; role?: string; email?: string } | undefined;
 
     const id = String(req.params.id);
     const manutentorEmail = req.body?.manutentorEmail as string | undefined;
@@ -1258,16 +1252,19 @@ chamadosRouter.patch("/chamados/:id", async (req, res) => {
     const isConcluido = statusNorm === CHAMADO_STATUS.CONCLUIDO;
     const isAberto = statusNorm === CHAMADO_STATUS.ABERTO;
 
-    if (isEmAndamento && !(role === "manutentor" || role === "gestor industrial")) {
+    const canManutentor = user?.id ? await checkPermission(user.id, 'meus_chamados', 'editar') : false;
+    const canGestao = user?.id ? await checkPermission(user.id, 'chamados_gestao', 'editar') : false;
+
+    if (isEmAndamento && !(canManutentor || canGestao)) {
       return res.status(403).json({ error: "Apenas manutentor/gestor podem mover para 'Em Andamento'." });
     }
     if (isEmAndamento && !manutentorEmail) {
       return res.status(400).json({ error: "manutentorEmail é obrigatório quando status = 'Em Andamento'." });
     }
-    if (isConcluido && !(role === "manutentor" || role === "gestor industrial")) {
+    if (isConcluido && !(canManutentor || canGestao)) {
       return res.status(403).json({ error: "Apenas manutentor/gestor podem concluir." });
     }
-    if (isAberto && role !== "gestor industrial") {
+    if (isAberto && !canGestao) {
       return res.status(403).json({ error: "Apenas gestor pode reabrir para 'Aberto'." });
     }
 

@@ -253,11 +253,11 @@
   /* Cor dinâmica ou fallback neutro */
 }
 
-.roleGestorIndustrial::before {
+.roleAdmin::before {
   background: var(--color-success-500);
 }
 
-.roleManutentor::before {
+.roleColaborador::before {
   background: var(--color-warning-500);
 }
 

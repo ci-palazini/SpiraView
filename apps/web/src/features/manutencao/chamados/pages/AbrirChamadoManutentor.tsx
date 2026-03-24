@@ -189,7 +189,7 @@ export default function AbrirChamadoManutentor({ user }: AbrirChamadoManutentorP
             };
 
             await criarChamado(payload, {
-                role: user?.role || "manutentor",
+                role: user?.role,
                 email: user?.email,
             });
 

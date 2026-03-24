@@ -17,30 +17,15 @@ interface PerfilPageProps {
     user: UserData;
 }
 
-type RoleLabelMap = {
-    [key: string]: { pt: string; es: string };
-};
-
 // ---------- Component ----------
 const PerfilPage = ({ user }: PerfilPageProps) => {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [senhaAtual, setSenhaAtual] = useState('');
     const [novaSenha, setNovaSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // traduz a função armazenada (pt) para exibição no idioma atual
-    const roleLabel = (funcao: string | undefined): string => {
-        const map: RoleLabelMap = {
-            'gestor industrial': { pt: 'Gestor Industrial', es: 'Gestor Industrial' },
-            manutentor: { pt: 'Manutentor', es: 'Mantenedor' },
-            operador: { pt: 'Operador', es: 'Operador' }
-        };
-        const lng = (i18n.resolvedLanguage || 'pt') as 'pt' | 'es';
-        if (!funcao) return '';
-        const key = funcao.toLowerCase();
-        return map[key]?.[lng] || funcao;
-    };
+    const roleLabel = (funcao: string | undefined): string => funcao || '';
 
     const handleChangePassword = async (e: FormEvent) => {
         e.preventDefault();

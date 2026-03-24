@@ -78,6 +78,7 @@ rolesRouter.get('/options', requireAuth, async (_req: Request, res: Response) =>
         const { rows } = await pool.query(`
             SELECT id, nome
             FROM roles
+            WHERE is_system = TRUE
             ORDER BY nome ASC
         `);
         res.json({ items: rows });

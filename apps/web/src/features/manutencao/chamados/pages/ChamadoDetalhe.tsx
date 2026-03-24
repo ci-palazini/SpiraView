@@ -165,13 +165,11 @@ export default function ChamadoDetalhe({ user }: ChamadoDetalheProps) {
     const [selectedManutentor, setSelectedManutentor] = useState('');
     const [assigning, setAssigning] = useState(false);
 
-    const role = (user?.role || '').toLowerCase();
     const perm = usePermissions(user as any);
 
-    // Pode gerenciar chamados: admin/gestor OU quem tem permissão granular
-    const canGerirChamados = role === 'gestor industrial' || role === 'admin' || perm.canEdit('chamados_gestao');
-    const isManutentor = role === 'manutentor' || perm.canEdit('meus_chamados');
-    const isOperador = role === 'operador';
+    const canGerirChamados = perm.canEdit('chamados_gestao');
+    const isManutentor = perm.canEdit('meus_chamados');
+    const isOperador = !canGerirChamados && !isManutentor;
 
     const fmtDate = useMemo(
         () => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short' }),

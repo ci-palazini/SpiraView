@@ -15,7 +15,7 @@ import Header from './components/Header';
 import NavigationContent from './components/NavigationContent';
 import AppRoutes from './components/AppRoutes';
 
-type UserRole = 'operador' | 'manutentor' | 'gestor' | 'gestor industrial' | '';
+type UserRole = 'admin' | 'operador' | 'colaborador' | '';
 
 interface MainLayoutProps {
     user: User;
@@ -161,16 +161,9 @@ const MainLayout = ({ user }: MainLayoutProps) => {
     }, [openGroups]);
 
     const getDashboardTitle = (): string => {
-        const roleNorm = (user?.role || '').toLowerCase();
-        let title = user?.role || '—';
-
-        if (roleNorm === 'operador') title = t('dashboard.operator');
-        else if (roleNorm === 'manutentor') title = t('dashboard.maintainer');
-        else if (roleNorm === 'gestor industrial') title = t('dashboard.manager');
-
-        if (title === '—') return title;
-
-        return title.split(' ').map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '').join(' ');
+        const label = (user as any)?.funcao || user?.role || '—';
+        if (label === '—') return label;
+        return label.split(' ').map((word: string) => word ? word.charAt(0).toUpperCase() + word.slice(1) : '').join(' ');
     };
 
     return (

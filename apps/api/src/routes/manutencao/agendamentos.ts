@@ -284,17 +284,12 @@ agendamentosRouter.delete('/agendamentos/:id', async (req, res) => {
 agendamentosRouter.post('/agendamentos/:id/iniciar', async (req, res) => {
   try {
     const user = req.user;
-    const userRole = (user?.role || '').toLowerCase();
-    const isAdmin = userRole === 'admin';
 
-    // Para iniciar: manutentor (role) OU permissão calendario OU permissão chamados_gestao
-    // Mantemos a lógica de "manutentor" poder iniciar, mas expandimos para permissões
-    // Se o usuário tem permissão de editar calendário ou chamados, ele pode iniciar.
     const hasCalendario = await checkPermission(user?.id || '', 'calendario', 'editar');
     const hasChamados = await checkPermission(user?.id || '', 'chamados_gestao', 'editar');
-    const isManutentor = userRole === 'manutentor';
+    const hasMeusChamados = await checkPermission(user?.id || '', 'meus_chamados', 'editar');
 
-    if (!isAdmin && !isManutentor && !hasCalendario && !hasChamados) {
+    if (!hasCalendario && !hasChamados && !hasMeusChamados) {
       return res.status(403).json({ error: 'Sem permissão para iniciar manutenção.' });
     }
 

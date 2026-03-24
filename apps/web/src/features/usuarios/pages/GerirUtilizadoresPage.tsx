@@ -433,7 +433,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         // Gestor e Admin não costumam ter estatísticas individuais de produção (mas outros roles podem ter)
         // Lógica: Se for gestor ou admin, ignora. Outros roles entram.
         const roleLower = (userRow.role || '').toLowerCase();
-        if (roleLower === 'gestor industrial' || roleLower === 'admin') return;
+        if (roleLower === 'admin') return;
 
         setLoadingStats(true);
         setIsStatsModalOpen(true);
@@ -624,19 +624,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             )}
                             {utilizadoresFiltrados.map((userRow) => {
                                 const r = (userRow.role || '').toLowerCase();
-                                const isStandard = ['gestor industrial', 'manutentor', 'operador'].includes(r);
+                                const isStandard = ['admin', 'operador', 'colaborador'].includes(r);
 
-                                // Se for standard, usa classe específica (tem dot via CSS fixo)
-                                // Se for custom, usa classe genérica e passa cor via style (dot via CSS dinâmico)
-                                const roleClass = r === 'gestor industrial'
-                                    ? styles.roleGestorIndustrial
-                                    : r === 'manutentor'
-                                        ? styles.roleManutentor
-                                        : r === 'operador'
-                                            ? styles.roleOperador
-                                            : styles.roleBadge; // usa base
+                                const roleClass = r === 'admin'
+                                    ? styles.roleAdmin
+                                    : r === 'operador'
+                                        ? styles.roleOperador
+                                        : r === 'colaborador'
+                                            ? styles.roleColaborador
+                                            : styles.roleBadge;
 
-                                // Cor dinâmica para o 'dot' apenas se não for standard
                                 const customStyle = !isStandard ? {
                                     '--role-dot-color': generateRoleColor(r)
                                 } as React.CSSProperties : undefined;
@@ -665,7 +662,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                             {getRoleLabel(userRow.role)}
                                         </span>
                                         <div className={styles.actions}>
-                                            {userRow.role !== 'gestor industrial' && userRow.role !== 'admin' && (
+                                            {userRow.role !== 'admin' && (
                                                 <button
                                                     className={styles.actionButton}
                                                     title={t('users.actions.stats', 'Ver estatísticas')}

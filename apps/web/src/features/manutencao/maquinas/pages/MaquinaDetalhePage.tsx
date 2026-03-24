@@ -17,6 +17,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { df, statusKey } from '../../../../i18n/format';
 import { Button, Input, EmptyState } from '../../../../shared/components';
+import usePermissions from '../../../../hooks/usePermissions';
 import Modal from '../../../../shared/components/Modal';
 import PageHeader from '../../../../shared/components/PageHeader';
 
@@ -76,6 +77,7 @@ type TabType = 'ativos' | 'historico' | 'checklist' | 'qrcode';
 const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
     const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
+    const perm = usePermissions(user as any);
 
     const [maquina, setMaquina] = useState<Maquina | null>(null);
     const [chamadosConcluidos, setChamadosConcluidos] = useState<Chamado[]>([]);
@@ -350,7 +352,7 @@ const MaquinaDetalhePage = ({ user }: MaquinaDetalhePageProps) => {
                 subtitle={t('maquinaDetalhe.subtitle')}
             />
 
-            {(user.role === 'gestor industrial' || user.role === 'admin') ? (
+            {perm.canEdit('maquinas_config') ? (
                 <div>
                     <nav className={styles.tabs}>
                         <button className={`${styles.tabButton} ${activeTab === 'ativos' ? styles.active : ''}`} onClick={() => setActiveTab('ativos')}>
