@@ -1117,7 +1117,6 @@ export interface Role {
     id: string;
     nome: string;
     descricao: string | null;
-    permissoes: Record<string, NivelPermissao>;
     isSystem: boolean;
     criadoEm: string;
     atualizadoEm?: string;

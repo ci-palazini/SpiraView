@@ -165,189 +165,19 @@ rolesRouter.get('/:id', requirePermission('roles', 'ver'), async (req: Request, 
     }
 });
 
-/**
- * @swagger
- * /roles:
- *   post:
- *     summary: Create a new role
- *     tags: [Roles]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [nome]
- *             properties:
- *               nome:
- *                 type: string
- *               descricao:
- *                 type: string
- *               permissoes:
- *                 type: object
- *     responses:
- *       201:
- *         description: Role created successfully
- *       400:
- *         $ref: '#/components/schemas/Error'
- */
-// POST /roles - Criar novo role (requer editar)
-rolesRouter.post('/', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
-    try {
-        const { nome, descricao, permissoes } = req.body;
-
-        if (!nome || typeof nome !== 'string' || nome.trim().length === 0) {
-            return res.status(400).json({ error: 'Nome é obrigatório' });
-        }
-
-        // Verificar se já existe role com esse nome
-        const existing = await pool.query(
-            'SELECT id FROM roles WHERE LOWER(nome) = LOWER($1)',
-            [nome.trim()]
-        );
-        if (existing.rows.length > 0) {
-            return res.status(400).json({ error: 'Já existe um nível de acesso com esse nome' });
-        }
-
-        const novoRole = await withTx(async (client) => {
-            const { rows } = await client.query(`
-                INSERT INTO roles (nome, descricao, permissoes, is_system)
-                VALUES ($1, $2, $3, FALSE)
-                RETURNING 
-                    id,
-                    nome,
-                    descricao,
-                    permissoes,
-                    is_system AS "isSystem",
-                    criado_em AS "criadoEm"
-            `, [nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
-
-            await logAudit(client, {
-                tabela: 'roles', registroId: rows[0].id, acao: 'CREATE',
-                dadosNovos: rows[0],
-                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
-                ip: req.ip,
-            });
-
-            return rows[0];
-        });
-
-        res.status(201).json(novoRole);
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro ao criar role:');
-        res.status(500).json({ error: 'Erro ao criar nível de acesso' });
-    }
+// POST /roles - Bloqueado (roles são inerentes ao sistema)
+rolesRouter.post('/', (_req: Request, res: Response) => {
+    res.status(403).json({ error: 'Níveis de acesso são definidos pelo sistema. Não é possível criar novos.' });
 });
 
-// PUT /roles/:id - Atualizar role (requer editar)
-rolesRouter.put('/:id', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { nome, descricao, permissoes } = req.body;
-
-        // Verificar se é role do sistema
-        const check = await pool.query('SELECT is_system FROM roles WHERE id = $1', [id]);
-        if (check.rows.length === 0) {
-            return res.status(404).json({ error: 'Nível de acesso não encontrado' });
-        }
-
-        // Permitir edição apenas de nome, descrição e permissões de roles do sistema
-        // mas não permitir exclusão
-        if (!nome || typeof nome !== 'string' || nome.trim().length === 0) {
-            return res.status(400).json({ error: 'Nome é obrigatório' });
-        }
-
-        // Verificar se já existe outro role com esse nome
-        const existing = await pool.query(
-            'SELECT id FROM roles WHERE LOWER(nome) = LOWER($1) AND id != $2',
-            [nome.trim(), id]
-        );
-        if (existing.rows.length > 0) {
-            return res.status(400).json({ error: 'Já existe outro nível de acesso com esse nome' });
-        }
-
-        const roleAtualizado = await withTx(async (client) => {
-            // Fetch dados anteriores para o audit log
-            const { rows: antes } = await client.query('SELECT nome, descricao, permissoes FROM roles WHERE id = $1', [id]);
-
-            const { rows } = await client.query(`
-                UPDATE roles
-                SET nome = $2,
-                    descricao = $3,
-                    permissoes = $4,
-                    atualizado_em = NOW()
-                WHERE id = $1
-                RETURNING 
-                    id,
-                    nome,
-                    descricao,
-                    permissoes,
-                    is_system AS "isSystem",
-                    criado_em AS "criadoEm",
-                    atualizado_em AS "atualizadoEm"
-            `, [id, nome.trim(), descricao || null, JSON.stringify(permissoes || {})]);
-
-            await logAudit(client, {
-                tabela: 'roles', registroId: id, acao: 'UPDATE',
-                dadosAnteriores: antes[0] ?? null, dadosNovos: rows[0],
-                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
-                ip: req.ip,
-            });
-
-            return rows[0];
-        });
-
-        res.json(roleAtualizado);
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro ao atualizar role:');
-        res.status(500).json({ error: 'Erro ao atualizar nível de acesso' });
-    }
+// PUT /roles/:id - Bloqueado (roles são inerentes ao sistema)
+rolesRouter.put('/:id', (_req: Request, res: Response) => {
+    res.status(403).json({ error: 'Níveis de acesso são definidos pelo sistema. Não é possível atualizar.' });
 });
 
-// DELETE /roles/:id - Excluir role (requer editar, apenas não-sistema)
-rolesRouter.delete('/:id', requirePermission('roles', 'editar'), async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-
-        // Verificar se é role do sistema
-        const check = await pool.query('SELECT is_system, nome FROM roles WHERE id = $1', [id]);
-        if (check.rows.length === 0) {
-            return res.status(404).json({ error: 'Nível de acesso não encontrado' });
-        }
-        if (check.rows[0].is_system) {
-            return res.status(403).json({
-                error: `O nível de acesso "${check.rows[0].nome}" é do sistema e não pode ser excluído`
-            });
-        }
-
-        // Verificar se há usuários usando esse role
-        const usersCheck = await pool.query(
-            'SELECT COUNT(*) as count FROM usuarios WHERE role_id = $1',
-            [id]
-        );
-        if (parseInt(usersCheck.rows[0].count) > 0) {
-            return res.status(400).json({
-                error: 'Não é possível excluir: existem usuários usando este nível de acesso'
-            });
-        }
-
-        await withTx(async (client) => {
-            await logAudit(client, {
-                tabela: 'roles', registroId: id, acao: 'DELETE',
-                dadosAnteriores: { nome: check.rows[0].nome },
-                usuarioId: req.user?.id, usuarioNome: req.user?.nome,
-                ip: req.ip,
-            });
-            await client.query('DELETE FROM roles WHERE id = $1', [id]);
-        });
-
-        res.json({ success: true });
-    } catch (e: any) {
-        logger.error({ err: e }, 'Erro ao excluir role:');
-        res.status(500).json({ error: 'Erro ao excluir nível de acesso' });
-    }
+// DELETE /roles/:id - Bloqueado (roles são inerentes ao sistema)
+rolesRouter.delete('/:id', (_req: Request, res: Response) => {
+    res.status(403).json({ error: 'Níveis de acesso são definidos pelo sistema. Não é possível deletar.' });
 });
 
 export default rolesRouter;

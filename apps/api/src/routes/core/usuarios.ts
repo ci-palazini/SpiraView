@@ -2,18 +2,19 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { pool, withTx } from '../../db';
-import { roleToFuncao } from '../../utils/roles';
 import { requirePermission, requireAnyPermission, invalidateUserActiveCache } from '../../middlewares/requirePermission';
 import { validateBody } from '../../middlewares/validateBody';
 import { logger } from '../../logger';
 import { logAudit } from '../../utils/audit';
 
+const VALID_ROLES = ['admin', 'operador', 'colaborador'] as const;
+
 const createUsuarioSchema = z.object({
   nome: z.string().min(1, 'Nome obrigatório.').max(120).trim(),
   usuario: z.string().min(1, 'Usuário obrigatório.').max(60).trim().toLowerCase(),
   email: z.string().email('E-mail inválido.').max(254).trim().toLowerCase().optional(),
-  role: z.string().min(1, 'Role obrigatório.').max(60).trim().toLowerCase(),
-  funcao: z.string().max(80).optional().default(''),
+  role: z.enum(VALID_ROLES, { message: 'Role deve ser admin, operador ou colaborador.' }),
+  funcao: z.string().max(200).optional().default(''),
   senha: z.string().min(6).max(128).optional(),
   matricula: z.string().max(40).optional().nullable(),
   permissoes: z.record(z.enum(['nenhum', 'ver', 'editar'])).optional(),
@@ -23,8 +24,8 @@ const updateUsuarioSchema = z.object({
   nome: z.string().min(1).max(120).trim().optional(),
   usuario: z.string().min(1).max(60).trim().toLowerCase().optional(),
   email: z.string().email().max(254).trim().toLowerCase().optional(),
-  role: z.string().min(1).max(60).trim().toLowerCase().optional(),
-  funcao: z.string().max(80).optional(),
+  role: z.enum(VALID_ROLES, { message: 'Role deve ser admin, operador ou colaborador.' }).optional(),
+  funcao: z.string().max(200).optional(),
   senha: z.string().min(6).max(128).optional(),
   matricula: z.string().max(40).nullable().optional(),
   ativo: z.boolean().optional(),
@@ -211,7 +212,6 @@ usuariosRouter.get('/usuarios/verificar', requirePermission('usuarios', 'ver'), 
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), validateBody(createUsuarioSchema), async (req, res) => {
   try {
     const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, permissoes: permissoesRaw } = req.body;
-    const funcao = funcaoRaw || roleToFuncao(role);
 
     // senha_hash (opcional)
     let senha_hash: string | null = null;
@@ -219,16 +219,15 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
       senha_hash = await bcrypt.hash(senha.trim(), 12);
     }
 
-    // Buscar role_id e permissões padrão a partir do nome do role
+    // Buscar role_id a partir do nome do role
     const { rows: roleRows } = await pool.query(
-      `SELECT id, permissoes FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
+      `SELECT id FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
       [role]
     );
     const roleId = roleRows[0]?.id || null;
-    const rolePermissoes = roleRows[0]?.permissoes || {};
 
-    // Usar permissões fornecidas ou copiar do role
-    const permissoes = permissoesRaw || rolePermissoes;
+    // Usar permissões fornecidas ou iniciar vazio
+    const permissoes = permissoesRaw || {};
 
     // Inserção com audit log
     const novoUsuario = await withTx(async (client) => {
@@ -236,7 +235,7 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
         `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula, permissoes)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
          RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes`,
-        [nome, usuario, email, roleId, funcao, senha_hash, matricula, JSON.stringify(permissoes)]
+        [nome, usuario, email, roleId, funcaoRaw || '', senha_hash, matricula, JSON.stringify(permissoes)]
       );
       await logAudit(client, {
         tabela: 'usuarios', registroId: rows[0].id, acao: 'CREATE',
@@ -282,11 +281,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
         add('role_id', roleRows[0].id);
       }
     }
-    let funcao = funcaoRaw;
-    if (role !== undefined && funcao === undefined) {
-      funcao = roleToFuncao(role);
-    }
-    if (funcao !== undefined) add('funcao', funcao);
+    if (funcaoRaw !== undefined) add('funcao', funcaoRaw);
     if (matricula !== undefined) add('matricula', matricula);
     if (ativo !== undefined) add('ativo', ativo);
     if (permissoesRaw !== undefined) add('permissoes', JSON.stringify(permissoesRaw));
