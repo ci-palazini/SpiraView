@@ -16,6 +16,7 @@ const createUsuarioSchema = z.object({
   funcao: z.string().max(80).optional().default(''),
   senha: z.string().min(6).max(128).optional(),
   matricula: z.string().max(40).optional().nullable(),
+  permissoes: z.record(z.enum(['nenhum', 'ver', 'editar'])).optional(),
 });
 
 const updateUsuarioSchema = z.object({
@@ -27,6 +28,7 @@ const updateUsuarioSchema = z.object({
   senha: z.string().min(6).max(128).optional(),
   matricula: z.string().max(40).nullable().optional(),
   ativo: z.boolean().optional(),
+  permissoes: z.record(z.enum(['nenhum', 'ver', 'editar'])).optional(),
 });
 
 export const usuariosRouter: Router = Router();
@@ -207,7 +209,7 @@ usuariosRouter.get('/usuarios/verificar', requirePermission('usuarios', 'ver'), 
 // POST /usuarios - criar usuário (requer editar)
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), validateBody(createUsuarioSchema), async (req, res) => {
   try {
-    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, permissoes: permissoesRaw } = req.body;
     const funcao = funcaoRaw || roleToFuncao(role);
 
     // senha_hash (opcional)
@@ -216,20 +218,24 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
       senha_hash = await bcrypt.hash(senha.trim(), 12);
     }
 
-    // Buscar role_id a partir do nome do role
+    // Buscar role_id e permissões padrão a partir do nome do role
     const { rows: roleRows } = await pool.query(
-      `SELECT id FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
+      `SELECT id, permissoes FROM roles WHERE LOWER(nome) = LOWER($1) LIMIT 1`,
       [role]
     );
     const roleId = roleRows[0]?.id || null;
+    const rolePermissoes = roleRows[0]?.permissoes || {};
+
+    // Usar permissões fornecidas ou copiar do role
+    const permissoes = permissoesRaw || rolePermissoes;
 
     // Inserção com audit log
     const novoUsuario = await withTx(async (client) => {
       const { rows } = await client.query(
-        `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)
-         RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
-        [nome, usuario, email, roleId, funcao, senha_hash, matricula]
+        `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula, permissoes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes`,
+        [nome, usuario, email, roleId, funcao, senha_hash, matricula, JSON.stringify(permissoes)]
       );
       await logAudit(client, {
         tabela: 'usuarios', registroId: rows[0].id, acao: 'CREATE',
@@ -255,7 +261,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
   try {
     const id = String(req.params.id);
 
-    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, ativo } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, ativo, permissoes: permissoesRaw } = req.body;
 
     // Monta SET dinâmico
     const sets: string[] = [];
@@ -282,6 +288,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
     if (funcao !== undefined) add('funcao', funcao);
     if (matricula !== undefined) add('matricula', matricula);
     if (ativo !== undefined) add('ativo', ativo);
+    if (permissoesRaw !== undefined) add('permissoes', JSON.stringify(permissoesRaw));
 
     // Reset de senha se informado (min-length enforced by schema)
     if (typeof senha === 'string') {
@@ -296,7 +303,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
       const { rows } = await client.query(
         `UPDATE usuarios SET ${sets.join(', ')}
           WHERE id=$${params.length}
-        RETURNING id, nome, usuario, email, role_id, funcao, matricula`,
+        RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes`,
         params
       );
       if (!rows.length) return null;

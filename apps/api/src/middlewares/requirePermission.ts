@@ -85,9 +85,9 @@ async function loadUserPermissions(req: Request, res: Response): Promise<{ isRol
 
     // Fallback: tokens antigos sem permissoes no payload → busca no banco
     const { rows } = await pool.query<{ permissoes: UserPermissions; role_nome: string }>(
-        `SELECT r.permissoes, r.nome as role_nome
+        `SELECT COALESCE(u.permissoes, r.permissoes) as permissoes, r.nome as role_nome
          FROM usuarios u
-         JOIN roles r ON u.role_id = r.id
+         LEFT JOIN roles r ON u.role_id = r.id
          WHERE u.id = $1
          LIMIT 1`,
         [user.id]

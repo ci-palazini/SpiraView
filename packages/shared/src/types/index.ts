@@ -2,6 +2,7 @@
 
 // ---------- Tipos locais (usados internamente neste arquivo) ----------
 type ChamadoStatus = 'Aberto' | 'Em Andamento' | 'Concluido';
+type NivelPermissao = 'nenhum' | 'ver' | 'editar';
 
 interface ChecklistItem {
     key?: string;
@@ -164,6 +165,7 @@ export interface Usuario {
     funcao?: string;
     matricula?: string;
     ativo?: boolean;
+    permissoes?: Record<string, NivelPermissao>;
 }
 
 export interface UsuarioCreate {
@@ -304,6 +306,9 @@ export interface LoginResponse {
     funcao?: string;
     usuario?: string;
     token?: string;
+    permissoes?: Record<string, NivelPermissao>;
+    roleId?: string;
+    roleNome?: string;
 }
 
 export interface ChangePasswordPayload {

@@ -107,7 +107,7 @@ authRouter.post('/auth/login', loginLimiter, validateBody(loginSchema), async (r
               u.senha_hash,
               r.id AS role_id,
               r.nome AS role_nome,
-              r.permissoes
+              COALESCE(u.permissoes, r.permissoes) AS permissoes
          FROM usuarios u
           LEFT JOIN roles r ON u.role_id = r.id
         WHERE LOWER(u.email) = LOWER($1)
@@ -210,7 +210,7 @@ authRouter.get('/auth/me', meLimiter, requireAuth, async (req, res) => {
               COALESCE(u.usuario, split_part(LOWER(COALESCE(u.email,'')), '@', 1)) AS usuario,
               r.id AS role_id,
               r.nome AS role_nome,
-              r.permissoes
+              COALESCE(u.permissoes, r.permissoes) AS permissoes
          FROM usuarios u
          LEFT JOIN roles r ON u.role_id = r.id
         WHERE u.id = $1

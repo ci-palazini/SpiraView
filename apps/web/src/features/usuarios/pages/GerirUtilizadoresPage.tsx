@@ -16,7 +16,10 @@ import {
     obterEstatisticasUsuario,
     EstatisticasUsuario,
     listarRolesOptions,
-    verificarDisponibilidadeUsuario
+    verificarDisponibilidadeUsuario,
+    listarPaginasPermissao,
+    PaginaPermissao,
+    NivelPermissao
 } from '../../../services/apiClient';
 import useDebounce from '../../../hooks/useDebounce';
 
@@ -38,6 +41,7 @@ interface UserRow {
     role?: string;
     funcao?: string;
     matricula?: string;
+    permissoes?: Record<string, NivelPermissao>;
 }
 
 type RoleFilter = 'all' | 'gestor' | 'manutentor' | 'operador';
@@ -129,6 +133,13 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [statsData, setStatsData] = useState<EstatisticasUsuario | null>(null);
     const [loadingStats, setLoadingStats] = useState(false);
 
+    // permissions editor modal
+    const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+    const [usuarioEditandoPermissoes, setUsuarioEditandoPermissoes] = useState<UserRow | null>(null);
+    const [permissoesEditando, setPermissoesEditando] = useState<Record<string, NivelPermissao>>({});
+    const [savingPermissoes, setSavingPermissoes] = useState(false);
+    const [paginas, setPaginas] = useState<PaginaPermissao[]>([]);
+
     // roles list (tipo simplificado para dropdown)
     type RoleOption = { id: string; nome: string };
     const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -139,15 +150,17 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             try {
                 setLoading(true);
                 const auth = { email: user?.email, role: user?.role };
-                const [lista, rolesList] = await Promise.all([
+                const [lista, rolesList, paginasList] = await Promise.all([
                     listarUsuarios({ role: roleFiltro !== 'all' ? roleFiltro : undefined }),
-                    listarRolesOptions(auth)
+                    listarRolesOptions(auth),
+                    listarPaginasPermissao(auth)
                 ]);
                 if (!alive) return;
                 setUtilizadores(
                     (lista as UserRow[]).sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'))
                 );
                 setRoles(rolesList);
+                setPaginas(paginasList);
             } catch (e) {
                 console.error('Erro ao listar utilizadores:', e);
                 toast.error(t('users.toasts.listError'));
@@ -424,6 +437,65 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         }
     };
 
+    const handleEditarPermissoes = (userRow: UserRow) => {
+        setUsuarioEditandoPermissoes(userRow);
+        setPermissoesEditando(userRow.permissoes || {});
+        setIsPermissionsModalOpen(true);
+    };
+
+    const handleSalvarPermissoes = async () => {
+        if (!usuarioEditandoPermissoes) return;
+
+        setSavingPermissoes(true);
+        try {
+            await atualizarUsuario(usuarioEditandoPermissoes.id, {
+                permissoes: permissoesEditando,
+                role: usuarioEditandoPermissoes.role?.toLowerCase()
+            }, { role: user?.role, email: user?.email });
+
+            // Atualizar lista local
+            setUtilizadores(prev =>
+                prev.map(u =>
+                    u.id === usuarioEditandoPermissoes.id
+                        ? { ...u, permissoes: permissoesEditando }
+                        : u
+                )
+            );
+
+            setIsPermissionsModalOpen(false);
+            toast.success(t('users.toasts.permissionsSaved', 'Permissões atualizadas com sucesso'));
+
+            // Se as permissões do usuário logado foram alteradas, fazer logout automático
+            // para forçar re-autenticação com as novas permissões
+            if (usuarioEditandoPermissoes.id === user?.email) {
+                setTimeout(() => {
+                    window.location.href = '/logout';
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('Erro ao salvar permissões:', error);
+            toast.error((error as Error).message || t('users.toasts.error', 'Erro ao atualizar permissões'));
+        } finally {
+            setSavingPermissoes(false);
+        }
+    };
+
+    const setPermissao = (pageKey: string, nivel: NivelPermissao) => {
+        setPermissoesEditando(prev => ({
+            ...prev,
+            [pageKey]: nivel
+        }));
+    };
+
+    const paginasPorGrupo = useMemo(() => {
+        const groups: Record<string, PaginaPermissao[]> = {};
+        paginas.forEach(p => {
+            if (!groups[p.grupo]) groups[p.grupo] = [];
+            groups[p.grupo].push(p);
+        });
+        return groups;
+    }, [paginas]);
+
     return (
         <>
             {/* Header padrão */}
@@ -579,6 +651,13 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                             )}
                                             <button
                                                 className={styles.actionButton}
+                                                title={t('users.actions.permissions', 'Editar permissões')}
+                                                onClick={() => handleEditarPermissoes(userRow)}
+                                            >
+                                                <FiEdit style={{ transform: 'rotate(90deg)' }} />
+                                            </button>
+                                            <button
+                                                className={styles.actionButton}
                                                 title={t('users.actions.edit')}
                                                 onClick={() => abrirModalEdicao(userRow)}
                                             >
@@ -728,6 +807,164 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                         {modoEdicao ? t('users.form.saveChanges') : t('users.form.createUser')}
                     </Button>
                 </form>
+            </Modal>
+
+            {/* Modal de Permissões */}
+            <Modal
+                isOpen={isPermissionsModalOpen}
+                onClose={() => {
+                    setIsPermissionsModalOpen(false);
+                    setUsuarioEditandoPermissoes(null);
+                    setPermissoesEditando({});
+                }}
+                title={usuarioEditandoPermissoes ? `Editar Permissões - ${usuarioEditandoPermissoes.nome}` : 'Editar Permissões'}
+            >
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                    maxHeight: '70vh',
+                    overflowY: 'auto'
+                }}>
+                    <div style={{
+                        borderTop: '1px solid #e2e8f0',
+                        paddingTop: '16px'
+                    }}>
+                        <h4 style={{
+                            margin: '0 0 16px',
+                            fontSize: '0.95rem',
+                            fontWeight: 600,
+                            color: '#1e293b'
+                        }}>
+                            Permissões por Página
+                        </h4>
+
+                        {Object.entries(paginasPorGrupo).map(([grupo, pags]) => (
+                            <div key={grupo} style={{ marginBottom: '20px' }}>
+                                <h5 style={{
+                                    margin: '0 0 12px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    color: '#64748b',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    paddingBottom: '8px',
+                                    borderBottom: '1px solid #e2e8f0'
+                                }}>
+                                    {grupo}
+                                </h5>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {pags.map(pag => (
+                                        <div
+                                            key={pag.key}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                padding: '8px 12px',
+                                                background: '#f8fafc',
+                                                borderRadius: '8px',
+                                                gap: '12px'
+                                            }}
+                                        >
+                                            <span style={{
+                                                fontSize: '0.85rem',
+                                                color: '#334155',
+                                                flex: 1
+                                            }}>
+                                                {pag.nome}
+                                            </span>
+                                            <div style={{
+                                                display: 'flex',
+                                                gap: '4px'
+                                            }}>
+                                                {(['nenhum', 'ver', 'editar'] as NivelPermissao[]).map(nivel => {
+                                                    const isActive = permissoesEditando[pag.key] === nivel || (nivel === 'nenhum' && !permissoesEditando[pag.key]);
+                                                    return (
+                                                        <label
+                                                            key={nivel}
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 500,
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.15s ease',
+                                                                background: isActive ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#e2e8f0',
+                                                                color: isActive ? '#ffffff' : '#64748b',
+                                                                border: '2px solid transparent',
+                                                                userSelect: 'none'
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                name={`perm_${pag.key}`}
+                                                                checked={isActive}
+                                                                onChange={() => setPermissao(pag.key, nivel)}
+                                                                style={{ display: 'none' }}
+                                                            />
+                                                            {nivel === 'nenhum' ? 'Nenhum' : nivel === 'ver' ? 'Ver' : 'Editar'}
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '12px',
+                        paddingTop: '16px',
+                        borderTop: '1px solid #e2e8f0',
+                        marginTop: 'auto'
+                    }}>
+                        <button
+                            onClick={() => setIsPermissionsModalOpen(false)}
+                            disabled={savingPermissoes}
+                            style={{
+                                padding: '10px 20px',
+                                borderRadius: '8px',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                border: 'none',
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                opacity: savingPermissoes ? 0.6 : 1
+                            }}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleSalvarPermissoes}
+                            disabled={savingPermissoes}
+                            style={{
+                                padding: '10px 20px',
+                                borderRadius: '8px',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: '#ffffff',
+                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                                opacity: savingPermissoes ? 0.6 : 1
+                            }}
+                        >
+                            {savingPermissoes ? 'Salvando...' : 'Salvar'}
+                        </button>
+                    </div>
+                </div>
             </Modal>
 
             {/* Modal de Estatísticas */}
