@@ -779,35 +779,29 @@ reuniaoDiariaRouter.get(
                     `WITH obs_mes AS (
                         SELECT DISTINCT usuario_id
                         FROM safety_observacoes
-                        WHERE data_observacao >= $1
-                          AND usuario_id IS NOT NULL
+                        WHERE data_observacao >= $1 AND usuario_id IS NOT NULL
+                    ),
+                    dept_map AS (
+                        SELECT
+                            d.id,
+                            CASE
+                                WHEN d.nome ILIKE '%logis%' THEN 'Logística'
+                                WHEN d.nome ILIKE '%produ%' THEN 'Produção'
+                                WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
+                                ELSE 'Administrativo'
+                            END AS categoria
+                        FROM departamentos d
+                        WHERE d.ativo = true
                     )
                     SELECT
-                        CASE
-                            WHEN d.nome ILIKE '%logis%' THEN 'Logística'
-                            WHEN d.nome ILIKE '%produ%' THEN 'Produção'
-                            WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
-                            ELSE 'Administrativo'
-                        END AS categoria,
-                        COUNT(DISTINCT u.id)::int              AS total,
-                        COUNT(DISTINCT CASE WHEN om.usuario_id IS NOT NULL
-                                            THEN u.id END)::int AS com_observacao
-                    FROM departamentos d
-                    LEFT JOIN usuarios u ON u.departamento_id = d.id AND u.ativo = true
+                        dm.categoria,
+                        COUNT(DISTINCT u.id)::int AS total,
+                        COUNT(DISTINCT om.usuario_id)::int AS com_observacao
+                    FROM dept_map dm
+                    LEFT JOIN usuarios u ON u.departamento_id = dm.id AND u.ativo = true
                     LEFT JOIN obs_mes om ON om.usuario_id = u.id
-                    WHERE d.ativo = true
-                    GROUP BY CASE
-                        WHEN d.nome ILIKE '%logis%' THEN 'Logística'
-                        WHEN d.nome ILIKE '%produ%' THEN 'Produção'
-                        WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
-                        ELSE 'Administrativo'
-                    END
-                    ORDER BY CASE CASE
-                        WHEN d.nome ILIKE '%logis%' THEN 'Logística'
-                        WHEN d.nome ILIKE '%produ%' THEN 'Produção'
-                        WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
-                        ELSE 'Administrativo'
-                    END
+                    GROUP BY dm.categoria
+                    ORDER BY CASE dm.categoria
                         WHEN 'Logística' THEN 1
                         WHEN 'Produção' THEN 2
                         WHEN 'Montagem e Pintura' THEN 3
