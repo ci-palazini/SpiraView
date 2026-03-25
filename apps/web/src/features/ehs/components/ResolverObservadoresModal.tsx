@@ -83,9 +83,6 @@ export default function ResolverObservadoresModal({ open, pendentes, onClose, on
 
     const selectedCount = Object.values(selections).filter(Boolean).length;
 
-    // Build a set of candidate user IDs per pendente for ordering
-    const candidateIds = new Set(pendentes.flatMap((p) => p.candidatos.map((c) => c.usuarioId)));
-
     return (
         <Modal
             isOpen={open}
@@ -97,7 +94,10 @@ export default function ResolverObservadoresModal({ open, pendentes, onClose, on
             ) : (
                 <>
                     <div className={styles.pendentesGrid}>
-                        {pendentes.map((p) => (
+                        {pendentes.map((p) => {
+                            // Per-row: IDs already shown as candidates for THIS pendente
+                            const rowCandidateIds = new Set(p.candidatos.map((c) => c.usuarioId));
+                            return (
                             <div key={p.observadorTexto} className={styles.pendenteRow}>
                                 <div className={styles.observadorInfo}>
                                     <div className={styles.observadorTexto}>{p.observadorTexto}</div>
@@ -121,9 +121,9 @@ export default function ResolverObservadoresModal({ open, pendentes, onClose, on
                                         {p.candidatos.length > 0 && (
                                             <option disabled>{'────────────'}</option>
                                         )}
-                                        {/* All other users */}
+                                        {/* All other users not already shown as candidates for this row */}
                                         {allUsers
-                                            .filter((u) => !candidateIds.has(u.id))
+                                            .filter((u) => !rowCandidateIds.has(u.id))
                                             .map((u) => (
                                                 <option key={u.id} value={u.id}>
                                                     {u.nome}
@@ -132,7 +132,8 @@ export default function ResolverObservadoresModal({ open, pendentes, onClose, on
                                     </select>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     <div className={styles.actions}>

@@ -208,101 +208,157 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
             }
         }
 
-        if (grouped.size === 0) {
-            return res.status(400).json({ error: 'Nenhum registro válido encontrado.' });
-        }
+        // Preparar arrays para UPSERT em lote (UNNEST) — evita N round trips ao BD
+        const batchRegistroIds: number[] = [];
+        const batchDataObs: (string | null)[] = [];
+        const batchObservador: (string | null)[] = [];
+        const batchNumPessoas: number[] = [];
+        const batchDescricao: (string | null)[] = [];
+        const batchDepartamento: (string | null)[] = [];
+        const batchLocalizacao: (string | null)[] = [];
+        const batchTipoObservador: (string | null)[] = [];
+        const batchCausaComportamento: (string | null)[] = [];
+        const batchTipoComportamento: (string | null)[] = [];
+        const batchFeedback: boolean[] = [];
+        const batchStopWork: boolean[] = [];
+        const batchResultado: (string | null)[] = [];
+        const batchDataFechamento: (string | null)[] = [];
+        const batchRegistroFechado: boolean[] = [];
+        const batchFatores: (string | null)[] = [];
+        const batchQualCausa: (string | null)[] = [];
+        const batchModelo: (string | null)[] = [];
 
-        await client.query('BEGIN');
-
-        let novos = 0;
-        let atualizados = 0;
-        const userId = (req as any).userId || null;
-
-        for (const [registroId, { row, ksbs }] of grouped) {
+        for (const [registroId, { row }] of grouped) {
             const getVal = (field: string): string | null => {
                 const col = cols[field];
                 if (!col) return null;
                 const v = row[col];
                 return v != null ? String(v).trim() : null;
             };
-
             const dataObs = parseDate(getVal('data_observacao'));
             if (!dataObs) continue;
 
-            // UPSERT observação
-            const upsertResult = await client.query(
-                `INSERT INTO safety_observacoes (
-                    registro_id, data_observacao, observador, num_pessoas,
-                    descricao, departamento, localizacao, tipo_observador,
-                    causa_comportamento, tipo_comportamento,
-                    feedback_dado, stop_work_authority,
-                    resultado_conversa, data_fechamento, registro_fechado,
-                    fatores_contribuintes, qual_causa, modelo
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
-                ON CONFLICT (registro_id) DO UPDATE SET
-                    data_observacao = EXCLUDED.data_observacao,
-                    observador = EXCLUDED.observador,
-                    num_pessoas = EXCLUDED.num_pessoas,
-                    descricao = EXCLUDED.descricao,
-                    departamento = EXCLUDED.departamento,
-                    localizacao = EXCLUDED.localizacao,
-                    tipo_observador = EXCLUDED.tipo_observador,
-                    causa_comportamento = EXCLUDED.causa_comportamento,
-                    tipo_comportamento = EXCLUDED.tipo_comportamento,
-                    feedback_dado = EXCLUDED.feedback_dado,
-                    stop_work_authority = EXCLUDED.stop_work_authority,
-                    resultado_conversa = EXCLUDED.resultado_conversa,
-                    data_fechamento = EXCLUDED.data_fechamento,
-                    registro_fechado = EXCLUDED.registro_fechado,
-                    fatores_contribuintes = EXCLUDED.fatores_contribuintes,
-                    qual_causa = EXCLUDED.qual_causa,
-                    modelo = EXCLUDED.modelo,
-                    atualizado_em = NOW()
-                RETURNING (xmax = 0) AS is_new, id`,
-                [
-                    registroId,
-                    dataObs,
-                    getVal('observador'),
-                    Number(getVal('num_pessoas')) || 1,
-                    getVal('descricao'),
-                    getVal('departamento'),
-                    getVal('localizacao'),
-                    getVal('tipo_observador'),
-                    getVal('causa_comportamento'),
-                    getVal('tipo_comportamento'),
-                    parseBool(getVal('feedback')),
-                    parseBool(getVal('stop_work')),
-                    getVal('resultado'),
-                    parseDate(getVal('data_fechamento')),
-                    parseBool(getVal('registro_fechado')),
-                    getVal('fatores'),
-                    getVal('qual_causa'),
-                    getVal('modelo'),
-                ]
-            );
+            batchRegistroIds.push(registroId);
+            batchDataObs.push(dataObs);
+            batchObservador.push(getVal('observador'));
+            batchNumPessoas.push(Number(getVal('num_pessoas')) || 1);
+            batchDescricao.push(getVal('descricao'));
+            batchDepartamento.push(getVal('departamento'));
+            batchLocalizacao.push(getVal('localizacao'));
+            batchTipoObservador.push(getVal('tipo_observador'));
+            batchCausaComportamento.push(getVal('causa_comportamento'));
+            batchTipoComportamento.push(getVal('tipo_comportamento'));
+            batchFeedback.push(parseBool(getVal('feedback')));
+            batchStopWork.push(parseBool(getVal('stop_work')));
+            batchResultado.push(getVal('resultado'));
+            batchDataFechamento.push(parseDate(getVal('data_fechamento')));
+            batchRegistroFechado.push(parseBool(getVal('registro_fechado')));
+            batchFatores.push(getVal('fatores'));
+            batchQualCausa.push(getVal('qual_causa'));
+            batchModelo.push(getVal('modelo'));
+        }
 
-            const obsId = upsertResult.rows[0].id;
-            const isNew = upsertResult.rows[0].is_new;
+        if (batchRegistroIds.length === 0) {
+            return res.status(400).json({ error: 'Nenhum registro válido encontrado.' });
+        }
 
-            if (isNew) novos++;
+        const userId = (req as any).userId || null;
+
+        await client.query('BEGIN');
+
+        // Query 1: UPSERT em lote via UNNEST — 1 round trip para N registros
+        const upsertResult = await client.query(
+            `INSERT INTO safety_observacoes (
+                registro_id, data_observacao, observador, num_pessoas,
+                descricao, departamento, localizacao, tipo_observador,
+                causa_comportamento, tipo_comportamento,
+                feedback_dado, stop_work_authority,
+                resultado_conversa, data_fechamento, registro_fechado,
+                fatores_contribuintes, qual_causa, modelo
+            )
+            SELECT * FROM UNNEST(
+                $1::int[], $2::date[], $3::text[], $4::int[],
+                $5::text[], $6::text[], $7::text[], $8::text[],
+                $9::text[], $10::text[],
+                $11::bool[], $12::bool[],
+                $13::text[], $14::date[], $15::bool[],
+                $16::text[], $17::text[], $18::text[]
+            ) AS t(
+                registro_id, data_observacao, observador, num_pessoas,
+                descricao, departamento, localizacao, tipo_observador,
+                causa_comportamento, tipo_comportamento,
+                feedback_dado, stop_work_authority,
+                resultado_conversa, data_fechamento, registro_fechado,
+                fatores_contribuintes, qual_causa, modelo
+            )
+            ON CONFLICT (registro_id) DO UPDATE SET
+                data_observacao = EXCLUDED.data_observacao,
+                observador = EXCLUDED.observador,
+                num_pessoas = EXCLUDED.num_pessoas,
+                descricao = EXCLUDED.descricao,
+                departamento = EXCLUDED.departamento,
+                localizacao = EXCLUDED.localizacao,
+                tipo_observador = EXCLUDED.tipo_observador,
+                causa_comportamento = EXCLUDED.causa_comportamento,
+                tipo_comportamento = EXCLUDED.tipo_comportamento,
+                feedback_dado = EXCLUDED.feedback_dado,
+                stop_work_authority = EXCLUDED.stop_work_authority,
+                resultado_conversa = EXCLUDED.resultado_conversa,
+                data_fechamento = EXCLUDED.data_fechamento,
+                registro_fechado = EXCLUDED.registro_fechado,
+                fatores_contribuintes = EXCLUDED.fatores_contribuintes,
+                qual_causa = EXCLUDED.qual_causa,
+                modelo = EXCLUDED.modelo,
+                atualizado_em = NOW()
+            RETURNING id, registro_id, (xmax = 0) AS is_new`,
+            [
+                batchRegistroIds, batchDataObs, batchObservador, batchNumPessoas,
+                batchDescricao, batchDepartamento, batchLocalizacao, batchTipoObservador,
+                batchCausaComportamento, batchTipoComportamento,
+                batchFeedback, batchStopWork,
+                batchResultado, batchDataFechamento, batchRegistroFechado,
+                batchFatores, batchQualCausa, batchModelo,
+            ]
+        );
+
+        // Mapear registro_id → obs UUID e contar novos/atualizados
+        let novos = 0;
+        let atualizados = 0;
+        const obsIdByRegistroId = new Map<number, string>();
+        for (const row of upsertResult.rows) {
+            obsIdByRegistroId.set(row.registro_id, row.id);
+            if (row.is_new) novos++;
             else atualizados++;
+        }
 
-            // Substituir KSBs existentes (batch insert otimizado)
-            await client.query('DELETE FROM safety_observacoes_ksbs WHERE observacao_id = $1', [
-                obsId,
-            ]);
+        // Query 2: DELETE em lote de todos os KSBs afetados — 1 round trip
+        const allObsIds = Array.from(obsIdByRegistroId.values());
+        await client.query(
+            'DELETE FROM safety_observacoes_ksbs WHERE observacao_id = ANY($1::uuid[])',
+            [allObsIds]
+        );
 
-            if (ksbs.length > 0) {
-                const ksbValues = ksbs.map((_, i) =>
-                    `($1, $${i * 2 + 2}, $${i * 2 + 3})`
-                ).join(', ');
-                const ksbParams = [obsId, ...ksbs.flatMap(k => [k.categoria, k.resposta])];
-                await client.query(
-                    `INSERT INTO safety_observacoes_ksbs (observacao_id, categoria, resposta)
-                     VALUES ${ksbValues}`,
-                    ksbParams
-                );
+        // Query 3: INSERT em lote de todos os KSBs — 1 round trip
+        const ksbObsIds: string[] = [];
+        const ksbCategorias: string[] = [];
+        const ksbRespostas: (string | null)[] = [];
+
+        for (const [registroId, { ksbs }] of grouped) {
+            const obsId = obsIdByRegistroId.get(registroId);
+            if (!obsId || ksbs.length === 0) continue;
+            for (const ksb of ksbs) {
+                ksbObsIds.push(obsId);
+                ksbCategorias.push(ksb.categoria);
+                ksbRespostas.push(ksb.resposta);
             }
+        }
+
+        if (ksbObsIds.length > 0) {
+            await client.query(
+                `INSERT INTO safety_observacoes_ksbs (observacao_id, categoria, resposta)
+                 SELECT * FROM UNNEST($1::uuid[], $2::text[], $3::text[])`,
+                [ksbObsIds, ksbCategorias, ksbRespostas]
+            );
         }
 
         // Registrar upload no histórico
@@ -349,23 +405,32 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
                     );
                 }
 
-                // 3. For unmapped texts, load active users and compute scores
+                // 3. For unmapped texts, load active users and count observations in one query each
                 const unmapped = textos.filter((t) => !mapped.has(t));
                 if (unmapped.length > 0) {
-                    const { rows: usuarios } = await pool.query(
-                        `SELECT id, nome FROM usuarios WHERE ativo = true`
+                    const [{ rows: usuarios }, { rows: countRows }] = await Promise.all([
+                        pool.query(`SELECT id, nome FROM usuarios WHERE ativo = true`),
+                        // Batch COUNT: one query for all unmapped texts instead of N individual queries
+                        pool.query(
+                            `SELECT observador, COUNT(*)::int AS cnt
+                             FROM safety_observacoes
+                             WHERE observador = ANY($1) AND usuario_id IS NULL
+                             GROUP BY observador`,
+                            [unmapped]
+                        ),
+                    ]);
+
+                    const countByText = new Map<string, number>(
+                        countRows.map((r: { observador: string; cnt: number }) => [r.observador, r.cnt])
                     );
 
-                    for (const texto of unmapped) {
-                        // Count how many observations use this text
-                        const { rows: countRows } = await pool.query(
-                            `SELECT COUNT(*)::int AS cnt FROM safety_observacoes
-                             WHERE observador = $1 AND usuario_id IS NULL`,
-                            [texto]
-                        );
-                        const qtdRegistros = countRows[0]?.cnt || 0;
+                    // Collect auto-matches for batch DB operations
+                    const autoMatchTextos: string[] = [];
+                    const autoMatchUsuarioIds: string[] = [];
 
-                        // Compute scores against all users
+                    for (const texto of unmapped) {
+                        const qtdRegistros = countByText.get(texto) ?? 0;
+
                         const scored: SafetyCandidato[] = usuarios
                             .map((u: { id: string; nome: string }) => ({
                                 usuarioId: u.id,
@@ -377,29 +442,37 @@ ehsUploadRouter.post('/ehs/upload', requirePermission('safety', 'editar'), async
                         const best = scored[0];
 
                         if (best && best.score >= AUTO_MATCH_THRESHOLD) {
-                            // Auto-match: save mapping + update observations
-                            await pool.query(
-                                `INSERT INTO safety_observador_mapeamentos (observador_texto, usuario_id, criado_por_id)
-                                 VALUES ($1, $2, $3)
-                                 ON CONFLICT (observador_texto) DO UPDATE SET usuario_id = EXCLUDED.usuario_id`,
-                                [texto, best.usuarioId, userId]
-                            );
-                            await pool.query(
-                                `UPDATE safety_observacoes SET usuario_id = $1
-                                 WHERE observador = $2 AND usuario_id IS NULL`,
-                                [best.usuarioId, texto]
-                            );
+                            autoMatchTextos.push(texto);
+                            autoMatchUsuarioIds.push(best.usuarioId);
                             logger.info(
                                 { observador: texto, usuario: best.nome, score: best.score },
                                 '[ehs/upload] Auto-matched observer'
                             );
                         } else {
-                            // Return as pending for manual resolution
                             const candidatos = scored
                                 .filter((c: SafetyCandidato) => c.score >= CANDIDATE_THRESHOLD)
                                 .slice(0, MAX_CANDIDATES);
                             pendentes.push({ observadorTexto: texto, qtdRegistros, candidatos });
                         }
+                    }
+
+                    // Batch auto-match: save all mappings + update all observations in 2 queries
+                    if (autoMatchTextos.length > 0) {
+                        await Promise.all([
+                            pool.query(
+                                `INSERT INTO safety_observador_mapeamentos (observador_texto, usuario_id, criado_por_id)
+                                 SELECT UNNEST($1::text[]), UNNEST($2::uuid[]), $3
+                                 ON CONFLICT (observador_texto) DO UPDATE SET usuario_id = EXCLUDED.usuario_id`,
+                                [autoMatchTextos, autoMatchUsuarioIds, userId]
+                            ),
+                            pool.query(
+                                `UPDATE safety_observacoes SET usuario_id = data.uid
+                                 FROM (SELECT UNNEST($1::text[]) AS obs, UNNEST($2::uuid[]) AS uid) AS data
+                                 WHERE safety_observacoes.observador = data.obs
+                                   AND safety_observacoes.usuario_id IS NULL`,
+                                [autoMatchTextos, autoMatchUsuarioIds]
+                            ),
+                        ]);
                     }
                 }
             }

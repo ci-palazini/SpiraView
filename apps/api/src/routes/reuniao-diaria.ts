@@ -785,9 +785,9 @@ reuniaoDiariaRouter.get(
                         SELECT
                             d.id,
                             CASE
-                                WHEN d.nome ILIKE '%logis%' THEN 'Logística'
-                                WHEN d.nome ILIKE '%produ%' THEN 'Produção'
-                                WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
+                                WHEN unaccent(d.nome) ILIKE unaccent('%logis%') THEN 'Logística'
+                                WHEN unaccent(d.nome) ILIKE unaccent('%produ%') THEN 'Produção'
+                                WHEN unaccent(d.nome) ILIKE unaccent('%montagem%') THEN 'Montagem e Pintura'
                                 ELSE 'Administrativo'
                             END AS categoria
                         FROM departamentos d

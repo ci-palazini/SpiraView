@@ -5,7 +5,7 @@ import {
     FiHome, FiCheckSquare, FiTv, FiBarChart2, FiServer, FiAlertCircle,
     FiClipboard, FiPlusCircle, FiCalendar, FiFileText, FiPackage,
     FiPieChart, FiUsers, FiUploadCloud, FiSettings, FiShield,
-    FiRefreshCw, FiTrendingUp
+    FiRefreshCw, FiTrendingUp, FiLayers
 } from 'react-icons/fi';
 import { PiFactoryBold } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -765,12 +765,12 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
 
             {/* Configurações - usa permissões granulares */}
             {
-                perm.canViewAny(['usuarios', 'notificacoes_config', 'maquinas_config', 'tv_config']) && (
+                perm.canViewAny(['usuarios', 'departamentos', 'notificacoes_config', 'maquinas_config', 'tv_config']) && (
                     <>
                         <h3 className={styles.navSectionTitle}>
                             {t('layout.sections.managePeople', 'Administração')}
                         </h3>
-                        {perm.canView('usuarios') && (
+                        {perm.canViewAny(['usuarios', 'departamentos']) && (
                             <div className={styles.groupSublabel}>{t('nav.adminSubAccess', 'Acessos & Usuários')}</div>
                         )}
                         {perm.canView('usuarios') && (
@@ -782,6 +782,17 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                             >
                                 <FiUsers className={styles.navIcon} />
                                 <span>{t('nav.manageUsers')}</span>
+                            </NavLink>
+                        )}
+                        {perm.canView('departamentos') && (
+                            <NavLink
+                                to="/departamentos"
+                                className={({ isActive }) =>
+                                    isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                                }
+                            >
+                                <FiLayers className={styles.navIcon} />
+                                <span>{t('nav.manageDepartamentos', 'Departamentos')}</span>
                             </NavLink>
                         )}
                         {perm.canViewAny(['notificacoes_config', 'maquinas_config']) && (

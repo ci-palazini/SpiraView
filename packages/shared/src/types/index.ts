@@ -155,6 +155,25 @@ export interface AgendamentoUpdate {
     status?: string;
 }
 
+// ---------- Departamentos ----------
+export interface Departamento {
+    id: string;
+    nome: string;
+    descricao?: string;
+    pai_id?: string;
+    ativo?: boolean;
+    created_at?: string;
+    // campos enriquecidos (opcionais, dependendo do endpoint)
+    subdepartamentos?: Departamento[];
+    colaboradores_count?: number;
+}
+
+export interface DepartamentoCreate {
+    nome: string;
+    descricao?: string;
+    pai_id?: string;
+}
+
 // ---------- Usuários ----------
 export interface Usuario {
     id: string;
@@ -166,6 +185,10 @@ export interface Usuario {
     matricula?: string;
     ativo?: boolean;
     permissoes?: Record<string, NivelPermissao>;
+    departamento_id?: string;
+    superior_id?: string;
+    departamento?: { id: string; nome: string };
+    superior?: { id: string; nome: string };
 }
 
 export interface UsuarioCreate {
@@ -177,6 +200,8 @@ export interface UsuarioCreate {
     senha?: string;
     matricula?: string;
     permissoes?: Record<string, NivelPermissao>;
+    departamento_id?: string | null;
+    superior_id?: string | null;
 }
 
 export interface UsuarioVerificarResponse {
@@ -579,6 +604,8 @@ export interface SafetyComplianceMensal {
     usuarioId: string;
     nome: string;
     funcao: string | null;
+    departamentoId: string | null;
+    departamentoNome: string | null;
     meses: number[];
 }
 

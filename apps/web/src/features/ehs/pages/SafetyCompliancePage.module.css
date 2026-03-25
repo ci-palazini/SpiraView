@@ -1,93 +1,124 @@
-/* SafetyCompliancePage.module.css */
+/* SafetyCompliancePage.module.css - Premium Design */
+
+/* Background com gradiente sofisticado */
 .container {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin: 16px;
-    margin-top: 12px;
+    padding: 24px;
+    min-height: calc(100vh - 120px);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #eef2f5 100%);
+    position: relative;
 }
 
-.yearSelector {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.yearSelector label {
-    font-weight: 600;
-    color: #334155;
-    font-size: 14px;
-}
-
-.yearSelector select {
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 14px;
-    background: #fff;
-    color: #334155;
-    cursor: pointer;
-}
-
-.yearSelector select:focus {
-    outline: none;
-    border-color: #ef4444;
-    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
-}
-
+/* Summary Bar Grid */
 .summaryBar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+    animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Summary Card - Glassmorphism premium */
 .summaryCard {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 24px;
     text-align: center;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.summaryCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1e40af, #0ea5e9, #10b981);
+}
+
+.summaryCard:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .summaryValue {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 800;
     margin: 0;
+    color: #1e293b;
+    letter-spacing: -0.02em;
 }
 
 .summaryLabel {
-    font-size: 12px;
+    font-size: 13px;
     color: #64748b;
-    margin-top: 4px;
+    margin-top: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* Table Wrapper */
 .tableWrapper {
     overflow-x: auto;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
 }
 
+/* Compliance Table - Redesign sofisticado */
 .complianceTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    overflow: hidden;
+    font-size: 14px;
 }
 
 .complianceTable thead {
-    background: #f1f5f9;
+    background: linear-gradient(90deg, #f8fafc, #f1f5f9);
+    border-bottom: 2px solid rgba(30, 64, 175, 0.15);
 }
 
 .complianceTable th {
-    padding: 8px 10px;
+    padding: 16px 12px;
     text-align: center;
-    font-weight: 600;
-    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+    color: #1e293b;
     white-space: nowrap;
     font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .complianceTable th:first-child,
@@ -96,16 +127,20 @@
 }
 
 .complianceTable td {
-    padding: 6px 10px;
+    padding: 14px 12px;
     text-align: center;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 13px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    font-size: 14px;
 }
 
 .complianceTable td:first-child,
 .complianceTable td:nth-child(2) {
     text-align: left;
-    white-space: nowrap;
+}
+
+.complianceTable tbody tr {
+    transition: all 0.3s ease;
+    position: relative;
 }
 
 .complianceTable tbody tr:last-child td {
@@ -113,53 +148,152 @@
 }
 
 .complianceTable tbody tr:hover {
-    background: #f8fafc;
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0.04), rgba(16, 185, 129, 0.02));
 }
 
+.complianceTable tbody tr:hover td {
+    color: #1e293b;
+}
+
+/* Cells - Design com badges e cores */
 .cellGood {
-    background: #dcfce7;
-    color: #16a34a;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+    color: #15803d !important;
     font-weight: 700;
-    border-radius: 4px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
+    font-size: 13px;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    position: relative;
 }
 
 .cellBad {
-    background: #fee2e2;
-    color: #dc2626;
+    background: linear-gradient(135deg, #fee2e2, #fecaca) !important;
+    color: #b91c1c !important;
     font-weight: 700;
-    border-radius: 4px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+    font-size: 13px;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    position: relative;
 }
 
 .cellFuture {
-    background: #f1f5f9;
-    color: #94a3b8;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0) !important;
+    color: #94a3b8 !important;
+    font-size: 13px;
+    border-radius: 6px;
 }
 
 .cellTotal {
-    font-weight: 700;
-    color: #334155;
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 15px;
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.08), rgba(16, 185, 129, 0.05)) !important;
+    border-radius: 6px;
+    border: 1px solid rgba(30, 64, 175, 0.15);
 }
 
 .nameCol {
-    font-weight: 600;
+    font-weight: 700;
     color: #0f172a;
+    letter-spacing: -0.01em;
 }
 
 .funcaoCol {
     color: #64748b;
     font-size: 12px;
+    font-weight: 500;
 }
 
+/* Loading State - Design premium */
 .loading {
     text-align: center;
-    padding: 48px;
+    padding: 80px 40px;
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(12px);
+    border: 2px dashed #cbd5e1;
+    border-radius: 24px;
+    margin: 32px 0;
+    animation: fadeIn 0.5s ease;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Empty State - Design atrativo */
 .emptyState {
     text-align: center;
-    padding: 48px;
+    padding: 80px 40px;
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px dashed #cbd5e1;
+    border-radius: 24px;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+}
+
+.emptyState::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, transparent 70%);
+    animation: emptyPulse 4s ease-in-out infinite;
+}
+
+@keyframes emptyPulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+/* Progress Bar Animations */
+@keyframes progressShimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Stagger animations para cards */
+@media (prefers-reduced-motion: no-preference) {
+    .summaryCard:nth-child(1) {
+        animation-delay: 0s;
+    }
+    .summaryCard:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+    .summaryCard:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+    .summaryCard:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+    .summaryCard:nth-child(5) {
+        animation-delay: 0.4s;
+    }
 }

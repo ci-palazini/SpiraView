@@ -75,7 +75,8 @@
     "kamishibaiHistory": "Auditorias (Histórico)",
     "dailyMeeting": "Reunião Diária",
     "safetyUpload": "Upload Safety (BBS)",
-    "safetyCompliance": "Compliance BBS"
+    "safetyCompliance": "Compliance BBS",
+    "manageDepartamentos": "Departamentos"
   },
   "reuniao_diaria": {
     "title": "Reunião Diária — SQDCP",
@@ -107,6 +108,7 @@
     "safety_vs_prev": "vs. mês anterior",
     "safety_safe_label": "Seguros",
     "safety_atrisk_label": "Arriscados",
+    "safety_engajamento": "Engajamento BBS por Depto.",
     "people_placeholder": "People — A definir",
     "delivery_placeholder": "Delivery — A definir",
     "cost_placeholder": "Cost — A definir",
@@ -1207,6 +1209,7 @@
     "search": {
       "placeholder": "Buscar por nome, usuário ou e-mail...",
       "funcaoPlaceholder": "Filtrar por função...",
+      "departamentoPlaceholder": "Filtrar por departamento...",
       "noResults": "Nenhum usuário encontrado para \"{{busca}}\""
     },
     "actions": {
@@ -1219,7 +1222,10 @@
       "fullName": "Nome Completo",
       "username": "Usuário",
       "matricula": "Matrícula",
+      "role": "Tipo de Acesso",
       "function": "Função",
+      "departamento": "Departamento",
+      "superior": "Superior",
       "actions": "Ações"
     },
     "stats": {
@@ -2272,5 +2278,26 @@
     "errorSave": "Erro ao salvar PIN.",
     "errorRemove": "Erro ao remover PIN.",
     "accessDenied": "Acesso restrito a administradores."
-  }
+  },
+  "departamentos": "Departamentos",
+  "departamento": "Departamento",
+  "superiorDireto": "Superior direto",
+  "semDepartamento": "Sem departamento",
+  "semSuperior": "Sem superior",
+  "depPai": "Departamento pai",
+  "semPai": "Nenhum (raiz)",
+  "criarDepartamento": "Criar departamento",
+  "editarDepartamento": "Editar departamento",
+  "excluirDepartamento": "Excluir departamento",
+  "depAdicionarFilho": "Adicionar subdepartamento",
+  "semDepartamentos": "Nenhum departamento criado.",
+  "selecioneOuCrieDep": "Selecione um departamento ou crie um novo.",
+  "nomeDepartamento": "Nome do departamento",
+  "nomeDepartamentoPlaceholder": "Ex: Produção, Qualidade",
+  "confirmarExcluirDep": "Excluir departamento? Esta ação não pode ser desfeita.",
+  "depCriado": "Departamento criado com sucesso.",
+  "depAtualizado": "Departamento atualizado com sucesso.",
+  "depExcluido": "Departamento excluído com sucesso.",
+  "depComFilhos": "Departamento possui subdepartamentos e não pode ser excluído.",
+  "depComColaboradores": "Departamento possui colaboradores e não pode ser excluído."
 }

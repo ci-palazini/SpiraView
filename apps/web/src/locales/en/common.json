@@ -90,7 +90,8 @@
     "kamishibaiHistory": "Audits (History)",
     "dailyMeeting": "Daily Meeting",
     "safetyUpload": "Safety Upload (BBS)",
-    "safetyCompliance": "BBS Compliance"
+    "safetyCompliance": "BBS Compliance",
+    "manageDepartamentos": "Departments"
   },
   "reuniao_diaria": {
     "title": "Daily Meeting — SQDCP",
@@ -122,6 +123,7 @@
     "safety_vs_prev": "vs. previous month",
     "safety_safe_label": "Safe",
     "safety_atrisk_label": "At-Risk",
+    "safety_engajamento": "BBS Engagement by Dept.",
     "people_placeholder": "People — To be defined",
     "delivery_placeholder": "Delivery — To be defined",
     "cost_placeholder": "Cost — To be defined",
@@ -1093,6 +1095,7 @@
     "search": {
       "placeholder": "Search by name, username or email...",
       "funcaoPlaceholder": "Filter by function...",
+      "departamentoPlaceholder": "Filter by department...",
       "noResults": "No users found for \"{{busca}}\""
     },
     "actions": {
@@ -1105,7 +1108,10 @@
       "fullName": "Full Name",
       "username": "Username",
       "matricula": "Badge Number",
-      "function": "Role",
+      "role": "Access Level",
+      "function": "Function",
+      "departamento": "Department",
+      "superior": "Superior",
       "actions": "Actions"
     },
     "stats": {
@@ -2218,5 +2224,26 @@
     "errorSave": "Error saving PIN.",
     "errorRemove": "Error removing PIN.",
     "accessDenied": "Access restricted to administrators."
-  }
+  },
+  "departamentos": "Departments",
+  "departamento": "Department",
+  "superiorDireto": "Direct Manager",
+  "semDepartamento": "No department",
+  "semSuperior": "No direct manager",
+  "depPai": "Parent Department",
+  "semPai": "None (root)",
+  "criarDepartamento": "Create Department",
+  "editarDepartamento": "Edit Department",
+  "excluirDepartamento": "Delete Department",
+  "depAdicionarFilho": "Add sub-department",
+  "semDepartamentos": "No departments created.",
+  "selecioneOuCrieDep": "Select a department or create a new one.",
+  "nomeDepartamento": "Department name",
+  "nomeDepartamentoPlaceholder": "E.g. Production, Quality",
+  "confirmarExcluirDep": "Delete department? This action cannot be undone.",
+  "depCriado": "Department created successfully.",
+  "depAtualizado": "Department updated successfully.",
+  "depExcluido": "Department deleted successfully.",
+  "depComFilhos": "Department has sub-departments and cannot be deleted.",
+  "depComColaboradores": "Department has collaborators and cannot be deleted."
 }

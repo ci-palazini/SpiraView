@@ -17,6 +17,7 @@ import {
     FiCheckCircle,
     FiSearch,
     FiRefreshCw,
+    FiUsers,
 } from 'react-icons/fi';
 import { http } from '../../services/apiClient';
 import styles from './ReuniaoDiaria.module.css';
@@ -168,6 +169,12 @@ interface SafetyRatio {
     arriscados: number;
 }
 
+interface SafetyEngajamentoDept {
+    departamento: string;
+    total: number;
+    comObservacao: number;
+}
+
 interface SafetyData {
     totalMes: number;
     totalMesAnterior: number;
@@ -181,6 +188,7 @@ interface SafetyData {
     feedbackPct: number | null;
     stopWorkCount: number;
     lastUpload?: string | null;
+    engajamentoDepartamentos?: SafetyEngajamentoDept[];
 }
 
 interface DailyData {
@@ -581,6 +589,42 @@ export default function ReuniaoDiariaPage() {
                                                     />
                                                 </div>
                                                 <span className={styles.safetyTvParetoCount}>{c.total}×</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Engajamento por departamento — grid 2×2 */}
+                        {s.engajamentoDepartamentos && s.engajamentoDepartamentos.length > 0 && (
+                            <div className={styles.safetyEngajamentoCard}>
+                                <h4 className={styles.safetyTvSectionLabel}>
+                                    <FiUsers size={13} />
+                                    {t('reuniao_diaria.safety_engajamento')}
+                                </h4>
+                                <div className={styles.safetyEngajamentoGrid}>
+                                    {s.engajamentoDepartamentos.map((d) => {
+                                        const pct = d.total > 0 ? Math.round((d.comObservacao / d.total) * 100) : 0;
+                                        const color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#f59e0b' : '#dc2626';
+                                        return (
+                                            <div
+                                                key={d.departamento}
+                                                className={styles.safetyEngajamentoDeptCard}
+                                                style={{ borderColor: color + '40' }}
+                                            >
+                                                <span className={styles.safetyEngajamentoDeptName}>
+                                                    {d.departamento}
+                                                </span>
+                                                <span className={styles.safetyEngajamentoDeptPct} style={{ color }}>
+                                                    {pct}%
+                                                </span>
+                                                <div className={styles.safetyEngajamentoDeptBar}>
+                                                    <div style={{ width: `${pct}%`, background: color }} />
+                                                </div>
+                                                <span className={styles.safetyEngajamentoDeptCount}>
+                                                    {d.comObservacao}/{d.total}
+                                                </span>
                                             </div>
                                         );
                                     })}

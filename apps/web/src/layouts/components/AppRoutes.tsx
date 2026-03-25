@@ -11,6 +11,7 @@ import HistoricoPage from '../../features/manutencao/chamados/pages/HistoricoPag
 import PerfilPage from '../../features/usuarios/pages/PerfilPage';
 import AnaliseFalhasPage from '../../features/manutencao/analytics/pages/AnaliseFalhasPage';
 import GerirUtilizadoresPage from '../../features/usuarios/pages/GerirUtilizadoresPage';
+import GerirDepartamentosPage from '../../features/departamentos/pages/GerirDepartamentosPage';
 import CalendarioGeralPage from '../../features/manutencao/utilidades/calendario/pages/CalendarioGeralPage';
 import CausasRaizPage from '../../features/manutencao/analytics/pages/CausasRaizPage';
 import EstoquePage from '../../features/manutencao/utilidades/estoque/pages/EstoquePage';
@@ -158,6 +159,11 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/gerir-utilizadores"
                 element={canAccessPage('usuarios', <GerirUtilizadoresPage user={user} />)}
+            />
+
+            <Route
+                path="/departamentos"
+                element={canAccessPage('departamentos', <GerirDepartamentosPage user={user} />)}
             />
 
             <Route

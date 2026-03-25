@@ -48,7 +48,9 @@ import type {
     SafetyResolverPayload,
     SafetyResolverResponse,
     SafetyComplianceMensal,
-    SafetyUploadHistory
+    SafetyUploadHistory,
+    Departamento,
+    DepartamentoCreate
 } from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
@@ -1114,6 +1116,30 @@ export async function buscarDetalheUploadProducao(uploadId: string): Promise<Pro
 }
 
 
+// ===== DEPARTAMENTOS =====
+
+export async function listarDepartamentos(auth: AuthParams = {}): Promise<Departamento[]> {
+    const data = await http.get<{ items: Departamento[] }>('/departamentos', { auth });
+    return data.items;
+}
+
+export async function listarDepartamentosArvore(auth: AuthParams = {}): Promise<Departamento[]> {
+    const data = await http.get<{ items: Departamento[] }>('/departamentos/arvore', { auth });
+    return data.items;
+}
+
+export async function criarDepartamento(data: DepartamentoCreate, auth: AuthParams = {}): Promise<Departamento> {
+    return http.post<Departamento>('/departamentos', { data, auth });
+}
+
+export async function atualizarDepartamento(id: string, data: Partial<DepartamentoCreate>, auth: AuthParams = {}): Promise<Departamento> {
+    return http.put<Departamento>(`/departamentos/${id}`, { data, auth });
+}
+
+export async function excluirDepartamento(id: string, auth: AuthParams = {}): Promise<{ ok: boolean; id: string }> {
+    return http.delete(`/departamentos/${id}`, { auth });
+}
+
 // ===== ROLES (Níveis de Acesso) =====
 
 export type NivelPermissao = 'nenhum' | 'ver' | 'editar';
@@ -1761,4 +1787,8 @@ export async function ehsComplianceMensal(ano: number): Promise<{ items: SafetyC
 export async function ehsUploads(mes?: string): Promise<SafetyUploadHistory[]> {
     const url = mes ? `/ehs/uploads?mes=${mes}` : '/ehs/uploads';
     return http.get<SafetyUploadHistory[]>(url);
+}
+
+export async function listDepartamentos(): Promise<{ items: Departamento[] }> {
+    return http.get<{ items: Departamento[] }>('/departamentos');
 }

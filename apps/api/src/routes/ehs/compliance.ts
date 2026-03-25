@@ -23,6 +23,8 @@ ehsComplianceRouter.get(
                     u.id   AS "usuarioId",
                     u.nome AS "nome",
                     u.funcao AS "funcao",
+                    u.departamento_id AS "departamentoId",
+                    d.nome AS "departamentoNome",
                     ARRAY(
                         SELECT COALESCE(c.cnt, 0)
                         FROM generate_series(1, 12) AS m(mes)
@@ -38,6 +40,7 @@ ehsComplianceRouter.get(
                         ORDER BY m.mes
                     ) AS "meses"
                 FROM usuarios u
+                LEFT JOIN departamentos d ON d.id = u.departamento_id
                 WHERE u.ativo = true
                 ORDER BY u.nome`,
                 [ano]

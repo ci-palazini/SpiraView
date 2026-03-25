@@ -18,6 +18,8 @@ const createUsuarioSchema = z.object({
   senha: z.string().min(6).max(128).optional(),
   matricula: z.string().max(40).optional().nullable(),
   permissoes: z.record(z.enum(['nenhum', 'ver', 'editar'])).optional(),
+  departamento_id: z.string().uuid().optional().nullable(),
+  superior_id: z.string().uuid().optional().nullable(),
 });
 
 const updateUsuarioSchema = z.object({
@@ -30,6 +32,8 @@ const updateUsuarioSchema = z.object({
   matricula: z.string().max(40).nullable().optional(),
   ativo: z.boolean().optional(),
   permissoes: z.record(z.enum(['nenhum', 'ver', 'editar'])).optional(),
+  departamento_id: z.string().uuid().optional().nullable(),
+  superior_id: z.string().uuid().optional().nullable(),
 });
 
 export const usuariosRouter: Router = Router();
@@ -117,9 +121,15 @@ usuariosRouter.get('/usuarios', requireAnyPermission(['usuarios', 'chamados_gest
          ) AS funcao,
          u.ativo,
          u.matricula,
-         COALESCE(u.permissoes, r.permissoes) AS permissoes
+         COALESCE(u.permissoes, r.permissoes) AS permissoes,
+         u.departamento_id,
+         u.superior_id,
+         CASE WHEN d.id IS NOT NULL THEN jsonb_build_object('id', d.id, 'nome', d.nome) ELSE NULL END AS departamento,
+         CASE WHEN s.id IS NOT NULL THEN jsonb_build_object('id', s.id, 'nome', s.nome) ELSE NULL END AS superior
        FROM usuarios u
        LEFT JOIN roles r ON u.role_id = r.id
+       LEFT JOIN departamentos d ON d.id = u.departamento_id AND d.ativo = true
+       LEFT JOIN usuarios s ON s.id = u.superior_id AND s.ativo = true
        ${whereSQL}
        ORDER BY u.nome ASC`,
       params
@@ -211,7 +221,7 @@ usuariosRouter.get('/usuarios/verificar', requirePermission('usuarios', 'ver'), 
 // POST /usuarios - criar usuário (requer editar)
 usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), validateBody(createUsuarioSchema), async (req, res) => {
   try {
-    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, permissoes: permissoesRaw } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, permissoes: permissoesRaw, departamento_id, superior_id } = req.body;
 
     // senha_hash (opcional)
     let senha_hash: string | null = null;
@@ -232,10 +242,10 @@ usuariosRouter.post('/usuarios', requirePermission('usuarios', 'editar'), valida
     // Inserção com audit log
     const novoUsuario = await withTx(async (client) => {
       const { rows } = await client.query(
-        `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula, permissoes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-         RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes`,
-        [nome, usuario, email, roleId, funcaoRaw || '', senha_hash, matricula, JSON.stringify(permissoes)]
+        `INSERT INTO usuarios (nome, usuario, email, role_id, funcao, senha_hash, matricula, permissoes, departamento_id, superior_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes, departamento_id, superior_id`,
+        [nome, usuario, email, roleId, funcaoRaw || '', senha_hash, matricula, JSON.stringify(permissoes), departamento_id ?? null, superior_id ?? null]
       );
       await logAudit(client, {
         tabela: 'usuarios', registroId: rows[0].id, acao: 'CREATE',
@@ -261,7 +271,7 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
   try {
     const id = String(req.params.id);
 
-    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, ativo, permissoes: permissoesRaw } = req.body;
+    const { nome, usuario, email, role, funcao: funcaoRaw, senha, matricula, ativo, permissoes: permissoesRaw, departamento_id, superior_id } = req.body;
 
     // Monta SET dinâmico
     const sets: string[] = [];
@@ -285,6 +295,8 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
     if (matricula !== undefined) add('matricula', matricula);
     if (ativo !== undefined) add('ativo', ativo);
     if (permissoesRaw !== undefined) add('permissoes', JSON.stringify(permissoesRaw));
+    if (departamento_id !== undefined) add('departamento_id', departamento_id);
+    if (superior_id !== undefined) add('superior_id', superior_id);
 
     // Reset de senha se informado (min-length enforced by schema)
     if (typeof senha === 'string') {
@@ -296,13 +308,40 @@ usuariosRouter.put('/usuarios/:id', requirePermission('usuarios', 'editar'), val
 
     params.push(id);
     const usuarioAtualizado = await withTx(async (client) => {
-      const { rows } = await client.query(
+      const { rows: updateRows } = await client.query(
         `UPDATE usuarios SET ${sets.join(', ')}
           WHERE id=$${params.length}
-        RETURNING id, nome, usuario, email, role_id, funcao, matricula, permissoes`,
+        RETURNING id`,
         params
       );
+      if (!updateRows.length) return null;
+
+      // Buscar usuário atualizado com todos os campos necessários (igual ao GET)
+      const { rows } = await client.query(
+        `SELECT
+           u.id,
+           u.nome,
+           u.usuario,
+           u.email,
+           r.nome AS role,
+           u.role_id,
+           COALESCE(u.funcao, r.nome, 'Colaborador') AS funcao,
+           u.ativo,
+           u.matricula,
+           COALESCE(u.permissoes, r.permissoes) AS permissoes,
+           u.departamento_id,
+           u.superior_id,
+           CASE WHEN d.id IS NOT NULL THEN jsonb_build_object('id', d.id, 'nome', d.nome) ELSE NULL END AS departamento,
+           CASE WHEN s.id IS NOT NULL THEN jsonb_build_object('id', s.id, 'nome', s.nome) ELSE NULL END AS superior
+         FROM usuarios u
+         LEFT JOIN roles r ON u.role_id = r.id
+         LEFT JOIN departamentos d ON d.id = u.departamento_id AND d.ativo = true
+         LEFT JOIN usuarios s ON s.id = u.superior_id AND s.ativo = true
+         WHERE u.id = $1`,
+        [id]
+      );
       if (!rows.length) return null;
+
       await logAudit(client, {
         tabela: 'usuarios', registroId: id, acao: 'UPDATE',
         dadosNovos: { nome: rows[0].nome, usuario: rows[0].usuario, email: rows[0].email, role_id: rows[0].role_id },

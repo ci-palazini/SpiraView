@@ -18,9 +18,11 @@ import {
     listarRolesOptions,
     verificarDisponibilidadeUsuario,
     listarPaginasPermissao,
+    listarDepartamentos,
     PaginaPermissao,
     NivelPermissao
 } from '../../../services/apiClient';
+import type { Departamento } from '@spiraview/shared';
 import useDebounce from '../../../hooks/useDebounce';
 
 // ---------- Types ----------
@@ -42,6 +44,10 @@ interface UserRow {
     funcao?: string;
     matricula?: string;
     permissoes?: Record<string, NivelPermissao>;
+    departamento_id?: string;
+    superior_id?: string;
+    departamento?: { id: string; nome: string };
+    superior?: { id: string; nome: string };
 }
 
 // ---------- Helpers ----------
@@ -97,6 +103,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     const [loading, setLoading] = useState(true);
     const [roleFiltro, setRoleFiltro] = useState<string>('all');
     const [funcaoFiltro, setFuncaoFiltro] = useState<string>('');
+    const [departamentoFiltro, setDepartamentoFiltro] = useState<string>('all');
     const [busca, setBusca] = useState('');
 
     // modal
@@ -139,16 +146,22 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
     type RoleOption = { id: string; nome: string };
     const [roles, setRoles] = useState<RoleOption[]>([]);
 
+    // departamentos e superior
+    const [departamentoId, setDepartamentoId] = useState<string>('');
+    const [superiorId, setSuperiorId] = useState<string>('');
+    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+
     useEffect(() => {
         let alive = true;
         (async () => {
             try {
                 setLoading(true);
                 const auth = { email: user?.email, role: user?.role };
-                const [lista, rolesList, paginasList] = await Promise.all([
+                const [lista, rolesList, paginasList, depsList] = await Promise.all([
                     listarUsuarios({ role: roleFiltro !== 'all' ? roleFiltro : undefined }),
                     listarRolesOptions(auth),
-                    listarPaginasPermissao(auth)
+                    listarPaginasPermissao(auth),
+                    listarDepartamentos(auth).catch(() => [] as Departamento[]),
                 ]);
                 if (!alive) return;
                 setUtilizadores(
@@ -156,6 +169,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                 );
                 setRoles(rolesList);
                 setPaginas(paginasList);
+                setDepartamentos(depsList);
             } catch (e) {
                 console.error('Erro ao listar utilizadores:', e);
                 toast.error(t('users.toasts.listError'));
@@ -180,6 +194,11 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             result = result.filter(u => (u.funcao || '').toLowerCase().includes(termo));
         }
 
+        // Filtrar por departamento
+        if (departamentoFiltro !== 'all') {
+            result = result.filter(u => u.departamento_id === departamentoFiltro);
+        }
+
         // Filtrar por busca (nome, usuario, email)
         const termo = busca.trim().toLowerCase();
         if (termo) {
@@ -191,7 +210,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         }
 
         return result;
-    }, [utilizadores, busca, roleFiltro, funcaoFiltro]);
+    }, [utilizadores, busca, roleFiltro, funcaoFiltro, departamentoFiltro]);
 
     // Helper para obter label do role dinâmico
     const getRoleLabel = (roleSlug?: string) => {
@@ -302,12 +321,14 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setIsSaving(true);
         try {
             if (modoEdicao && usuarioEditandoId) {
-                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string; email?: string } = {
+                const payload: Partial<UserRow> & { role: string; funcao: string; usuario: string; matricula?: string; email?: string; departamento_id?: string | null; superior_id?: string | null } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
                     email: emailInput.trim() || undefined,
                     role,
                     funcao,
+                    departamento_id: departamentoId || null,
+                    superior_id: superiorId || null,
                 };
                 // Adiciona matrícula apenas para operadores
                 if (role.toLowerCase() === 'operador') {
@@ -332,12 +353,16 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                     funcao: string;
                     senha?: string;
                     matricula?: string;
+                    departamento_id?: string | null;
+                    superior_id?: string | null;
                 } = {
                     nome: nomeCompleto,
                     usuario: nomeUsuario,
                     email: emailInput.trim() || undefined,
                     role,
                     funcao,
+                    departamento_id: departamentoId || null,
+                    superior_id: superiorId || null,
                 };
                 // Adiciona matrícula apenas para operadores
                 if (role.toLowerCase() === 'operador' && matricula.trim()) {
@@ -369,6 +394,8 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
             setRole('operador');
             setFuncao('');
             setMatricula('');
+            setDepartamentoId('');
+            setSuperiorId('');
             setModoEdicao(false);
             setUsuarioEditandoId(null);
             setIsModalOpen(false);
@@ -394,6 +421,8 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setRole('operador'); // Default seguro
         setFuncao('');
         setMatricula('');
+        setDepartamentoId('');
+        setSuperiorId('');
         setUsernameStatus('idle');
         setSugestoes([]);
         setNomeWarning(null);
@@ -404,9 +433,11 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
         setNome(userRow.nome || '');
         setUsuario(userRow.usuario || '');
         setEmailInput(userRow.email || '');
-        setRole(userRow.role || 'operador');
+        setRole((userRow.role || 'operador').toLowerCase());
         setFuncao(userRow.funcao || '');
         setMatricula(userRow.matricula || '');
+        setDepartamentoId(userRow.departamento_id || '');
+        setSuperiorId(userRow.superior_id || '');
         setModoEdicao(true);
         setUsuarioEditandoId(userRow.id);
         setSenha('');
@@ -567,6 +598,23 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             value={funcaoFiltro}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setFuncaoFiltro(e.target.value)}
                         />
+
+                        <label htmlFor="departamentoFiltro" className={styles.filterLabel}>
+                            {t('users.form.departamento', 'Departamento')}
+                        </label>
+                        <select
+                            id="departamentoFiltro"
+                            className={`${styles.select} ${styles.filterSelect}`}
+                            value={departamentoFiltro}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setDepartamentoFiltro(e.target.value)}
+                        >
+                            <option value="all">{t('users.roles.all')}</option>
+                            {departamentos.map((d) => (
+                                <option key={d.id} value={d.id}>
+                                    {d.nome}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     {!loading && (
                         <span className={styles.userCount}>
@@ -584,6 +632,7 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <Skeleton variant="text" width={100} height={20} />
                             <Skeleton variant="text" width={100} height={20} />
                             <Skeleton variant="text" width={60} height={20} />
+                            <Skeleton variant="text" width={80} height={20} />
                             <Skeleton variant="text" width={80} height={20} />
                             <Skeleton variant="text" width={80} height={20} />
                             <Skeleton variant="text" width={60} height={20} style={{ marginLeft: 'auto' }} />
@@ -614,6 +663,8 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             <span>{t('users.table.matricula', 'Matrícula')}</span>
                             <span>{t('users.table.role', 'Tipo de Acesso')}</span>
                             <span>{t('users.table.function', 'Função')}</span>
+                            <span>{t('users.table.departamento', 'Departamento')}</span>
+                            <span>{t('users.table.superior', 'Superior')}</span>
                             <span style={{ textAlign: 'right' }}>
                                 {t('users.table.actions')}
                             </span>
@@ -666,6 +717,12 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                                         </span>
                                         <span className={styles.functionText} title={userRow.funcao || ''}>
                                             {userRow.funcao || '—'}
+                                        </span>
+                                        <span className={styles.depCell} title={userRow.departamento?.nome || ''}>
+                                            {userRow.departamento?.nome || '—'}
+                                        </span>
+                                        <span className={styles.superiorCell} title={userRow.superior?.nome || ''}>
+                                            {userRow.superior?.nome || '—'}
                                         </span>
                                         <div className={styles.actions}>
                                             {userRow.role !== 'admin' && (
@@ -840,6 +897,33 @@ const GerirUtilizadoresPage = ({ user }: GerirUtilizadoresPageProps) => {
                             inputMode="numeric"
                         />
                     )}
+
+                    <Select
+                        id="departamento"
+                        label={t('departamento', 'Departamento')}
+                        value={departamentoId}
+                        onChange={(e) => setDepartamentoId(e.target.value)}
+                    >
+                        <option value="">{t('semDepartamento', 'Sem departamento')}</option>
+                        {departamentos.map(dep => (
+                            <option key={dep.id} value={dep.id}>{dep.nome}</option>
+                        ))}
+                    </Select>
+
+                    <Select
+                        id="superior"
+                        label={t('superiorDireto', 'Superior direto')}
+                        value={superiorId}
+                        onChange={(e) => setSuperiorId(e.target.value)}
+                    >
+                        <option value="">{t('semSuperior', 'Sem superior')}</option>
+                        {utilizadores
+                            .filter(u => u.id !== usuarioEditandoId)
+                            .map(u => (
+                                <option key={u.id} value={u.id}>{u.nome}{u.funcao ? ` — ${u.funcao}` : ''}</option>
+                            ))
+                        }
+                    </Select>
 
                     <Button type="submit" loading={isSaving} style={{ marginTop: 16 }}>
                         {modoEdicao ? t('users.form.saveChanges') : t('users.form.createUser')}
