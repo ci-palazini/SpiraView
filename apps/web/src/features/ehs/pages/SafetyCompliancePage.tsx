@@ -12,7 +12,7 @@ import styles from './SafetyCompliancePage.module.css';
 
 const MONTH_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-type TabType = 'overview' | 'evolution' | 'departments' | 'details';
+type TabType = 'overview' | 'evolution' | 'departments';
 
 export default function SafetyCompliancePage() {
     const { t } = useTranslation();
@@ -52,6 +52,7 @@ export default function SafetyCompliancePage() {
 
     const handleDepartmentClick = (departamentoId: string) => {
         setSelectedDepartamentos([departamentoId]);
+        setActiveTab('overview');
     };
 
     // Filter data by selected departamentos
@@ -121,19 +122,12 @@ export default function SafetyCompliancePage() {
                                     <FiBarChart2 size={18} />
                                     <span>Departamentos</span>
                                 </button>
-                                <button
-                                    className={`${styles.tabButton} ${activeTab === 'details' ? styles.tabActive : ''}`}
-                                    onClick={() => setActiveTab('details')}
-                                >
-                                    <FiTable size={18} />
-                                    <span>Detalhes</span>
-                                </button>
                             </nav>
                         </div>
 
                         {/* Tab Content */}
                         <div className={styles.tabContent}>
-                            {/* OVERVIEW TAB */}
+                            {/* VISÃO GERAL TAB (Overview + Details) */}
                             {activeTab === 'overview' && (
                                 <div className={`${styles.tabPane} ${styles.fadeIn}`}>
                                     <div className={styles.summaryBar}>
@@ -197,6 +191,76 @@ export default function SafetyCompliancePage() {
                                             </p>
                                         </div>
                                     </div>
+
+                                    <div style={{ marginTop: '32px' }}>
+                                        <DepartmentFilter
+                                            departamentos={departamentos}
+                                            selectedDepartamentos={selectedDepartamentos}
+                                            onChange={setSelectedDepartamentos}
+                                        />
+
+                                        <div className={styles.tableWrapper}>
+                                            <table className={styles.complianceTable}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>{t('ehs.compliance.col_name', 'Nome')}</th>
+                                                        <th>{t('ehs.compliance.col_function', 'Função')}</th>
+                                                        <th>{t('departamento', 'Departamento')}</th>
+                                                        {MONTH_SHORT.map((m, i) => (
+                                                            <th key={i}>{m}</th>
+                                                        ))}
+                                                        <th>Total</th>
+                                                        <th style={{ minWidth: '120px' }}>Taxa</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredData.map((user) => {
+                                                        const total = user.meses.reduce((a, b) => a + b, 0);
+                                                        const observedMonths = user.meses.slice(0, maxMonth + 1).filter(m => m > 0).length;
+                                                        const complianceRate = maxMonth + 1 > 0 ? (observedMonths / (maxMonth + 1)) * 100 : 0;
+                                                        const rateColor = complianceRate >= 80 ? '#10b981' : complianceRate >= 60 ? '#f59e0b' : '#ef4444';
+                                                        return (
+                                                            <tr key={user.usuarioId}>
+                                                                <td className={styles.nameCol}>{user.nome}</td>
+                                                                <td className={styles.funcaoCol}>{user.funcao || '—'}</td>
+                                                                <td className={styles.funcaoCol}>{user.departamentoNome || '—'}</td>
+                                                                {user.meses.map((count, m) => {
+                                                                    const isFuture = m > currentMonth;
+                                                                    const cls = isFuture
+                                                                        ? styles.cellFuture
+                                                                        : count > 0
+                                                                            ? styles.cellGood
+                                                                            : styles.cellBad;
+                                                                    return (
+                                                                        <td key={m} className={cls}>
+                                                                            {isFuture ? '—' : count}
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                                <td className={styles.cellTotal}>{total}</td>
+                                                                <td style={{ padding: '8px 12px' }}>
+                                                                    <div className={styles.progressContainer}>
+                                                                        <div className={styles.progressTrack}>
+                                                                            <div 
+                                                                                className={styles.progressFill} 
+                                                                                style={{ 
+                                                                                    width: `${Math.min(complianceRate, 100)}%`, 
+                                                                                    background: rateColor 
+                                                                                }} 
+                                                                            />
+                                                                        </div>
+                                                                        <span className={styles.progressLabel} style={{ color: rateColor }}>
+                                                                            {complianceRate.toFixed(0)}%
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -214,76 +278,9 @@ export default function SafetyCompliancePage() {
                                         data={stats.rankingDepartamentos}
                                         onDepartmentClick={handleDepartmentClick}
                                     />
-                                    <ComparacaoPeriodosCards data={stats.comparacaoPeriodos} />
                                 </div>
                             )}
 
-                            {/* DETAILS TAB */}
-                            {activeTab === 'details' && (
-                                <div className={`${styles.tabPane} ${styles.fadeIn}`}>
-                                    <DepartmentFilter
-                                        departamentos={departamentos}
-                                        selectedDepartamentos={selectedDepartamentos}
-                                        onChange={setSelectedDepartamentos}
-                                    />
-
-                                    <div className={styles.tableWrapper}>
-                                        <table className={styles.complianceTable}>
-                                            <thead>
-                                                <tr>
-                                                    <th>{t('ehs.compliance.col_name', 'Nome')}</th>
-                                                    <th>{t('ehs.compliance.col_function', 'Função')}</th>
-                                                    <th>{t('departamento', 'Departamento')}</th>
-                                                    {MONTH_SHORT.map((m, i) => (
-                                                        <th key={i}>{m}</th>
-                                                    ))}
-                                                    <th>Total</th>
-                                                    <th style={{ minWidth: '120px' }}>Taxa</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {filteredData.map((user) => {
-                                                    const total = user.meses.reduce((a, b) => a + b, 0);
-                                                    const observedMonths = user.meses.slice(0, maxMonth + 1).filter(m => m > 0).length;
-                                                    const complianceRate = maxMonth + 1 > 0 ? (observedMonths / (maxMonth + 1)) * 100 : 0;
-                                                    const rateColor = complianceRate >= 80 ? '#10b981' : complianceRate >= 60 ? '#f59e0b' : '#ef4444';
-                                                    return (
-                                                        <tr key={user.usuarioId}>
-                                                            <td className={styles.nameCol}>{user.nome}</td>
-                                                            <td className={styles.funcaoCol}>{user.funcao || '—'}</td>
-                                                            <td className={styles.funcaoCol}>{user.departamentoNome || '—'}</td>
-                                                            {user.meses.map((count, m) => {
-                                                                const isFuture = m > currentMonth;
-                                                                const cls = isFuture
-                                                                    ? styles.cellFuture
-                                                                    : count > 0
-                                                                        ? styles.cellGood
-                                                                        : styles.cellBad;
-                                                                return (
-                                                                    <td key={m} className={cls}>
-                                                                        {isFuture ? '—' : count}
-                                                                    </td>
-                                                                );
-                                                            })}
-                                                            <td className={styles.cellTotal}>{total}</td>
-                                                            <td style={{ padding: '8px 12px' }}>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                    <div style={{ flex: 1, height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
-                                                                        <div style={{ height: '100%', width: `${Math.min(complianceRate, 100)}%`, background: rateColor, borderRadius: '4px', transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-                                                                    </div>
-                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: rateColor, minWidth: '35px', textAlign: 'right' }}>
-                                                                        {complianceRate.toFixed(0)}%
-                                                                    </span>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </>
                 )}

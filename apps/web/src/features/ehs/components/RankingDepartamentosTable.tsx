@@ -57,39 +57,44 @@ export default function RankingDepartamentosTable({ data, onDepartmentClick }: R
                         <tr>
                             <th className={styles.positionColumn}>#</th>
                             <th 
-                                className={styles.sortableHeader}
                                 onClick={() => handleSort('departamentoNome')}
                             >
-                                {t('ehs.stats.departamento', 'Departamento')}
-                                <SortIcon columnKey="departamentoNome" />
+                                <div className={styles.sortableHeader}>
+                                    {t('ehs.stats.departamento', 'Departamento')}
+                                    <SortIcon columnKey="departamentoNome" />
+                                </div>
                             </th>
                             <th 
-                                className={styles.sortableHeader}
                                 onClick={() => handleSort('totalObservacoes')}
                             >
-                                {t('ehs.stats.total_obs', 'Total de Observações')}
-                                <SortIcon columnKey="totalObservacoes" />
+                                <div className={styles.sortableHeader}>
+                                    {t('ehs.stats.total_obs', 'Total de Observações')}
+                                    <SortIcon columnKey="totalObservacoes" />
+                                </div>
                             </th>
                             <th 
-                                className={styles.sortableHeader}
                                 onClick={() => handleSort('participantes')}
                             >
-                                {t('ehs.stats.participantes', 'Participantes')}
-                                <SortIcon columnKey="participantes" />
+                                <div className={styles.sortableHeader}>
+                                    {t('ehs.stats.participantes', 'Participantes')}
+                                    <SortIcon columnKey="participantes" />
+                                </div>
                             </th>
                             <th 
-                                className={styles.sortableHeader}
                                 onClick={() => handleSort('compliance')}
                             >
-                                {t('ehs.stats.compliance', 'Compliance')}
-                                <SortIcon columnKey="compliance" />
+                                <div className={styles.sortableHeader}>
+                                    {t('ehs.stats.compliance', 'Compliance')}
+                                    <SortIcon columnKey="compliance" />
+                                </div>
                             </th>
                             <th 
-                                className={styles.sortableHeader}
                                 onClick={() => handleSort('mediaObsPorParticipante')}
                             >
-                                {t('ehs.stats.media_obs', 'Média Obs/Participante')}
-                                <SortIcon columnKey="mediaObsPorParticipante" />
+                                <div className={styles.sortableHeader}>
+                                    {t('ehs.stats.media_obs', 'Média Obs/Participante')}
+                                    <SortIcon columnKey="mediaObsPorParticipante" />
+                                </div>
                             </th>
                         </tr>
                     </thead>

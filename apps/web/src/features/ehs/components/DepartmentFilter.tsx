@@ -8,12 +8,14 @@ interface DepartmentFilterProps {
     departamentos: Departamento[];
     selectedDepartamentos: string[];
     onChange: (selected: string[]) => void;
+    compact?: boolean;
 }
 
 export default function DepartmentFilter({
     departamentos,
     selectedDepartamentos,
     onChange,
+    compact = false,
 }: DepartmentFilterProps) {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +51,41 @@ export default function DepartmentFilter({
     const selectedNames = selectedDepartamentos
         .map((id) => departamentos.find((d) => d.id === id)?.nome)
         .filter(Boolean);
+
+    if (compact) {
+        return (
+            <div className={`${styles.filterContainer} ${styles.compact}`}>
+                <div className={styles.filterLabel}>
+                    {t('departamento', 'Departamento')}
+                </div>
+
+                <div className={styles.pillsContainer}>
+                    {departamentos.map((dept) => (
+                        <button
+                            key={dept.id}
+                            onClick={() => handleToggleDepartamento(dept.id)}
+                            className={`${styles.pill} ${selectedDepartamentos.includes(dept.id) ? styles.pillSelected : ''}`}
+                            title={dept.nome}
+                        >
+                            <span className={styles.pillText}>{dept.nome}</span>
+                            {dept.colaboradores_count && (
+                                <span className={styles.pillCount}>{dept.colaboradores_count}</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {selectedDepartamentos.length > 0 && (
+                    <button
+                        onClick={handleClearAll}
+                        className={styles.clearButton}
+                    >
+                        {t('common.clear', 'Limpar tudo')}
+                    </button>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className={styles.filterContainer}>

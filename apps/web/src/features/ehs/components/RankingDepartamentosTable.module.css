@@ -1,20 +1,40 @@
+/* RankingDepartamentosTable.module.css - Industrial Refined Minimalism */
+
 .container {
-    background: white;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(248, 250, 252, 0.75));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(30, 64, 175, 0.09);
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    margin-bottom: 24px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    padding: 28px;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .title {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.35rem;
+    font-weight: 700;
     color: #1e293b;
-    margin: 0 0 20px 0;
+    margin: 0 0 24px 0;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.title::before {
+    content: '';
+    width: 4px;
+    height: 26px;
+    background: linear-gradient(to bottom, #1e40af, #10b981);
+    border-radius: 2px;
 }
 
 .tableWrapper {
     overflow-x: auto;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .table {
@@ -24,15 +44,18 @@
 }
 
 .table thead {
-    background-color: #f8fafc;
+    background: linear-gradient(90deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.7));
+    border-bottom: 2px solid rgba(30, 64, 175, 0.14);
 }
 
 .table th {
-    padding: 12px 16px;
+    padding: 15px 18px;
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
     color: #475569;
-    border-bottom: 2px solid #e2e8f0;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
     white-space: nowrap;
 }
 
@@ -41,97 +64,243 @@
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: color 0.2s;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: -8px -12px; /* Pull slightly to fill the cell better but not as much as before */
+    width: fit-content;
+}
+
+.table th:first-child .sortableHeader {
+    margin-left: 0;
 }
 
 .sortableHeader:hover {
-    color: #1e293b;
+    color: #1e40af;
+    background: rgba(30, 64, 175, 0.06);
 }
 
 .positionColumn {
-    width: 50px;
+    width: 60px;
     text-align: center !important;
 }
 
 .table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    transition: all 0.2s ease;
 }
 
 .clickableRow {
     cursor: pointer;
-    transition: background-color 0.15s;
+    transition: background 0.2s ease;
 }
 
 .clickableRow:hover {
-    background-color: #f8fafc;
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0.04), rgba(16, 185, 129, 0.01));
+}
+
+.clickableRow:last-child td {
+    border-bottom: none;
 }
 
 .positionCell {
+    text-align: center;
+    font-weight: 800;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.deptNameCell {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+}
+
+.numberCell {
     text-align: center;
     font-weight: 600;
     color: #64748b;
 }
 
-.deptNameCell {
-    font-weight: 500;
-    color: #1e293b;
-}
-
-.numberCell {
-    text-align: center;
-    color: #475569;
-}
-
 .complianceCell {
-    min-width: 180px;
+    min-width: 200px;
 }
 
 .complianceContent {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .complianceText {
-    font-weight: 600;
-    min-width: 50px;
+    font-weight: 800;
+    min-width: 48px;
+    font-size: 0.9rem;
+    text-align: right;
     color: #1e293b;
 }
 
 .progressBar {
     flex: 1;
     height: 8px;
-    background-color: #e5e7eb;
+    background-color: #e2e8f0;
     border-radius: 4px;
     overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
 }
 
 .progressFill {
     height: 100%;
     border-radius: 4px;
-    transition: width 0.3s ease, background-color 0.3s ease;
+    transition: width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.progressFill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .emptyState {
     text-align: center;
-    padding: 40px 20px;
-    color: #64748b;
+    padding: 60px 40px;
+    color: #94a3b8;
     font-size: 0.95rem;
+    font-weight: 500;
+    background: rgba(248, 250, 252, 0.4);
+    border-radius: 10px;
+    border: 1.5px dashed rgba(30, 64, 175, 0.12);
+    margin-top: 16px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 24px;
+    }
+
+    .title {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
 }
 
 @media (max-width: 768px) {
     .container {
-        padding: 16px;
+        padding: 18px;
     }
-    
-    .table {
+
+    .title {
+        font-size: 1.1rem;
+        margin-bottom: 18px;
+        gap: 10px;
+    }
+
+    .title::before {
+        width: 3px;
+        height: 22px;
+    }
+
+    .table th {
+        padding: 12px 14px;
+        font-size: 10px;
+    }
+
+    .table td {
+        padding: 12px 14px;
+    }
+
+    .complianceCell {
+        min-width: 160px;
+    }
+
+    .positionColumn {
+        width: 50px;
+    }
+
+    .complianceContent {
+        gap: 8px;
+    }
+
+    .complianceText {
+        min-width: 42px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 14px;
+    }
+
+    .title {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+
+    .title::before {
+        width: 3px;
+        height: 18px;
+    }
+
+    .table th {
+        padding: 10px 10px;
+        font-size: 9px;
+        letter-spacing: 0.06em;
+    }
+
+    .table td {
+        padding: 10px;
+    }
+
+    .sortableHeader {
+        padding: 2px 4px;
+        margin: -2px -4px;
+    }
+
+    .complianceCell {
+        min-width: 140px;
+    }
+
+    .deptNameCell {
+        font-size: 0.9rem;
+    }
+
+    .complianceText {
+        min-width: 38px;
         font-size: 0.8rem;
     }
-    
-    .table th,
-    .table td {
-        padding: 10px 12px;
+
+    .numberCell {
+        font-size: 0.8rem;
+    }
+
+    .progressBar {
+        height: 6px;
+    }
+
+    .emptyState {
+        padding: 40px 24px;
+        font-size: 0.9rem;
     }
 }
