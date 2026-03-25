@@ -36,14 +36,14 @@ reuniaoDiariaRouter.get(
             // QUALITY (universal) — últimos refugos + retrabalhos + custo mês
             // ============================================================
 
-            // Verificar se há dados de qualidade no mês atual
+            // Verificar se há dados de refugo/quarentena no mês atual
             const qualityCheckRes = await pool.query(
                 `SELECT COUNT(*)::int AS total FROM qualidade_refugos WHERE data_ocorrencia >= $1`,
                 [monthStart]
             );
             const hasCurrentMonthQuality = Number(qualityCheckRes.rows[0]?.total || 0) > 0;
 
-            // Se não há dados no mês atual, buscar o último mês com dados
+            // Se não há dados no mês atual, buscar o último mês com dados (refugo)
             let effectiveQualityMonthStart = monthStart;
             let effectiveQualityMonth = month;
             let effectiveQualityYear = year;
@@ -69,6 +69,38 @@ reuniaoDiariaRouter.get(
             const nextQYear = effectiveQualityMonth === 12 ? effectiveQualityYear + 1 : effectiveQualityYear;
             const effectiveQualityMonthEnd = `${nextQYear}-${String(nextQMonth).padStart(2, '0')}-01`;
 
+            // Fallback independente para retrabalho (pode não ter dados no mesmo mês que refugo)
+            const retrabalhoCheckRes = await pool.query(
+                `SELECT COUNT(*)::int AS total FROM qualidade_retrabalho WHERE data >= $1`,
+                [monthStart]
+            );
+            const hasCurrentMonthRetrabalho = Number(retrabalhoCheckRes.rows[0]?.total || 0) > 0;
+
+            let effectiveRetrabalhoMonthStart = monthStart;
+            let effectiveRetrabalhoMonth = month;
+            let effectiveRetrabalhoYear = year;
+
+            if (!hasCurrentMonthRetrabalho) {
+                const lastRetrabalhoMonth = await pool.query(
+                    `SELECT EXTRACT(YEAR FROM data)::int AS year,
+                            EXTRACT(MONTH FROM data)::int AS month
+                     FROM qualidade_retrabalho
+                     WHERE data < $1
+                     ORDER BY data DESC
+                     LIMIT 1`,
+                    [monthStart]
+                );
+                if (lastRetrabalhoMonth.rows.length > 0) {
+                    effectiveRetrabalhoYear = lastRetrabalhoMonth.rows[0].year;
+                    effectiveRetrabalhoMonth = lastRetrabalhoMonth.rows[0].month;
+                    effectiveRetrabalhoMonthStart = `${effectiveRetrabalhoYear}-${String(effectiveRetrabalhoMonth).padStart(2, '0')}-01`;
+                }
+            }
+
+            const nextRMonth = effectiveRetrabalhoMonth === 12 ? 1 : effectiveRetrabalhoMonth + 1;
+            const nextRYear = effectiveRetrabalhoMonth === 12 ? effectiveRetrabalhoYear + 1 : effectiveRetrabalhoYear;
+            const effectiveRetrabalhoMonthEnd = `${nextRYear}-${String(nextRMonth).padStart(2, '0')}-01`;
+
             const [refugosRes, retrabalhoRes, custoMesRes, topCausaRes, breakdownRes, rpnRes, internoExternoRes, topNcRes, causas4mRes, topSolicitanteRes, retrabalhoStatsRes, lastUpdatedRefugoRes, lastUpdatedRetrabalhoRes] = await Promise.all([
                 pool.query(
                     `SELECT qr.data_ocorrencia, qr.descricao_item, qr.motivo_defeito,
@@ -89,7 +121,7 @@ reuniaoDiariaRouter.get(
            WHERE data >= $1 AND data < $2
            ORDER BY data DESC, created_at DESC
            LIMIT 7`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 pool.query(
                     `SELECT COALESCE(SUM(custo), 0) as custo_total,
@@ -133,7 +165,7 @@ reuniaoDiariaRouter.get(
                        ), 0) AS total_horas_mes
                      FROM qualidade_retrabalho
                      WHERE data >= $1 AND data < $2`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 // Breakdown Interno vs Externo no mês
                 pool.query(
@@ -162,7 +194,7 @@ reuniaoDiariaRouter.get(
                      GROUP BY nao_conformidade
                      ORDER BY horas DESC, total DESC
                      LIMIT 5`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 // Causas 4M de retrabalho
                 pool.query(
@@ -178,7 +210,7 @@ reuniaoDiariaRouter.get(
                        AND causa_provavel IS NOT NULL AND btrim(causa_provavel) <> ''
                      GROUP BY causa_provavel
                      ORDER BY total DESC`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 // Top solicitantes de retrabalho
                 pool.query(
@@ -195,7 +227,7 @@ reuniaoDiariaRouter.get(
                      GROUP BY solicitante
                      ORDER BY horas DESC, total DESC
                      LIMIT 5`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 // Stats consolidados de retrabalho
                 pool.query(
@@ -204,7 +236,7 @@ reuniaoDiariaRouter.get(
                             COUNT(DISTINCT nao_conformidade)::int AS nc_distintas
                      FROM qualidade_retrabalho
                      WHERE data >= $1 AND data < $2`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
                 // Última atualização de refugo/quarentena no mês efetivo
                 pool.query(
@@ -216,7 +248,7 @@ reuniaoDiariaRouter.get(
                 pool.query(
                     `SELECT MAX(created_at) AS last_updated FROM qualidade_retrabalho
                      WHERE data >= $1 AND data < $2`,
-                    [effectiveQualityMonthStart, effectiveQualityMonthEnd]
+                    [effectiveRetrabalhoMonthStart, effectiveRetrabalhoMonthEnd]
                 ),
             ]);
 
@@ -274,6 +306,8 @@ reuniaoDiariaRouter.get(
                 })),
                 mesReferencia: effectiveQualityMonth,
                 anoReferencia: effectiveQualityYear,
+                mesReferenciaRetrabalho: effectiveRetrabalhoMonth,
+                anoReferenciaRetrabalho: effectiveRetrabalhoYear,
                 lastUpdatedRefugo,
                 lastUpdatedRetrabalho,
             };

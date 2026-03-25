@@ -210,6 +210,8 @@ interface DailyData {
         topSolicitantes: TopSolicitanteData[];
         mesReferencia?: number;
         anoReferencia?: number;
+        mesReferenciaRetrabalho?: number;
+        anoReferenciaRetrabalho?: number;
         lastUpdatedRefugo?: string | null;
         lastUpdatedRetrabalho?: string | null;
     };
@@ -644,6 +646,7 @@ export default function ReuniaoDiariaPage() {
             breakdown, horasRetrabalho, internoExterno,
             retrabalhoStats, topNCs, causas4M, topSolicitantes,
             mesReferencia, anoReferencia,
+            mesReferenciaRetrabalho, anoReferenciaRetrabalho,
             lastUpdatedRefugo, lastUpdatedRetrabalho,
         } = data.quality;
         const totalBreakdown = breakdown.qtdRefugo + breakdown.qtdQuarentena;
@@ -655,8 +658,11 @@ export default function ReuniaoDiariaPage() {
         const currentYear = now.getFullYear();
         const isHistoricalData = mesReferencia && anoReferencia &&
             (mesReferencia !== currentMonth || anoReferencia !== currentYear);
+        const isHistoricalRetrabalho = mesReferenciaRetrabalho && anoReferenciaRetrabalho &&
+            (mesReferenciaRetrabalho !== currentMonth || anoReferenciaRetrabalho !== currentYear);
         const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const displayMonth = mesReferencia ? monthNames[mesReferencia - 1] : '';
+        const displayMonthRetrabalho = mesReferenciaRetrabalho ? monthNames[mesReferenciaRetrabalho - 1] : '';
 
         const causa4mColors: Record<string, string> = {
             METHOD: '#2563eb', MAN: '#d97706', MATERIAL: '#7c3aed', MACHINE: '#16a34a',
@@ -669,11 +675,18 @@ export default function ReuniaoDiariaPage() {
 
         return (
             <div className={styles.qualityTvLayout}>
-                {/* Banner histórico */}
+                {/* Banner histórico refugo */}
                 {isHistoricalData && (
                     <div className={styles.safetyHistoricalBanner}>
                         <FiAlertCircle size={16} />
-                        <span>Exibindo dados de {displayMonth}/{anoReferencia} (sem dados no mês atual)</span>
+                        <span>Refugo/Quarentena: exibindo dados de {displayMonth}/{anoReferencia} (sem dados no mês atual)</span>
+                    </div>
+                )}
+                {/* Banner histórico retrabalho (período diferente) */}
+                {isHistoricalRetrabalho && (
+                    <div className={styles.safetyHistoricalBanner}>
+                        <FiAlertCircle size={16} />
+                        <span>Retrabalho: exibindo dados de {displayMonthRetrabalho}/{anoReferenciaRetrabalho} (sem dados no mês atual)</span>
                     </div>
                 )}
 
@@ -1105,7 +1118,7 @@ export default function ReuniaoDiariaPage() {
                                 <div>
                                     <span className={styles.alertValue}>{fat.backlogAtraso}</span>
                                     <span className={styles.alertLabel}>
-                                        {t('reuniao_diaria.backlog_delay', 'Linhas deBacklog em Atraso')}
+                                        {t('reuniao_diaria.backlog_delay', 'Linhas de Backlog em Atraso')}
                                     </span>
                                 </div>
                             </div>
