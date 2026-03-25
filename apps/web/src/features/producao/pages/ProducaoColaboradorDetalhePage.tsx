@@ -298,13 +298,14 @@ const ProducaoColaboradorDetalhePage = ({ user }: ProducaoColaboradorDetalhePage
                                             <th>{t('producao.colaboradorDetalhe.table.machine')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.turn')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.op')}</th>
+                                            <th>{t('producao.colaboradorDetalhe.table.description', 'Descrição')}</th>
                                             <th className={styles.alignRight}>{t('producao.colaboradorDetalhe.table.hours')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredLancamentos.length === 0 ? (
                                             <tr>
-                                                <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>
+                                                <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
                                                     {selectedDay
                                                         ? t('producao.colaboradorDetalhe.messages.noDataDay')
                                                         : t('producao.colaboradorDetalhe.messages.selectDay')}
@@ -319,6 +320,13 @@ const ProducaoColaboradorDetalhePage = ({ user }: ProducaoColaboradorDetalhePage
                                                     <td>
                                                         {l.numeroOP ? (
                                                             <span className={styles.opBadge}>{l.numeroOP}</span>
+                                                        ) : '—'}
+                                                    </td>
+                                                    <td title={l.descricao || undefined}>
+                                                        {l.descricao ? (
+                                                            l.descricao.length > 50
+                                                                ? `${l.descricao.substring(0, 50)}...`
+                                                                : l.descricao
                                                         ) : '—'}
                                                     </td>
                                                     <td className={styles.alignRight}>

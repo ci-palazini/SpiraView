@@ -431,6 +431,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermiss
             numeroOP: string | null;
             observacao: string | null;
             horasReferenciaEm: string | null;
+            descricao: string | null;
         };
 
         const { rows } = await pool.query<DetalheDiaRow>(
@@ -441,7 +442,8 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-dia', requirePermiss
                 pl.horas_realizadas AS "horasRealizadas",
                 pl.numero_op AS "numeroOP",
                 pl.observacao,
-                pl.horas_referencia_em AS "horasReferenciaEm"
+                pl.horas_referencia_em AS "horasReferenciaEm",
+                pl.descricao
              FROM producao_lancamentos pl
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref = $1
@@ -526,6 +528,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermiss
             numeroOP: string | null;
             observacao: string | null;
             horasReferenciaEm: string | null;
+            descricao: string | null;
         };
 
         const { rows } = await pool.query<DetalheMesRow>(
@@ -537,7 +540,8 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermiss
                 pl.horas_realizadas AS "horasRealizadas",
                 pl.numero_op AS "numeroOP",
                 pl.observacao,
-                pl.horas_referencia_em AS "horasReferenciaEm"
+                pl.horas_referencia_em AS "horasReferenciaEm",
+                pl.descricao
              FROM producao_lancamentos pl
              JOIN maquinas m ON m.id = pl.maquina_id
              WHERE pl.data_ref >= $1 AND pl.data_ref <= $2

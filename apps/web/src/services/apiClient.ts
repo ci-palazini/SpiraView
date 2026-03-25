@@ -1034,6 +1034,7 @@ export interface FuncionarioDetalheLancamento {
     numeroOP: string | null;
     observacao: string | null;
     horasReferenciaEm: string | null;
+    descricao: string | null;
 }
 
 export interface FuncionarioDetalheResumo {
