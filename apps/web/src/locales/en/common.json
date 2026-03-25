@@ -637,9 +637,27 @@
       "best_month": "Best Month",
       "worst_month": "Worst Month",
       "active_users": "Active Users",
+      "current_month": "Current Month",
       "col_name": "Name",
       "col_function": "Function",
       "empty": "No active users found."
+    },
+    "stats": {
+      "evolucao_title": "Temporal Evolution",
+      "ranking_title": "Department Ranking",
+      "comparacao_title": "Period Comparison",
+      "total_obs": "Total Observations",
+      "participantes": "Participants",
+      "compliance": "Compliance",
+      "media_obs": "Avg Obs/Participant",
+      "departamento": "Department",
+      "ano_atual": "Current Year",
+      "ano_anterior": "Previous Year",
+      "variacao": "Change",
+      "crescimento": "growth",
+      "queda": "decrease",
+      "estavel": "stable",
+      "no_departments": "No departments with available data."
     }
   },
   "chamadoDetalhe": {

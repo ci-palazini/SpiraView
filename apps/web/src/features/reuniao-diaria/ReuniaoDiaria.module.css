@@ -370,6 +370,25 @@
     font-weight: 500;
 }
 
+.peopleSlide {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+}
+
+.peopleImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12);
+    transform: scale(1.15);
+    transition: transform 0.3s ease;
+}
+
 /* Section titles */
 .sectionTitle {
     font-size: 1.1rem;
@@ -1402,71 +1421,80 @@
 .safetyTvGrid {
     display: grid;
     grid-template-columns: 2fr 3fr;
-    gap: 1rem;
+    gap: 0.7rem;
     flex: 1;
     min-height: 0;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* ---- LEFT COLUMN ---- */
 .safetyTvLeft {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* Engajamento por departamento */
 .safetyEngajamentoCard {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 0.6rem 0.7rem;
+    padding: 0.7rem 0.9rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .safetyEngajamentoGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
+    gap: 0.5rem;
 }
 
 .safetyEngajamentoDeptCard {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(226, 232, 240, 0.9);
     border-radius: 8px;
-    padding: 0.5rem 0.6rem;
+    padding: 0.6rem 0.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.3rem;
     text-align: center;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
 }
 
 .safetyEngajamentoDeptName {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #475569;
-    line-height: 1.2;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #334155;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .safetyEngajamentoDeptPct {
-    font-size: 1.2rem;
-    font-weight: 800;
+    font-size: 2rem;
+    font-weight: 900;
     line-height: 1;
+    letter-spacing: -1px;
 }
 
 .safetyEngajamentoDeptCount {
-    font-size: 0.65rem;
-    color: #94a3b8;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
 }
 
 .safetyEngajamentoDeptBar {
     width: 100%;
-    height: 5px;
+    height: 8px;
     background: #e2e8f0;
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     margin-top: 0.1rem;
 }
@@ -1481,21 +1509,22 @@
 .safetyTvKpiCard {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex: 1;
+    min-height: 0;
 }
 
 .safetyTvKpiValue {
-    font-size: 5.5rem;
+    font-size: 4.5rem;
     font-weight: 900;
     margin: 0;
-    letter-spacing: -3px;
+    letter-spacing: -2px;
     line-height: 1;
 }
 
@@ -1504,12 +1533,12 @@
     color: #475569;
     margin: 8px 0 0;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     font-weight: 700;
 }
 
 .safetyTvKpiSub {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #64748b;
     margin: 6px 0 0;
     font-weight: 600;
@@ -1523,12 +1552,14 @@
 .safetyTvRatioCard {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.7rem;
+    flex: 1;
+    min-height: 0;
 }
 
 /* Shared section label */
@@ -1538,13 +1569,16 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #475569;
-    margin: 0;
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 /* Stacked bar */
 .safetyTvBar {
     display: flex;
-    height: 34px;
+    height: 32px;
     border-radius: 8px;
     overflow: hidden;
     background: #f1f5f9;
@@ -1568,21 +1602,21 @@
 .safetyTvBarLegend {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem 1.5rem;
+    gap: 0.6rem 1.2rem;
 }
 
 .safetyTvLegendItem {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #334155;
     font-weight: 500;
 }
 
 .safetyTvLegendDot {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -1591,16 +1625,17 @@
 .safetyTvRight {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    overflow-y: auto;
+    gap: 0.5rem;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* Pareto card panel */
 .safetyTvParetoCard {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.1rem 1.4rem;
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     flex-shrink: 0;
 }
@@ -1609,25 +1644,25 @@
 .safetyTvParetoList {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 0.6rem;
+    gap: 4px;
+    margin-top: 0.4rem;
 }
 
 .safetyTvParetoRow {
     display: grid;
-    grid-template-columns: 32px 1fr 2fr 52px;
+    grid-template-columns: 28px 1fr 2fr 48px;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 }
 
 .safetyTvParetoRank {
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: 800;
     color: #94a3b8;
 }
 
 .safetyTvParetoName {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #1e293b;
     overflow: hidden;
@@ -1651,7 +1686,7 @@
 }
 
 .safetyTvParetoCount {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
     font-weight: 800;
     color: #334155;
     text-align: right;

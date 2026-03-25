@@ -1,4 +1,4 @@
-/* SafetyCompliancePage.module.css - Premium Design */
+/* SafetyCompliancePage.module.css - Premium Design with Tabs */
 
 /* Background com gradiente sofisticado */
 .container {
@@ -8,13 +8,99 @@
     position: relative;
 }
 
+/* TAB NAVIGATION SYSTEM */
+.tabsContainer {
+    margin-bottom: 32px;
+    animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tabsList {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    max-width: fit-content;
+}
+
+.tabButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    white-space: nowrap;
+}
+
+.tabButton:hover {
+    background: rgba(30, 64, 175, 0.08);
+    color: #1e40af;
+}
+
+.tabButton.tabActive {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.15), rgba(16, 185, 129, 0.1));
+    color: #1e40af;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.15);
+}
+
+.tabButton.tabActive::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: linear-gradient(90deg, #1e40af, #10b981);
+    border-radius: 2px;
+}
+
+/* TAB CONTENT */
+.tabContent {
+    position: relative;
+    min-height: 400px;
+}
+
+.tabPane {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tabPane.fadeIn {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Summary Bar Grid */
 .summaryBar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
     margin-bottom: 32px;
-    animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideInDown {
@@ -41,7 +127,6 @@
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .summaryCard::before {
@@ -95,7 +180,6 @@
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    animation: slideInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
 }
 
 /* Compliance Table - Redesign sofisticado */
@@ -279,21 +363,3 @@
     }
 }
 
-/* Stagger animations para cards */
-@media (prefers-reduced-motion: no-preference) {
-    .summaryCard:nth-child(1) {
-        animation-delay: 0s;
-    }
-    .summaryCard:nth-child(2) {
-        animation-delay: 0.1s;
-    }
-    .summaryCard:nth-child(3) {
-        animation-delay: 0.2s;
-    }
-    .summaryCard:nth-child(4) {
-        animation-delay: 0.3s;
-    }
-    .summaryCard:nth-child(5) {
-        animation-delay: 0.4s;
-    }
-}

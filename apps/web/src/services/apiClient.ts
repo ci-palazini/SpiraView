@@ -49,6 +49,7 @@ import type {
     SafetyResolverResponse,
     SafetyComplianceMensal,
     SafetyUploadHistory,
+    StatsAvancadas,
     Departamento,
     DepartamentoCreate
 } from '@spiraview/shared';
@@ -1782,6 +1783,10 @@ export async function ehsResolverObservadores(payload: SafetyResolverPayload): P
 
 export async function ehsComplianceMensal(ano: number): Promise<{ items: SafetyComplianceMensal[] }> {
     return http.get<{ items: SafetyComplianceMensal[] }>('/ehs/compliance-mensal', { params: { ano } });
+}
+
+export async function ehsStatsAvancadas(ano: number): Promise<{ items: StatsAvancadas[] }> {
+    return http.get<{ items: StatsAvancadas[] }>('/ehs/stats-avancadas', { params: { ano } });
 }
 
 export async function ehsUploads(mes?: string): Promise<SafetyUploadHistory[]> {

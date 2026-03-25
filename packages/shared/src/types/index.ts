@@ -620,3 +620,44 @@ export interface SafetyUploadHistory {
     mes_referencia?: string;
 }
 
+// ---------- EHS Advanced Stats ----------
+export interface EvolucaoMensal {
+    meses: number[];
+    totalObservacoes: number[];
+    participantes: number[];
+    taxaCompliance: number[];
+}
+
+export interface RankingDepartamento {
+    departamentoId: string;
+    departamentoNome: string;
+    totalObservacoes: number;
+    participantes: number;
+    compliance: number;
+    mediaObsPorParticipante: number;
+}
+
+export interface ComparacaoPeriodos {
+    anoAtual: {
+        totalObservacoes: number;
+        participantes: number;
+        compliance: number;
+    };
+    anoAnterior: {
+        totalObservacoes: number;
+        participantes: number;
+        compliance: number;
+    };
+    variacao: {
+        observacoes: number;
+        participantes: number;
+        compliance: number;
+    };
+}
+
+export interface StatsAvancadas {
+    evolucaoMensal: EvolucaoMensal;
+    rankingDepartamentos: RankingDepartamento[];
+    comparacaoPeriodos: ComparacaoPeriodos;
+}
+

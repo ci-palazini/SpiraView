@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiTrendingUp, FiAward, FiAlertCircle, FiUsers, FiActivity } from 'react-icons/fi';
+import { FiTrendingUp, FiAward, FiAlertCircle, FiUsers, FiActivity, FiEye, FiBarChart2, FiTable } from 'react-icons/fi';
 import PageHeader from '../../../shared/components/PageHeader';
-import { ehsComplianceMensal, listDepartamentos } from '../../../services/apiClient';
-import type { SafetyComplianceMensal, Departamento } from '@spiraview/shared';
+import { ehsComplianceMensal, ehsStatsAvancadas, listDepartamentos } from '../../../services/apiClient';
+import type { SafetyComplianceMensal, Departamento, StatsAvancadas } from '@spiraview/shared';
 import DepartmentFilter from '../components/DepartmentFilter';
+import EvolucaoTemporalChart from '../components/EvolucaoTemporalChart';
+import RankingDepartamentosTable from '../components/RankingDepartamentosTable';
+import ComparacaoPeriodosCards from '../components/ComparacaoPeriodosCards';
 import styles from './SafetyCompliancePage.module.css';
 
 const MONTH_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+type TabType = 'overview' | 'evolution' | 'departments' | 'details';
 
 export default function SafetyCompliancePage() {
     const { t } = useTranslation();
@@ -15,21 +20,26 @@ export default function SafetyCompliancePage() {
     const currentMonth = new Date().getMonth(); // 0-indexed
 
     const [data, setData] = useState<SafetyComplianceMensal[]>([]);
+    const [stats, setStats] = useState<StatsAvancadas | null>(null);
     const [loading, setLoading] = useState(true);
     const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
     const [selectedDepartamentos, setSelectedDepartamentos] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState<TabType>('overview');
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [complianceRes, deptsRes] = await Promise.all([
+            const [complianceRes, statsRes, deptsRes] = await Promise.all([
                 ehsComplianceMensal(currentYear),
+                ehsStatsAvancadas(currentYear),
                 listDepartamentos(),
             ]);
             setData(complianceRes.items || []);
+            setStats(statsRes.items?.[0] || null);
             setDepartamentos(deptsRes.items || []);
         } catch {
             setData([]);
+            setStats(null);
             setDepartamentos([]);
         } finally {
             setLoading(false);
@@ -39,6 +49,10 @@ export default function SafetyCompliancePage() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    const handleDepartmentClick = (departamentoId: string) => {
+        setSelectedDepartamentos([departamentoId]);
+    };
 
     // Filter data by selected departamentos
     const filteredData = selectedDepartamentos.length > 0
@@ -83,131 +97,193 @@ export default function SafetyCompliancePage() {
                     <div className={styles.emptyState}>{t('ehs.compliance.empty', 'Nenhum utilizador ativo encontrado.')}</div>
                 ) : (
                     <>
-                        {/* Summary bar */}
-                        <div className={styles.summaryBar}>
-                            <div className={styles.summaryCard}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                    <FiTrendingUp size={24} style={{ color: '#1e40af' }} />
-                                </div>
-                                <p className={styles.summaryValue} style={{ color: '#1e40af' }}>
-                                    {overallCompliance.toFixed(1)}%
-                                </p>
-                                <p className={styles.summaryLabel}>
-                                    {t('ehs.compliance.overall', 'Compliance Geral')}
-                                </p>
-                            </div>
-                            {bestMonthIdx >= 0 && (
-                                <div className={styles.summaryCard}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                        <FiAward size={24} style={{ color: '#10b981' }} />
-                                    </div>
-                                    <p className={styles.summaryValue} style={{ color: '#10b981' }}>
-                                        {MONTH_SHORT[bestMonthIdx]}
-                                    </p>
-                                    <p className={styles.summaryLabel}>
-                                        {t('ehs.compliance.best_month', 'Melhor Mês')} ({complianceRates[bestMonthIdx].toFixed(0)}%)
-                                    </p>
-                                </div>
-                            )}
-                            {worstMonthIdx >= 0 && (
-                                <div className={styles.summaryCard}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                        <FiAlertCircle size={24} style={{ color: '#ef4444' }} />
-                                    </div>
-                                    <p className={styles.summaryValue} style={{ color: '#ef4444' }}>
-                                        {MONTH_SHORT[worstMonthIdx]}
-                                    </p>
-                                    <p className={styles.summaryLabel}>
-                                        {t('ehs.compliance.worst_month', 'Pior Mês')} ({complianceRates[worstMonthIdx].toFixed(0)}%)
-                                    </p>
-                                </div>
-                            )}
-                            <div className={styles.summaryCard}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                    <FiUsers size={24} style={{ color: '#64748b' }} />
-                                </div>
-                                <p className={styles.summaryValue} style={{ color: '#1e293b' }}>
-                                    {totalUsers}
-                                </p>
-                                <p className={styles.summaryLabel}>
-                                    {t('ehs.compliance.active_users', 'Utilizadores Ativos')}
-                                </p>
-                            </div>
-                            <div className={styles.summaryCard}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                                    <FiActivity size={24} style={{ color: '#0ea5e9' }} />
-                                </div>
-                                <p className={styles.summaryValue} style={{ color: '#0ea5e9' }}>
-                                    {currentMonthCompliance}
-                                </p>
-                                <p className={styles.summaryLabel}>
-                                    {t('ehs.compliance.current_month', 'Mês Atual')} ({totalUsers > 0 ? ((currentMonthCompliance / totalUsers) * 100).toFixed(0) : 0}%)
-                                </p>
-                            </div>
+                        {/* Tab Navigation */}
+                        <div className={styles.tabsContainer}>
+                            <nav className={styles.tabsList}>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'overview' ? styles.tabActive : ''}`}
+                                    onClick={() => setActiveTab('overview')}
+                                >
+                                    <FiEye size={18} />
+                                    <span>Visão Geral</span>
+                                </button>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'evolution' ? styles.tabActive : ''}`}
+                                    onClick={() => setActiveTab('evolution')}
+                                >
+                                    <FiTrendingUp size={18} />
+                                    <span>Evolução</span>
+                                </button>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'departments' ? styles.tabActive : ''}`}
+                                    onClick={() => setActiveTab('departments')}
+                                >
+                                    <FiBarChart2 size={18} />
+                                    <span>Departamentos</span>
+                                </button>
+                                <button
+                                    className={`${styles.tabButton} ${activeTab === 'details' ? styles.tabActive : ''}`}
+                                    onClick={() => setActiveTab('details')}
+                                >
+                                    <FiTable size={18} />
+                                    <span>Detalhes</span>
+                                </button>
+                            </nav>
                         </div>
 
-                        {/* Filter section */}
-                        <DepartmentFilter
-                            departamentos={departamentos}
-                            selectedDepartamentos={selectedDepartamentos}
-                            onChange={setSelectedDepartamentos}
-                        />
+                        {/* Tab Content */}
+                        <div className={styles.tabContent}>
+                            {/* OVERVIEW TAB */}
+                            {activeTab === 'overview' && (
+                                <div className={`${styles.tabPane} ${styles.fadeIn}`}>
+                                    <div className={styles.summaryBar}>
+                                        <div className={styles.summaryCard}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <FiTrendingUp size={24} style={{ color: '#1e40af' }} />
+                                            </div>
+                                            <p className={styles.summaryValue} style={{ color: '#1e40af' }}>
+                                                {overallCompliance.toFixed(1)}%
+                                            </p>
+                                            <p className={styles.summaryLabel}>
+                                                {t('ehs.compliance.overall', 'Compliance Geral')}
+                                            </p>
+                                        </div>
+                                        {bestMonthIdx >= 0 && (
+                                            <div className={styles.summaryCard}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                    <FiAward size={24} style={{ color: '#10b981' }} />
+                                                </div>
+                                                <p className={styles.summaryValue} style={{ color: '#10b981' }}>
+                                                    {MONTH_SHORT[bestMonthIdx]}
+                                                </p>
+                                                <p className={styles.summaryLabel}>
+                                                    {t('ehs.compliance.best_month', 'Melhor Mês')} ({complianceRates[bestMonthIdx].toFixed(0)}%)
+                                                </p>
+                                            </div>
+                                        )}
+                                        {worstMonthIdx >= 0 && (
+                                            <div className={styles.summaryCard}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                    <FiAlertCircle size={24} style={{ color: '#ef4444' }} />
+                                                </div>
+                                                <p className={styles.summaryValue} style={{ color: '#ef4444' }}>
+                                                    {MONTH_SHORT[worstMonthIdx]}
+                                                </p>
+                                                <p className={styles.summaryLabel}>
+                                                    {t('ehs.compliance.worst_month', 'Pior Mês')} ({complianceRates[worstMonthIdx].toFixed(0)}%)
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className={styles.summaryCard}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <FiUsers size={24} style={{ color: '#64748b' }} />
+                                            </div>
+                                            <p className={styles.summaryValue} style={{ color: '#1e293b' }}>
+                                                {totalUsers}
+                                            </p>
+                                            <p className={styles.summaryLabel}>
+                                                {t('ehs.compliance.active_users', 'Utilizadores Ativos')}
+                                            </p>
+                                        </div>
+                                        <div className={styles.summaryCard}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <FiActivity size={24} style={{ color: '#0ea5e9' }} />
+                                            </div>
+                                            <p className={styles.summaryValue} style={{ color: '#0ea5e9' }}>
+                                                {currentMonthCompliance}
+                                            </p>
+                                            <p className={styles.summaryLabel}>
+                                                {t('ehs.compliance.current_month', 'Mês Atual')} ({totalUsers > 0 ? ((currentMonthCompliance / totalUsers) * 100).toFixed(0) : 0}%)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                        {/* Compliance table */}
-                        <div className={styles.tableWrapper}>
-                            <table className={styles.complianceTable}>
-                                <thead>
-                                    <tr>
-                                        <th>{t('ehs.compliance.col_name', 'Nome')}</th>
-                                        <th>{t('ehs.compliance.col_function', 'Função')}</th>
-                                        <th>{t('departamento', 'Departamento')}</th>
-                                        {MONTH_SHORT.map((m, i) => (
-                                            <th key={i}>{m}</th>
-                                        ))}
-                                        <th>Total</th>
-                                        <th style={{ minWidth: '120px' }}>Taxa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredData.map((user) => {
-                                        const total = user.meses.reduce((a, b) => a + b, 0);
-                                        const observedMonths = user.meses.slice(0, maxMonth + 1).filter(m => m > 0).length;
-                                        const complianceRate = maxMonth + 1 > 0 ? (observedMonths / (maxMonth + 1)) * 100 : 0;
-                                        const rateColor = complianceRate >= 80 ? '#10b981' : complianceRate >= 60 ? '#f59e0b' : '#ef4444';
-                                        return (
-                                            <tr key={user.usuarioId}>
-                                                <td className={styles.nameCol}>{user.nome}</td>
-                                                <td className={styles.funcaoCol}>{user.funcao || '—'}</td>
-                                                <td className={styles.funcaoCol}>{user.departamentoNome || '—'}</td>
-                                                {user.meses.map((count, m) => {
-                                                    const isFuture = m > currentMonth;
-                                                    const cls = isFuture
-                                                        ? styles.cellFuture
-                                                        : count > 0
-                                                            ? styles.cellGood
-                                                            : styles.cellBad;
+                            {/* EVOLUTION TAB */}
+                            {activeTab === 'evolution' && stats && (
+                                <div className={`${styles.tabPane} ${styles.fadeIn}`}>
+                                    <EvolucaoTemporalChart data={stats.evolucaoMensal} />
+                                </div>
+                            )}
+
+                            {/* DEPARTMENTS TAB */}
+                            {activeTab === 'departments' && stats && (
+                                <div className={`${styles.tabPane} ${styles.fadeIn}`}>
+                                    <RankingDepartamentosTable
+                                        data={stats.rankingDepartamentos}
+                                        onDepartmentClick={handleDepartmentClick}
+                                    />
+                                    <ComparacaoPeriodosCards data={stats.comparacaoPeriodos} />
+                                </div>
+                            )}
+
+                            {/* DETAILS TAB */}
+                            {activeTab === 'details' && (
+                                <div className={`${styles.tabPane} ${styles.fadeIn}`}>
+                                    <DepartmentFilter
+                                        departamentos={departamentos}
+                                        selectedDepartamentos={selectedDepartamentos}
+                                        onChange={setSelectedDepartamentos}
+                                    />
+
+                                    <div className={styles.tableWrapper}>
+                                        <table className={styles.complianceTable}>
+                                            <thead>
+                                                <tr>
+                                                    <th>{t('ehs.compliance.col_name', 'Nome')}</th>
+                                                    <th>{t('ehs.compliance.col_function', 'Função')}</th>
+                                                    <th>{t('departamento', 'Departamento')}</th>
+                                                    {MONTH_SHORT.map((m, i) => (
+                                                        <th key={i}>{m}</th>
+                                                    ))}
+                                                    <th>Total</th>
+                                                    <th style={{ minWidth: '120px' }}>Taxa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredData.map((user) => {
+                                                    const total = user.meses.reduce((a, b) => a + b, 0);
+                                                    const observedMonths = user.meses.slice(0, maxMonth + 1).filter(m => m > 0).length;
+                                                    const complianceRate = maxMonth + 1 > 0 ? (observedMonths / (maxMonth + 1)) * 100 : 0;
+                                                    const rateColor = complianceRate >= 80 ? '#10b981' : complianceRate >= 60 ? '#f59e0b' : '#ef4444';
                                                     return (
-                                                        <td key={m} className={cls}>
-                                                            {isFuture ? '—' : count}
-                                                        </td>
+                                                        <tr key={user.usuarioId}>
+                                                            <td className={styles.nameCol}>{user.nome}</td>
+                                                            <td className={styles.funcaoCol}>{user.funcao || '—'}</td>
+                                                            <td className={styles.funcaoCol}>{user.departamentoNome || '—'}</td>
+                                                            {user.meses.map((count, m) => {
+                                                                const isFuture = m > currentMonth;
+                                                                const cls = isFuture
+                                                                    ? styles.cellFuture
+                                                                    : count > 0
+                                                                        ? styles.cellGood
+                                                                        : styles.cellBad;
+                                                                return (
+                                                                    <td key={m} className={cls}>
+                                                                        {isFuture ? '—' : count}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                            <td className={styles.cellTotal}>{total}</td>
+                                                            <td style={{ padding: '8px 12px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <div style={{ flex: 1, height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                                                                        <div style={{ height: '100%', width: `${Math.min(complianceRate, 100)}%`, background: rateColor, borderRadius: '4px', transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                                                                    </div>
+                                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: rateColor, minWidth: '35px', textAlign: 'right' }}>
+                                                                        {complianceRate.toFixed(0)}%
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                     );
                                                 })}
-                                                <td className={styles.cellTotal}>{total}</td>
-                                                <td style={{ padding: '8px 12px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ flex: 1, height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
-                                                            <div style={{ height: '100%', width: `${Math.min(complianceRate, 100)}%`, background: rateColor, borderRadius: '4px', transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-                                                        </div>
-                                                        <span style={{ fontSize: '12px', fontWeight: 700, color: rateColor, minWidth: '35px', textAlign: 'right' }}>
-                                                            {complianceRate.toFixed(0)}%
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}

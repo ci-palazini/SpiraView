@@ -276,9 +276,9 @@ function formatCurrency(value: number): string {
 }
 
 function formatK(value: number): string {
-    if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
-    if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}k`;
-    return `R$ ${value.toFixed(0)}`;
+    if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(1).replace('.', ',')}k`;
+    return `R$ ${value.toFixed(1).replace('.', ',')}`;
 }
 
 function efficiencyColor(pct: number | null): string {
@@ -1105,7 +1105,7 @@ export default function ReuniaoDiariaPage() {
                                 <div>
                                     <span className={styles.alertValue}>{fat.backlogAtraso}</span>
                                     <span className={styles.alertLabel}>
-                                        {t('reuniao_diaria.backlog_delay', 'Backlog em Atraso')}
+                                        {t('reuniao_diaria.backlog_delay', 'Linhas deBacklog em Atraso')}
                                     </span>
                                 </div>
                             </div>
@@ -1530,11 +1530,8 @@ export default function ReuniaoDiariaPage() {
     };
 
     const renderPeople = () => (
-        <div className={styles.placeholder}>
-            <div className={styles.placeholderIcon}>👥</div>
-            <div className={styles.placeholderText}>
-                {t('reuniao_diaria.people_placeholder', 'People — A definir')}
-            </div>
+        <div className={styles.peopleSlide}>
+            <img src="/values.png" alt="Pessoas" className={styles.peopleImage} />
         </div>
     );
 
