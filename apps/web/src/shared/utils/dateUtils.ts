@@ -3,11 +3,28 @@ const TZ = 'America/Sao_Paulo';
 /**
  * Formata uma string ISO (ou Date) como data curta: DD/MM/AAAA
  * Sempre usa o fuso horário de Brasília, independente do ambiente.
+ *
+ * Trata strings no formato YYYY-MM-DD como meia-noite em São Paulo (não UTC),
+ * evitando problema de timezone quando há apenas data sem hora.
  */
 export function formatDate(value: string | Date | null | undefined): string {
     if (!value) return '—';
     try {
-        return new Date(value).toLocaleDateString('pt-BR', {
+        let dateObj: Date;
+
+        // Se for string no formato YYYY-MM-DD (apenas data, sem hora),
+        // parse como meia-noite em São Paulo, não como UTC
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            const [year, month, day] = value.split('-').map(Number);
+            // Usar UTC mais 3 horas para simular meia-noite em São Paulo
+            // (função parse internamente)
+            const utcDate = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
+            dateObj = utcDate;
+        } else {
+            dateObj = new Date(value);
+        }
+
+        return dateObj.toLocaleDateString('pt-BR', {
             timeZone: TZ,
             day: '2-digit',
             month: '2-digit',
