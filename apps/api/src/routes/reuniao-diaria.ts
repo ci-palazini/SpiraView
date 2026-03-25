@@ -680,6 +680,7 @@ reuniaoDiariaRouter.get(
                 safetyFeedbackRes,
                 safetyStopWorkRes,
                 safetyLastUploadRes,
+                safetyEngajamentoDeptRes,
             ] = await Promise.all([
                 // Total observações mês atual (ou último mês com dados)
                 pool.query(
@@ -773,6 +774,47 @@ reuniaoDiariaRouter.get(
                 pool.query(
                     `SELECT criado_em FROM safety_uploads ORDER BY criado_em DESC LIMIT 1`
                 ),
+                // Engajamento por departamento (mês atual)
+                pool.query(
+                    `WITH obs_mes AS (
+                        SELECT DISTINCT usuario_id
+                        FROM safety_observacoes
+                        WHERE data_observacao >= $1
+                          AND usuario_id IS NOT NULL
+                    )
+                    SELECT
+                        CASE
+                            WHEN d.nome ILIKE '%logis%' THEN 'Logística'
+                            WHEN d.nome ILIKE '%produ%' THEN 'Produção'
+                            WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
+                            ELSE 'Administrativo'
+                        END AS categoria,
+                        COUNT(DISTINCT u.id)::int              AS total,
+                        COUNT(DISTINCT CASE WHEN om.usuario_id IS NOT NULL
+                                            THEN u.id END)::int AS com_observacao
+                    FROM departamentos d
+                    LEFT JOIN usuarios u ON u.departamento_id = d.id AND u.ativo = true
+                    LEFT JOIN obs_mes om ON om.usuario_id = u.id
+                    WHERE d.ativo = true
+                    GROUP BY CASE
+                        WHEN d.nome ILIKE '%logis%' THEN 'Logística'
+                        WHEN d.nome ILIKE '%produ%' THEN 'Produção'
+                        WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
+                        ELSE 'Administrativo'
+                    END
+                    ORDER BY CASE CASE
+                        WHEN d.nome ILIKE '%logis%' THEN 'Logística'
+                        WHEN d.nome ILIKE '%produ%' THEN 'Produção'
+                        WHEN d.nome ILIKE '%montagem%' THEN 'Montagem e Pintura'
+                        ELSE 'Administrativo'
+                    END
+                        WHEN 'Logística' THEN 1
+                        WHEN 'Produção' THEN 2
+                        WHEN 'Montagem e Pintura' THEN 3
+                        ELSE 4
+                    END`,
+                    [effectiveMonthStart]
+                ),
             ]);
 
             const safetyFbRow = safetyFeedbackRes.rows[0] || {};
@@ -815,6 +857,11 @@ reuniaoDiariaRouter.get(
                               : null,
                       stopWorkCount: Number(safetyStopWorkRes.rows[0]?.total || 0),
                       lastUpload: safetyLastUploadRes.rows[0]?.criado_em ?? null,
+                      engajamentoDepartamentos: safetyEngajamentoDeptRes.rows.map((r: any) => ({
+                          departamento: r.categoria,
+                          total: Number(r.total),
+                          comObservacao: Number(r.com_observacao),
+                      })),
                   }
                 : null;
 
