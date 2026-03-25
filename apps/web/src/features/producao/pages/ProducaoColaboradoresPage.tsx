@@ -410,22 +410,25 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
         });
     }, [metas, dadosDia, dadosMes, diasCorridos, diasUteisMes]);
 
+    /* --- Filtrar apenas colaboradores ativos --- */
+    const linhasAtivas = useMemo(() => linhas.filter(l => l.ativo), [linhas]);
+
     /* --- Totais --- */
-    const totalMetaDiaria = useMemo(() => linhas.reduce((s, l) => s + l.meta_diaria_horas, 0), [linhas]);
-    const totalMetaAcumulada = useMemo(() => linhas.reduce((s, l) => s + l.meta_acumulada, 0), [linhas]);
-    const totalMetaMensal = useMemo(() => linhas.reduce((s, l) => s + l.meta_mensal, 0), [linhas]);
-    const totalRealDia = useMemo(() => linhas.reduce((s, l) => s + l.real_dia, 0), [linhas]);
-    const totalRealMensal = useMemo(() => linhas.reduce((s, l) => s + l.real_mes, 0), [linhas]);
+    const totalMetaDiaria = useMemo(() => linhasAtivas.reduce((s, l) => s + l.meta_diaria_horas, 0), [linhasAtivas]);
+    const totalMetaAcumulada = useMemo(() => linhasAtivas.reduce((s, l) => s + l.meta_acumulada, 0), [linhasAtivas]);
+    const totalMetaMensal = useMemo(() => linhasAtivas.reduce((s, l) => s + l.meta_mensal, 0), [linhasAtivas]);
+    const totalRealDia = useMemo(() => linhasAtivas.reduce((s, l) => s + l.real_dia, 0), [linhasAtivas]);
+    const totalRealMensal = useMemo(() => linhasAtivas.reduce((s, l) => s + l.real_mes, 0), [linhasAtivas]);
     const perfDiaGlobal = useMemo(() => totalMetaDiaria > 0 ? (totalRealDia / totalMetaDiaria) * 100 : null, [totalMetaDiaria, totalRealDia]);
     const perfMesGlobal = useMemo(() => totalMetaMensal > 0 ? (totalRealMensal / totalMetaMensal) * 100 : null, [totalMetaMensal, totalRealMensal]);
 
     /* --- Stats cards --- */
     const stats = useMemo(() => [
-        { label: t('producao.colaboradores.stats.active', 'Colaboradores Ativos'), value: linhas.filter(l => l.ativo).length, icon: <FiUsers />, color: 'cardBlue' },
+        { label: t('producao.colaboradores.stats.active', 'Colaboradores Ativos'), value: linhasAtivas.length, icon: <FiUsers />, color: 'cardBlue' },
         { label: t('producao.colaboradores.stats.totalGoal', 'Meta Mensal Total'), value: `${totalMetaMensal.toFixed(1)}h`, icon: <FiTarget />, color: 'cardOrange' },
         { label: t('producao.colaboradores.stats.totalReal', 'Realizado Mês'), value: `${totalRealMensal.toFixed(1)}h`, icon: <FiTrendingUp />, color: 'cardGreen' },
         { label: t('producao.colaboradores.stats.performance', 'Performance Mês'), value: perfMesGlobal != null ? `${perfMesGlobal.toFixed(1)}%` : '—', icon: <FiCalendar />, color: 'cardPurple' },
-    ], [linhas, totalMetaMensal, totalRealMensal, perfMesGlobal, t]);
+    ], [linhasAtivas, totalMetaMensal, totalRealMensal, perfMesGlobal, t]);
 
     /* --- Helpers de UI --- */
     const formatNum = (v: number, dec = 2) => Number.isFinite(v) ? v.toFixed(dec) : '—';
@@ -562,7 +565,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                             </tr>
                         </thead>
                         <tbody>
-                            {!loading && linhas.length === 0 && (
+                            {!loading && linhasAtivas.length === 0 && (
                                 <tr>
                                     <td colSpan={11}>
                                         <div className={styles.emptyState}>
@@ -574,7 +577,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                 </tr>
                             )}
 
-                            {linhas.map((l) => (
+                            {linhasAtivas.map((l) => (
                                 <tr key={l.matricula}>
                                     <td><span className={styles.numericValue}>{l.matricula}</span></td>
                                     <td>{l.nome}</td>
@@ -609,7 +612,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                 </tr>
                             ))}
 
-                            {linhas.length > 0 && (
+                            {linhasAtivas.length > 0 && (
                                 <tr className={styles.totalRow}>
                                     <td colSpan={2}><strong>{t('producao.colaboradores.table.totals', 'Totais')}</strong></td>
                                     <td className={styles.alignRight}><span className={styles.numericValue}>{formatNum(totalMetaDiaria)}</span></td>
