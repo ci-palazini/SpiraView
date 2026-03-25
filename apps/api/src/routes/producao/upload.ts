@@ -237,6 +237,7 @@ interface ParsedRow {
     excelRow: number;
     matriculaOperador: string | null; // Adicionado
     numeroOP: string | null; // Adicionado
+    statusOP: string | null; // Adicionado
     descricao: string | null; // Descrição do item
 }
 
@@ -357,8 +358,11 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
         // Nova coluna: OP (Produção)
         const colOP = detectCol(headers, [
             'op', 'ordem producao', 'ordem de producao',
-            'ordem produção', 'ordem de produção', 'numero op', 'numero_op', 'op num', 'wbs'
+            'ordem produção', 'ordem de produção', 'numero op', 'numero_op', 'op num', 'wbs', 'producao'
         ]);
+
+        // Nova coluna: Status OP
+        const colStatusOP = detectCol(headers, ['status op', 'status_op', 'status da op', 'status']);
 
         // Nova coluna: Descrição (Item)
         const colDescricao = detectCol(headers, ['descricao', 'descrição', 'item', 'nome item', 'especificacao', 'especificação']);
@@ -485,6 +489,9 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
             // OP (Opcional)
             const numeroOP = colOP ? String(raw[colOP] || '').trim() || null : null;
 
+            // Status OP (Opcional)
+            const statusOP = colStatusOP ? String(raw[colStatusOP] || '').trim() || null : null;
+
             // Descrição (Opcional)
             const descricao = colDescricao ? String(raw[colDescricao] || '').trim() || null : null;
 
@@ -498,6 +505,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 excelRow,
                 matriculaOperador,
                 numeroOP,
+                statusOP,
                 descricao
             });
         }
@@ -599,6 +607,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                 const lancadoPorEmails: (string | null)[] = [];
                 const matriculasOperador: (string | null)[] = [];
                 const numerosOP: (string | null)[] = []; // NOVO: numero da OP
+                const statusOPs: (string | null)[] = []; // NOVO: status da OP
                 const horasReferenciaEm: (string | null)[] = []; // NOVO: timestamp de referência
                 const descricoes: (string | null)[] = []; // NOVO: descrição do item
 
@@ -616,6 +625,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                     lancadoPorEmails.push(auth.email || null);
                     matriculasOperador.push(row.matriculaOperador || null);
                     numerosOP.push(row.numeroOP || null);
+                    statusOPs.push(row.statusOP || null);
                     descricoes.push(row.descricao || null);
 
                     // 3. Lógica de justiça: preservar timestamp se horas não mudaram
@@ -631,13 +641,13 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                     }
                 }
 
-                // 4. Batch INSERT com horas_referencia_em, numero_op e descricao
+                // 4. Batch INSERT com horas_referencia_em, numero_op, status_op e descricao
                 await client.query(
                     `INSERT INTO producao_lancamentos
-                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador, numero_op, horas_referencia_em, descricao)
+                     (maquina_id, data_ref, turno, horas_realizadas, observacao, upload_id, lancado_por_id, lancado_por_nome, lancado_por_email, matricula_operador, numero_op, status_op, horas_referencia_em, descricao)
                      SELECT * FROM UNNEST(
                          $1::uuid[], $2::date[], $3::text[], $4::numeric[], $5::text[],
-                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[], $11::text[], $12::timestamptz[], $13::text[]
+                         $6::uuid[], $7::uuid[], $8::text[], $9::text[], $10::text[], $11::text[], $12::text[], $13::timestamptz[], $14::text[]
                      )
                      ON CONFLICT (maquina_id, data_ref, turno, COALESCE(matricula_operador, ''), COALESCE(numero_op, ''))
                      DO UPDATE SET
@@ -645,6 +655,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                        observacao = EXCLUDED.observacao,
                        upload_id = EXCLUDED.upload_id,
                        horas_referencia_em = EXCLUDED.horas_referencia_em,
+                       status_op = EXCLUDED.status_op,
                        descricao = EXCLUDED.descricao,
                        atualizado_em = NOW()`,
                     [
@@ -659,6 +670,7 @@ uploadRouter.post('/producao/lancamentos/upload', express.json({ limit: '10mb' }
                         lancadoPorEmails,
                         matriculasOperador,
                         numerosOP,
+                        statusOPs,
                         horasReferenciaEm,
                         descricoes
                     ]

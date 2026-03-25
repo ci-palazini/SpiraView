@@ -1032,6 +1032,7 @@ export interface FuncionarioDetalheLancamento {
     turno: string | null;
     horasRealizadas: number;
     numeroOP: string | null;
+    statusOP: string | null;
     observacao: string | null;
     horasReferenciaEm: string | null;
     descricao: string | null;

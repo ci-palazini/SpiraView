@@ -297,6 +297,7 @@ const ProducaoColaboradorDetalhePage = ({ user }: ProducaoColaboradorDetalhePage
                                             <th>{t('producao.colaboradorDetalhe.table.date')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.machine')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.turn')}</th>
+                                            <th>{t('producao.colaboradorDetalhe.table.statusOp', 'Status OP')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.op')}</th>
                                             <th>{t('producao.colaboradorDetalhe.table.description', 'Descrição')}</th>
                                             <th className={styles.alignRight}>{t('producao.colaboradorDetalhe.table.hours')}</th>
@@ -305,7 +306,7 @@ const ProducaoColaboradorDetalhePage = ({ user }: ProducaoColaboradorDetalhePage
                                     <tbody>
                                         {filteredLancamentos.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
+                                                <td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>
                                                     {selectedDay
                                                         ? t('producao.colaboradorDetalhe.messages.noDataDay')
                                                         : t('producao.colaboradorDetalhe.messages.selectDay')}
@@ -317,6 +318,11 @@ const ProducaoColaboradorDetalhePage = ({ user }: ProducaoColaboradorDetalhePage
                                                     <td>{formatDate(l.dataRef)}</td>
                                                     <td>{l.maquinaNome}</td>
                                                     <td>{l.turno || '—'}</td>
+                                                    <td>
+                                                        {l.statusOP ? (
+                                                            <span className={styles.opBadge}>{l.statusOP}</span>
+                                                        ) : '—'}
+                                                    </td>
                                                     <td>
                                                         {l.numeroOP ? (
                                                             <span className={styles.opBadge}>{l.numeroOP}</span>

@@ -526,6 +526,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermiss
             turno: string | null;
             horasRealizadas: number | string;
             numeroOP: string | null;
+            statusOP: string | null;
             observacao: string | null;
             horasReferenciaEm: string | null;
             descricao: string | null;
@@ -539,6 +540,7 @@ metasRouter.get('/producao/indicadores/funcionarios/detalhe-mes', requirePermiss
                 pl.turno,
                 pl.horas_realizadas AS "horasRealizadas",
                 pl.numero_op AS "numeroOP",
+                pl.status_op AS "statusOP",
                 pl.observacao,
                 pl.horas_referencia_em AS "horasReferenciaEm",
                 pl.descricao
