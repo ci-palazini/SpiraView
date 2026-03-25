@@ -1,7 +1,5 @@
 import { pool } from '../../db';
-import { sendTeamsMessageViaMSForms } from '../msFormsSender';
 import { logger } from '../../logger';
-import { env } from '../../config/env';
 import type { ChecklistItem } from '@spiraview/shared';
 
 function formatHora(date: Date): string {
@@ -38,22 +36,9 @@ function buildChecklistSummary(checklist: ChecklistItem[]): string {
     return `${resumo ? resumo + '<br>' : ''}<b>Itens não conformes:</b><ul>${linhas.join('')}</ul>`;
 }
 
-async function send(message: string): Promise<void> {
-    const cfg = env.msTeamsForms;
-
-    if (!cfg.isConfigured) {
-        logger.warn('[PreventiveMaintenance] MS_TEAMS_FORMS_* não configurado — notificação ignorada.');
-        return;
-    }
-
-    await sendTeamsMessageViaMSForms(
-        { message },
-        {
-            formId: cfg.formId!,
-            fieldIdMessage: cfg.fieldIdMessage!,
-            submitUrl: cfg.submitUrl,
-        }
-    );
+async function send(_message: string): Promise<void> {
+    // Notificações de Teams desativadas — canal removido
+    logger.debug('[PreventiveMaintenance] Notificação Teams desativada.');
 }
 
 export const PreventiveMaintenanceNotification = {
