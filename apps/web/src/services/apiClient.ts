@@ -284,6 +284,14 @@ async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): 
     const payload = isJson ? await res.json().catch(() => null) : await res.text();
 
     if (!res.ok) {
+        // 🔐 Autenticação expirada ou inválida — logout imediato
+        if (res.status === 401 || res.status === 403) {
+            console.warn(`Autenticação falhou (${res.status}) — fazendo logout`);
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('tv_token');
+            window.dispatchEvent(new CustomEvent('auth-user-changed'));
+        }
+
         if (res.status === 503) {
             console.warn('API Unavailable (503) - Entrando em Modo Manutenção');
             window.dispatchEvent(new CustomEvent('api-maintenance'));
