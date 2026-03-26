@@ -1,0 +1,472 @@
+/* PainelUploadPage.module.css */
+.container {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* ── Dropzone ── */
+.dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 60px 40px;
+    text-align: center;
+    cursor: pointer;
+    background: #fafafa;
+    transition: all 0.2s;
+}
+
+.dropzone:hover {
+    border-color: #0284c7;
+    background: #f0f9ff;
+}
+
+.dropzoneActive {
+    border-color: #0284c7;
+    background: #e0f2fe;
+}
+
+.dropzoneIcon {
+    width: 56px;
+    height: 56px;
+    color: #94a3b8;
+    margin: 0 auto 1.25rem;
+    display: block;
+}
+
+.dropzoneText {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    color: #334155;
+    font-size: 1.1rem;
+}
+
+.dropzoneHint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+/* ── File info ── */
+.fileInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.fileIcon {
+    width: 28px;
+    height: 28px;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+.fileName {
+    flex: 1;
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileSize {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.rowCount {
+    color: #0284c7;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.removeBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.removeBtn:hover {
+    color: #dc2626;
+}
+
+/* ── Preview ── */
+.previewSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.previewTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0;
+}
+
+.previewTableWrapper {
+    overflow-x: auto;
+}
+
+.previewTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.previewTable thead {
+    background: #f1f5f9;
+}
+
+.previewTable th {
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    color: #475569;
+}
+
+.previewTable td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.previewTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.previewTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* ── Actions ── */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.uploadBtn {
+    padding: 10px 24px;
+    background: #0284c7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+    font-size: 14px;
+}
+
+.uploadBtn:hover:not(:disabled) {
+    background: #0369a1;
+}
+
+.uploadBtn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.cancelBtn {
+    padding: 10px 20px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+.cancelBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Spinner ── */
+.spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Result card ── */
+.resultCard {
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+}
+
+.resultCardSuccess {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.resultCardError {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.resultHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.closeBtn:hover {
+    color: #1e293b;
+}
+
+.resultTitle {
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.errorList {
+    margin: 0 0 1rem;
+    border: 1px solid #fee2e2;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff5f5;
+}
+
+.colHint {
+    margin: 0 0 1rem;
+    font-size: 12px;
+    color: #64748b;
+    font-style: italic;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.resultActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.viewPainelBtn {
+    padding: 8px 18px;
+    background: #0284c7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.viewPainelBtn:hover {
+    background: #0369a1;
+}
+
+/* ── History section ── */
+.historyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.historyTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 12px;
+}
+
+/* ── Date filter input ── */
+.dateInput {
+    padding: 7px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.dateInput:focus {
+    outline: none;
+    border-color: #0284c7;
+    background: #fff;
+}
+
+/* ── Date pills (datas cobertas) ── */
+.datePills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.datePill {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.datePillActive {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* ── Result card variants ── */
+.resultSuccess {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.resultError {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+/* ── Result list (summary ul) ── */
+.resultList {
+    margin: 0 0 0.75rem;
+    padding: 0 0 0 1.25rem;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.8;
+}
+
+/* ── Error detail rows ── */
+.errorRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid #fee2e2;
+    font-size: 12px;
+}
+
+.errorRow:last-child {
+    border-bottom: none;
+}
+
+.errorLinha {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: #b91c1c;
+    min-width: 55px;
+}
+
+.errorMsg {
+    color: #64748b;
+}
+
+/* ── Delete row button (inline in history table) ── */
+.deleteRowBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.deleteRowBtn:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+.deleteRowBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+

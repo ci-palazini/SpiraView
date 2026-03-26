@@ -47,6 +47,8 @@ import LogisticaPrinc1DashboardPage from '../../features/logistica/pages/Logisti
 import LogisticaPrinc1UploadPage from '../../features/logistica/pages/LogisticaPrinc1UploadPage';
 import LogisticaPropostoDashboardPage from '../../features/logistica/pages/LogisticaPropostoDashboardPage';
 import LogisticaPropostoUploadPage from '../../features/logistica/pages/LogisticaPropostoUploadPage';
+import TransferenciasUploadPage from '../../features/logistica/pages/TransferenciasUploadPage';
+import TransferenciasAnalyticsPage from '../../features/logistica/pages/TransferenciasAnalyticsPage';
 import ConfiguracaoNotificacoesPage from '../../features/configuracoes/pages/ConfiguracaoNotificacoesPage';
 import SafetyUploadPage from '../../features/ehs/pages/SafetyUploadPage';
 import SafetyCompliancePage from '../../features/ehs/pages/SafetyCompliancePage';
@@ -307,6 +309,14 @@ const AppRoutes = ({ user, role, perm }: AppRoutesProps) => {
             <Route
                 path="/logistica/proposto/upload"
                 element={perm.canEdit('logistica_proposto') ? <LogisticaPropostoUploadPage /> : <Navigate to="/" replace />}
+            />
+            <Route
+                path="/logistica/transferencias"
+                element={canAccessPage('logistica_transferencias', <TransferenciasAnalyticsPage />)}
+            />
+            <Route
+                path="/logistica/transferencias-upload"
+                element={perm.canEdit('logistica_transferencias') ? <TransferenciasUploadPage /> : <Navigate to="/" replace />}
             />
 
             {/* Rotas PDCA */}

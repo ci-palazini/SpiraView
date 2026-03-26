@@ -473,6 +473,45 @@ Linhas detalhadas extraídas do relatório HTML "Faturamento Proposto".
 
 ---
 
+#### `logistica_transferencias_uploads`
+Metadados de uploads do relatório de transferências/consumos.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `nome_arquivo` | TEXT | Nome do arquivo importado |
+| `total_linhas` | INT | Total de linhas recebidas |
+| `linhas_sucesso` | INT | Linhas processadas com sucesso |
+| `linhas_erro` | INT | Linhas com erro de parsing |
+| `datas_processadas` | TEXT[] | Array de datas cobertas (YYYY-MM-DD) |
+| `upload_por_id` | UUID | FK → usuarios.id (usuário que fez o upload) |
+| `upload_por_nome` | TEXT | Nome do usuário |
+| `ativo` | BOOLEAN | TRUE = upload vigente |
+| `created_at` | TIMESTAMPTZ | Data/hora de criação |
+
+#### `logistica_transferencias`
+Registros individuais de movimentação de estoque (transferências e consumos).
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | UUID | PK |
+| `upload_id` | UUID | FK → logistica_transferencias_uploads.id (CASCADE DELETE) |
+| `diario` | TEXT | Número do documento (ex: EST1133607) |
+| `descricao` | TEXT | Descrição completa da transação |
+| `tipo` | TEXT | Classificação: `transferencia_princ`, `consumo`, `manual`, `estorno`, `nf`, `outro` |
+| `item_codigo` | TEXT | Código do item (para tipo `transferencia_princ`) |
+| `op_numero` | TEXT | Número da OP (para tipo `consumo`) |
+| `op_codigo` | TEXT | Código da OP (para tipo `consumo`) |
+| `lancado_por` | TEXT | Username de quem lançou |
+| `criado_por` | TEXT | Username de quem criou (identificador principal do colaborador) |
+| `linhas` | NUMERIC | Quantidade (negativo = estorno) |
+| `lancado` | BOOLEAN | Status de lançamento |
+| `lancado_em` | TIMESTAMPTZ | Data/hora do lançamento (America/Sao_Paulo) |
+| `data_ref` | DATE | Data de referência extraída de `lancado_em` |
+| `created_at` | TIMESTAMPTZ | Data de inserção |
+
+---
+
 ### PDCA
 
 #### `pdca_planos`

@@ -400,6 +400,53 @@ export interface LogisticaDashboardData {
     previousItems: LogisticaKpi[];
 }
 
+export interface LogisticaTransferenciaUpload {
+    id: string;
+    nomeArquivo: string;
+    totalLinhas: number;
+    linhasSucesso: number;
+    linhasErro: number;
+    datasProcessadas: string[];
+    uploadPorNome: string | null;
+    ativo: boolean;
+    criadoEm: string;
+}
+
+export interface TransferenciasUploadResult {
+    ok: boolean;
+    message: string;
+    inserted: number;
+    errors: Array<{ linha: number; erro: string }>;
+    datasProcessadas: string[];
+}
+
+export interface ColaboradorDesempenho {
+    colaborador: string;
+    total: number;
+    transferenciasPrinc: number;
+    consumos: number;
+    manuais: number;
+    estornos: number;
+    nf: number;
+    outro: number;
+    percentualEstornos: number;
+}
+
+export interface TransferenciasAnalytics {
+    periodo: { mes: number; ano: number };
+    resumo: {
+        totalMovimentacoes: number;
+        porTipo: Record<string, number>;
+        totalColaboradores: number;
+        datasComDados: number;
+    };
+    porColaborador: ColaboradorDesempenho[];
+    volumeDiario: Array<{ data: string; total: number; porTipo: Record<string, number> }>;
+    porHora: Array<{ hora: number; total: number }>;
+    topOps: Array<{ opNumero: string; opCodigo: string; total: number }>;
+    topItens: Array<{ itemCodigo: string; total: number }>;
+}
+
 // ---------- Notificações ----------
 export interface NotificacaoConfigUser {
     id: string;

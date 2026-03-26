@@ -184,6 +184,7 @@ const MyComponent = () => {
 | `logistica_kpis` | Logística | Gerenciamento de indicadores/metas | `ver`, `editar` |
 | `logistica_painel` | Logística | Painel de notas de embarque | `ver`, `editar` |
 | `logistica_proposto` | Logística | Painel de faturamento proposto (HTML) | `ver`, `editar` |
+| `logistica_transferencias` | Logística | Upload e análise de transferências/consumos de estoque | `ver`, `editar` |
 
 ### PDCA
 

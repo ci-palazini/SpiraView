@@ -548,7 +548,7 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
             }
 
             {/* Logística - com sub-seções */}
-            {perm.canViewAny(['logistica_dashboard', 'logistica_painel', 'logistica_princ1', 'logistica_proposto']) && (
+            {perm.canViewAny(['logistica_dashboard', 'logistica_painel', 'logistica_princ1', 'logistica_proposto', 'logistica_transferencias']) && (
                 <SidebarGroup
                     id="logistics"
                     label={t('layout.sections.logistics', 'Logística')}
@@ -650,6 +650,33 @@ const NavigationContent: React.FC<NavigationContentProps> = ({
                         >
                             <FiUploadCloud className={styles.navIcon} />
                             <span>{t('nav.logisticsPropostoUpload', 'Upload Proposto')}</span>
+                        </NavLink>
+                    )}
+
+                    {/* ── Transferências ── */}
+                    {perm.canView('logistica_transferencias') && (
+                        <div className={styles.groupSublabel}>{t('nav.logisticsSubTransferencias', 'Transferências')}</div>
+                    )}
+                    {perm.canView('logistica_transferencias') && (
+                        <NavLink
+                            to="/logistica/transferencias"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiBarChart2 className={styles.navIcon} />
+                            <span>{t('nav.logisticsTransferencias', 'Análise de Movimentações')}</span>
+                        </NavLink>
+                    )}
+                    {perm.canEdit('logistica_transferencias') && (
+                        <NavLink
+                            to="/logistica/transferencias-upload"
+                            className={({ isActive }) =>
+                                isActive ? `${styles.navLink} ${styles.activeLink}` : styles.navLink
+                            }
+                        >
+                            <FiUploadCloud className={styles.navIcon} />
+                            <span>{t('nav.logisticsTransferenciasUpload', 'Upload Transferências')}</span>
                         </NavLink>
                     )}
                 </SidebarGroup>

@@ -51,7 +51,10 @@ import type {
     SafetyUploadHistory,
     StatsAvancadas,
     Departamento,
-    DepartamentoCreate
+    DepartamentoCreate,
+    LogisticaTransferenciaUpload,
+    TransferenciasUploadResult,
+    TransferenciasAnalytics,
 } from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
@@ -1530,6 +1533,29 @@ export async function getNotasEmbarque(auth: AuthParams = {}): Promise<NotasEmba
 
 export async function deleteNotasEmbarque(uploadId: string, auth: AuthParams = {}): Promise<{ deleted: number }> {
     return http.delete<{ deleted: number }>(`/logistica/notas-embarque/${uploadId}`, { auth });
+}
+
+// ===== LOGÍSTICA — TRANSFERÊNCIAS =====
+
+export async function uploadTransferencias(
+    rows: Record<string, unknown>[],
+    nomeArquivo: string,
+    auth: AuthParams = {}
+): Promise<TransferenciasUploadResult> {
+    return http.post<TransferenciasUploadResult>('/logistica/transferencias-upload', { data: { rows, nomeArquivo }, auth });
+}
+
+export async function getTransferenciasUploads(dataRef?: string, auth: AuthParams = {}): Promise<{ items: LogisticaTransferenciaUpload[] }> {
+    const qs = dataRef ? `?dataRef=${dataRef}` : '';
+    return http.get<{ items: LogisticaTransferenciaUpload[] }>(`/logistica/transferencias/uploads${qs}`, { auth });
+}
+
+export async function deleteTransferenciasUpload(id: string, auth: AuthParams = {}): Promise<{ deleted: number }> {
+    return http.delete<{ deleted: number }>(`/logistica/transferencias/uploads/${id}`, { auth });
+}
+
+export async function getTransferenciasAnalytics(mes: number, ano: number, auth: AuthParams = {}): Promise<TransferenciasAnalytics> {
+    return http.get<TransferenciasAnalytics>(`/logistica/transferencias/analytics?mes=${mes}&ano=${ano}`, { auth });
 }
 
 // ===== LOGÍSTICA — PRINC 1 =====
