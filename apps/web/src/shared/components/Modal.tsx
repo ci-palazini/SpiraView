@@ -9,9 +9,10 @@ interface ModalProps {
     onClose: () => void;
     title: string;
     children: ReactNode;
+    className?: string;
 }
 
-const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, className = '' }: ModalProps) => {
     // Bloqueia scroll do body quando modal está aberto
     useEffect(() => {
         if (isOpen) {
@@ -38,7 +39,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
     const modalContent = (
         <div className={styles.modalOverlay} onClick={handleOverlayClick}>
             {/* O card do modal em si */}
-            <div className={styles.modalContent}>
+            <div className={`${styles.modalContent} ${className}`}>
                 <div className={styles.modalHeader}>
                     <h2 className={styles.modalTitle}>{title}</h2>
                     <button onClick={onClose} className={styles.closeButton}>

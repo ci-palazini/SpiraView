@@ -1434,7 +1434,6 @@ export async function listarResponsaveis(params: { dataInicio?: string; dataFim?
 // ===== QUALITY COMPARISON =====
 export interface QualityComparisonPeriod {
     label: string;
-    totalCost: number;
     totalQuantity: number;
     count: number;
     topDefects: { motivo: string; custo: number }[];
@@ -1554,8 +1553,50 @@ export async function deleteTransferenciasUpload(id: string, auth: AuthParams = 
     return http.delete<{ deleted: number }>(`/logistica/transferencias/uploads/${id}`, { auth });
 }
 
-export async function getTransferenciasAnalytics(mes: number, ano: number, auth: AuthParams = {}): Promise<TransferenciasAnalytics> {
-    return http.get<TransferenciasAnalytics>(`/logistica/transferencias/analytics?mes=${mes}&ano=${ano}`, { auth });
+// ===== LOGISTICA — TRANSFERÊNCIAS =====
+
+export interface TransferenciaDetalhe {
+    id: string;
+    data_ref: string;
+    diario: string;
+    descricao: string;
+    tipo: string;
+    item_codigo: string;
+    op_numero: string;
+    op_codigo: string;
+    linhas: number;
+    lancado: boolean;
+    lancado_em: string;
+    criado_por: string;
+}
+
+export interface TransferenciasDetalhesResponse {
+    items: TransferenciaDetalhe[];
+    total?: number;
+    colaborador: string;
+    periodo: { mes: number; ano: number; dia?: number };
+}
+
+export async function getTransferenciasAnalytics(mes: number, ano: number, dia?: number, auth: AuthParams = {}): Promise<TransferenciasAnalytics> {
+    const params: any = { mes, ano };
+    if (dia && dia > 0) params.dia = dia;
+    return http.get<TransferenciasAnalytics>(`/logistica/transferencias/analytics`, { params, auth });
+}
+
+export async function getTransferenciasDetalhes(
+    mes: number,
+    ano: number,
+    colaborador: string,
+    dia?: number,
+    page?: number,
+    pageSize?: number,
+    auth: AuthParams = {}
+): Promise<TransferenciasDetalhesResponse> {
+    const params: any = { mes, ano, colaborador };
+    if (dia && dia > 0) params.dia = dia;
+    if (page) params.page = page;
+    if (pageSize) params.pageSize = pageSize;
+    return http.get<TransferenciasDetalhesResponse>(`/logistica/transferencias/analytics/detalhes`, { params, auth });
 }
 
 // ===== LOGÍSTICA — PRINC 1 =====

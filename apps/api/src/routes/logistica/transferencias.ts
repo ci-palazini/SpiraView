@@ -408,156 +408,249 @@ transferenciasRouter.get(
     async (req, res) => {
         const mes = parseInt(String(req.query.mes)) || new Date().getMonth() + 1;
         const ano = parseInt(String(req.query.ano)) || new Date().getFullYear();
+        const dia = parseInt(String(req.query.dia)) || 0;
 
-        const dataInicio = `${ano}-${String(mes).padStart(2, '0')}-01`;
-        const dataFim = new Date(ano, mes, 0).toISOString().substring(0, 10); // last day of month
+        let dataInicio: string;
+        let dataFim: string;
 
-        // Main analytics query: per-row breakdown
-        const { rows } = await pool.query<{
-            criado_por: string;
-            tipo: string;
-            data_ref: string;
-            hora: number;
-            op_numero: string | null;
-            op_codigo: string | null;
-            item_codigo: string | null;
-            total: string;
-        }>(
-            `SELECT
-                COALESCE(criado_por, 'Desconhecido') AS criado_por,
-                tipo,
-                data_ref::text,
-                EXTRACT(HOUR FROM lancado_em AT TIME ZONE 'America/Sao_Paulo')::int AS hora,
-                op_numero,
-                op_codigo,
-                item_codigo,
-                COUNT(*)::text AS total
-             FROM logistica_transferencias lt
-             JOIN logistica_transferencias_uploads ltu ON lt.upload_id = ltu.id
-             WHERE ltu.ativo = TRUE
-               AND lt.data_ref BETWEEN $1 AND $2
-             GROUP BY criado_por, tipo, data_ref, hora, op_numero, op_codigo, item_codigo
-             ORDER BY data_ref`,
-            [dataInicio, dataFim]
-        );
-
-        // Aggregate porColaborador
-        const colaboradorMap = new Map<string, {
-            total: number;
-            transferenciasPrinc: number;
-            consumos: number;
-            manuais: number;
-            estornos: number;
-            nf: number;
-            outro: number;
-        }>();
-
-        // Aggregate volumeDiario
-        const diaMap = new Map<string, { total: number; porTipo: Record<string, number> }>();
-
-        // Aggregate porHora
-        const horaMap = new Map<number, number>();
-
-        // Aggregate topOps
-        const opMap = new Map<string, { opCodigo: string; total: number }>();
-
-        // Aggregate topItens
-        const itemMap = new Map<string, number>();
-
-        for (const r of rows) {
-            const count = parseInt(r.total);
-            const col = r.criado_por;
-            const tipo = r.tipo;
-
-            // Colaborador
-            if (!colaboradorMap.has(col)) {
-                colaboradorMap.set(col, { total: 0, transferenciasPrinc: 0, consumos: 0, manuais: 0, estornos: 0, nf: 0, outro: 0 });
-            }
-            const colData = colaboradorMap.get(col)!;
-            colData.total += count;
-            if (tipo === 'transferencia_princ') colData.transferenciasPrinc += count;
-            else if (tipo === 'consumo') colData.consumos += count;
-            else if (tipo === 'manual') colData.manuais += count;
-            else if (tipo === 'estorno') colData.estornos += count;
-            else if (tipo === 'nf') colData.nf += count;
-            else colData.outro += count;
-
-            // Volume diário
-            if (!diaMap.has(r.data_ref)) {
-                diaMap.set(r.data_ref, { total: 0, porTipo: {} });
-            }
-            const diaData = diaMap.get(r.data_ref)!;
-            diaData.total += count;
-            diaData.porTipo[tipo] = (diaData.porTipo[tipo] || 0) + count;
-
-            // Por hora
-            horaMap.set(r.hora, (horaMap.get(r.hora) || 0) + count);
-
-            // Top OPs
-            if (r.op_numero) {
-                const key = r.op_numero;
-                if (!opMap.has(key)) opMap.set(key, { opCodigo: r.op_codigo || '', total: 0 });
-                opMap.get(key)!.total += count;
-            }
-
-            // Top itens
-            if (r.item_codigo) {
-                itemMap.set(r.item_codigo, (itemMap.get(r.item_codigo) || 0) + count);
-            }
+        if (dia > 0) {
+            const padDia = String(dia).padStart(2, '0');
+            const padMes = String(mes).padStart(2, '0');
+            const dateStr = `${ano}-${padMes}-${padDia}`;
+            dataInicio = dateStr;
+            dataFim = dateStr;
+        } else {
+            const padMes = String(mes).padStart(2, '0');
+            dataInicio = `${ano}-${padMes}-01`;
+            dataFim = new Date(ano, mes, 0).toISOString().substring(0, 10);
         }
 
-        const porColaborador = Array.from(colaboradorMap.entries())
-            .map(([colaborador, d]) => ({
+        try {
+            // Optimized: All 5 queries use direct table references with indexed columns
+            // No N+1 problem — all run in parallel (Promise.all)
+
+            // 1. Por Colaborador e Tipo
+            const qColab = pool.query(`
+                SELECT
+                    COALESCE(criado_por, 'Desconhecido') as colaborador,
+                    tipo,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                GROUP BY 1, 2
+            `, [dataInicio, dataFim]);
+
+            // 2. Volume Diário e Tipo
+            const qDia = pool.query(`
+                SELECT
+                    data_ref::text as data,
+                    tipo,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                GROUP BY 1, 2
+                ORDER BY 1
+            `, [dataInicio, dataFim]);
+
+            // 3. Por Hora
+            const qHora = pool.query(`
+                SELECT
+                    EXTRACT(HOUR FROM lancado_em AT TIME ZONE 'America/Sao_Paulo')::int as hora,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                GROUP BY 1
+                ORDER BY 1
+            `, [dataInicio, dataFim]);
+
+            // 4. Top OPs
+            const qOps = pool.query(`
+                SELECT
+                    op_numero as "opNumero",
+                    MAX(op_codigo) as "opCodigo",
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND op_numero IS NOT NULL AND op_numero != ''
+                GROUP BY 1
+                ORDER BY total DESC
+                LIMIT 20
+            `, [dataInicio, dataFim]);
+
+            // 5. Top Itens
+            const qItens = pool.query(`
+                SELECT
+                    item_codigo as "itemCodigo",
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND item_codigo IS NOT NULL AND item_codigo != ''
+                GROUP BY 1
+                ORDER BY total DESC
+                LIMIT 20
+            `, [dataInicio, dataFim]);
+
+            const [rColab, rDia, rHora, rOps, rItens] = await Promise.all([qColab, qDia, qHora, qOps, qItens]);
+
+            // Processar Colaboradores
+            const colabMap = new Map<string, any>();
+            rColab.rows.forEach(r => {
+                if (!colabMap.has(r.colaborador)) {
+                    colabMap.set(r.colaborador, { 
+                        colaborador: r.colaborador, 
+                        total: 0, transferenciasPrinc: 0, consumos: 0, manuais: 0, estornos: 0, nf: 0, outro: 0 
+                    });
+                }
+                const c = colabMap.get(r.colaborador);
+                const count = r.total;
+                c.total += count;
+                if (r.tipo === 'transferencia_princ') c.transferenciasPrinc += count;
+                else if (r.tipo === 'consumo') c.consumos += count;
+                else if (r.tipo === 'manual') c.manuais += count;
+                else if (r.tipo === 'estorno') c.estornos += count;
+                else if (r.tipo === 'nf') c.nf += count;
+                else c.outro += count;
+            });
+
+            const porColaborador = Array.from(colabMap.values())
+                .map(c => ({
+                    ...c,
+                    percentualEstornos: c.total > 0 ? Math.round((c.estornos / c.total) * 100 * 10) / 10 : 0
+                }))
+                .sort((a, b) => b.total - a.total);
+
+            // Processar Volume Diário
+            const diaMap = new Map<string, any>();
+            rDia.rows.forEach(r => {
+                if (!diaMap.has(r.data)) {
+                    diaMap.set(r.data, { data: r.data, total: 0, porTipo: {} });
+                }
+                const d = diaMap.get(r.data);
+                d.total += r.total;
+                d.porTipo[r.tipo] = (d.porTipo[r.tipo] || 0) + r.total;
+            });
+            const volumeDiario = Array.from(diaMap.values());
+
+            // Processar Por Hora
+            const porHora = Array.from({ length: 24 }, (_, i) => ({
+                hora: i,
+                total: rHora.rows.find(rh => rh.hora === i)?.total || 0
+            }));
+
+            // Resumo
+            const totalMovimentacoes = porColaborador.reduce((s, c) => s + c.total, 0);
+            const porTipoResumo: Record<string, number> = {};
+            rColab.rows.forEach(r => {
+                porTipoResumo[r.tipo] = (porTipoResumo[r.tipo] || 0) + r.total;
+            });
+
+            res.json({
+                periodo: { mes, ano, dia: dia || undefined },
+                resumo: {
+                    totalMovimentacoes,
+                    porTipo: porTipoResumo,
+                    totalColaboradores: porColaborador.length,
+                    datasComDados: diaMap.size,
+                },
+                porColaborador,
+                volumeDiario,
+                porHora,
+                topOps: rOps.rows,
+                topItens: rItens.rows,
+            });
+        } catch (err) {
+            logger.error({ err, mes, ano, dia }, 'Erro ao carregar analytics de transferências');
+            res.status(500).json({ error: 'Erro ao processar dados' });
+        }
+    }
+);
+
+/**
+ * Detalhamento de movimentações por colaborador/período
+ * GET /logistica/transferencias/analytics/detalhes?mes=3&ano=2026&dia=0&colaborador=NOME&page=1&pageSize=200
+ */
+transferenciasRouter.get(
+    '/logistica/transferencias/analytics/detalhes',
+    requirePermission('logistica_transferencias', 'ver'),
+    async (req, res) => {
+        const mes = parseInt(String(req.query.mes)) || new Date().getMonth() + 1;
+        const ano = parseInt(String(req.query.ano)) || new Date().getFullYear();
+        const dia = parseInt(String(req.query.dia)) || 0;
+        const page = Math.max(1, parseInt(String(req.query.page)) || 1);
+        const pageSize = Math.min(500, Math.max(10, parseInt(String(req.query.pageSize)) || 200));
+        const colaborador = String(req.query.colaborador || '');
+
+        if (!colaborador) {
+            return res.status(400).json({ error: 'Colaborador é obrigatório' });
+        }
+
+        let dataInicio: string;
+        let dataFim: string;
+
+        if (dia > 0 && dia <= 31) {
+            const padDia = String(dia).padStart(2, '0');
+            const padMes = String(mes).padStart(2, '0');
+            const dateStr = `${ano}-${padMes}-${padDia}`;
+            dataInicio = dateStr;
+            dataFim = dateStr;
+        } else {
+            const padMes = String(mes).padStart(2, '0');
+            dataInicio = `${ano}-${padMes}-01`;
+            const lastDay = new Date(ano, mes, 0).getDate();
+            dataFim = `${ano}-${padMes}-${lastDay}`;
+        }
+
+        try {
+            const offset = (page - 1) * pageSize;
+
+            const query = `
+                SELECT
+                    id,
+                    data_ref,
+                    diario,
+                    descricao,
+                    tipo,
+                    item_codigo,
+                    op_numero,
+                    op_codigo,
+                    linhas,
+                    lancado,
+                    lancado_em,
+                    criado_por
+                FROM logistica_transferencias
+                WHERE data_ref >= $1 AND data_ref <= $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                ORDER BY lancado_em DESC, data_ref DESC, id ASC
+                LIMIT $4 OFFSET $5
+            `;
+
+            const qCount = pool.query(`
+                SELECT COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref >= $1 AND data_ref <= $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+            `, [dataInicio, dataFim, colaborador]);
+
+            const qRows = pool.query(query, [dataInicio, dataFim, colaborador, pageSize, offset]);
+
+            const [rCount, rRows] = await Promise.all([qCount, qRows]);
+
+            const total = rCount.rows[0].total;
+            const hasNext = offset + pageSize < total;
+
+            res.json({
+                items: rRows.rows,
+                total,
+                page,
+                pageSize,
+                hasNext,
+                totalPages: Math.ceil(total / pageSize),
                 colaborador,
-                ...d,
-                percentualEstornos: d.total > 0 ? Math.round((d.estornos / d.total) * 100 * 10) / 10 : 0,
-            }))
-            .sort((a, b) => b.total - a.total);
-
-        const volumeDiario = Array.from(diaMap.entries())
-            .map(([data, d]) => ({ data, ...d }))
-            .sort((a, b) => a.data.localeCompare(b.data));
-
-        const porHora = Array.from({ length: 24 }, (_, hora) => ({
-            hora,
-            total: horaMap.get(hora) || 0,
-        }));
-
-        const topOps = Array.from(opMap.entries())
-            .map(([opNumero, d]) => ({ opNumero, opCodigo: d.opCodigo, total: d.total }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, 20);
-
-        const topItens = Array.from(itemMap.entries())
-            .map(([itemCodigo, total]) => ({ itemCodigo, total }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, 20);
-
-        // Resumo
-        const totalMovimentacoes = porColaborador.reduce((s, c) => s + c.total, 0);
-        const porTipo: Record<string, number> = {};
-        for (const c of porColaborador) {
-            porTipo['transferencia_princ'] = (porTipo['transferencia_princ'] || 0) + c.transferenciasPrinc;
-            porTipo['consumo'] = (porTipo['consumo'] || 0) + c.consumos;
-            porTipo['manual'] = (porTipo['manual'] || 0) + c.manuais;
-            porTipo['estorno'] = (porTipo['estorno'] || 0) + c.estornos;
-            porTipo['nf'] = (porTipo['nf'] || 0) + c.nf;
-            porTipo['outro'] = (porTipo['outro'] || 0) + c.outro;
+                periodo: { mes, ano, dia: dia || undefined }
+            });
+        } catch (err) {
+            logger.error({ err, colaborador, mes, ano, dia }, 'Erro ao buscar detalhes de transferências');
+            res.status(500).json({ error: 'Erro interno ao buscar detalhes' });
         }
-
-        res.json({
-            periodo: { mes, ano },
-            resumo: {
-                totalMovimentacoes,
-                porTipo,
-                totalColaboradores: porColaborador.length,
-                datasComDados: diaMap.size,
-            },
-            porColaborador,
-            volumeDiario,
-            porHora,
-            topOps,
-            topItens,
-        });
     }
 );

@@ -1,14 +1,17 @@
 // src/features/logistica/pages/TransferenciasAnalyticsPage.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FixedSizeList } from 'react-window';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { FiUsers, FiRepeat, FiPackage, FiAlertTriangle, FiArrowDown } from 'react-icons/fi';
-import PageHeader from '../../../shared/components/PageHeader';
-import { getTransferenciasAnalytics } from '../../../services/apiClient';
+import { FiUsers, FiRepeat, FiPackage, FiAlertTriangle, FiArrowDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { PageHeader, Modal, Badge } from '../../../shared/components';
+import { getTransferenciasAnalytics, getTransferenciasDetalhes } from '../../../services/apiClient';
+import type { TransferenciaDetalhe } from '../../../services/apiClient';
 import type { TransferenciasAnalytics, ColaboradorDesempenho } from '@spiraview/shared';
+import { formatDate, formatDateTimeShort } from '../../../shared/utils/dateUtils';
 import styles from './TransferenciasAnalyticsPage.module.css';
 
 const TIPO_COLORS: Record<string, string> = {
@@ -36,24 +39,71 @@ export default function TransferenciasAnalyticsPage() {
     const now = new Date();
     const [mes, setMes] = useState(now.getMonth() + 1);
     const [ano, setAno] = useState(now.getFullYear());
+    const [dia, setDia] = useState(0); // 0 = Todos
     const [data, setData] = useState<TransferenciasAnalytics | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortKey, setSortKey] = useState<SortKey>('total');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
+    // Detalhes
+    const [selectedColaborador, setSelectedColaborador] = useState<string | null>(null);
+    const [detalhes, setDetalhes] = useState<TransferenciaDetalhe[]>([]);
+    const [totalDetalhes, setTotalDetalhes] = useState(0);
+    const [loadingDetalhes, setLoadingDetalhes] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [detalhesPagina, setDetalhesPagina] = useState(1);
+    const [detalhesTotalPages, setDetalhesTotalPages] = useState(1);
+
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getTransferenciasAnalytics(mes, ano);
+            const res = await getTransferenciasAnalytics(mes, ano, dia);
             setData(res);
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }, [mes, ano]);
+    }, [mes, ano, dia]);
 
     useEffect(() => { load(); }, [load]);
+
+    const handleColaboradorClick = async (nome: string) => {
+        setSelectedColaborador(nome);
+        setShowModal(true);
+        setDetalhesPagina(1);
+        loadDetalhes(nome, 1);
+    };
+
+    const loadDetalhes = async (nome: string, page: number) => {
+        setLoadingDetalhes(true);
+        try {
+            const res = await getTransferenciasDetalhes(mes, ano, nome, dia, page, 200);
+            setDetalhes(res.items);
+            setTotalDetalhes(res.total || 0);
+            setDetalhesTotalPages(res.totalPages || 1);
+        } catch (error) {
+            console.error('Erro ao carregar detalhes:', error);
+        } finally {
+            setLoadingDetalhes(false);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (detalhesPagina < detalhesTotalPages && selectedColaborador) {
+            const nextPage = detalhesPagina + 1;
+            setDetalhesPagina(nextPage);
+            loadDetalhes(selectedColaborador, nextPage);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (detalhesPagina > 1 && selectedColaborador) {
+            const prevPage = detalhesPagina - 1;
+            setDetalhesPagina(prevPage);
+            loadDetalhes(selectedColaborador, prevPage);
+        }
+    };
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) {
@@ -121,30 +171,70 @@ export default function TransferenciasAnalyticsPage() {
 
             {/* Filter */}
             <div className={styles.filterBar}>
-                <label className={styles.filterLabel}>
-                    {t('logisticaTransferencias.mes', 'Mês')}
-                    <select
-                        className={styles.filterSelect}
-                        value={mes}
-                        onChange={e => setMes(Number(e.target.value))}
-                    >
-                        {meses.map((m, i) => (
-                            <option key={i} value={i + 1}>{m}</option>
-                        ))}
-                    </select>
-                </label>
-                <label className={styles.filterLabel}>
-                    {t('logisticaTransferencias.ano', 'Ano')}
+                <div className={styles.filterGroup}>
+                    <label className={styles.filterLabel}>
+                        <FiRepeat size={14} className={styles.filterIcon} />
+                        {t('logisticaTransferencias.ano', 'Ano')}
+                    </label>
                     <select
                         className={styles.filterSelect}
                         value={ano}
-                        onChange={e => setAno(Number(e.target.value))}
+                        onChange={e => {
+                            setAno(Number(e.target.value));
+                            setDia(0); // Reset day when changing year
+                        }}
                     >
                         {anos.map(a => (
                             <option key={a} value={a}>{a}</option>
                         ))}
                     </select>
-                </label>
+                </div>
+
+                <div className={styles.filterGroup}>
+                    <label className={styles.filterLabel}>
+                        <FiPackage size={14} className={styles.filterIcon} />
+                        {t('logisticaTransferencias.mes', 'Mês')}
+                    </label>
+                    <select
+                        className={styles.filterSelect}
+                        value={mes}
+                        onChange={e => {
+                            setMes(Number(e.target.value));
+                            setDia(0); // Reset day when changing month
+                        }}
+                    >
+                        {meses.map((m, i) => (
+                            <option key={i} value={i + 1}>{m}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className={styles.filterGroup}>
+                    <label className={styles.filterLabel}>
+                        <FiArrowDown size={14} className={styles.filterIcon} />
+                        {t('logisticaTransferencias.dia', 'Dia')}
+                    </label>
+                    <select
+                        className={styles.filterSelect}
+                        value={dia}
+                        onChange={e => setDia(Number(e.target.value))}
+                    >
+                        <option value={0}>{t('common.all', 'Todos')}</option>
+                        {Array.from({ length: new Date(ano, mes, 0).getDate() }, (_, i) => i + 1).map(d => (
+                            <option key={d} value={d}>{String(d).padStart(2, '0')}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {dia > 0 && (
+                    <button 
+                        className={styles.clearFilter}
+                        onClick={() => setDia(0)}
+                        title={t('common.all', 'Ver Mês Inteiro')}
+                    >
+                        {t('common.all', 'Ver Mês Inteiro')}
+                    </button>
+                )}
             </div>
 
             {loading && (
@@ -247,7 +337,14 @@ export default function TransferenciasAnalyticsPage() {
                                 <tbody>
                                     {sortedColaboradores.map(col => (
                                         <tr key={col.colaborador}>
-                                            <td className={styles.tdColaborador}>{col.colaborador}</td>
+                                            <td className={styles.tdColaborador}>
+                                                <span 
+                                                    className={styles.clickable}
+                                                    onClick={() => handleColaboradorClick(col.colaborador)}
+                                                >
+                                                    {col.colaborador}
+                                                </span>
+                                            </td>
                                             <td>
                                                 <div className={styles.barCell}>
                                                     <span className={styles.barNum}>{col.total}</span>
@@ -439,6 +536,110 @@ export default function TransferenciasAnalyticsPage() {
                     </div>
                 </div>
             )}
+            {/* Modal de Detalhes */}
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={`${t('logisticaTransferencias.detalhes', 'Detalhes de Movimentação')} — ${selectedColaborador}`}
+                className={styles.modalLarge}
+            >
+                {loadingDetalhes ? (
+                    <div className={styles.modalLoading}>
+                        <div className={styles.spinner}></div>
+                        <p>{t('common.carregando', 'Carregando detalhes...')}</p>
+                    </div>
+                ) : detalhes.length > 0 ? (
+                    <div className={styles.modalBodyCustom}>
+                        <div className={styles.paginationBar}>
+                            <span className={styles.paginationInfo}>
+                                {t('logisticaTransferencias.pagina', 'Página {{page}} de {{total}} • {{items}} registros',
+                                    { page: detalhesPagina, total: detalhesTotalPages, items: totalDetalhes })}
+                            </span>
+                            <div className={styles.paginationButtons}>
+                                <button
+                                    className={styles.paginationBtn}
+                                    onClick={handlePrevPage}
+                                    disabled={detalhesPagina <= 1}
+                                    title={t('common.anterior', 'Anterior')}
+                                >
+                                    <FiChevronLeft size={18} />
+                                </button>
+                                <button
+                                    className={styles.paginationBtn}
+                                    onClick={handleNextPage}
+                                    disabled={detalhesPagina >= detalhesTotalPages}
+                                    title={t('common.proximo', 'Próximo')}
+                                >
+                                    <FiChevronRight size={18} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className={styles.detalhesTableWrapper}>
+                            <table className={styles.detalhesTable}>
+                                <thead>
+                                    <tr>
+                                        <th>{t('logisticaTransferencias.data', 'Data/Referência')}</th>
+                                        <th>{t('logisticaTransferencias.diario', 'Diário')}</th>
+                                        <th>{t('logisticaTransferencias.tipo', 'Tipo')}</th>
+                                        <th>{t('logisticaTransferencias.item', 'Item')}</th>
+                                        <th>{t('logisticaTransferencias.op', 'OP')}</th>
+                                        <th>{t('logisticaTransferencias.linhas', 'Linhas')}</th>
+                                        <th>{t('logisticaTransferencias.status', 'Status')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {detalhes.map(det => (
+                                        <tr key={det.id}>
+                                            <td>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 'bold' }}>{formatDate(det.data_ref)}</span>
+                                                    <span style={{ fontSize: '10px', color: '#64748b' }}>
+                                                        {det.lancado_em ? formatDateTimeShort(det.lancado_em) : '—'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div title={det.descricao}>
+                                                    {det.diario}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={styles.typeBadge}
+                                                    style={{ backgroundColor: TIPO_COLORS[det.tipo] || '#94a3b8' }}
+                                                >
+                                                    {TIPO_LABELS[det.tipo] || det.tipo}
+                                                </span>
+                                            </td>
+                                            <td style={{ fontFamily: 'monospace' }}>{det.item_codigo}</td>
+                                            <td>
+                                                {det.op_numero ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span>{det.op_numero}</span>
+                                                        <span style={{ fontSize: '10px', color: '#64748b' }}>{det.op_codigo}</span>
+                                                    </div>
+                                                ) : '—'}
+                                            </td>
+                                            <td style={{ fontWeight: 'bold' }}>{det.linhas}</td>
+                                            <td>
+                                                {det.lancado ? (
+                                                    <Badge variant="success">{t('logisticaTransferencias.lancado', 'Lançado')}</Badge>
+                                                ) : (
+                                                    <Badge variant="warning">{t('logisticaTransferencias.pendente', 'Pendente')}</Badge>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.modalEmpty}>
+                        {t('common.noData', 'Nenhum registro encontrado.')}
+                    </div>
+                )}
+            </Modal>
         </>
     );
 }

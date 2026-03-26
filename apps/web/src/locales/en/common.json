@@ -264,6 +264,7 @@
     "linhas": "lines",
     "mes": "Month",
     "ano": "Year",
+    "dia": "Day",
     "colaboradores": "Collaborators",
     "colaborador": "Collaborator",
     "total": "Total",
@@ -303,7 +304,18 @@
       "volumeDiario": "Daily Volume",
       "topOps": "Top Production Orders",
       "topItens": "Top Items Moved"
-    }
+    },
+    "data": "Date/Reference",
+    "diario": "Daily",
+    "tipo": "Type",
+    "item": "Item",
+    "op": "OP",
+    "detalhes": "Movement Details",
+    "lancado": "Posted",
+    "pendente": "Pending",
+    "status": "Status",
+    "limitado": "Displaying the first 1,000 of {{total}} movements.",
+    "pagina": "Page {{page}} of {{total}} • {{items}} records"
   },
   "status": {
     "open": "Open",
@@ -630,6 +642,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "all": "All",
     "processing": "Processing...",
     "saving": "Saving...",
     "deleting": "Deleting...",
@@ -662,8 +675,12 @@
     "firstPage": "First Page",
     "prevPage": "Previous Page",
     "nextPage": "Next Page",
+    "anterior": "Previous",
+    "proximo": "Next",
     "lastPage": "Last Page",
-    "actions": "Actions"
+    "actions": "Actions",
+    "carregando": "Loading...",
+    "noData": "No records found."
   },
   "ehs": {
     "resolver": {

@@ -367,6 +367,63 @@
       "deleteUpload": "Remover upload"
     }
   },
+  "logisticaTransferencias": {
+    "linhas": "linhas",
+    "mes": "Mês",
+    "ano": "Ano",
+    "dia": "Dia",
+    "colaboradores": "Colaboradores",
+    "colaborador": "Colaborador",
+    "total": "Total",
+    "errorNotFile": "Por favor, selecione um arquivo Excel ou CSV.",
+    "errorRead": "Erro ao ler o arquivo.",
+    "errorUpload": "Nenhum registro importado. Por favor, verifique o arquivo.",
+    "uploading": "Processando...",
+    "confirmDelete": "Tem certeza que deseja remover este upload?",
+    "deleteSuccess": "Upload removido com sucesso.",
+    "deleteError": "Erro ao remover upload.",
+    "upload": {
+      "title": "Upload de Transferências",
+      "subtitle": "Importe o relatório de movimentações exportado do ERP",
+      "dropzone": "Arraste o arquivo aqui, ou clique para selecionar",
+      "hint": "Formatos suportados: .xlsx, .xls, .csv",
+      "preview": "Pré-visualização",
+      "confirm": "Confirmar Upload",
+      "lineError": "Linha",
+      "moreErrors": "mais erros",
+      "datas": "Datas processadas:",
+      "viewAnalytics": "Ver análise",
+      "newUpload": "Novo upload",
+      "history": "Uploads Ativos",
+      "noUploads": "Nenhum upload encontrado.",
+      "arquivo": "Arquivo",
+      "linhas": "Linhas",
+      "uploadedAt": "Enviado em",
+      "uploadedBy": "Enviado por"
+    },
+    "analytics": {
+      "title": "Análise de Movimentações",
+      "subtitle": "Movimentações de estoque por período e colaborador",
+      "noData": "Nenhum dado encontrado para o período selecionado.",
+      "desempenho": "Desempenho por Colaborador",
+      "distribuicao": "Distribuição por Tipo",
+      "porHora": "Atividade por Hora",
+      "volumeDiario": "Volume Diário",
+      "topOps": "Principais Ordens de Produção",
+      "topItens": "Itens Mais Movimentados"
+    },
+    "data": "Data/Referência",
+    "diario": "Diário",
+    "tipo": "Tipo",
+    "item": "Item",
+    "op": "OP",
+    "detalhes": "Detalhes de Movimentação",
+    "lancado": "Lançado",
+    "pendente": "Pendente",
+    "status": "Status",
+    "limitado": "Exibindo as primeiras 1.000 de {{total}} movimentações.",
+    "pagina": "Página {{page}} de {{total}} • {{items}} registros"
+  },
   "status": {
     "open": "Aberto",
     "in_progress": "Em andamento",
@@ -696,6 +753,7 @@
   },
   "common": {
     "loading": "Carregando...",
+    "all": "Todos",
     "processing": "Processando...",
     "saving": "Salvando...",
     "deleting": "Excluindo...",
@@ -728,8 +786,12 @@
     "firstPage": "Primeira Página",
     "prevPage": "Página Anterior",
     "nextPage": "Próxima Página",
+    "anterior": "Anterior",
+    "proximo": "Próximo",
     "lastPage": "Última Página",
-    "actions": "Ações"
+    "actions": "Ações",
+    "carregando": "Carregando...",
+    "noData": "Nenhum registro encontrado."
   },
   "ehs": {
     "resolver": {
