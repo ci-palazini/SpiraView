@@ -72,7 +72,9 @@ function parseLancadoEm(raw: unknown): { dataRef: string; lancadoEm: string } | 
     // JS Date object (XLSX may convert date-like cells)
     if (raw instanceof Date) {
         const iso = raw.toISOString();
-        return { dataRef: iso.substring(0, 10), lancadoEm: iso };
+        const dateStr = iso.substring(0, 10);
+        const timeStr = iso.substring(11, 19);
+        return { dataRef: dateStr, lancadoEm: `${dateStr}T${timeStr}-03:00` };
     }
 
     // Excel serial number
@@ -80,7 +82,9 @@ function parseLancadoEm(raw: unknown): { dataRef: string; lancadoEm: string } | 
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
         const dt = new Date(excelEpoch.getTime() + raw * 86400000);
         const iso = dt.toISOString();
-        return { dataRef: iso.substring(0, 10), lancadoEm: iso };
+        const dateStr = iso.substring(0, 10);
+        const timeStr = iso.substring(11, 19);
+        return { dataRef: dateStr, lancadoEm: `${dateStr}T${timeStr}-03:00` };
     }
 
     const s = String(raw).trim();
