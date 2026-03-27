@@ -13,15 +13,21 @@ import {
     FiEdit2,
     FiSearch,
     FiCheck,
-    FiBarChart2
+    FiBarChart2,
+    FiArrowUp,
+    FiArrowDown,
+    FiClock
 } from 'react-icons/fi';
 
 import PageHeader from '../../../shared/components/PageHeader';
 import Modal from '../../../shared/components/Modal';
+import { formatDateTimeShort } from '../../../shared/utils/dateUtils';
 import {
     fetchFuncionariosResumo,
     upsertFuncionarioMeta,
     listarUsuarios,
+    buscarUltimoUploadProducao,
+    type UltimoUpload,
 } from '../../../services/apiClient';
 import type { Usuario } from '@spiraview/shared';
 
@@ -214,6 +220,15 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
     const [selectedOperador, setSelectedOperador] = useState<Usuario | null>(null);
     const [novaMeta, setNovaMeta] = useState(8);
 
+    // Ordenação
+    const [sortConfig, setSortConfig] = useState<{
+        key: keyof LinhaUI | null;
+        direction: 'asc' | 'desc';
+    }>({ key: null, direction: 'asc' });
+
+    // Último upload
+    const [ultimoUpload, setUltimoUpload] = useState<UltimoUpload | null>(null);
+
     /* --- Carregar dados --- */
     const carregarDados = useCallback(async () => {
         setLoading(true);
@@ -264,6 +279,20 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
     useEffect(() => {
         saveMonthParams(mesRef, diasCorridos, diasUteisMes);
     }, [mesRef, diasCorridos, diasUteisMes]);
+
+    /* --- Carregar último upload --- */
+    useEffect(() => {
+        const carregarUltimoUpload = async () => {
+            try {
+                const upload = await buscarUltimoUploadProducao();
+                setUltimoUpload(upload);
+            } catch (e) {
+                console.error('Erro ao carregar último upload:', e);
+            }
+        };
+
+        carregarUltimoUpload();
+    }, []);
 
     /* --- Carregar operadores quando abrir modal de seleção --- */
     const abrirModalSelecao = async () => {
@@ -413,6 +442,38 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
     /* --- Filtrar apenas colaboradores ativos --- */
     const linhasAtivas = useMemo(() => linhas.filter(l => l.ativo), [linhas]);
 
+    /* --- Aplicar ordenação --- */
+    const linhasOrdenadas = useMemo(() => {
+        if (!sortConfig.key) return linhasAtivas;
+
+        const sorted = [...linhasAtivas].sort((a, b) => {
+            const aValue = a[sortConfig.key!];
+            const bValue = b[sortConfig.key!];
+
+            if (aValue === null || aValue === undefined || bValue === null || bValue === undefined) {
+                return 0;
+            }
+
+            let comparison = 0;
+            if (typeof aValue === 'string') {
+                comparison = aValue.localeCompare(bValue as string, 'pt-BR');
+            } else if (typeof aValue === 'number') {
+                comparison = (aValue as number) - (bValue as number);
+            }
+
+            return sortConfig.direction === 'asc' ? comparison : -comparison;
+        });
+
+        return sorted;
+    }, [linhasAtivas, sortConfig]);
+
+    const handleSort = (key: keyof LinhaUI) => {
+        setSortConfig((prev) => ({
+            key,
+            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+        }));
+    };
+
     /* --- Totais --- */
     const totalMetaDiaria = useMemo(() => linhasAtivas.reduce((s, l) => s + l.meta_diaria_horas, 0), [linhasAtivas]);
     const totalMetaAcumulada = useMemo(() => linhasAtivas.reduce((s, l) => s + l.meta_acumulada, 0), [linhasAtivas]);
@@ -440,12 +501,42 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
         return styles.perfGood;
     };
 
+    const SortHeader = ({ label, columnKey, className }: { label: string; columnKey: keyof LinhaUI; className?: string }) => {
+        const isActive = sortConfig.key === columnKey;
+        const isAsc = sortConfig.direction === 'asc';
+
+        return (
+            <th
+                className={className}
+                onClick={() => handleSort(columnKey)}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title={`Ordenar por ${label}`}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: className === styles.alignRight ? 'flex-end' : 'flex-start' }}>
+                    {label}
+                    {isActive && (isAsc ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />)}
+                </div>
+            </th>
+        );
+    };
+
     /* --- Render --- */
     return (
         <>
             <PageHeader
                 title={t('producao.colaboradores.title', 'Performance por Colaborador')}
                 subtitle={t('producao.colaboradores.subtitle', 'Acompanhe a produção e metas individuais de cada operador.')}
+                actions={
+                    ultimoUpload && (
+                        <div className={styles.lastUploadInfo}>
+                            <FiClock />
+                            <div>
+                                <div className={styles.lastUploadLabel}>{t('producao.colaboradores.lastUpload', 'Último upload')}</div>
+                                <div className={styles.lastUploadValue}>{formatDateTimeShort(new Date(ultimoUpload.criadoEm))}</div>
+                            </div>
+                        </div>
+                    )
+                }
             />
 
             <div className={styles.mainContainer}>
@@ -551,15 +642,15 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>{t('producao.colaboradores.table.matricula', 'Matrícula')}</th>
-                                <th>{t('producao.colaboradores.table.name', 'Nome')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.dailyGoal', 'Meta Dia (h)')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.accumGoal', 'Meta Acum (h)')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.monthGoal', 'Meta Mês (h)')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.realDay', 'Real Dia (h)')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.realMonth', 'Real Mês (h)')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.perfDay', 'Perf. Dia')}</th>
-                                <th className={styles.alignRight}>{t('producao.colaboradores.table.perfMonth', 'Perf. Mês')}</th>
+                                <SortHeader label={t('producao.colaboradores.table.matricula', 'Matrícula')} columnKey="matricula" />
+                                <SortHeader label={t('producao.colaboradores.table.name', 'Nome')} columnKey="nome" />
+                                <SortHeader label={t('producao.colaboradores.table.dailyGoal', 'Meta Dia (h)')} columnKey="meta_diaria_horas" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.accumGoal', 'Meta Acum (h)')} columnKey="meta_acumulada" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.monthGoal', 'Meta Mês (h)')} columnKey="meta_mensal" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.realDay', 'Real Dia (h)')} columnKey="real_dia" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.realMonth', 'Real Mês (h)')} columnKey="real_mes" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.perfDay', 'Perf. Dia')} columnKey="perf_dia" className={styles.alignRight} />
+                                <SortHeader label={t('producao.colaboradores.table.perfMonth', 'Perf. Mês')} columnKey="perf_mes" className={styles.alignRight} />
                                 <th className={styles.alignCenter}>{t('producao.colaboradores.table.status', 'Status')}</th>
                                 <th style={{ width: 80 }}></th>
                             </tr>
@@ -577,7 +668,7 @@ export default function ProducaoColaboradoresPage({ user }: ProducaoColaboradore
                                 </tr>
                             )}
 
-                            {linhasAtivas.map((l) => (
+                            {linhasOrdenadas.map((l) => (
                                 <tr key={l.matricula}>
                                     <td><span className={styles.numericValue}>{l.matricula}</span></td>
                                     <td>{l.nome}</td>
