@@ -1,5 +1,5 @@
 // src/features/logistica/pages/TransferenciasAnalyticsPage.tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FixedSizeList } from 'react-window';
 import {
@@ -34,9 +34,25 @@ const TIPO_LABELS: Record<string, string> = {
 
 type SortKey = 'total' | 'transferenciasPrinc' | 'consumos' | 'manuais' | 'estornos' | 'percentualEstornos';
 
+interface SortIconProps {
+    col: SortKey;
+    sortKey: SortKey;
+    sortDir: 'asc' | 'desc';
+}
+
+function SortIcon({ col, sortKey, sortDir }: SortIconProps) {
+    return (
+        <span className={styles.sortIcon} style={{ opacity: sortKey === col ? 1 : 0.3 }}>
+            {sortKey === col && sortDir === 'asc' ? '▲' : '▼'}
+        </span>
+    );
+}
+
+const PAGE_SIZE = 50;
+
 export default function TransferenciasAnalyticsPage() {
     const { t } = useTranslation();
-    const now = new Date();
+    const now = useMemo(() => new Date(), []);
     const [mes, setMes] = useState(now.getMonth() + 1);
     const [ano, setAno] = useState(now.getFullYear());
     const [dia, setDia] = useState(0); // 0 = Todos
@@ -58,6 +74,8 @@ export default function TransferenciasAnalyticsPage() {
     const [colaboradorAnalytics, setColaboradorAnalytics] = useState<ColaboradorAnalytics | null>(null);
     const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
+    const abortRef = useRef<AbortController | null>(null);
+
     const load = useCallback(async () => {
         setLoading(true);
         try {
@@ -72,7 +90,24 @@ export default function TransferenciasAnalyticsPage() {
 
     useEffect(() => { load(); }, [load]);
 
-    const handleColaboradorClick = async (nome: string) => {
+    const loadDetalhes = useCallback(async (nome: string, page: number) => {
+        setLoadingDetalhes(true);
+        try {
+            const res = await getTransferenciasDetalhes(mes, ano, nome, dia, page, PAGE_SIZE);
+            setDetalhes(res.items);
+            setTotalDetalhes(res.total || 0);
+            setDetalhesTotalPages(res.totalPages || 1);
+        } catch (error) {
+            console.error('Erro ao carregar detalhes:', error);
+        } finally {
+            setLoadingDetalhes(false);
+        }
+    }, [mes, ano, dia]);
+
+    const handleColaboradorClick = useCallback(async (nome: string) => {
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+
         setSelectedColaborador(nome);
         setShowModal(true);
         setDetalhesPagina(1);
@@ -86,37 +121,23 @@ export default function TransferenciasAnalyticsPage() {
         } finally {
             setLoadingAnalytics(false);
         }
-    };
+    }, [loadDetalhes, mes, ano, dia]);
 
-    const loadDetalhes = async (nome: string, page: number) => {
-        setLoadingDetalhes(true);
-        try {
-            const res = await getTransferenciasDetalhes(mes, ano, nome, dia, page, 200);
-            setDetalhes(res.items);
-            setTotalDetalhes(res.total || 0);
-            setDetalhesTotalPages(res.totalPages || 1);
-        } catch (error) {
-            console.error('Erro ao carregar detalhes:', error);
-        } finally {
-            setLoadingDetalhes(false);
-        }
-    };
-
-    const handleNextPage = () => {
+    const handleNextPage = useCallback(() => {
         if (detalhesPagina < detalhesTotalPages && selectedColaborador) {
             const nextPage = detalhesPagina + 1;
             setDetalhesPagina(nextPage);
             loadDetalhes(selectedColaborador, nextPage);
         }
-    };
+    }, [detalhesPagina, detalhesTotalPages, selectedColaborador, loadDetalhes]);
 
-    const handlePrevPage = () => {
+    const handlePrevPage = useCallback(() => {
         if (detalhesPagina > 1 && selectedColaborador) {
             const prevPage = detalhesPagina - 1;
             setDetalhesPagina(prevPage);
             loadDetalhes(selectedColaborador, prevPage);
         }
-    };
+    }, [detalhesPagina, selectedColaborador, loadDetalhes]);
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) {
@@ -127,53 +148,67 @@ export default function TransferenciasAnalyticsPage() {
         }
     };
 
-    const sortedColaboradores: ColaboradorDesempenho[] = data
-        ? [...data.porColaborador].sort((a, b) => {
+    const sortedColaboradores = useMemo(() => {
+        if (!data) return [];
+        return [...data.porColaborador].sort((a, b) => {
             const mult = sortDir === 'desc' ? -1 : 1;
             return mult * (a[sortKey] - b[sortKey]);
-        })
-        : [];
+        });
+    }, [data, sortKey, sortDir]);
 
     // Flatten porTipo nested object for Recharts compatibility
-    const volumeDiarioFlat = data?.volumeDiario.map(d => ({
-        data: d.data,
-        total: d.total,
-        transferencia_princ: d.porTipo['transferencia_princ'] || 0,
-        consumo: d.porTipo['consumo'] || 0,
-        manual: d.porTipo['manual'] || 0,
-        estorno: d.porTipo['estorno'] || 0,
-        nf: d.porTipo['nf'] || 0,
-        outro: d.porTipo['outro'] || 0,
-    })) ?? [];
+    const volumeDiarioFlat = useMemo(() => {
+        return data?.volumeDiario.map(d => ({
+            data: d.data,
+            total: d.total,
+            transferencia_princ: d.porTipo['transferencia_princ'] || 0,
+            consumo: d.porTipo['consumo'] || 0,
+            manual: d.porTipo['manual'] || 0,
+            estorno: d.porTipo['estorno'] || 0,
+            nf: d.porTipo['nf'] || 0,
+            outro: d.porTipo['outro'] || 0,
+        })) ?? [];
+    }, [data]);
 
-    const maxTotal = sortedColaboradores.length > 0
-        ? Math.max(...sortedColaboradores.map(c => c.total))
-        : 1;
+    const maxTotal = useMemo(() => {
+        return sortedColaboradores.length > 0
+            ? Math.max(...sortedColaboradores.map(c => c.total))
+            : 1;
+    }, [sortedColaboradores]);
 
-    const pieData = data
-        ? Object.entries(data.resumo.porTipo)
+    const pieData = useMemo(() => {
+        if (!data) return [];
+        return Object.entries(data.resumo.porTipo)
             .filter(([, v]) => v > 0)
             .map(([key, value]) => ({
                 name: TIPO_LABELS[key] || key,
                 value,
                 color: TIPO_COLORS[key] || '#94a3b8',
-            }))
-        : [];
+            }));
+    }, [data]);
 
     const tipos: (keyof typeof TIPO_COLORS)[] = ['transferencia_princ', 'consumo', 'manual', 'estorno', 'nf', 'outro'];
 
-    const SortIcon = ({ col }: { col: SortKey }) => (
-        <span className={styles.sortIcon} style={{ opacity: sortKey === col ? 1 : 0.3 }}>
-            {sortKey === col && sortDir === 'asc' ? '▲' : '▼'}
-        </span>
-    );
+    const colaboradorVolumeDiarioFlat = useMemo(() => {
+        if (!colaboradorAnalytics) return [];
+        return colaboradorAnalytics.volumeDiario.map(d => ({
+            data: d.data,
+            total: d.total,
+            transferencia_princ: d.porTipo['transferencia_princ'] || 0,
+            consumo: d.porTipo['consumo'] || 0,
+            manual: d.porTipo['manual'] || 0,
+            estorno: d.porTipo['estorno'] || 0,
+            nf: d.porTipo['nf'] || 0,
+            outro: d.porTipo['outro'] || 0,
+        }));
+    }, [colaboradorAnalytics]);
 
-    const meses = [
+    const meses = useMemo(() => [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-    ];
+    ], []);
 
-    const anos = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i);
+    const anos = useMemo(() => Array.from({ length: 4 }, (_, i) => now.getFullYear() - i), [now]);
 
     return (
         <>
@@ -328,22 +363,22 @@ export default function TransferenciasAnalyticsPage() {
                                     <tr>
                                         <th>{t('logisticaTransferencias.colaborador', 'Colaborador')}</th>
                                         <th className={styles.thSortable} onClick={() => handleSort('total')}>
-                                            Total <SortIcon col="total" />
+                                            Total <SortIcon col="total" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                         <th className={styles.thSortable} onClick={() => handleSort('transferenciasPrinc')}>
-                                            Transf. PRINC <SortIcon col="transferenciasPrinc" />
+                                            Transf. PRINC <SortIcon col="transferenciasPrinc" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                         <th className={styles.thSortable} onClick={() => handleSort('consumos')}>
-                                            Consumos <SortIcon col="consumos" />
+                                            Consumos <SortIcon col="consumos" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                         <th className={styles.thSortable} onClick={() => handleSort('manuais')}>
-                                            Manuais <SortIcon col="manuais" />
+                                            Manuais <SortIcon col="manuais" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                         <th className={styles.thSortable} onClick={() => handleSort('estornos')}>
-                                            Estornos <SortIcon col="estornos" />
+                                            Estornos <SortIcon col="estornos" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                         <th className={styles.thSortable} onClick={() => handleSort('percentualEstornos')}>
-                                            % Estorno <SortIcon col="percentualEstornos" />
+                                            % Estorno <SortIcon col="percentualEstornos" sortKey={sortKey} sortDir={sortDir} />
                                         </th>
                                     </tr>
                                 </thead>
@@ -601,7 +636,7 @@ export default function TransferenciasAnalyticsPage() {
                                             {t('logisticaTransferencias.analytics.volumeDiario', 'Volume Diário')}
                                         </h3>
                                         <ResponsiveContainer width="100%" height={200}>
-                                            <BarChart data={colaboradorAnalytics.volumeDiario} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                                            <BarChart data={colaboradorVolumeDiarioFlat} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                                                 <XAxis
                                                     dataKey="data"

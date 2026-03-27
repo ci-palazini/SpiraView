@@ -1574,6 +1574,9 @@ export interface TransferenciaDetalhe {
 export interface TransferenciasDetalhesResponse {
     items: TransferenciaDetalhe[];
     total?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages: number;
     colaborador: string;
     periodo: { mes: number; ano: number; dia?: number };
 }
