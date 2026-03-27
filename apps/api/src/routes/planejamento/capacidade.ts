@@ -687,4 +687,126 @@ capacidadeRouter.patch(
     }
 );
 
+// =============================================
+// GET /capacidade/metas/tv - PUBLIC (for TV mode, no auth)
+// Retorna as metas do mês atual
+// =============================================
+
+capacidadeRouter.get(
+    '/capacidade/metas/tv',
+    async (_req: Request, res: Response) => {
+        try {
+            const now = new Date();
+            const mes = now.getMonth() + 1;
+            const ano = now.getFullYear();
+
+            const { rows } = await pool.query(`
+                SELECT meta_exportacao AS "metaExportacao", meta_ottr AS "metaOttr"
+                FROM planejamento_metas
+                WHERE mes = $1 AND ano = $2
+                LIMIT 1
+            `, [mes, ano]);
+
+            if (rows.length === 0) {
+                return res.json({ mes, ano, metaExportacao: 0, metaOttr: 0 });
+            }
+            res.json({
+                mes,
+                ano,
+                metaExportacao: parseFloat(rows[0].metaExportacao) || 0,
+                metaOttr: parseFloat(rows[0].metaOttr) || 0,
+            });
+        } catch (err: any) {
+            logger.error({ err }, 'Erro ao buscar metas TV:');
+            res.status(500).json({ error: err.message || 'Erro interno' });
+        }
+    }
+);
+
+// =============================================
+// GET /capacidade/metas?mes=&ano=
+// =============================================
+
+capacidadeRouter.get(
+    '/capacidade/metas',
+    requirePermission('planejamento_config', 'ver'),
+    async (req: Request, res: Response) => {
+        try {
+            const now = new Date();
+            const mes = parseInt(String(req.query.mes)) || (now.getMonth() + 1);
+            const ano = parseInt(String(req.query.ano)) || now.getFullYear();
+
+            if (mes < 1 || mes > 12 || ano < 2020) {
+                return res.status(400).json({ error: 'Mês ou ano inválido' });
+            }
+
+            const { rows } = await pool.query(`
+                SELECT meta_exportacao AS "metaExportacao", meta_ottr AS "metaOttr"
+                FROM planejamento_metas
+                WHERE mes = $1 AND ano = $2
+                LIMIT 1
+            `, [mes, ano]);
+
+            if (rows.length === 0) {
+                return res.json({ mes, ano, metaExportacao: 0, metaOttr: 0 });
+            }
+            res.json({
+                mes,
+                ano,
+                metaExportacao: parseFloat(rows[0].metaExportacao) || 0,
+                metaOttr: parseFloat(rows[0].metaOttr) || 0,
+            });
+        } catch (err: any) {
+            logger.error({ err }, 'Erro ao buscar metas:');
+            res.status(500).json({ error: err.message || 'Erro interno' });
+        }
+    }
+);
+
+// =============================================
+// PATCH /capacidade/metas
+// =============================================
+
+capacidadeRouter.patch(
+    '/capacidade/metas',
+    requirePermission('planejamento_config', 'editar'),
+    async (req: Request, res: Response) => {
+        try {
+            const { mes, ano, metaExportacao, metaOttr } = req.body;
+
+            const mesNum = parseInt(String(mes));
+            const anoNum = parseInt(String(ano));
+            const exportacao = parseFloat(String(metaExportacao ?? 0)) || 0;
+            const ottr = parseFloat(String(metaOttr ?? 0)) || 0;
+
+            if (!mesNum || mesNum < 1 || mesNum > 12 || !anoNum || anoNum < 2020) {
+                return res.status(400).json({ error: 'Mês ou ano inválido' });
+            }
+            if (exportacao < 0 || ottr < 0 || ottr > 100) {
+                return res.status(400).json({ error: 'Valores inválidos: exportação deve ser ≥ 0 e OTTR entre 0 e 100' });
+            }
+
+            const { rows } = await pool.query(`
+                INSERT INTO planejamento_metas (mes, ano, meta_exportacao, meta_ottr, atualizado_em)
+                VALUES ($1, $2, $3, $4, NOW())
+                ON CONFLICT (ano, mes) DO UPDATE
+                    SET meta_exportacao = EXCLUDED.meta_exportacao,
+                        meta_ottr = EXCLUDED.meta_ottr,
+                        atualizado_em = NOW()
+                RETURNING mes, ano, meta_exportacao AS "metaExportacao", meta_ottr AS "metaOttr"
+            `, [mesNum, anoNum, exportacao, ottr]);
+
+            res.json({
+                mes: rows[0].mes,
+                ano: rows[0].ano,
+                metaExportacao: parseFloat(rows[0].metaExportacao) || 0,
+                metaOttr: parseFloat(rows[0].metaOttr) || 0,
+            });
+        } catch (err: any) {
+            logger.error({ err }, 'Erro ao salvar metas:');
+            res.status(500).json({ error: err.message || 'Erro interno' });
+        }
+    }
+);
+
 export { capacidadeRouter };

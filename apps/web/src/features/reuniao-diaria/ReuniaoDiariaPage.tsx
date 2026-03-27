@@ -19,7 +19,7 @@ import {
     FiRefreshCw,
     FiUsers,
 } from 'react-icons/fi';
-import { http } from '../../services/apiClient';
+import { http, buscarMetasPlanejamento, type PlanejamentoMetas } from '../../services/apiClient';
 import styles from './ReuniaoDiaria.module.css';
 
 // ===== TYPES =====
@@ -334,6 +334,7 @@ export default function ReuniaoDiariaPage() {
     const [slideIdx, setSlideIdx] = useState(0);
     const [autoPlay, setAutoPlay] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [metas, setMetas] = useState<PlanejamentoMetas | null>(null);
 
     const dep = (departamento || '').toLowerCase();
 
@@ -342,6 +343,17 @@ export default function ReuniaoDiariaPage() {
         try {
             const res = await http.get<DailyData>(`/reuniao-diaria/${dep}`);
             setData(res);
+
+            // Buscar metas do mês atual
+            const now = new Date();
+            const mesMetas = now.getMonth() + 1;
+            const anoMetas = now.getFullYear();
+            try {
+                const m = await buscarMetasPlanejamento(mesMetas, anoMetas, {});
+                setMetas(m);
+            } catch {
+                // falha em buscar metas não bloqueia o resto
+            }
         } catch (err) {
             console.error('[reuniao-diaria] Fetch error', err);
         } finally {
@@ -1067,6 +1079,33 @@ export default function ReuniaoDiariaPage() {
                             {fat ? `${fat.ottrYtd}%` : '—'}
                         </p>
                         <p className={styles.kpiLabel}>OTTR YTD</p>
+                        {metas && metas.metaOttr > 0 && fat && (
+                            <>
+                                <p className={styles.kpiSub} style={{ margin: '0.5rem 0 0.25rem', fontSize: '0.9rem', fontWeight: 600, color: '#475569' }}>
+                                    Meta: <span style={{ color: '#2563eb', fontWeight: 700 }}>{metas.metaOttr}%</span>
+                                </p>
+                                <div
+                                    className={styles.metaProgressBar}
+                                    style={{
+                                        width: '100%',
+                                        height: '8px',
+                                        background: '#e5e7eb',
+                                        borderRadius: 4,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <div
+                                        className={styles.metaProgressFill}
+                                        style={{
+                                            width: `${Math.min((fat.ottrYtd / metas.metaOttr) * 100, 100)}%`,
+                                            height: '100%',
+                                            background: fat.ottrYtd >= metas.metaOttr ? '#10b981' : '#3b82f6',
+                                            transition: 'width 0.3s',
+                                        }}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -1079,6 +1118,33 @@ export default function ReuniaoDiariaPage() {
                         <p className={styles.kpiLabel}>
                             {t('reuniao_diaria.export_acum', 'Exportação Acumulada')}
                         </p>
+                        {metas && metas.metaExportacao > 0 && fat && (
+                            <>
+                                <p className={styles.kpiSub} style={{ margin: '0.5rem 0 0.25rem', fontSize: '0.9rem', fontWeight: 600, color: '#475569' }}>
+                                    Meta: <span style={{ color: '#d97706', fontWeight: 700 }}>{formatK(metas.metaExportacao * 1000)}</span>
+                                </p>
+                                <div
+                                    className={styles.metaProgressBar}
+                                    style={{
+                                        width: '100%',
+                                        height: '8px',
+                                        background: '#e5e7eb',
+                                        borderRadius: 4,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <div
+                                        className={styles.metaProgressFill}
+                                        style={{
+                                            width: `${Math.min((fat.exportacaoAcumulado / metas.metaExportacao) * 100, 100)}%`,
+                                            height: '100%',
+                                            background: fat.exportacaoAcumulado >= metas.metaExportacao ? '#10b981' : '#d97706',
+                                            transition: 'width 0.3s',
+                                        }}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className={styles.kpiCard}>
                         <p className={styles.kpiValue} style={{ color: fat && fat.devolucoesDia > 0 ? '#dc2626' : '#64748b' }}>

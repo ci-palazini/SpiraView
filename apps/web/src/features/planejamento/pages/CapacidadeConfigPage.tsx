@@ -8,6 +8,8 @@ import PageHeader from '../../../shared/components/PageHeader';
 import {
     listarMaquinasPlanejamento,
     atualizarMaquinaPlanejamento,
+    buscarMetasPlanejamento,
+    atualizarMetasPlanejamento,
     type MaquinaPlanejamento,
 } from '../../../services/apiClient';
 import styles from './CapacidadeConfigPage.module.css';
@@ -27,11 +29,66 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
     const [saving, setSaving] = useState<string | null>(null);
     const [maquinas, setMaquinas] = useState<MaquinaPlanejamento[]>([]);
 
-    // Estado de edição
+    // Metas mensais
+    const now = new Date();
+    const [mesSelecionado, setMesSelecionado] = useState(now.getMonth() + 1);
+    const [anoSelecionado, setAnoSelecionado] = useState(now.getFullYear());
+    const [metaExportacao, setMetaExportacao] = useState('');
+    const [metaOttr, setMetaOttr] = useState('');
+    const [savingMetas, setSavingMetas] = useState(false);
+
+    // Estado de edição de máquinas
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editCapacidade, setEditCapacidade] = useState('');
     const [editAliases, setEditAliases] = useState('');
     const [editSetorPlanejamento, setEditSetorPlanejamento] = useState('');
+
+    const fetchMetas = useCallback(async (mes: number, ano: number) => {
+        try {
+            const data = await buscarMetasPlanejamento(mes, ano, { role: user?.role, email: user?.email });
+            setMetaExportacao(data.metaExportacao > 0 ? String(data.metaExportacao) : '');
+            setMetaOttr(data.metaOttr > 0 ? String(data.metaOttr) : '');
+        } catch {
+            // silencioso — não bloquear o carregamento da página
+        }
+    }, [user]);
+
+    const handleMesAnoChange = (mes: number, ano: number) => {
+        setMesSelecionado(mes);
+        setAnoSelecionado(ano);
+        setMetaExportacao('');
+        setMetaOttr('');
+        fetchMetas(mes, ano);
+    };
+
+    const handleSaveMetas = async () => {
+        const exportacao = parseFloat(metaExportacao.replace(',', '.'));
+        const ottr = parseFloat(metaOttr.replace(',', '.'));
+
+        if (isNaN(exportacao) || exportacao < 0) {
+            toast.error(t('planejamento.config.metaExportacaoInvalid', 'Informe um valor válido para Meta Exportação'));
+            return;
+        }
+        if (isNaN(ottr) || ottr < 0 || ottr > 100) {
+            toast.error(t('planejamento.config.metaOttrInvalid', 'OTTR deve estar entre 0 e 100'));
+            return;
+        }
+
+        setSavingMetas(true);
+        try {
+            const updated = await atualizarMetasPlanejamento(
+                { mes: mesSelecionado, ano: anoSelecionado, metaExportacao: exportacao, metaOttr: ottr },
+                { role: user?.role, email: user?.email }
+            );
+            setMetaExportacao(String(updated.metaExportacao));
+            setMetaOttr(String(updated.metaOttr));
+            toast.success(t('planejamento.config.metasSaved', 'Metas salvas com sucesso'));
+        } catch (err: any) {
+            toast.error(err.message || t('planejamento.config.saveError', 'Erro ao salvar'));
+        } finally {
+            setSavingMetas(false);
+        }
+    };
 
     const fetchMaquinas = useCallback(async (silent = false) => {
         try {
@@ -48,7 +105,9 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
 
     useEffect(() => {
         fetchMaquinas();
-    }, [fetchMaquinas]);
+        fetchMetas(mesSelecionado, anoSelecionado);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchMaquinas, fetchMetas]);
 
     const startEditing = (maq: MaquinaPlanejamento) => {
         setEditingId(maq.id);
@@ -134,6 +193,86 @@ export default function CapacidadeConfigPage({ user }: CapacidadeConfigPageProps
                             'identifique automaticamente a máquina nas planilhas do Excel.'
                         )}
                     </p>
+                </div>
+
+                {/* Metas mensais */}
+                <div className={styles.card}>
+                    <h2 className={styles.cardTitle}>
+                        {t('planejamento.config.metasTitle', 'Metas Mensais')}
+                    </h2>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup} style={{ maxWidth: 160 }}>
+                            <label htmlFor="mesSelecionado">
+                                {t('planejamento.config.mes', 'Mês')}
+                            </label>
+                            <select
+                                id="mesSelecionado"
+                                value={mesSelecionado}
+                                onChange={(e) => handleMesAnoChange(Number(e.target.value), anoSelecionado)}
+                                style={{ width: '100%', padding: '0.625rem 0.875rem', fontSize: '0.9375rem', border: '1px solid #d1d5db', borderRadius: 8, outline: 'none' }}
+                            >
+                                {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map((nome, i) => (
+                                    <option key={i + 1} value={i + 1}>{nome}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className={styles.formGroup} style={{ maxWidth: 110 }}>
+                            <label htmlFor="anoSelecionado">
+                                {t('planejamento.config.ano', 'Ano')}
+                            </label>
+                            <select
+                                id="anoSelecionado"
+                                value={anoSelecionado}
+                                onChange={(e) => handleMesAnoChange(mesSelecionado, Number(e.target.value))}
+                                style={{ width: '100%', padding: '0.625rem 0.875rem', fontSize: '0.9375rem', border: '1px solid #d1d5db', borderRadius: 8, outline: 'none' }}
+                            >
+                                {Array.from({ length: 4 }, (_, i) => now.getFullYear() - 1 + i).map(ano => (
+                                    <option key={ano} value={ano}>{ano}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="metaExportacao">
+                                {t('planejamento.config.metaExportacao', 'Meta Exportação (R$)')}
+                            </label>
+                            <input
+                                id="metaExportacao"
+                                type="number"
+                                min={0}
+                                step={1000}
+                                value={metaExportacao}
+                                onChange={(e) => setMetaExportacao(e.target.value)}
+                                placeholder="0"
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="metaOttr">
+                                {t('planejamento.config.metaOttr', 'Meta OTTR (%)')}
+                            </label>
+                            <input
+                                id="metaOttr"
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={0.1}
+                                value={metaOttr}
+                                onChange={(e) => setMetaOttr(e.target.value)}
+                                placeholder="0"
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '0.5px' }}>
+                            <button
+                                className={styles.addBtn}
+                                onClick={handleSaveMetas}
+                                disabled={savingMetas}
+                            >
+                                <FiSave />
+                                {savingMetas
+                                    ? t('common.saving', 'Salvando...')
+                                    : t('common.save', 'Salvar')}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Lista de máquinas */}

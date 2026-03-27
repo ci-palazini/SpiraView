@@ -1311,6 +1311,29 @@ export async function atualizarMaquinaPlanejamento(
     });
 }
 
+// Metas mensais de planejamento
+export interface PlanejamentoMetas {
+    mes: number;
+    ano: number;
+    metaExportacao: number;
+    metaOttr: number;
+}
+
+export async function buscarMetasPlanejamento(mes: number, ano: number, auth: AuthParams): Promise<PlanejamentoMetas> {
+    return http.get<PlanejamentoMetas>('/planejamento/capacidade/metas', { params: { mes, ano }, auth });
+}
+
+export async function atualizarMetasPlanejamento(
+    payload: { mes: number; ano: number; metaExportacao: number; metaOttr: number },
+    auth: AuthParams
+): Promise<PlanejamentoMetas> {
+    return apiFetch<PlanejamentoMetas>('/planejamento/capacidade/metas', {
+        method: 'PATCH',
+        body: payload,
+        auth,
+    });
+}
+
 // ===== QUALIDADE / REFUGOS =====
 export async function listarRefugos(params: { page?: number; limit?: number; dataInicio?: string; dataFim?: string; origem?: string | string[]; responsavel?: string | string[]; tipo?: string; tipoLancamento?: string } = {}, auth: AuthParams = {}): Promise<{ items: any[]; meta: any }> {
     const res = await http.get<{ items: any[]; meta: any }>(`/qualidade/refugos`, { params, auth });
