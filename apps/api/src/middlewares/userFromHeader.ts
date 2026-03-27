@@ -26,12 +26,20 @@ export async function userFromHeader(req: Request, res: Response, next: NextFunc
         const a = Buffer.from(token);
         const b = Buffer.from(env.automation.apiToken);
         if (a.length === b.length && timingSafeEqual(a, b)) {
+          // Fetch permissions for the automation role from the DB
+          const { rows } = await pool.query(
+            "SELECT nome, permissoes FROM roles WHERE nome = 'automation' LIMIT 1"
+          );
+          
+          const roleData = rows[0];
+
           req.user = {
             id: "automation",
             email: "automation@system.local",
             nome: "Automação",
             name: "Automação",
-            role: "gestor",
+            role: roleData?.nome || "automation",
+            permissoes: roleData?.permissoes || { reuniao_diaria: "ver" },
           };
           return next();
         }
