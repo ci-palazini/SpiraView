@@ -151,8 +151,8 @@ function classifyRow(descricao: string): { tipo: TipoTransferencia; itemCodigo: 
     }
 
     if (d.startsWith('Consumo L.Separação') || d.startsWith('Consumo L.Separacao')) {
-        const opNumMatch = d.match(/OP:\s*(\d+)/);
-        const opCodMatch = d.match(/\/(OP\d+)/);
+        const opCodMatch = d.match(/OP:\s*(\d+)/);
+        const opNumMatch = d.match(/\/\s*(OP\d+)/);
         return {
             tipo: 'consumo',
             itemCodigo: null,
