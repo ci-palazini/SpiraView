@@ -55,6 +55,7 @@ import type {
     LogisticaTransferenciaUpload,
     TransferenciasUploadResult,
     TransferenciasAnalytics,
+    ColaboradorAnalytics,
 } from '@spiraview/shared';
 
 // ===== BASE / FALLBACK CONFIG =====
@@ -1597,6 +1598,18 @@ export async function getTransferenciasDetalhes(
     if (page) params.page = page;
     if (pageSize) params.pageSize = pageSize;
     return http.get<TransferenciasDetalhesResponse>(`/logistica/transferencias/analytics/detalhes`, { params, auth });
+}
+
+export async function getTransferenciasColaboradorAnalytics(
+    colaborador: string,
+    mes: number,
+    ano: number,
+    dia?: number,
+    auth: AuthParams = {}
+): Promise<ColaboradorAnalytics> {
+    const params: any = { mes, ano, colaborador };
+    if (dia && dia > 0) params.dia = dia;
+    return http.get<ColaboradorAnalytics>(`/logistica/transferencias/analytics/colaborador`, { params, auth });
 }
 
 // ===== LOGÍSTICA — PRINC 1 =====

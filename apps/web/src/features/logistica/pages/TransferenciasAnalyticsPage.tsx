@@ -8,9 +8,9 @@ import {
 } from 'recharts';
 import { FiUsers, FiRepeat, FiPackage, FiAlertTriangle, FiArrowDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { PageHeader, Modal, Badge } from '../../../shared/components';
-import { getTransferenciasAnalytics, getTransferenciasDetalhes } from '../../../services/apiClient';
+import { getTransferenciasAnalytics, getTransferenciasDetalhes, getTransferenciasColaboradorAnalytics } from '../../../services/apiClient';
 import type { TransferenciaDetalhe } from '../../../services/apiClient';
-import type { TransferenciasAnalytics, ColaboradorDesempenho } from '@spiraview/shared';
+import type { TransferenciasAnalytics, ColaboradorDesempenho, ColaboradorAnalytics } from '@spiraview/shared';
 import { formatDate, formatDateTimeShort } from '../../../shared/utils/dateUtils';
 import styles from './TransferenciasAnalyticsPage.module.css';
 
@@ -54,6 +54,10 @@ export default function TransferenciasAnalyticsPage() {
     const [detalhesPagina, setDetalhesPagina] = useState(1);
     const [detalhesTotalPages, setDetalhesTotalPages] = useState(1);
 
+    // Análise de colaborador (gráficos)
+    const [colaboradorAnalytics, setColaboradorAnalytics] = useState<ColaboradorAnalytics | null>(null);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
     const load = useCallback(async () => {
         setLoading(true);
         try {
@@ -72,7 +76,16 @@ export default function TransferenciasAnalyticsPage() {
         setSelectedColaborador(nome);
         setShowModal(true);
         setDetalhesPagina(1);
+        setLoadingAnalytics(true);
         loadDetalhes(nome, 1);
+        try {
+            const res = await getTransferenciasColaboradorAnalytics(nome, mes, ano, dia > 0 ? dia : undefined);
+            setColaboradorAnalytics(res);
+        } catch (error) {
+            console.error('Erro ao carregar análise de colaborador:', error);
+        } finally {
+            setLoadingAnalytics(false);
+        }
     };
 
     const loadDetalhes = async (nome: string, page: number) => {
@@ -550,6 +563,77 @@ export default function TransferenciasAnalyticsPage() {
                     </div>
                 ) : detalhes.length > 0 ? (
                     <div className={styles.modalBodyCustom}>
+                        {/* Gráficos do Colaborador */}
+                        {loadingAnalytics ? (
+                            <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                                {t('common.carregando', 'Carregando gráficos...')}
+                            </div>
+                        ) : colaboradorAnalytics ? (
+                            <div className={styles.chartsRow}>
+                                {/* Atividade por Hora */}
+                                <div className={styles.chartCard}>
+                                    <h3 className={styles.chartTitle}>
+                                        {t('logisticaTransferencias.analytics.porHora', 'Atividade por Hora')}
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={colaboradorAnalytics.porHora} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                            <XAxis
+                                                dataKey="hora"
+                                                tickFormatter={h => `${String(h).padStart(2, '0')}h`}
+                                                tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                interval={2}
+                                            />
+                                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                            <Tooltip
+                                                labelFormatter={h => `${String(h).padStart(2, '0')}:00`}
+                                                formatter={(v) => [typeof v === 'number' ? v.toLocaleString('pt-BR') : v, 'Movimentações']}
+                                            />
+                                            <Bar dataKey="total" fill="#3b82f6" radius={[3, 3, 0, 0]} maxBarSize={15} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Volume Diário */}
+                                {colaboradorAnalytics.volumeDiario.length > 0 && (
+                                    <div className={styles.chartCard}>
+                                        <h3 className={styles.chartTitle}>
+                                            {t('logisticaTransferencias.analytics.volumeDiario', 'Volume Diário')}
+                                        </h3>
+                                        <ResponsiveContainer width="100%" height={200}>
+                                            <BarChart data={colaboradorAnalytics.volumeDiario} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                                <XAxis
+                                                    dataKey="data"
+                                                    tickFormatter={d => d.substring(5)}
+                                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                />
+                                                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                                <Tooltip
+                                                    formatter={(v, name) => [v, TIPO_LABELS[String(name)] || String(name)]}
+                                                />
+                                                <Legend
+                                                    iconType="square"
+                                                    iconSize={10}
+                                                    formatter={value => <span style={{ fontSize: 11, color: '#475569' }}>{TIPO_LABELS[value] || value}</span>}
+                                                />
+                                                {['transferencia_princ', 'consumo', 'manual', 'estorno', 'nf', 'outro'].map((tipo) => (
+                                                    <Bar
+                                                        key={tipo}
+                                                        dataKey={tipo}
+                                                        name={tipo}
+                                                        stackId="a"
+                                                        fill={TIPO_COLORS[tipo]}
+                                                        maxBarSize={30}
+                                                    />
+                                                ))}
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
+
                         <div className={styles.paginationBar}>
                             <span className={styles.paginationInfo}>
                                 {t('logisticaTransferencias.pagina', 'Página {{page}} de {{total}} • {{items}} registros',

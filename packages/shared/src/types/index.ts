@@ -447,6 +447,29 @@ export interface TransferenciasAnalytics {
     topItens: Array<{ itemCodigo: string; total: number }>;
 }
 
+export interface ColaboradorAnalytics {
+    colaborador: string;
+    periodo: { mes: number; ano: number; dia?: number };
+    resumo: {
+        total: number;
+        transferenciasPrinc: number;
+        consumos: number;
+        manuais: number;
+        estornos: number;
+        nf: number;
+        outro: number;
+        percentualEstornos: number;
+        diasAtivos: number;
+        mediaMovimentacoesPorDia: number;
+        horaMaisProdutiva: number | null;
+        diaMaisAtivo: string | null;
+    };
+    porHora: Array<{ hora: number; total: number }>;
+    volumeDiario: Array<{ data: string; total: number; porTipo: Record<string, number> }>;
+    topOps: Array<{ opNumero: string; opCodigo: string; total: number }>;
+    topItens: Array<{ itemCodigo: string; total: number }>;
+}
+
 // ---------- Notificações ----------
 export interface NotificacaoConfigUser {
     id: string;

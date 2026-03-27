@@ -770,3 +770,34 @@
     border-bottom: 1px solid var(--color-neutral-100);
     vertical-align: middle;
 }
+
+/* Gráficos no Modal */
+.chartsRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-4);
+    padding: var(--spacing-3) 0;
+    border-bottom: 1px solid var(--color-neutral-200);
+}
+
+@media (max-width: 900px) {
+    .chartsRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chartCard {
+    background: #f9fafb;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    box-shadow: var(--shadow-xs);
+}
+
+.chartTitle {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-800);
+    margin: 0 0 var(--spacing-3) 0;
+    padding: 0;
+}

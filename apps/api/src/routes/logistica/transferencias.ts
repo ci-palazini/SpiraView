@@ -658,3 +658,183 @@ transferenciasRouter.get(
         }
     }
 );
+
+/**
+ * Análise completa de um colaborador específico
+ * GET /logistica/transferencias/analytics/colaborador?mes=3&ano=2026&dia=0&colaborador=NOME
+ */
+transferenciasRouter.get(
+    '/logistica/transferencias/analytics/colaborador',
+    requirePermission('logistica_transferencias', 'ver'),
+    async (req, res) => {
+        const mes = parseInt(String(req.query.mes)) || new Date().getMonth() + 1;
+        const ano = parseInt(String(req.query.ano)) || new Date().getFullYear();
+        const dia = parseInt(String(req.query.dia)) || 0;
+        const colaborador = String(req.query.colaborador || '');
+
+        if (!colaborador) {
+            return res.status(400).json({ error: 'Colaborador é obrigatório' });
+        }
+
+        let dataInicio: string;
+        let dataFim: string;
+
+        if (dia > 0) {
+            const padDia = String(dia).padStart(2, '0');
+            const padMes = String(mes).padStart(2, '0');
+            const dateStr = `${ano}-${padMes}-${padDia}`;
+            dataInicio = dateStr;
+            dataFim = dateStr;
+        } else {
+            const padMes = String(mes).padStart(2, '0');
+            dataInicio = `${ano}-${padMes}-01`;
+            dataFim = new Date(ano, mes, 0).toISOString().substring(0, 10);
+        }
+
+        try {
+            // 1. Por Tipo (resumo)
+            const qTipo = pool.query(`
+                SELECT
+                    tipo,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                GROUP BY 1
+            `, [dataInicio, dataFim, colaborador]);
+
+            // 2. Volume Diário e Tipo
+            const qDia = pool.query(`
+                SELECT
+                    data_ref::text as data,
+                    tipo,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                GROUP BY 1, 2
+                ORDER BY 1
+            `, [dataInicio, dataFim, colaborador]);
+
+            // 3. Por Hora
+            const qHora = pool.query(`
+                SELECT
+                    EXTRACT(HOUR FROM lancado_em AT TIME ZONE 'America/Sao_Paulo')::int as hora,
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                GROUP BY 1
+                ORDER BY 1
+            `, [dataInicio, dataFim, colaborador]);
+
+            // 4. Top OPs
+            const qOps = pool.query(`
+                SELECT
+                    op_numero as "opNumero",
+                    MAX(op_codigo) as "opCodigo",
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                  AND op_numero IS NOT NULL AND op_numero != ''
+                GROUP BY 1
+                ORDER BY total DESC
+                LIMIT 10
+            `, [dataInicio, dataFim, colaborador]);
+
+            // 5. Top Itens
+            const qItens = pool.query(`
+                SELECT
+                    item_codigo as "itemCodigo",
+                    COUNT(*)::int as total
+                FROM logistica_transferencias
+                WHERE data_ref BETWEEN $1 AND $2
+                  AND COALESCE(criado_por, 'Desconhecido') = $3
+                  AND item_codigo IS NOT NULL AND item_codigo != ''
+                GROUP BY 1
+                ORDER BY total DESC
+                LIMIT 10
+            `, [dataInicio, dataFim, colaborador]);
+
+            const [rTipo, rDia, rHora, rOps, rItens] = await Promise.all([qTipo, qDia, qHora, qOps, qItens]);
+
+            // Processar Resumo por Tipo
+            const tipoMap: Record<string, number> = {
+                transferencia_princ: 0,
+                consumo: 0,
+                manual: 0,
+                estorno: 0,
+                nf: 0,
+                outro: 0,
+            };
+            rTipo.rows.forEach(r => {
+                tipoMap[r.tipo] = r.total;
+            });
+
+            const totalMovimentacoes = Object.values(tipoMap).reduce((s, v) => s + v, 0);
+            const percentualEstornos = totalMovimentacoes > 0 ? Math.round((tipoMap['estorno'] / totalMovimentacoes) * 100 * 10) / 10 : 0;
+
+            // Processar Volume Diário
+            const diaMap = new Map<string, any>();
+            rDia.rows.forEach(r => {
+                if (!diaMap.has(r.data)) {
+                    diaMap.set(r.data, { data: r.data, total: 0, porTipo: {} });
+                }
+                const d = diaMap.get(r.data);
+                d.total += r.total;
+                d.porTipo[r.tipo] = (d.porTipo[r.tipo] || 0) + r.total;
+            });
+            const volumeDiario = Array.from(diaMap.values());
+            const diasAtivos = volumeDiario.length;
+
+            // Encontrar dia mais ativo
+            let diaMaisAtivo: string | null = null;
+            if (volumeDiario.length > 0) {
+                diaMaisAtivo = volumeDiario.reduce((max, d) => d.total > max.total ? d : max).data;
+            }
+
+            // Processar Por Hora
+            const porHora = Array.from({ length: 24 }, (_, i) => ({
+                hora: i,
+                total: rHora.rows.find(rh => rh.hora === i)?.total || 0
+            }));
+
+            // Encontrar hora mais produtiva
+            let horaMaisProdutiva: number | null = null;
+            const maxHora = Math.max(...porHora.map(h => h.total));
+            if (maxHora > 0) {
+                horaMaisProdutiva = porHora.find(h => h.total === maxHora)?.hora ?? null;
+            }
+
+            // Media movimentações por dia
+            const mediaMovimentacoesPorDia = diasAtivos > 0 ? Math.round((totalMovimentacoes / diasAtivos) * 10) / 10 : 0;
+
+            res.json({
+                colaborador,
+                periodo: { mes, ano, dia: dia || undefined },
+                resumo: {
+                    total: totalMovimentacoes,
+                    transferenciasPrinc: tipoMap['transferencia_princ'],
+                    consumos: tipoMap['consumo'],
+                    manuais: tipoMap['manual'],
+                    estornos: tipoMap['estorno'],
+                    nf: tipoMap['nf'],
+                    outro: tipoMap['outro'],
+                    percentualEstornos,
+                    diasAtivos,
+                    mediaMovimentacoesPorDia,
+                    horaMaisProdutiva,
+                    diaMaisAtivo,
+                },
+                porHora,
+                volumeDiario,
+                topOps: rOps.rows,
+                topItens: rItens.rows,
+            });
+        } catch (err) {
+            logger.error({ err, colaborador, mes, ano, dia }, 'Erro ao carregar analytics de colaborador');
+            res.status(500).json({ error: 'Erro ao processar dados' });
+        }
+    }
+);
